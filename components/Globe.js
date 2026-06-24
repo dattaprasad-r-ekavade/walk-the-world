@@ -1,9 +1,8 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import "cesium/Build/Cesium/Widgets/widgets.css";
 import { getCesiumIonToken } from "@/lib/env";
-import { getCesiumBaseUrl } from "@/lib/cesium";
+import { loadCesium } from "@/lib/loadCesium";
 
 // CesiumJS 3D globe. Renders the whole Earth, lets the user click anywhere (or
 // use the city shortcuts) to fly down to street level, and walk around with
@@ -21,10 +20,7 @@ export default function Globe({ controllerRef, onReady }) {
     let onKeyDown, onKeyUp, preRender;
 
     (async () => {
-      if (typeof window !== "undefined") {
-        window.CESIUM_BASE_URL = getCesiumBaseUrl();
-      }
-      const Cesium = await import("cesium");
+      const Cesium = await loadCesium();
       if (destroyed || !containerRef.current) return;
 
       const ionToken = getCesiumIonToken();

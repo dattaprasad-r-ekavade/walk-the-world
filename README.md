@@ -104,10 +104,11 @@ later builds are cached and fast.
   exposes camera controls, and runs the WASD walk loop on `scene.preRender`.
 - `app/page.js` — UI overlay (title, city shortcuts, globe button, token hint)
   and the dynamic (client-only) import of the globe.
-- `scripts/copy-cesium.mjs` — optionally copies Cesium's
-  `Workers/Assets/Widgets/ThirdParty` into `public/cesium` when
-  `NEXT_PUBLIC_CESIUM_BASE_URL=/cesium`. By default the app loads these from
-  unpkg CDN via `lib/cesium.js` to keep deploy artifacts small.
+- `lib/loadCesium.js` — loads the Cesium browser bundle from CDN via
+  `<script>` (avoids webpack bundling Cesium, which breaks in production).
+- `lib/cesium.js` — resolves `CESIUM_BASE_URL` for Workers/Assets.
+- `scripts/copy-cesium.mjs` — optionally copies Cesium into `public/cesium`
+  when `NEXT_PUBLIC_CESIUM_BASE_URL=/cesium` (offline Docker).
 - `lib/geo.js` — the city shortcut coordinates.
 
 ## Notes

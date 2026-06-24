@@ -28,6 +28,10 @@ if (!existsSync(src)) {
 }
 
 mkdirSync(dest, { recursive: true });
+const cesiumJs = join(src, "Cesium.js");
+if (existsSync(cesiumJs)) {
+  cpSync(cesiumJs, join(dest, "Cesium.js"));
+}
 for (const dir of ["Workers", "Assets", "Widgets", "ThirdParty"]) {
   const from = join(src, dir);
   if (existsSync(from)) {
