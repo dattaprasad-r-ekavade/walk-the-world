@@ -1,11 +1,19 @@
-// Copies CesiumJS static assets (Workers, Assets, Widgets, ThirdParty) into
-// /public/cesium so they can be served at runtime. CesiumJS loads these at
-// the path given by window.CESIUM_BASE_URL (set to "/cesium" in the app).
-// Runs automatically before `dev` and `build` via npm pre-scripts.
+// Copies CesiumJS static assets into public/cesium when
+// NEXT_PUBLIC_CESIUM_BASE_URL=/cesium. By default the app loads these from a
+// CDN instead, which keeps deploy artifacts much smaller.
 
 import { cpSync, existsSync, mkdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+
+const baseUrl = process.env.NEXT_PUBLIC_CESIUM_BASE_URL?.trim();
+
+if (!baseUrl || baseUrl !== "/cesium") {
+  console.log(
+    "[copy-cesium] Skipping — Cesium loads from CDN (set NEXT_PUBLIC_CESIUM_BASE_URL=/cesium to bundle local assets)"
+  );
+  process.exit(0);
+}
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = join(__dirname, "..");

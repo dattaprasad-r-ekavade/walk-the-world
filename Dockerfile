@@ -21,7 +21,7 @@ ENV NEXT_PUBLIC_CESIUM_ION_TOKEN=$NEXT_PUBLIC_CESIUM_ION_TOKEN
 ENV NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=$NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
 ENV NEXT_TELEMETRY_DISABLED=1
 
-# `prebuild` copies Cesium's static assets into public/cesium, then next build.
+# `prebuild` runs copy-cesium (no-op unless CESIUM_BASE_URL=/cesium), then build.
 RUN npm run build
 
 # ---------- runner: minimal runtime image ----------
@@ -34,7 +34,7 @@ ENV HOSTNAME=0.0.0.0
 
 RUN addgroup -g 1001 -S nodejs && adduser -S nextjs -u 1001
 
-# public/ holds the Cesium assets served at /cesium; copy it in.
+# public/ may hold optional local Cesium assets; copy if present.
 COPY --from=builder /app/public ./public
 # Standalone server + the minimal node_modules it needs.
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./

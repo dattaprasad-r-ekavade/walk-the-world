@@ -23,11 +23,13 @@ to unlock high-res imagery, terrain, and the photorealistic 3D cities.
 ## Setup
 
 ```bash
-npm install      # also copies Cesium's static assets into public/cesium
+npm install
 npm run dev      # http://localhost:3000
 ```
 
-That's it for the basic globe.
+Cesium's runtime assets (Workers, textures) load from **unpkg CDN** by default so
+deploy packages stay small. For fully offline/local assets, set
+`NEXT_PUBLIC_CESIUM_BASE_URL=/cesium` in `.env.local` and rebuild.
 
 ### Unlock real 3D cities (recommended)
 
@@ -102,9 +104,10 @@ later builds are cached and fast.
   exposes camera controls, and runs the WASD walk loop on `scene.preRender`.
 - `app/page.js` — UI overlay (title, city shortcuts, globe button, token hint)
   and the dynamic (client-only) import of the globe.
-- `scripts/copy-cesium.mjs` — copies Cesium's `Workers/Assets/Widgets/ThirdParty`
-  into `public/cesium`, served at `window.CESIUM_BASE_URL = "/cesium"`. Runs
-  automatically before `dev` and `build`.
+- `scripts/copy-cesium.mjs` — optionally copies Cesium's
+  `Workers/Assets/Widgets/ThirdParty` into `public/cesium` when
+  `NEXT_PUBLIC_CESIUM_BASE_URL=/cesium`. By default the app loads these from
+  unpkg CDN via `lib/cesium.js` to keep deploy artifacts small.
 - `lib/geo.js` — the city shortcut coordinates.
 
 ## Notes
@@ -114,8 +117,9 @@ later builds are cached and fast.
   token's allowed domains in the provider dashboard before deploying.
 - **Photorealistic coverage** is excellent across major world cities and good in
   many smaller ones; remote areas fall back to terrain + imagery.
-- The production build bundles Cesium (large), so `npm run build` takes a while.
-  `npm run dev` starts fast because Cesium loads in the browser.
+- **Deploy size.** Cesium runtime assets load from unpkg by default (~7 MB not
+  bundled). Set `NEXT_PUBLIC_CESIUM_BASE_URL=/cesium` to self-host if your
+  environment blocks external CDNs.
 
 ## Tech
 
