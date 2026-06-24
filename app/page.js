@@ -46,7 +46,8 @@ export default function Home() {
       {ready && !hasTiles && (
         <div className="token-warn">
           Running on the basic globe. Add a <code>NEXT_PUBLIC_GOOGLE_MAPS_API_KEY</code>{" "}
-          or <code>NEXT_PUBLIC_CESIUM_ION_TOKEN</code> in <code>.env.local</code> to
+          or <code>NEXT_PUBLIC_CESIUM_ION_TOKEN</code> (or split{" "}
+          <code>_1</code>/<code>_2</code> parts) in <code>.env.local</code> to
           stream Google Photorealistic 3D Tiles (real 3D cities).
         </div>
       )}

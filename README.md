@@ -39,7 +39,9 @@ Then add **either** token to `.env.local`:
 
 - **`NEXT_PUBLIC_CESIUM_ION_TOKEN`** — free from <https://ion.cesium.com/tokens>.
   Enables world imagery, terrain, and Google Photorealistic 3D Tiles (Cesium ion
-  proxies Google's tiles by default).
+  proxies Google's tiles by default). If your host caps secret length at 255
+  characters, split the token across **`NEXT_PUBLIC_CESIUM_ION_TOKEN_1`** and
+  **`NEXT_PUBLIC_CESIUM_ION_TOKEN_2`** instead (the app concatenates them).
 - **`NEXT_PUBLIC_GOOGLE_MAPS_API_KEY`** — a Google Maps Platform key with the
   *Map Tiles API* enabled (<https://developers.google.com/maps/documentation/tile/3d-tiles>).
   Streams Google's photorealistic tiles directly.
