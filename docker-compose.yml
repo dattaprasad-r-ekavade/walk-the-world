@@ -1,0 +1,19 @@
+# Convenience wrapper so you can build + run with one command:
+#   docker compose up --build
+# Then open http://localhost:3000
+#
+# Tokens are optional. To enable Google Photorealistic 3D Tiles, create a .env
+# file next to this one (copy .env.local.example) with your token(s) — Compose
+# passes them in as build args automatically.
+
+services:
+  web:
+    build:
+      context: .
+      args:
+        NEXT_PUBLIC_CESIUM_ION_TOKEN: ${NEXT_PUBLIC_CESIUM_ION_TOKEN:-}
+        NEXT_PUBLIC_GOOGLE_MAPS_API_KEY: ${NEXT_PUBLIC_GOOGLE_MAPS_API_KEY:-}
+    image: walk-the-world
+    ports:
+      - "3000:3000"
+    restart: unless-stopped

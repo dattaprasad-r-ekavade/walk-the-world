@@ -1,0 +1,13 @@
+node_modules
+.next
+out
+public/cesium
+.git
+.gitignore
+.env.local
+.env
+npm-debug.log*
+Dockerfile
+.dockerignore
+README.md
+*.md
