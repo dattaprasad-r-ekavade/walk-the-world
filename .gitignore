@@ -8,3 +8,5 @@
 .playwright-cli
 cred.txt
 pat.txt
+/terminals
+/agent-tools

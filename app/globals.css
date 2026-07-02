@@ -32,62 +32,287 @@ main {
   display: none !important;
 }
 
-.hud {
+/* ================= TITLE / PAUSE MENU ================= */
+.menu-screen {
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  padding: 20px 24px;
-  pointer-events: none;
-  z-index: 10;
-  background: linear-gradient(to bottom, rgba(5, 7, 13, 0.7), rgba(5, 7, 13, 0));
-}
-.hud h1 {
-  font-size: 20px;
-  font-weight: 650;
-  letter-spacing: 0.3px;
-}
-.hud p {
-  margin-top: 4px;
-  font-size: 13px;
-  opacity: 0.7;
-}
-
-.places {
-  position: absolute;
-  bottom: 22px;
-  left: 50%;
-  transform: translateX(-50%);
+  inset: 0;
+  z-index: 40;
   display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
+  align-items: center;
   justify-content: center;
-  max-width: 92vw;
-  z-index: 10;
+  background:
+    radial-gradient(ellipse at 50% 120%, rgba(30, 60, 130, 0.35), transparent 60%),
+    linear-gradient(to bottom, rgba(3, 5, 10, 0.88), rgba(3, 5, 10, 0.72));
+  backdrop-filter: blur(3px);
 }
-.places button {
-  background: rgba(20, 28, 46, 0.82);
+.menu-screen.dim {
+  background: rgba(3, 5, 10, 0.78);
+}
+.menu-card {
+  text-align: center;
+  padding: 48px 56px;
+  animation: menuIn 0.5s ease;
+}
+@keyframes menuIn {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: none; }
+}
+.menu-logo {
+  font-size: 64px;
+  filter: drop-shadow(0 0 30px rgba(90, 150, 255, 0.7));
+}
+.menu-title {
+  margin-top: 10px;
+  font-size: 44px;
+  font-weight: 800;
+  letter-spacing: 8px;
+  background: linear-gradient(180deg, #ffffff, #9db8e8);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-shadow: 0 2px 24px rgba(80, 140, 255, 0.35);
+}
+.menu-title.small {
+  font-size: 32px;
+  letter-spacing: 6px;
+}
+.menu-sub {
+  margin-top: 8px;
+  font-size: 14px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  opacity: 0.6;
+}
+.menu-buttons {
+  margin-top: 34px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: center;
+}
+.menu-btn {
+  width: 260px;
+  padding: 13px 20px;
+  font-size: 15px;
+  letter-spacing: 1px;
   color: #dce6ff;
-  border: 1px solid rgba(120, 160, 255, 0.28);
-  border-radius: 999px;
-  padding: 8px 16px;
-  font-size: 13px;
+  background: rgba(18, 28, 52, 0.85);
+  border: 1px solid rgba(120, 160, 255, 0.35);
+  border-radius: 10px;
   cursor: pointer;
   transition: all 0.15s ease;
   backdrop-filter: blur(6px);
 }
-.places button:hover {
-  background: rgba(60, 90, 160, 0.9);
-  border-color: rgba(150, 185, 255, 0.6);
+.menu-btn:hover:not(:disabled) {
+  background: rgba(55, 85, 160, 0.9);
+  border-color: rgba(160, 195, 255, 0.7);
+  transform: translateY(-1px);
 }
-.places button.ghost {
-  background: rgba(8, 12, 22, 0.82);
-  border-color: rgba(255, 255, 255, 0.18);
+.menu-btn.primary {
+  background: linear-gradient(180deg, #3d6fd8, #2a4ea6);
+  border-color: rgba(170, 205, 255, 0.7);
+  font-weight: 700;
+}
+.menu-btn:disabled {
+  opacity: 0.55;
+  cursor: wait;
 }
 
+/* ================= MINIMAP ================= */
+.map-corner {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+.minimap {
+  border-radius: 50%;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(120, 160, 255, 0.25);
+  background: #0b1322;
+}
+.coords {
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.5px;
+  background: rgba(8, 14, 26, 0.8);
+  border: 1px solid rgba(120, 160, 255, 0.25);
+  border-radius: 999px;
+  padding: 4px 12px;
+  backdrop-filter: blur(6px);
+}
+
+/* ================= ICON TOOLBAR ================= */
+.toolbar {
+  position: absolute;
+  top: 18px;
+  left: 18px;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.toolbar button {
+  width: 46px;
+  height: 46px;
+  font-size: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #dce6ff;
+  background: rgba(12, 20, 38, 0.85);
+  border: 1px solid rgba(120, 160, 255, 0.3);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  backdrop-filter: blur(6px);
+}
+.toolbar button:hover {
+  background: rgba(55, 85, 160, 0.9);
+  border-color: rgba(160, 195, 255, 0.7);
+}
+
+/* ================= STATUS CHIPS ================= */
+.chips {
+  position: absolute;
+  left: 18px;
+  bottom: 18px;
+  z-index: 20;
+  display: flex;
+  gap: 8px;
+}
+.chip {
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: 0.6px;
+  font-variant-numeric: tabular-nums;
+  background: rgba(8, 14, 26, 0.82);
+  border: 1px solid rgba(120, 160, 255, 0.28);
+  border-radius: 999px;
+  padding: 8px 14px;
+  backdrop-filter: blur(6px);
+}
+.chip.mode {
+  color: #9fe3a1;
+  border-color: rgba(130, 220, 140, 0.4);
+}
+
+/* ================= HINT BAR ================= */
+.hintbar {
+  position: absolute;
+  bottom: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 20;
+  font-size: 12.5px;
+  letter-spacing: 0.4px;
+  opacity: 0.9;
+  background: rgba(8, 14, 26, 0.72);
+  border: 1px solid rgba(120, 160, 255, 0.2);
+  border-radius: 999px;
+  padding: 8px 18px;
+  backdrop-filter: blur(6px);
+  white-space: nowrap;
+}
+
+/* ================= CROSSHAIR ================= */
+.crosshair {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 6px;
+  height: 6px;
+  margin: -3px 0 0 -3px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.45), 0 0 10px rgba(255, 255, 255, 0.5);
+  z-index: 20;
+  pointer-events: none;
+}
+
+/* ================= PANELS (fast travel / controls) ================= */
+.panel {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 50;
+  width: min(440px, 92vw);
+  background: rgba(10, 16, 30, 0.94);
+  border: 1px solid rgba(120, 160, 255, 0.35);
+  border-radius: 16px;
+  padding: 20px 22px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(10px);
+  animation: menuIn 0.25s ease;
+}
+.panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+.panel-head h2 {
+  font-size: 17px;
+  letter-spacing: 1px;
+}
+.panel-head .close {
+  background: none;
+  border: none;
+  color: #9fb4dd;
+  font-size: 16px;
+  cursor: pointer;
+}
+.travel-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.travel-grid button {
+  padding: 12px 14px;
+  text-align: left;
+  font-size: 14px;
+  color: #dce6ff;
+  background: rgba(20, 30, 55, 0.85);
+  border: 1px solid rgba(120, 160, 255, 0.3);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.travel-grid button:hover {
+  background: rgba(55, 85, 160, 0.9);
+  border-color: rgba(160, 195, 255, 0.7);
+}
+.keys {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13.5px;
+}
+.keys td {
+  padding: 7px 6px;
+  border-bottom: 1px solid rgba(120, 160, 255, 0.12);
+}
+.keys td:first-child {
+  width: 40%;
+}
+kbd {
+  display: inline-block;
+  padding: 2px 8px;
+  font-size: 12px;
+  font-family: inherit;
+  background: rgba(30, 44, 78, 0.9);
+  border: 1px solid rgba(140, 175, 255, 0.4);
+  border-bottom-width: 2px;
+  border-radius: 6px;
+}
+
+/* ================= TOKEN WARNING ================= */
 .token-warn {
   position: absolute;
-  bottom: 16px;
+  bottom: 64px;
   right: 16px;
   z-index: 10;
   background: rgba(70, 60, 20, 0.92);
@@ -102,4 +327,61 @@ main {
   background: rgba(0, 0, 0, 0.4);
   padding: 1px 5px;
   border-radius: 4px;
+}
+
+/* ================= LOADING ================= */
+.load-bar {
+  margin: 30px auto 0;
+  width: 280px;
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(120, 160, 255, 0.15);
+  border: 1px solid rgba(120, 160, 255, 0.3);
+  overflow: hidden;
+}
+.load-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #3d6fd8, #7fa8f0);
+  transition: width 0.4s ease;
+}
+.load-stage {
+  margin-top: 12px;
+  font-size: 13px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  opacity: 0.6;
+}
+
+/* ================= GTA LOCATION TITLE ================= */
+.location-toast {
+  position: absolute;
+  bottom: 64px;
+  right: 26px;
+  z-index: 20;
+  font-size: 30px;
+  font-weight: 800;
+  font-style: italic;
+  letter-spacing: 0.5px;
+  text-align: right;
+  background: linear-gradient(180deg, #ffffff, #c9d8f2);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.85));
+  animation: locToast 6s ease forwards;
+  pointer-events: none;
+}
+@keyframes locToast {
+  0% { opacity: 0; transform: translateY(12px); }
+  10% { opacity: 1; transform: none; }
+  80% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+.chip.fps {
+  color: #9fd0ff;
+}
+.chip.fps.low {
+  color: #ffb27a;
 }

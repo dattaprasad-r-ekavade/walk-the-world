@@ -21,7 +21,6 @@ ENV NEXT_PUBLIC_CESIUM_ION_TOKEN=$NEXT_PUBLIC_CESIUM_ION_TOKEN
 ENV NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=$NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
 ENV NEXT_TELEMETRY_DISABLED=1
 
-# `prebuild` runs copy-cesium (no-op unless CESIUM_BASE_URL=/cesium), then build.
 RUN npm run build
 
 # ---------- runner: minimal runtime image ----------
