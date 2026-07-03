@@ -10,3 +10,5 @@ cred.txt
 pat.txt
 /terminals
 /agent-tools
+.vercel
+.env*.local

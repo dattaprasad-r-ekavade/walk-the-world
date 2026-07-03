@@ -1,14 +1,33 @@
-import "./globals.css";
+import { Suspense } from 'react';
+import { Outfit, Syne } from 'next/font/google';
+import './globals.css';
+import { Providers } from '@/components/Providers';
+
+const outfit = Outfit({
+  subsets: ['latin'],
+  variable: '--font-sans',
+  display: 'swap',
+});
+
+const syne = Syne({
+  subsets: ['latin'],
+  variable: '--font-display',
+  display: 'swap',
+});
 
 export const metadata = {
-  title: "Walk the World",
-  description: "Spin a 3D globe, pick a place, and walk around in real street-level imagery.",
+  title: 'Walk the World',
+  description: 'Spin a 3D globe, pick a place, and walk around in real street-level imagery.',
 };
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en">
-      <body>{children}</body>
+    <html lang="en" className={`${outfit.variable} ${syne.variable}`}>
+      <body className="font-sans">
+        <Providers>
+          <Suspense fallback={null}>{children}</Suspense>
+        </Providers>
+      </body>
     </html>
   );
 }

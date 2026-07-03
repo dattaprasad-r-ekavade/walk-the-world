@@ -2,15 +2,24 @@
 
 import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
-import Minimap from "@/components/Minimap";
-import { PLACES } from "@/lib/geo";
-import { LoadingScreen, TravelPanel, SettingsPanel, PauseMenu } from "@/components/hud/Panels";
+import { LoadingScreen } from "@/components/hud/Panels";
 import { BUILDING_COLORS, ROAD_STYLE } from "@/lib/engine/styles";
 import { makeFacadeTexture, makeRoadTexture, makeRailTexture } from "@/lib/engine/textures";
 import { lon2tx, lat2ty, tx2lon, ty2lat, EARTH_R, makeLocalFrame } from "@/lib/engine/geo";
 import { placeProps } from "@/lib/engine/props";
 import { fetchCityData } from "@/lib/engine/cityData";
 import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
+import { trackRender, recordFpsSample } from "@/lib/perf";
+import { STREET } from "@/lib/engine/street/constants";
+import { createCollision } from "@/lib/engine/street/collision";
+import { createGroundHeight } from "@/lib/engine/street/ground-height";
+import { createHudRef } from "@/lib/engine/street/hud-ref";
+import { GameShell } from "@/components/game-shell/GameShell";
+import { useRouter } from "next/navigation";
+import { useGameStore } from "@/stores/game-store";
+import { useGameKeyboard } from "@/hooks/use-game-keyboard";
+import { touchInputRef, readTouchMovement, applyTouchLook } from "@/lib/touch-input";
+import { menuBtnPrimary } from "@/lib/ui";
 
 // ============================================================
 // Street Engine — custom Three.js renderer for street-level
@@ -22,10 +31,7 @@ import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js
 // Local ENU coordinates in meters, origin at spawn.
 // ============================================================
 
-const R = 6378137;
-const EYE = 1.7;
-const WALK_SPEED = 5;
-const RUN_MULT = 5;
+const { EYE, WALK_SPEED, RUN_MULT, TERRAIN_Z: Z, COLLISION_GRID: GRID } = STREET;
 
 
 
@@ -33,29 +39,36 @@ const RUN_MULT = 5;
 
 
 export default function StreetEngine({ lat0, lon0 }) {
+  trackRender();
+  const router = useRouter();
+  const hudDomRef = useRef(null);
+  const panel = useGameStore((s) => s.panel);
+  const setPanel = useGameStore((s) => s.setPanel);
+  const togglePanel = useGameStore((s) => s.togglePanel);
+  const settings = useGameStore((s) => s.settings);
+  const changeSettingStore = useGameStore((s) => s.changeSetting);
+
   const mountRef = useRef(null);
   const [stage, setStage] = useState("Preparing engine…");
   const [readyPct, setReadyPct] = useState(5);
-  const [hud, setHud] = useState({ fps: 0, elev: 0, third: false, locked: false });
+  const [hudLocked, setHudLocked] = useState(false);
   const [place, setPlace] = useState(null);
-  const [panel, setPanel] = useState(null); // null | travel | pause | settings
   const [bigMap, setBigMap] = useState(false);
-  const [engineSettings, setEngineSettings] = useState({ hour: 12, weather: 0, quality: "medium" });
-  const [liveWx, setLiveWx] = useState(null); // null | "loading" | result
+  const [liveWx, setLiveWx] = useState(null);
 
   const useRealWeather = async () => {
     setLiveWx("loading");
     const r = await engineRef.current.applyRealWeather?.();
     if (r) {
-      setEngineSettings((prev) => ({ ...prev, hour: r.hour, weather: r.weather }));
+      changeSettingStore({ hour: r.hour, weather: r.weather });
       setLiveWx(`${r.temp}°C · ${r.rain > 0.05 ? "raining" : "dry"} — synced`);
     } else setLiveWx("unavailable");
   };
-  const posRef = useRef(null); // live geo position for the minimap
-  const engineRef = useRef({}); // hooks into the running scene
+  const posRef = useRef(null);
+  const engineRef = useRef({});
 
   const changeSetting = (patch) => {
-    setEngineSettings((prev) => ({ ...prev, ...patch }));
+    changeSettingStore(patch);
     if (patch.hour !== undefined) engineRef.current.setTime?.(patch.hour);
     if (patch.weather !== undefined) {
       engineRef.current.setWeather?.(patch.weather);
@@ -64,25 +77,30 @@ export default function StreetEngine({ lat0, lon0 }) {
     if (patch.quality) engineRef.current.setQuality?.(patch.quality);
   };
 
-  // HUD keys: M travel, P pause, Tab map, N location
-  useEffect(() => {
-    const onKey = (e) => {
-      if (e.code === "KeyM") setPanel((x) => (x === "travel" ? null : "travel"));
-      if (e.code === "KeyP") setPanel((x) => (x === "pause" ? null : "pause"));
+  useGameKeyboard(
+    (e) => {
+      if (e.code === "KeyM") togglePanel("travel");
+      if (e.code === "KeyP") togglePanel("pause");
       if (e.code === "Tab") {
         e.preventDefault();
         setBigMap((b) => !b);
       }
       if (e.code === "KeyN" && place) setPlace((pl) => pl && String(pl));
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [place]);
+    },
+    [place, togglePanel]
+  );
 
   useEffect(() => {
     let disposed = false;
+    let initGen = Symbol('street-init');
+    const myGen = initGen;
     const mount = mountRef.current;
     if (!mount) return;
+
+    const cityDataPromise = fetchCityData(lat0, lon0).catch((e) => {
+      console.warn("[street] city data:", e?.message);
+      return null;
+    });
 
     // ---- local ENU conversion (lib/engine/geo) ----
     const { toLocal, toGeo } = makeLocalFrame(lat0, lon0);
@@ -211,81 +229,27 @@ export default function StreetEngine({ lat0, lon0 }) {
     // ---- state ----
     const player = { x: 0, z: 0, heading: 0, pitch: 0, third: false, moving: false };
     const keys = {};
-    const terrainTiles = new Map(); // "x/y" -> {heights, x0, z0, sizeX, sizeZ}
-    const tileCanvases = []; // {g, texture, x0, z0, sizeX, sizeZ, w} for road painting
-    const footprintGrid = new Map(); // "gx,gz" -> [{poly, minX, maxX, minZ, maxZ}]
+    const terrainTiles = new Map();
+    const tileCanvases = [];
+    const { addFootprint, insideBuilding } = createCollision(GRID);
+    let groundHeight = () => 0;
     let avatar = null;
     let running = true;
-
-    const groundHeight = (x, z) => {
-      // find containing terrain tile, bilinear sample
-      for (const t of terrainTiles.values()) {
-        if (x >= t.x0 && x < t.x0 + t.sizeX && z >= t.z0 && z < t.z0 + t.sizeZ) {
-          const N = t.n;
-          const fx = ((x - t.x0) / t.sizeX) * (N - 1);
-          const fz = ((z - t.z0) / t.sizeZ) * (N - 1);
-          const ix = Math.min(N - 2, Math.floor(fx));
-          const iz = Math.min(N - 2, Math.floor(fz));
-          const dx = fx - ix, dz = fz - iz;
-          const h = (a, b) => t.heights[b * N + a];
-          return (
-            h(ix, iz) * (1 - dx) * (1 - dz) + h(ix + 1, iz) * dx * (1 - dz) +
-            h(ix, iz + 1) * (1 - dx) * dz + h(ix + 1, iz + 1) * dx * dz
-          );
-        }
-      }
-      return 0;
-    };
-
-    // ---- collision: 2D point vs building footprints ----
-    const GRID = 60;
-    const gridKey = (x, z) => `${Math.floor(x / GRID)},${Math.floor(z / GRID)}`;
-    const addFootprint = (poly) => {
-      let minX = 1e9, maxX = -1e9, minZ = 1e9, maxZ = -1e9;
-      for (const [px, pz] of poly) {
-        minX = Math.min(minX, px); maxX = Math.max(maxX, px);
-        minZ = Math.min(minZ, pz); maxZ = Math.max(maxZ, pz);
-      }
-      const fp = { poly, minX, maxX, minZ, maxZ };
-      for (let gx = Math.floor(minX / GRID); gx <= Math.floor(maxX / GRID); gx++)
-        for (let gz = Math.floor(minZ / GRID); gz <= Math.floor(maxZ / GRID); gz++) {
-          const k = `${gx},${gz}`;
-          if (!footprintGrid.has(k)) footprintGrid.set(k, []);
-          footprintGrid.get(k).push(fp);
-        }
-    };
-    const insideBuilding = (x, z) => {
-      const list = footprintGrid.get(gridKey(x, z));
-      if (!list) return false;
-      for (const fp of list) {
-        if (x < fp.minX || x > fp.maxX || z < fp.minZ || z > fp.maxZ) continue;
-        // ray cast
-        let inside = false;
-        const p = fp.poly;
-        for (let i = 0, j = p.length - 1; i < p.length; j = i++) {
-          if (
-            p[i][1] > z !== p[j][1] > z &&
-            x < ((p[j][0] - p[i][0]) * (z - p[i][1])) / (p[j][1] - p[i][1]) + p[i][0]
-          )
-            inside = !inside;
-        }
-        if (inside) return true;
-      }
-      return false;
-    };
-
-    // ---- terrain from Terrarium tiles (z14, 3x3) ----
-    const Z = 14;
+    let hudDom = null;
     const loadTerrain = async () => {
-      setStage("Streaming terrain…"); setReadyPct(20);
-      const ctx = lon2tx(lon0, Z), cty = lat2ty(lat0, Z);
+      setStage("Streaming terrain…"); setReadyPct(15);
+      const ctx = Math.floor(lon2tx(lon0, Z));
+      const cty = Math.floor(lat2ty(lat0, Z));
+      await loadTerrainTile(ctx, cty, true);
+      setReadyPct(40);
       const jobs = [];
       for (let dx = -1; dx <= 1; dx++)
         for (let dy = -1; dy <= 1; dy++)
-          jobs.push(
-            loadTerrainTile(Math.floor(ctx) + dx, Math.floor(cty) + dy, dx === 0 && dy === 0)
-          );
+          if (dx !== 0 || dy !== 0)
+            jobs.push(loadTerrainTile(ctx + dx, cty + dy, false));
       await Promise.all(jobs);
+      groundHeight = createGroundHeight(terrainTiles);
+      setReadyPct(55);
     };
 
     const loadImage = (url) =>
@@ -383,10 +347,16 @@ export default function StreetEngine({ lat0, lon0 }) {
                 .then((im) => tg.drawImage(im, sx * half, sy * half, half, half))
                 .catch(() => {})
             );
-        await Promise.all(subs);
         const texture = new THREE.CanvasTexture(tex);
         texture.colorSpace = THREE.SRGBColorSpace;
-        texture.anisotropy = 4; // keeps the road crisp at grazing angles
+        texture.anisotropy = isCenter ? 4 : 1;
+        if (isCenter) {
+          await Promise.all(subs);
+        } else {
+          Promise.all(subs).then(() => {
+            texture.needsUpdate = true;
+          });
+        }
         tileCanvases.push({ g: tg, texture, x0: tl.x, z0: tl.z, sizeX, sizeZ, w: W });
         const terrMat = new THREE.MeshLambertMaterial({ map: texture });
         const mesh = new THREE.Mesh(geo, terrMat);
@@ -407,12 +377,11 @@ export default function StreetEngine({ lat0, lon0 }) {
     };
 
     // ---- buildings + roads from Overpass ----
-    const loadCity = async () => {
-      setStage("Raising buildings…"); setReadyPct(55);
+    const loadCity = async (data) => {
+      if (!data?.elements?.length) return;
+      setStage(`Building city (${data.elements.length} features)…`);
+      setReadyPct((p) => Math.max(p, 60));
       try {
-        // Cache-first city data (lib/engine/cityData): localStorage → R2 API
-        // → Overpass live, with write-through upload on a live fetch.
-        const data = await fetchCityData(lat0, lon0);
         if (disposed) return;
         const byColor = new Map();
         const roadByColor = new Map();
@@ -426,8 +395,16 @@ export default function StreetEngine({ lat0, lon0 }) {
         const powerLines = []; // {pts}
         const treeSpots = [];
         const flatPolys = []; // {ring, color, lift}
+        let featureIdx = 0;
+        const total = data.elements.length;
 
         for (const way of data.elements || []) {
+          featureIdx++;
+          if (featureIdx % 120 === 0) {
+            setStage(`Building city (${featureIdx}/${total})…`);
+            await new Promise((r) => requestAnimationFrame(r));
+            if (disposed) return;
+          }
           if (way.type === "node" && way.tags?.natural === "tree") {
             const pt = toLocal(way.lat, way.lon);
             treeSpots.push(pt);
@@ -1115,8 +1092,11 @@ export default function StreetEngine({ lat0, lon0 }) {
       player.heading += e.movementX * 0.0022;
       player.pitch = Math.max(-1.45, Math.min(1.45, player.pitch - e.movementY * 0.0022));
     };
-    const onLock = () =>
-      setHud((h) => ({ ...h, locked: document.pointerLockElement === canvas }));
+    const onLock = () => {
+      const locked = document.pointerLockElement === canvas;
+      setHudLocked(locked);
+      if (hudDomRef.current?.__hudApi) hudDomRef.current.__hudApi.setLocked(locked);
+    };
     const onResize = () => {
       camera.aspect = mount.clientWidth / mount.clientHeight;
       camera.updateProjectionMatrix();
@@ -1131,20 +1111,28 @@ export default function StreetEngine({ lat0, lon0 }) {
 
     // ---- main loop ----
     const clock = new THREE.Clock();
-    let fpsCount = 0, fpsTime = performance.now(), fpsVal = 0, hudTick = 0;
+    let fpsCount = 0, fpsTime = performance.now(), fpsVal = 0, hudTick = 0, precipTick = 0;
     const loop = () => {
       if (!running) return;
       requestAnimationFrame(loop);
       const dt = Math.min(clock.getDelta(), 0.1);
 
       let f = 0, r = 0;
+      const touch = touchInputRef.current;
+      if (touch) {
+        const tm = readTouchMovement(touch);
+        f += tm.f;
+        r += tm.r;
+        applyTouchLook(touch, player);
+      }
       if (keys.KeyW || keys.ArrowUp) f += 1;
       if (keys.KeyS || keys.ArrowDown) f -= 1;
       if (keys.KeyD || keys.ArrowRight) r += 1;
       if (keys.KeyA || keys.ArrowLeft) r -= 1;
       player.moving = !!(f || r);
       if (player.moving) {
-        const run = keys.ShiftLeft || keys.ShiftRight ? RUN_MULT : 1;
+        const run =
+          keys.ShiftLeft || keys.ShiftRight || touch?.sprint ? RUN_MULT : 1;
         const d = WALK_SPEED * run * dt;
         const sin = Math.sin(player.heading), cos = Math.cos(player.heading);
         const dx = (f * sin + r * cos) * d;
@@ -1204,10 +1192,10 @@ export default function StreetEngine({ lat0, lon0 }) {
       }
       // animate wind turbines + precipitation
       for (const r of engineRef.current.spinners || []) r.rotation.z += dt * 1.4;
-      if (precip) {
+      if (precip && ++precipTick % 2 === 0) {
         const a = precip.geo.attributes.position;
         for (let i = 0; i < a.count; i++) {
-          let y = a.getY(i) - precip.speed * dt;
+          let y = a.getY(i) - precip.speed * dt * 2;
           if (y < 0) y = 40;
           a.setY(i, y);
         }
@@ -1226,15 +1214,36 @@ export default function StreetEngine({ lat0, lon0 }) {
         fpsVal = Math.round((fpsCount * 1000) / (now - fpsTime));
         fpsCount = 0; fpsTime = now;
       }
-      if (++hudTick % 20 === 0)
-        setHud((h) => ({ ...h, fps: fpsVal, elev: Math.round(gy), third: player.third }));
+      if (++hudTick % 20 === 0) {
+        if (!hudDom && hudDomRef.current) {
+          hudDom = createHudRef(hudDomRef.current);
+        }
+        recordFpsSample(fpsVal);
+        hudDom?.update({
+          fps: fpsVal,
+          elev: Math.round(gy),
+          locked: document.pointerLockElement === canvas,
+          third: player.third,
+        });
+      }
     };
 
     // ---- boot ----
     (async () => {
       await loadTerrain();
       if (disposed) return;
-      await loadCity();
+
+      applySky(12);
+      loadAvatar();
+      loop();
+      setReadyPct(100);
+      if (!disposed) window.__engineReady = true;
+
+      setStage("Fetching city data…");
+      const cityData = await cityDataPromise;
+      if (disposed) return;
+
+      await loadCity(cityData);
       if (disposed) return;
       // Safe spawn: never inside a building — spiral to nearest open spot.
       if (insideBuilding(player.x, player.z)) {
@@ -1251,10 +1260,7 @@ export default function StreetEngine({ lat0, lon0 }) {
           }
         }
       }
-      loadAvatar();
-      applySky(12); // noon default, places the sun/moon
-      setStage("Ready"); setReadyPct(100);
-      window.__engineReady = true;
+      setStage(cityData ? "Ready" : "Ready (terrain only)");
 
       // ---- live weather & time (Open-Meteo, keyless) ----
       engineRef.current.applyRealWeather = async () => {
@@ -1280,13 +1286,18 @@ export default function StreetEngine({ lat0, lon0 }) {
       // Reuses fetchCityData so cached cells are ALWAYS full-fidelity (a lean
       // prefetch query would poison the shared cache with partial data). ----
       setTimeout(async () => {
-        const D = 0.0055; // ≈ 600 m
+        const D = 0.0055;
         const cells = [[lat0 + D, lon0], [lat0 - D, lon0], [lat0, lon0 + D], [lat0, lon0 - D]];
-        for (const [la, lo] of cells) {
-          if (disposed) return;
-          try { await fetchCityData(la, lo); } catch { /* best effort */ }
-          await new Promise((res) => setTimeout(res, 4000)); // kind to Overpass
-        }
+        const CONCURRENCY = 2;
+        let i = 0;
+        const worker = async () => {
+          while (i < cells.length && !disposed) {
+            const idx = i++;
+            const [la, lo] = cells[idx];
+            try { await fetchCityData(la, lo); } catch { /* best effort */ }
+          }
+        };
+        await Promise.all(Array.from({ length: CONCURRENCY }, worker));
       }, 10000);
       window.__streetDebug = {
         player,
@@ -1337,6 +1348,17 @@ export default function StreetEngine({ lat0, lon0 }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lat0, lon0]);
 
+  const streetStatus = {
+    mode: "walk",
+    lat: lat0,
+    lon: lon0,
+    heading: 0,
+    height: 200,
+    fps: 0,
+    locked: hudLocked,
+    elevation: null,
+  };
+
   return (
     <main>
       <div ref={mountRef} className="cesium-container" />
@@ -1344,84 +1366,48 @@ export default function StreetEngine({ lat0, lon0 }) {
         <LoadingScreen logo="🎮" title="STREET ENGINE" pct={readyPct} stage={stage} />
       )}
 
-      {/* minimap + coords (top-right) */}
-      <div className="map-corner">
-        <Minimap lat={lat0} lon={lon0} height={200} posRef={posRef} />
-        <div className="coords">
-          {lat0.toFixed(4)}° · {lon0.toFixed(4)}°
-        </div>
-      </div>
-
-      {/* icon toolbar (top-left) */}
-      <div className="toolbar">
-        <button title="Menu (P)" onClick={() => setPanel(panel === "pause" ? null : "pause")}>☰</button>
-        <button title="Fast travel (M)" onClick={() => setPanel(panel === "travel" ? null : "travel")}>🗺</button>
-        <button title="Globe view" onClick={() => (window.location.href = "/")}>🌐</button>
-        <button title="Settings" onClick={() => setPanel(panel === "settings" ? null : "settings")}>⚙</button>
-      </div>
-
-      {/* Tab: expanded map */}
-      {bigMap && (
-        <div className="bigmap" onClick={() => setBigMap(false)}>
-          <Minimap
-            lat={lat0}
-            lon={lon0}
-            height={200}
-            posRef={posRef}
-            size={Math.min(560, typeof window !== "undefined" ? window.innerHeight - 160 : 560)}
-            zoomBias={-1}
-          />
-          <div className="coords">Tab to close</div>
-        </div>
-      )}
-
-      {/* fast travel */}
-      {panel === "travel" && (
-        <TravelPanel
-          onClose={() => setPanel(null)}
-          onTravel={(la, lo) => (window.location.href = `/street?lat=${la}&lon=${lo}`)}
-        />
-      )}
-
-      {/* pause */}
-      {panel === "pause" && (
-        <PauseMenu
-          buttons={[
+      {readyPct >= 100 && (
+        <GameShell
+          engine="street"
+          screen="play"
+          status={streetStatus}
+          posRef={posRef}
+          panel={panel}
+          setPanel={setPanel}
+          bigMap={bigMap}
+          setBigMap={setBigMap}
+          place={place}
+          settings={settings}
+          onSettingChange={changeSetting}
+          onTravel={(la, lo) => router.push(`/street?lat=${la}&lon=${lo}`)}
+          onGoHome={() => router.push("/")}
+          walking
+          modeLabel="🎮 STREET ENGINE"
+          hintText={
+            hudLocked
+              ? "WASD move · mouse look · Shift sprint · V view · Tab map · M travel"
+              : "Click the view to capture the mouse · WASD to walk · M travel · P menu"
+          }
+          hudRef={hudDomRef}
+          coordsFallback={{ lat: lat0, lon: lon0 }}
+          settingsExtra={
+            <div className="mb-4">
+              <button type="button" className={`${menuBtnPrimary} w-full`} onClick={useRealWeather}>
+                {liveWx === "loading" ? "⏳ Fetching real conditions…" : "🌍 Use real weather & time"}
+              </button>
+              {typeof liveWx === "string" && liveWx !== "loading" && (
+                <p className="mt-2 text-xs text-slate-500">{liveWx}</p>
+              )}
+            </div>
+          }
+          pauseButtons={[
             { label: "▶ Resume", primary: true, onClick: () => setPanel(null) },
             { label: "🗺 Fast Travel", onClick: () => setPanel("travel") },
             { label: "⚙ Settings", onClick: () => setPanel("settings") },
-            { label: "🌐 Globe View", onClick: () => (window.location.href = "/") },
+            { label: "🌐 Globe View", onClick: () => router.push("/") },
           ]}
         />
       )}
-
-      {/* settings */}
-      {panel === "settings" && (
-        <SettingsPanel settings={engineSettings} onChange={changeSetting} onClose={() => setPanel(null)}>
-          <div className="setting-row">
-            <button className="menu-btn primary" style={{ width: "100%" }} onClick={useRealWeather}>
-              {liveWx === "loading" ? "⏳ Fetching real conditions…" : "🌍 Use real weather & time"}
-            </button>
-            {typeof liveWx === "string" && liveWx !== "loading" && (
-              <p className="setting-hint">{liveWx}</p>
-            )}
-          </div>
-        </SettingsPanel>
-      )}
-
-      <div className="chips">
-        <span className="chip mode">🎮 STREET ENGINE</span>
-        <span className="chip">⛰ {hud.elev} m</span>
-        {hud.fps > 0 && (
-          <span className={`chip fps ${hud.fps < 40 ? "low" : ""}`}>{hud.fps} FPS</span>
-        )}
-      </div>
-      <div className="hintbar">
-        {hud.locked
-          ? "WASD move · mouse look · Shift sprint · V view · Tab map · M travel"
-          : "Click the view to capture the mouse · WASD to walk · M travel · P menu"}
-      </div>
-      {place && <div className="location-toast">{place}</div>}
     </main>
   );
 }

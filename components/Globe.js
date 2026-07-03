@@ -4,6 +4,8 @@ import { useEffect, useRef } from "react";
 import { getCesiumIonToken } from "@/lib/env";
 import { loadCesium } from "@/lib/loadCesium";
 import { MONUMENTS } from "@/lib/monuments";
+import { trackStatusUpdate } from "@/lib/perf";
+import { touchInputRef, readTouchMovement } from "@/lib/touch-input";
 
 // CesiumJS 3D globe — stylized single-player walking game.
 //
@@ -64,7 +66,8 @@ export default function Globe({ controllerRef, onReady, onStatus, onProgress, po
         fullscreenButton: false,
         infoBox: false,
         selectionIndicator: false,
-        requestRenderMode: false,
+        requestRenderMode: true,
+        maximumRenderTimeChange: 0.0,
         contextOptions: {
           webgl: {
             powerPreference: "high-performance", // prefer discrete GPU
@@ -323,6 +326,7 @@ export default function Globe({ controllerRef, onReady, onStatus, onProgress, po
           height = cc.height;
           heading = camera.heading;
         }
+        trackStatusUpdate();
         statusRef.current?.({
           fps: fpsRef.value,
           mode: walker.active ? "walk" : "fly",
@@ -646,13 +650,23 @@ export default function Globe({ controllerRef, onReady, onStatus, onProgress, po
 
           let f = 0;
           let r = 0;
+          const touch = touchInputRef.current;
+          if (touch) {
+            const tm = readTouchMovement(touch);
+            f += tm.f;
+            r += tm.r;
+            if (touch.lookDX) walker.heading += touch.lookDX;
+            touch.lookDX = 0;
+            touch.lookDY = 0;
+          }
           if (keys.KeyW || keys.ArrowUp) f += 1;
           if (keys.KeyS || keys.ArrowDown) f -= 1;
           if (keys.KeyD || keys.ArrowRight) r += 1;
           if (keys.KeyA || keys.ArrowLeft) r -= 1;
           walker.moving = !!(f || r);
           if (walker.moving) {
-            const run = keys.ShiftLeft || keys.ShiftRight ? RUN_MULT : 1;
+            const run =
+              keys.ShiftLeft || keys.ShiftRight || touch?.sprint ? RUN_MULT : 1;
             const d = WALK_SPEED * run * dt;
             const sin = Math.sin(walker.heading);
             const cos = Math.cos(walker.heading);
@@ -719,6 +733,12 @@ export default function Globe({ controllerRef, onReady, onStatus, onProgress, po
             };
           }
           if (++statusFrames % 20 === 0) emitStatus();
+        }
+        const anyKey = keys.KeyW || keys.KeyS || keys.KeyA || keys.KeyD ||
+          keys.ArrowUp || keys.ArrowDown || keys.ArrowLeft || keys.ArrowRight ||
+          keys.Space || keys.KeyQ || keys.ShiftLeft || keys.KeyE;
+        if (walker.active || anyKey || statusFrames % 2 === 0) {
+          scene.requestRender();
         }
       };
       scene.preUpdate.addEventListener(tickListener);

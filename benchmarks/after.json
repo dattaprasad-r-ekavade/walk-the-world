@@ -1,0 +1,37 @@
+{
+  "timestamp": "2026-07-03T18:34:18.833Z",
+  "baseUrl": "http://127.0.0.1:3456",
+  "walkDurationMs": 12000,
+  "cityCacheWarm": {
+    "ok": true,
+    "ms": 0,
+    "skipped": true
+  },
+  "street": {
+    "loadMs": 11608,
+    "avgFps": 16,
+    "fpsSamples": [
+      10,
+      17,
+      17,
+      17,
+      16,
+      16,
+      18,
+      16,
+      16,
+      16,
+      16
+    ],
+    "triangles": 36,
+    "reactRenders": 6,
+    "minimapDraws": 13,
+    "hudUpdates": 2
+  },
+  "globe": {
+    "reactRenders": 25,
+    "statusUpdates": 24,
+    "minimapDraws": 116
+  },
+  "error": null
+}

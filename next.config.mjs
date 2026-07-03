@@ -1,6 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  reactStrictMode: false,
+  reactStrictMode: true,
   // standalone is for Docker/production only — it slows `next dev` on Windows.
   ...(process.env.NODE_ENV === "production" ? { output: "standalone" } : {}),
   experimental: {

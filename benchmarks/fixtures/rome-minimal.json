@@ -1,0 +1,80 @@
+{
+  "elements": [
+    {
+      "type": "way",
+      "id": 1,
+      "tags": { "building": "yes", "building:levels": "4" },
+      "geometry": [
+        { "lat": 41.8905, "lon": 12.4920 },
+        { "lat": 41.8905, "lon": 12.4924 },
+        { "lat": 41.8902, "lon": 12.4924 },
+        { "lat": 41.8902, "lon": 12.4920 }
+      ]
+    },
+    {
+      "type": "way",
+      "id": 2,
+      "tags": { "building": "commercial", "height": "18" },
+      "geometry": [
+        { "lat": 41.8908, "lon": 12.4918 },
+        { "lat": 41.8908, "lon": 12.4922 },
+        { "lat": 41.8906, "lon": 12.4922 },
+        { "lat": 41.8906, "lon": 12.4918 }
+      ]
+    },
+    {
+      "type": "way",
+      "id": 3,
+      "tags": { "building": "residential", "building:levels": "2" },
+      "geometry": [
+        { "lat": 41.8898, "lon": 12.4925 },
+        { "lat": 41.8898, "lon": 12.4929 },
+        { "lat": 41.8896, "lon": 12.4929 },
+        { "lat": 41.8896, "lon": 12.4925 }
+      ]
+    },
+    {
+      "type": "way",
+      "id": 4,
+      "tags": { "highway": "residential" },
+      "geometry": [
+        { "lat": 41.8895, "lon": 12.4915 },
+        { "lat": 41.8910, "lon": 12.4930 }
+      ]
+    },
+    {
+      "type": "way",
+      "id": 5,
+      "tags": { "highway": "primary" },
+      "geometry": [
+        { "lat": 41.8890, "lon": 12.4920 },
+        { "lat": 41.8912, "lon": 12.4920 }
+      ]
+    },
+    {
+      "type": "way",
+      "id": 6,
+      "tags": { "leisure": "park" },
+      "geometry": [
+        { "lat": 41.8900, "lon": 12.4910 },
+        { "lat": 41.8900, "lon": 12.4915 },
+        { "lat": 41.8897, "lon": 12.4915 },
+        { "lat": 41.8897, "lon": 12.4910 }
+      ]
+    },
+    {
+      "type": "node",
+      "id": 10,
+      "lat": 41.8903,
+      "lon": 12.4921,
+      "tags": { "highway": "street_lamp" }
+    },
+    {
+      "type": "node",
+      "id": 11,
+      "lat": 41.8901,
+      "lon": 12.4926,
+      "tags": { "amenity": "bench" }
+    }
+  ]
+}

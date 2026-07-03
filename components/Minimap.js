@@ -1,10 +1,11 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { trackMinimapDraw } from "@/lib/perf";
 
-// Circular open-world-game minimap. Draws OpenStreetMap slippy tiles around
-// the player on a canvas, with a rotating player arrow and a north marker.
 const TILE = 256;
+const MAX_FPS = 15;
+const IDLE_FPS = 2;
 
 const tileCache = new Map();
 function getTile(z, x, y, onLoad) {
@@ -40,7 +41,6 @@ export default function Minimap({ lat, lon, heading = 0, height, size = 176, zoo
   stateRef.current = { lat, lon, heading, height };
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     const canvas = canvasRef.current;
     if (!canvas) return;
     const dpr = window.devicePixelRatio || 1;
@@ -48,15 +48,33 @@ export default function Minimap({ lat, lon, heading = 0, height, size = 176, zoo
     canvas.height = SIZE * dpr;
     const ctx = canvas.getContext("2d");
     let raf;
+    let lastDraw = 0;
+    let lastPos = { lat: null, lon: null, heading: null };
+    let moving = false;
 
-    const draw = () => {
+    const draw = (now) => {
       raf = requestAnimationFrame(draw);
       const live = posRef?.current;
       const { lat, lon, heading, height } = live || stateRef.current;
+
+      const posChanged =
+        lat !== lastPos.lat ||
+        lon !== lastPos.lon ||
+        heading !== lastPos.heading;
+      if (posChanged) moving = true;
+      lastPos = { lat, lon, heading };
+
+      const minInterval = 1000 / (moving ? MAX_FPS : IDLE_FPS);
+      if (now - lastDraw < minInterval) return;
+      if (!posChanged && !moving && now - lastDraw < 1000) return;
+
+      lastDraw = now;
+      if (!posChanged) moving = false;
+      trackMinimapDraw();
+
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.clearRect(0, 0, SIZE, SIZE);
 
-      // circular clip
       ctx.save();
       ctx.beginPath();
       ctx.arc(SIZE / 2, SIZE / 2, SIZE / 2 - 3, 0, Math.PI * 2);
@@ -73,7 +91,7 @@ export default function Minimap({ lat, lon, heading = 0, height, size = 176, zoo
           ((1 - Math.log(Math.tan(latR) + 1 / Math.cos(latR)) / Math.PI) / 2) * n;
         const cx = SIZE / 2;
         const cy = SIZE / 2;
-        const range = Math.ceil(SIZE / TILE / 2) + 1; // cover the canvas
+        const range = Math.ceil(SIZE / TILE / 2) + 1;
         const bx = Math.floor(xf);
         const by = Math.floor(yf);
         for (let dx = -range; dx <= range; dx++) {
@@ -86,14 +104,12 @@ export default function Minimap({ lat, lon, heading = 0, height, size = 176, zoo
             }
           }
         }
-        // subtle dark vignette for game feel
         const grad = ctx.createRadialGradient(cx, cy, SIZE * 0.25, cx, cy, SIZE * 0.55);
         grad.addColorStop(0, "rgba(5,10,20,0)");
         grad.addColorStop(1, "rgba(5,10,20,0.55)");
         ctx.fillStyle = grad;
         ctx.fillRect(0, 0, SIZE, SIZE);
 
-        // player arrow (rotated by heading; map stays north-up)
         ctx.save();
         ctx.translate(cx, cy);
         ctx.rotate(heading || 0);
@@ -117,7 +133,6 @@ export default function Minimap({ lat, lon, heading = 0, height, size = 176, zoo
       }
       ctx.restore();
 
-      // ring + N marker
       ctx.beginPath();
       ctx.arc(SIZE / 2, SIZE / 2, SIZE / 2 - 3, 0, Math.PI * 2);
       ctx.strokeStyle = "rgba(150,185,255,0.55)";
@@ -128,14 +143,14 @@ export default function Minimap({ lat, lon, heading = 0, height, size = 176, zoo
       ctx.textAlign = "center";
       ctx.fillText("N", SIZE / 2, 14);
     };
-    draw();
+    raf = requestAnimationFrame(draw);
     return () => cancelAnimationFrame(raf);
-  }, []);
+  }, [SIZE, zoomBias, posRef]);
 
   return (
     <canvas
       ref={canvasRef}
-      className="minimap"
+      className="rounded-full bg-void-900 shadow-hud"
       style={{ width: SIZE, height: SIZE }}
     />
   );
