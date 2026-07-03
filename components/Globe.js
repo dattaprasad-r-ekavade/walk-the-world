@@ -16,10 +16,10 @@ import { MONUMENTS } from "@/lib/monuments";
 // Modes: fly (globe) / walk (first- or third-person, V toggles the view;
 // third person shows an animated character with a chase camera).
 const AVATAR_URL =
-  "https://cdn.jsdelivr.net/gh/KhronosGroup/glTF-Sample-Models@master/2.0/CesiumMan/glTF-Binary/CesiumMan.glb";
+  "https://cdn.jsdelivr.net/gh/KhronosGroup/glTF-Sample-Models@master/2.0/RiggedFigure/glTF-Binary/RiggedFigure.glb";
 const AVATAR_HEADING_OFFSET = Math.PI / 2; // glTF forward-axis correction
 
-export default function Globe({ controllerRef, onReady, onStatus, onProgress }) {
+export default function Globe({ controllerRef, onReady, onStatus, onProgress, posRef }) {
   const containerRef = useRef(null);
   const statusRef = useRef(onStatus);
   statusRef.current = onStatus;
@@ -82,11 +82,11 @@ export default function Globe({ controllerRef, onReady, onStatus, onProgress }) 
       scene.fog.density = 0.0004;
       // Performance: trade a little detail for frame rate (60 FPS target).
       scene.fog.screenSpaceErrorFactor = 4; // fog culls more distant tiles
-      scene.postProcessStages.fxaa.enabled = false;
+      scene.postProcessStages.fxaa.enabled = true; // cheap AA, smooths jaggies
       scene.globe.maximumScreenSpaceError = 2.5; // terrain LOD (default 2)
       scene.globe.tileCacheSize = 300;
       scene.msaaSamples = 1;
-      scene.screenSpaceCameraController.enableCollisionDetection = true;
+      scene.screenSpaceCameraController.enableCollisionDetection = false; // free flight
       viewer.cesiumWidget.creditContainer.style.display = "none";
 
       // Game-map ground: OSM standard raster — water is blue, forests green,
@@ -94,7 +94,7 @@ export default function Globe({ controllerRef, onReady, onStatus, onProgress }) 
       try {
         const osm = new Cesium.UrlTemplateImageryProvider({
           url: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
-          maximumLevel: 19,
+          maximumLevel: 18, // z19 doubles tile count for little gain
           credit: "© OpenStreetMap contributors",
         });
         viewer.imageryLayers.addImageryProvider(osm);
@@ -126,39 +126,13 @@ export default function Globe({ controllerRef, onReady, onStatus, onProgress }) 
         try {
           osmBuildings = await Cesium.createOsmBuildingsAsync({
             maximumScreenSpaceError: 24, // building LOD (default 16)
-            style: new Cesium.Cesium3DTileStyle({
-              color: {
-                conditions: [
-                  ["${feature['name']} === 'Eiffel Tower'", "color('#e6b84a')"],
-                  ["${feature['name']} === 'Colosseum'", "color('#e6b84a')"],
-                  ["${feature['name']} === 'Statue of Liberty'", "color('#e6b84a')"],
-                  ["${feature['name']} === 'Empire State Building'", "color('#e6b84a')"],
-                  ["${feature['name']} === 'Elizabeth Tower'", "color('#e6b84a')"],
-                  ["${feature['name']} === 'Tower Bridge'", "color('#e6b84a')"],
-                  ["${feature['name']} === 'Burj Khalifa'", "color('#e6b84a')"],
-                  ["${feature['name']} === 'Sydney Opera House'", "color('#e6b84a')"],
-                  ["${feature['name']} === 'Taj Mahal'", "color('#e6b84a')"],
-                  ["${feature['name']} === 'Brandenburg Gate'", "color('#e6b84a')"],
-                  ["${feature['name']} === 'Sagrada Família'", "color('#e6b84a')"],
-                  ["${feature['name']} === 'Tokyo Tower'", "color('#e6b84a')"],
-                  ["${feature['building']} === 'apartments'", "color('#e8d8c3')"],
-                  ["${feature['building']} === 'office'", "color('#b8c9dd')"],
-                  ["${feature['building']} === 'commercial'", "color('#c9bede')"],
-                  ["${feature['building']} === 'industrial'", "color('#cfc8b8')"],
-                  ["${feature['building']} === 'retail'", "color('#dec3c3')"],
-                  ["${feature['cesium#estimatedHeight']} > 120", "color('#9fb6d9')"],
-                  ["${feature['cesium#estimatedHeight']} > 60", "color('#b3c4dc')"],
-                  ["${feature['cesium#estimatedHeight']} > 25", "color('#d4cfc4')"],
-                  [true, "color('#e3ddd2')"],
-                ],
-              },
-            }),
           });
           osmBuildings.dynamicScreenSpaceError = true;
           osmBuildings.dynamicScreenSpaceErrorDensity = 0.002;
-          // Procedural facades: window grids on walls (floors every ~3 m),
-          // glassy reflection, roofs left clean — makes extrusions read as
-          // real buildings without any texture downloads.
+          // Facade "mask": NOTE — Cesium cannot combine Cesium3DTileStyle
+          // with a CustomShader (the style silently wins), so ALL coloring
+          // happens here: per-block palette tint + per-floor window grid on
+          // walls, clean roofs. Verified visually at street level.
           try {
             osmBuildings.customShader = new Cesium.CustomShader({
               mode: Cesium.CustomShaderMode.MODIFY_MATERIAL,
@@ -166,22 +140,32 @@ export default function Globe({ controllerRef, onReady, onStatus, onProgress }) 
               fragmentShaderText: `
                 void fragmentMain(FragmentInput fsInput, inout czm_modelMaterial material) {
                   vec3 pos = fsInput.attributes.positionMC;
-                  vec3 nMC = normalize(fsInput.attributes.normalMC);
-                  float wallness = 1.0 - smoothstep(0.6, 0.85, abs(nMC.z));
+                  // OSM Buildings tiles are ENU-oriented: model +Z is up.
+                  vec3 upEC = normalize((czm_modelView * vec4(0.0, 0.0, 1.0, 0.0)).xyz);
+                  vec3 nEC = normalize(fsInput.attributes.normalEC);
+                  float wallness = 1.0 - smoothstep(0.55, 0.8, abs(dot(nEC, upEC)));
+
+                  // per-block tint so neighbouring buildings differ
+                  vec2 cell = floor(pos.xy / 34.0);
+                  float h1 = fract(sin(dot(cell, vec2(127.1, 311.7))) * 43758.5453);
+                  float h2 = fract(sin(dot(cell, vec2(269.5, 183.3))) * 28001.8384);
+                  vec3 base = vec3(0.88, 0.85, 0.79);
+                  base = mix(base, vec3(0.70, 0.77, 0.86), step(0.62, h1));
+                  base = mix(base, vec3(0.83, 0.76, 0.66), step(0.55, h2) * step(h1, 0.62));
+                  base = mix(base, vec3(0.76, 0.72, 0.78), step(0.85, h1));
+
+                  // window grid: floors every ~3.1 m, columns every ~3.4 m
                   float floorBand = fract(pos.z / 3.1);
-                  float rowWin = step(0.28, floorBand) * step(floorBand, 0.78);
-                  float u = (abs(nMC.x) > abs(nMC.y)) ? pos.y : pos.x;
-                  float colBand = fract(u / 3.4);
-                  float colWin = step(0.22, colBand) * step(colBand, 0.78);
+                  float rowWin = step(0.3, floorBand) * step(floorBand, 0.78);
+                  float colBand = fract((pos.x + pos.y) / 3.4);
+                  float colWin = step(0.22, colBand) * step(colBand, 0.75);
                   float window = rowWin * colWin * wallness;
-                  vec3 base = material.diffuse;
-                  vec3 glass = base * 0.30 + vec3(0.06, 0.09, 0.14);
-                  material.diffuse = mix(base, glass, window * 0.9);
-                  material.specular = mix(material.specular, vec3(0.5), window * 0.6);
-                  material.roughness = mix(material.roughness, 0.15, window);
-                  // subtle floor ledge shading
-                  float ledge = smoothstep(0.0, 0.06, floorBand) * smoothstep(1.0, 0.94, floorBand);
-                  material.diffuse *= mix(0.85, 1.0, ledge) * mix(1.0, 0.97, wallness);
+
+                  vec3 glass = vec3(0.16, 0.22, 0.31) + h2 * 0.08;
+                  material.diffuse = mix(base, glass, window * 0.92);
+                  material.specular = mix(vec3(0.02), vec3(0.45), window);
+                  material.roughness = mix(0.9, 0.2, window);
+                  material.diffuse *= mix(0.86, 1.0, wallness);
                 }
               `,
             });
@@ -316,9 +300,12 @@ export default function Globe({ controllerRef, onReady, onStatus, onProgress }) 
         }, false),
         model: {
           uri: AVATAR_URL,
-          scale: 1.0,
+          scale: 1.1,
           minimumPixelSize: 0,
           runAnimations: true,
+          color: Cesium.Color.fromCssColorString("#cdd8e8"), // clean matte tint
+          colorBlendMode: Cesium.ColorBlendMode.MIX,
+          colorBlendAmount: 0.6,
         },
       });
 
@@ -509,13 +496,33 @@ export default function Globe({ controllerRef, onReady, onStatus, onProgress }) 
       };
 
       const exitWalk = () => {
+        const wasWalking = walker.active;
         walker.active = false;
         avatar.show = false;
         scene.screenSpaceCameraController.enableInputs = true;
         if (document.pointerLockElement === canvas) document.exitPointerLock();
+        if (wasWalking) {
+          // rise to a vantage where orbit/zoom controls feel natural
+          camera.flyTo({
+            destination: Cesium.Cartesian3.fromRadians(
+              walker.lon,
+              walker.lat,
+              walker.ground + 350
+            ),
+            orientation: {
+              heading: walker.heading,
+              pitch: Cesium.Math.toRadians(-40),
+              roll: 0,
+            },
+            duration: 1.2,
+          });
+        }
         emitStatus();
       };
 
+      // Walk engine: "street" hands off to the 7×-faster Three.js engine
+      // after the cinematic fly-down; "classic" walks inside Cesium.
+      let walkEngine = "street";
       const flyToStreet = async (lat, lon) => {
         exitWalk();
         const ground = await preciseGroundHeight(lon, lat);
@@ -529,7 +536,12 @@ export default function Globe({ controllerRef, onReady, onStatus, onProgress }) 
           },
           duration: 3,
           complete: () => {
-            if (!destroyed) enterWalk(lat, lon);
+            if (destroyed) return;
+            if (walkEngine === "street") {
+              window.location.href = `/street?lat=${lat.toFixed(5)}&lon=${lon.toFixed(5)}`;
+            } else {
+              enterWalk(lat, lon);
+            }
           },
         });
       };
@@ -561,7 +573,7 @@ export default function Globe({ controllerRef, onReady, onStatus, onProgress }) 
           Cesium.Math.toDegrees(c.latitude),
           Cesium.Math.toDegrees(c.longitude)
         );
-      }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
+      }, Cesium.ScreenSpaceEventType.LEFT_DOUBLE_CLICK);
 
       // Pointer-lock mouse look.
       onCanvasClick = () => {
@@ -618,7 +630,9 @@ export default function Globe({ controllerRef, onReady, onStatus, onProgress }) 
           fpsTime = now;
           // Adaptive resolution: drop render scale when struggling, restore
           // when there is headroom — keeps interaction near 60 FPS.
-          if (fps > 0 && fps < 40 && viewer.resolutionScale > 0.7) {
+          if (manualQuality) {
+            /* user picked a quality preset — don't fight it */
+          } else if (fps > 0 && fps < 40 && viewer.resolutionScale > 0.7) {
             viewer.resolutionScale = Math.max(0.7, viewer.resolutionScale - 0.1);
           } else if (fps > 55 && viewer.resolutionScale < 1.0) {
             viewer.resolutionScale = Math.min(1.0, viewer.resolutionScale + 0.05);
@@ -645,12 +659,14 @@ export default function Globe({ controllerRef, onReady, onStatus, onProgress }) 
             const east = (f * sin + r * cos) * d;
             const north = (f * cos - r * sin) * d;
             const STEP = 1.4; // max climbable step (m); walls block, curbs don't
+            const nLat = walker.lat + north / R;
+            const nLon = walker.lon + east / (R * Math.cos(walker.lat));
+            // one pick per frame on the destination; extra slide picks only
+            // when actually blocked — smooth AND cheap
             const canStand = (lo, la) => {
               const h = structureHeightAt(lo, la);
               return h === undefined || h - walker.ground < STEP;
             };
-            const nLat = walker.lat + north / R;
-            const nLon = walker.lon + east / (R * Math.cos(walker.lat));
             if (canStand(nLon, nLat)) {
               walker.lat = nLat;
               walker.lon = nLon;
@@ -662,7 +678,9 @@ export default function Globe({ controllerRef, onReady, onStatus, onProgress }) 
           }
 
           if (++statusFrames % 120 === 0) loadRoadsAround(walker.lat, walker.lon);
-          const g = groundHeightAt(walker.lon, walker.lat);
+          const g = walker.moving || statusFrames % 10 === 0
+            ? groundHeightAt(walker.lon, walker.lat)
+            : undefined; // standing still: ground can't change under you
           if (g !== undefined) {
             walker.ground = Cesium.Math.lerp(
               walker.ground,
@@ -672,6 +690,14 @@ export default function Globe({ controllerRef, onReady, onStatus, onProgress }) 
           }
           applyWalkerCamera();
 
+          if (posRef) {
+            posRef.current = {
+              lat: Cesium.Math.toDegrees(walker.lat),
+              lon: Cesium.Math.toDegrees(walker.lon),
+              heading: walker.heading,
+              height: walker.ground + EYE_HEIGHT,
+            };
+          }
           if (statusFrames % 15 === 0) emitStatus();
         } else {
           const carto = Cesium.Cartographic.fromCartesian(camera.position);
@@ -683,10 +709,77 @@ export default function Globe({ controllerRef, onReady, onStatus, onProgress }) 
           if (keys.KeyD || keys.ArrowRight) camera.moveRight(speed);
           if (keys.Space || keys.KeyQ) camera.moveUp(speed);
           if (keys.ShiftLeft || keys.KeyE) camera.moveDown(speed);
+          if (posRef) {
+            const cc = Cesium.Cartographic.fromCartesian(camera.position);
+            posRef.current = {
+              lat: Cesium.Math.toDegrees(cc.latitude),
+              lon: Cesium.Math.toDegrees(cc.longitude),
+              heading: camera.heading,
+              height: cc.height,
+            };
+          }
           if (++statusFrames % 20 === 0) emitStatus();
         }
       };
       scene.preUpdate.addEventListener(tickListener);
+
+      let facadeShaderRef = osmBuildings ? osmBuildings.customShader : null;
+      let manualQuality = false;
+      const applySettings = ({ hour, weather, quality, engine } = {}) => {
+        if (engine) walkEngine = engine;
+        if (hour !== undefined) {
+          // interpret the slider as LOCAL solar time at the camera position
+          const cc = Cesium.Cartographic.fromCartesian(camera.position);
+          const lonDeg = Cesium.Math.toDegrees(
+            walker.active ? walker.lon : cc.longitude
+          );
+          const utcHour = hour - lonDeg / 15;
+          const now = new Date();
+          const d = new Date(
+            Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate())
+          );
+          d.setTime(d.getTime() + utcHour * 3600 * 1000);
+          viewer.clock.currentTime = Cesium.JulianDate.fromDate(d);
+          viewer.clock.shouldAnimate = false;
+        }
+        if (weather !== undefined) {
+          const w = weather / 100; // 0 clear .. 1 heavy overcast/fog
+          scene.fog.density = 0.0002 + w * w * 0.0038;
+          if (scene.skyAtmosphere) {
+            scene.skyAtmosphere.brightnessShift = -0.5 * w;
+            scene.skyAtmosphere.saturationShift = -0.55 * w;
+          }
+          scene.globe.atmosphereBrightnessShift = -0.35 * w;
+        }
+        if (quality) {
+          manualQuality = true;
+          if (quality === "low") {
+            viewer.resolutionScale = 0.65;
+            scene.globe.maximumScreenSpaceError = 3.5;
+            scene.postProcessStages.fxaa.enabled = false;
+            if (osmBuildings) {
+              osmBuildings.maximumScreenSpaceError = 44;
+              osmBuildings.customShader = undefined; // flat = fastest
+            }
+          } else if (quality === "medium") {
+            viewer.resolutionScale = 0.85;
+            scene.globe.maximumScreenSpaceError = 2.5;
+            scene.postProcessStages.fxaa.enabled = false;
+            if (osmBuildings) {
+              osmBuildings.maximumScreenSpaceError = 28;
+              osmBuildings.customShader = facadeShaderRef;
+            }
+          } else {
+            viewer.resolutionScale = 1.0;
+            scene.globe.maximumScreenSpaceError = 2.0;
+            scene.postProcessStages.fxaa.enabled = true;
+            if (osmBuildings) {
+              osmBuildings.maximumScreenSpaceError = 20;
+              osmBuildings.customShader = facadeShaderRef;
+            }
+          }
+        }
+      };
 
       if (controllerRef) {
         controllerRef.current = {
@@ -695,6 +788,7 @@ export default function Globe({ controllerRef, onReady, onStatus, onProgress }) 
           enterWalk,
           exitWalk,
           setThirdPerson,
+          applySettings,
         };
       }
       progress(100, "Ready");

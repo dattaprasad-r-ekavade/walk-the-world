@@ -4,7 +4,6 @@ import { useEffect, useRef } from "react";
 
 // Circular open-world-game minimap. Draws OpenStreetMap slippy tiles around
 // the player on a canvas, with a rotating player arrow and a north marker.
-const SIZE = 176; // css pixels
 const TILE = 256;
 
 const tileCache = new Map();
@@ -34,12 +33,14 @@ function zoomForHeight(h) {
   return Math.max(2, Math.min(17, z));
 }
 
-export default function Minimap({ lat, lon, heading = 0, height }) {
+export default function Minimap({ lat, lon, heading = 0, height, size = 176, zoomBias = 0, posRef }) {
+  const SIZE = size;
   const canvasRef = useRef(null);
   const stateRef = useRef({ lat, lon, heading, height });
   stateRef.current = { lat, lon, heading, height };
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     const canvas = canvasRef.current;
     if (!canvas) return;
     const dpr = window.devicePixelRatio || 1;
@@ -50,7 +51,8 @@ export default function Minimap({ lat, lon, heading = 0, height }) {
 
     const draw = () => {
       raf = requestAnimationFrame(draw);
-      const { lat, lon, heading, height } = stateRef.current;
+      const live = posRef?.current;
+      const { lat, lon, heading, height } = live || stateRef.current;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.clearRect(0, 0, SIZE, SIZE);
 
@@ -63,7 +65,7 @@ export default function Minimap({ lat, lon, heading = 0, height }) {
       ctx.fillRect(0, 0, SIZE, SIZE);
 
       if (lat !== undefined && lat !== null && isFinite(lat)) {
-        const z = zoomForHeight(height);
+        const z = Math.max(2, Math.min(18, zoomForHeight(height) + zoomBias));
         const n = 1 << z;
         const xf = ((lon + 180) / 360) * n;
         const latR = (lat * Math.PI) / 180;
@@ -71,7 +73,7 @@ export default function Minimap({ lat, lon, heading = 0, height }) {
           ((1 - Math.log(Math.tan(latR) + 1 / Math.cos(latR)) / Math.PI) / 2) * n;
         const cx = SIZE / 2;
         const cy = SIZE / 2;
-        const range = 1; // tiles in each direction
+        const range = Math.ceil(SIZE / TILE / 2) + 1; // cover the canvas
         const bx = Math.floor(xf);
         const by = Math.floor(yf);
         for (let dx = -range; dx <= range; dx++) {

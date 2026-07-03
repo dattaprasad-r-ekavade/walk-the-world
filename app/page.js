@@ -4,6 +4,7 @@ import dynamic from "next/dynamic";
 import { useEffect, useRef, useState } from "react";
 import { PLACES } from "@/lib/geo";
 import Minimap from "@/components/Minimap";
+import { LoadingScreen, TravelPanel, SettingsPanel, PauseMenu } from "@/components/hud/Panels";
 
 const Globe = dynamic(() => import("@/components/Globe"), { ssr: false });
 
@@ -26,7 +27,32 @@ export default function Home() {
   const [panel, setPanel] = useState(null); // null | travel | controls | pause
   const [progress, setProgress] = useState({ pct: 0, stage: "Starting…" });
   const [place, setPlace] = useState(null); // GTA-style location title
+  const [bigMap, setBigMap] = useState(false); // Tab-expanded map
   const lastGeo = useRef({ lat: null, lon: null, t: 0 });
+  const lastPlace = useRef(null);
+  const posRef = useRef(null); // live position, written by the engine each frame
+  const [geoBusy, setGeoBusy] = useState(false);
+  const [settings, setSettings] = useState({ hour: 12, weather: 0, quality: "medium", engine: "street" });
+
+  const changeSetting = (patch) => {
+    const next = { ...settings, ...patch };
+    setSettings(next);
+    controllerRef.current?.applySettings(patch);
+  };
+
+  // Browser geolocation → fly to the user's real position.
+  const goToMyLocation = () => {
+    if (!navigator.geolocation) return;
+    setGeoBusy(true);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setGeoBusy(false);
+        fly(pos.coords.latitude, pos.coords.longitude);
+      },
+      () => setGeoBusy(false),
+      { enableHighAccuracy: false, timeout: 10000 }
+    );
+  };
 
   const walking = status.mode === "walk";
 
@@ -52,7 +78,10 @@ export default function Home() {
           .filter((v, i, a) => a.indexOf(v) === i)
           .slice(0, 2)
           .join(", ");
-        if (line) setPlace({ text: line, key: Date.now() });
+        if (line) {
+          lastPlace.current = line;
+          setPlace({ text: line, key: Date.now() });
+        }
       })
       .catch(() => {});
   }, [walking, status.lat, status.lon]);
@@ -73,6 +102,13 @@ export default function Home() {
       if (screen !== "play") return;
       if (e.code === "KeyM") setPanel((p) => (p === "travel" ? null : "travel"));
       if (e.code === "KeyP") setPanel((p) => (p === "pause" ? null : "pause"));
+      if (e.code === "Tab") {
+        e.preventDefault(); // keep focus in-game
+        setBigMap((b) => !b);
+      }
+      if (e.code === "KeyN" && lastPlace.current) {
+        setPlace({ text: lastPlace.current, key: Date.now() });
+      }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
@@ -91,21 +127,11 @@ export default function Home() {
         onProgress={(pr) => {
           setProgress(pr);
         }}
+        posRef={posRef}
       />
 
       {/* ============ LOADING SCREEN ============ */}
-      {screen === "loading" && (
-        <div className="menu-screen">
-          <div className="menu-card">
-            <div className="menu-logo">🌍</div>
-            <h1 className="menu-title">WALK THE WORLD</h1>
-            <div className="load-bar">
-              <div className="load-fill" style={{ width: `${progress.pct}%` }} />
-            </div>
-            <p className="load-stage">{progress.stage}</p>
-          </div>
-        </div>
-      )}
+      {screen === "loading" && <LoadingScreen pct={progress.pct} stage={progress.stage} />}
 
       {/* ============ TITLE / MENU SCREEN ============ */}
       {screen === "menu" && (
@@ -149,6 +175,7 @@ export default function Home() {
               lon={status.lon}
               heading={status.heading}
               height={status.height}
+              posRef={posRef}
             />
             <div className="coords">
               {formatCoord(status.lat, "N", "S")} · {formatCoord(status.lon, "E", "W")}
@@ -160,6 +187,7 @@ export default function Home() {
             <button title="Menu (P)" onClick={() => setPanel(panel === "pause" ? null : "pause")}>☰</button>
             <button title="Fast travel (M)" onClick={() => setPanel(panel === "travel" ? null : "travel")}>🗺</button>
             <button title="Globe view" onClick={home}>🌐</button>
+            <button title="Settings" onClick={() => setPanel(panel === "settings" ? null : "settings")}>⚙</button>
             <button
               title="First/third person (V)"
               onClick={() =>
@@ -168,6 +196,16 @@ export default function Home() {
             >
               {status.view === "third" ? "👁" : "👤"}
             </button>
+            {walking && (
+              <button
+                title="Street Engine (Three.js beta)"
+                onClick={() =>
+                  (window.location.href = `/street?lat=${status.lat?.toFixed(5)}&lon=${status.lon?.toFixed(5)}`)
+                }
+              >
+                🎮
+              </button>
+            )}
             <button
               title="Toggle walk/fly (F)"
               onClick={() =>
@@ -195,10 +233,28 @@ export default function Home() {
           <div className="hintbar">
             {walking
               ? status.locked
-                ? "WASD move · mouse look · Shift sprint · V view · F fly · M map"
+                ? "WASD move · mouse look · Shift sprint · V view · Tab map · F fly"
                 : "Click the view to look around · F fly mode · M map"
-              : "Click the ground to land & walk · drag orbit · scroll zoom · M map"}
+              : "Double-click the ground to land & walk · drag orbit · scroll zoom · M map"}
           </div>
+
+          {/* Tab: expanded map overlay */}
+          {bigMap && (
+            <div className="bigmap" onClick={() => setBigMap(false)}>
+              <Minimap
+                lat={status.lat}
+                lon={status.lon}
+                heading={status.heading}
+                height={status.height}
+                posRef={posRef}
+                size={Math.min(560, typeof window !== "undefined" ? window.innerHeight - 160 : 560)}
+                zoomBias={-1}
+              />
+              <div className="coords">
+                {formatCoord(status.lat, "N", "S")} · {formatCoord(status.lon, "E", "W")} · Tab to close
+              </div>
+            </div>
+          )}
 
           {/* crosshair in walk mode */}
           {walking && status.locked && <div className="crosshair" />}
@@ -214,19 +270,37 @@ export default function Home() {
 
       {/* ============ PANELS ============ */}
       {panel === "travel" && (
-        <div className="panel">
-          <div className="panel-head">
-            <h2>🗺 Fast Travel</h2>
-            <button className="close" onClick={() => setPanel(null)}>✕</button>
-          </div>
-          <div className="travel-grid">
-            {PLACES.map((p) => (
-              <button key={p.name} onClick={() => fly(p.lat, p.lon)}>
-                📍 {p.name}
+        <TravelPanel
+          onClose={() => setPanel(null)}
+          onTravel={fly}
+          extraTop={
+            <button className="mylocation" onClick={goToMyLocation} disabled={geoBusy}>
+              {geoBusy ? "⏳ Locating…" : "📍 My Location"}
+            </button>
+          }
+        />
+      )}
+
+      {panel === "settings" && (
+        <SettingsPanel settings={settings} onChange={changeSetting} onClose={() => setPanel(null)}>
+          <div className="setting-row">
+            <label>🚶 Walk engine</label>
+            <div className="quality-btns">
+              <button
+                className={settings.engine === "street" ? "active" : ""}
+                onClick={() => changeSetting({ engine: "street" })}
+              >
+                Street (fast)
               </button>
-            ))}
+              <button
+                className={settings.engine === "classic" ? "active" : ""}
+                onClick={() => changeSetting({ engine: "classic" })}
+              >
+                Classic
+              </button>
+            </div>
           </div>
-        </div>
+        </SettingsPanel>
       )}
 
       {panel === "controls" && (
@@ -237,13 +311,15 @@ export default function Home() {
           </div>
           <table className="keys">
             <tbody>
-              <tr><td><kbd>Click</kbd></td><td>Land anywhere & start walking</td></tr>
+              <tr><td><kbd>Double-click</kbd></td><td>Land anywhere & start walking</td></tr>
               <tr><td><kbd>W A S D</kbd></td><td>Walk / fly</td></tr>
               <tr><td><kbd>Mouse</kbd></td><td>Look around (walk mode)</td></tr>
               <tr><td><kbd>Shift</kbd></td><td>Sprint</td></tr>
               <tr><td><kbd>V</kbd></td><td>First / third person</td></tr>
               <tr><td><kbd>F</kbd></td><td>Toggle walk / fly</td></tr>
               <tr><td><kbd>M</kbd></td><td>Fast travel map</td></tr>
+              <tr><td><kbd>Tab</kbd></td><td>Expand / collapse the map</td></tr>
+              <tr><td><kbd>N</kbd></td><td>Show current location name</td></tr>
               <tr><td><kbd>P</kbd></td><td>Pause menu</td></tr>
               <tr><td><kbd>Esc</kbd></td><td>Release mouse</td></tr>
             </tbody>
@@ -252,26 +328,15 @@ export default function Home() {
       )}
 
       {panel === "pause" && screen === "play" && (
-        <div className="menu-screen dim">
-          <div className="menu-card">
-            <h1 className="menu-title small">PAUSED</h1>
-            <div className="menu-buttons">
-              <button className="menu-btn primary" onClick={() => setPanel(null)}>▶ Resume</button>
-              <button className="menu-btn" onClick={() => setPanel("travel")}>🗺 Fast Travel</button>
-              <button className="menu-btn" onClick={() => setPanel("controls")}>🎮 Controls</button>
-              <button
-                className="menu-btn"
-                onClick={() => {
-                  setPanel(null);
-                  setScreen("menu");
-                  home();
-                }}
-              >
-                🏠 Main Menu
-              </button>
-            </div>
-          </div>
-        </div>
+        <PauseMenu
+          buttons={[
+            { label: "▶ Resume", primary: true, onClick: () => setPanel(null) },
+            { label: "🗺 Fast Travel", onClick: () => setPanel("travel") },
+            { label: "⚙ Settings", onClick: () => setPanel("settings") },
+            { label: "🎮 Controls", onClick: () => setPanel("controls") },
+            { label: "🏠 Main Menu", onClick: () => { setPanel(null); setScreen("menu"); home(); } },
+          ]}
+        />
       )}
 
       {ready && !hasTiles && screen === "play" && (
