@@ -92,10 +92,13 @@ export default function StreetEngine({ lat0, lon0 }) {
 
   useEffect(() => {
     let disposed = false;
-    let initGen = Symbol('street-init');
-    const myGen = initGen;
     const mount = mountRef.current;
     if (!mount) return;
+
+    if (typeof window !== 'undefined') {
+      window.__engineReady = false;
+      window.__streetTriangles = 0;
+    }
 
     const cityDataPromise = fetchCityData(lat0, lon0).catch((e) => {
       console.warn("[street] city data:", e?.message);
@@ -233,6 +236,8 @@ export default function StreetEngine({ lat0, lon0 }) {
     const tileCanvases = [];
     const { addFootprint, insideBuilding } = createCollision(GRID);
     let groundHeight = () => 0;
+    const spinners = [];
+    const lampGlows = [];
     let avatar = null;
     let running = true;
     let hudDom = null;
@@ -1236,8 +1241,6 @@ export default function StreetEngine({ lat0, lon0 }) {
       applySky(12);
       loadAvatar();
       loop();
-      setReadyPct(100);
-      if (!disposed) window.__engineReady = true;
 
       setStage("Fetching city data…");
       const cityData = await cityDataPromise;
@@ -1245,6 +1248,9 @@ export default function StreetEngine({ lat0, lon0 }) {
 
       await loadCity(cityData);
       if (disposed) return;
+
+      setReadyPct(100);
+      if (!disposed) window.__engineReady = true;
       // Safe spawn: never inside a building — spiral to nearest open spot.
       if (insideBuilding(player.x, player.z)) {
         outer: for (const rad of [12, 25, 45, 70, 100, 140]) {
@@ -1330,12 +1336,14 @@ export default function StreetEngine({ lat0, lon0 }) {
           if (line) setPlace(line);
         })
         .catch(() => {});
-      loop();
     })();
 
     return () => {
       disposed = true;
       running = false;
+      if (typeof window !== 'undefined') {
+        window.__engineReady = false;
+      }
       canvas.removeEventListener("click", onClick);
       window.removeEventListener("keydown", onKey);
       window.removeEventListener("keyup", onKey);

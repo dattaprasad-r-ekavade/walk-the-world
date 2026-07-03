@@ -66,8 +66,7 @@ export default function Globe({ controllerRef, onReady, onStatus, onProgress, po
         fullscreenButton: false,
         infoBox: false,
         selectionIndicator: false,
-        requestRenderMode: true,
-        maximumRenderTimeChange: 0.0,
+        requestRenderMode: false,
         contextOptions: {
           webgl: {
             powerPreference: "high-performance", // prefer discrete GPU

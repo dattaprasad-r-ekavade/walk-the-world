@@ -50,6 +50,6 @@ describe('street/ground-height', () => {
     });
     const groundHeight = createGroundHeight(tiles);
     expect(groundHeight(50, 50)).toBeGreaterThan(0);
-    expect(groundHeight(50, 50)).toBe(groundHeight(50, 50));
+    expect(groundHeight(10, 10)).toBeLessThan(groundHeight(90, 90));
   });
 });
