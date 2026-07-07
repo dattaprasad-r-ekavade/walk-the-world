@@ -296,8 +296,77 @@ export default function StreetEngine({ lat0, lon0 }) {
 
     // ---- editor / debug ----
     engineRef.current.edits = engineRef.current.edits || {};
-    const editor = { mode: null, tool: null, placed: [], selected: null };
+    const editor = { mode: null, tool: null, placed: [], selected: null, undo: [] };
+    // free-fly camera rig for editor/debug (Minecraft-creative style)
+    const fly = { x: 0, y: 0, z: 0, heading: 0, pitch: 0, rmb: false };
     const raycaster = new THREE.Raycaster();
+
+    // hover visuals: brush ring for terrain tools, outline for pickable features,
+    // box helper for placed-asset select/hover
+    const brushRing = new THREE.Mesh(
+      new THREE.RingGeometry(0.92, 1, 48).rotateX(-Math.PI / 2),
+      new THREE.MeshBasicMaterial({ color: 0xffd54a, transparent: true, opacity: 0.85, depthTest: false, side: THREE.DoubleSide })
+    );
+    brushRing.renderOrder = 999;
+    brushRing.visible = false;
+    scene.add(brushRing);
+    const outlineLine = new THREE.Line(
+      new THREE.BufferGeometry(),
+      new THREE.LineBasicMaterial({ color: 0x4ae3ff, depthTest: false, linewidth: 2 })
+    );
+    outlineLine.renderOrder = 999;
+    outlineLine.visible = false;
+    scene.add(outlineLine);
+    let selBox = null;
+    const clearSelBox = () => { if (selBox) { scene.remove(selBox); selBox = null; } };
+    const showSelBox = (obj, color = 0x4ae3ff) => {
+      clearSelBox();
+      selBox = new THREE.BoxHelper(obj, color);
+      selBox.material.depthTest = false;
+      selBox.renderOrder = 999;
+      scene.add(selBox);
+    };
+    const showOutline = (pts, closed) => {
+      if (!pts || pts.length < 2) { outlineLine.visible = false; return; }
+      const arr = closed ? [...pts, pts[0]] : pts;
+      const v = [];
+      for (const q of arr) {
+        const qx = q[0], qz = q[1];
+        v.push(qx, groundHeight(qx, qz) + 0.5, qz);
+      }
+      outlineLine.geometry.dispose();
+      outlineLine.geometry = new THREE.BufferGeometry();
+      outlineLine.geometry.setAttribute("position", new THREE.Float32BufferAttribute(v, 3));
+      outlineLine.visible = true;
+    };
+    const hideHover = () => { brushRing.visible = false; outlineLine.visible = false; };
+    let hoverT = 0;
+    const updateHover = (e) => {
+      if (!editor.mode) { hideHover(); return; }
+      const now = performance.now();
+      if (now - hoverT < 60) return;
+      hoverT = now;
+      const hit = pickPoint(e);
+      if (!hit) { hideHover(); return; }
+      const t = editor.tool;
+      const terrainTool = t && ["flatten", "raise", "lower"].includes(t.type);
+      if (editor.mode === "editor" && terrainTool) {
+        outlineLine.visible = false;
+        brushRing.visible = true;
+        brushRing.position.set(hit.point.x, groundHeight(hit.point.x, hit.point.z) + 0.4, hit.point.z);
+        brushRing.scale.setScalar(t.radius || 12);
+      } else if (editor.mode === "editor" && t?.type === "asset") {
+        outlineLine.visible = false;
+        brushRing.visible = true;
+        brushRing.position.set(hit.point.x, groundHeight(hit.point.x, hit.point.z) + 0.4, hit.point.z);
+        brushRing.scale.setScalar(1.5);
+      } else {
+        brushRing.visible = false;
+        const sel = resolveOsmAt(hit);
+        if (sel?.outline) showOutline(sel.outline, sel.closed);
+        else outlineLine.visible = false;
+      }
+    };
     const gltfLoader = new GLTFLoader();
     const loadGLB = (url) =>
       new Promise((res, rej) => gltfLoader.load(url, (g) => res(g.scene), undefined, rej));
@@ -352,9 +421,31 @@ export default function StreetEngine({ lat0, lon0 }) {
     // nearest road centerline. Shared by debug mode and the hide tool.
     const resolveOsmAt = (hit) => {
       const { x, z } = hit.point;
+      // per-mesh identity (anything that sets userData.osm)
+      for (let o = hit.object; o; o = o.parent) {
+        if (o.userData?.osm) {
+          const u = o.userData.osm;
+          return { kind: u.kind || "feature", id: u.id, tags: { ...u.tags }, outline: u.outline };
+        }
+      }
+      // props (gates, trees, lamps… baked into merged meshes — match by position)
+      let bp = null;
+      for (const pr of engineRef.current.propMarkers || []) {
+        if (!pr.id) continue;
+        const d = Math.hypot(x - pr.x, z - pr.z);
+        if (d <= 3 && (!bp || d < bp.d)) bp = { d, pr };
+      }
+      if (bp) {
+        const { pr } = bp;
+        const R = 1.6, ring = [];
+        for (let i = 0; i < 12; i++)
+          ring.push([pr.x + Math.cos((i / 12) * Math.PI * 2) * R, pr.z + Math.sin((i / 12) * Math.PI * 2) * R]);
+        return { kind: `prop (${pr.kind})`, id: pr.id, tags: { ...pr.tags }, outline: ring, closed: true };
+      }
       const dir = raycaster.ray.direction;
       const fp = footprintAt(x, z) || footprintAt(x + dir.x * 0.4, z + dir.z * 0.4);
-      if (fp?.meta?.id) return { kind: "building", id: fp.meta.id, tags: { ...fp.meta.tags } };
+      if (fp?.meta?.id)
+        return { kind: "building", id: fp.meta.id, tags: { ...fp.meta.tags }, outline: fp.poly, closed: true };
       let best = null;
       for (const rp of engineRef.current.roadPaths || []) {
         if (!rp.id) continue;
@@ -365,7 +456,9 @@ export default function StreetEngine({ lat0, lon0 }) {
           if (d <= Math.max((rp.width || 6) * 0.75, 5) && (!best || d < best.d)) best = { d, rp };
         }
       }
-      return best ? { kind: "road", id: best.rp.id, tags: { ...best.rp.tags } } : null;
+      return best
+        ? { kind: "road", id: best.rp.id, tags: { ...best.rp.tags }, outline: best.rp.pts.map((v) => [v.x, v.y]) }
+        : null;
     };
     const debugPick = (e) => {
       const hit = pickPoint(e);
@@ -389,6 +482,8 @@ export default function StreetEngine({ lat0, lon0 }) {
             if (o === editor.placed[i].group) { idx = i; break outer; }
         }
         editor.selected = idx;
+        if (idx !== null) showSelBox(editor.placed[idx].group);
+        else clearSelBox();
         setEditorMsg(
           idx !== null
             ? `selected ${editor.placed[idx].entry.name} — R rotate · [ ] scale · X delete`
@@ -399,6 +494,7 @@ export default function StreetEngine({ lat0, lon0 }) {
       if (t.type === "asset") {
         const g = toGeo(x, z);
         await placeAsset({ name: t.name, url: t.url, lat: g.lat, lon: g.lon, rotY: 0, scale: 1 }, true);
+        editor.undo.push({ type: "asset" });
         setEditorMsg(`placed ${t.name} — 💾 Save to persist`);
       } else if (t.type === "flatten" || t.type === "raise" || t.type === "lower") {
         const r = t.radius || 12;
@@ -409,18 +505,29 @@ export default function StreetEngine({ lat0, lon0 }) {
         patchTerrain(x, z, r, h);
         const g = toGeo(x, z);
         ((engineRef.current.edits.terrain ||= [])).push({ lat: g.lat, lon: g.lon, radius: r, height: h });
+        editor.undo.push({ type: "terrain", prevH: groundHeight(x, z), x, z, r });
         setEditorMsg(`terrain ${t.type} applied (${r}m) — 💾 Save to persist`);
       } else if (t.type === "hide") {
         const sel = resolveOsmAt(hit);
         if (!sel) { setEditorMsg("nothing with OSM data there"); return; }
         const hidden = (engineRef.current.edits.hidden ||= []);
-        if (!hidden.includes(sel.id)) hidden.push(sel.id);
+        if (!hidden.includes(sel.id)) { hidden.push(sel.id); editor.undo.push({ type: "hide", id: sel.id }); }
         setEditorMsg(`${sel.id} hidden on next load — 💾 Save to persist (${hidden.length} hidden)`);
       }
     };
     const setMode = (m) => {
+      const was = editor.mode;
       editor.mode = editor.mode === m ? null : m;
       if (editor.mode && document.pointerLockElement) document.exitPointerLock();
+      if (editor.mode && !was) {
+        // enter fly where the player camera is, looking the same way
+        fly.x = camera.position.x;
+        fly.y = camera.position.y + 4;
+        fly.z = camera.position.z;
+        fly.heading = player.heading;
+        fly.pitch = Math.max(-1.2, player.pitch - 0.3);
+      }
+      if (!editor.mode) { hideHover(); clearSelBox(); }
       setUiMode(editor.mode);
       if (editor.mode !== "debug") setDebugSel(null);
       if (editor.mode !== "editor") { editor.tool = null; editor.selected = null; setEditorMsg(null); }
@@ -676,7 +783,7 @@ export default function StreetEngine({ lat0, lon0 }) {
               T.power === "tower" ? "pylon" : null;
             if (kind) {
               const pt = toLocal(way.lat, way.lon);
-              props.push({ kind, x: pt.x, z: pt.z, tags: T });
+              props.push({ kind, x: pt.x, z: pt.z, tags: T, id: `${way.type}/${way.id}` });
             }
             continue;
           }
@@ -1311,6 +1418,7 @@ export default function StreetEngine({ lat0, lon0 }) {
         placeProps(props, { scene, groundHeight, spinners, lampGlows });
         engineRef.current.spinners = spinners;
         engineRef.current.roadPaths = roadPaths;
+        engineRef.current.propMarkers = props; // {kind,x,z,tags,id} for picking
         engineRef.current.lampGlows = lampGlows;
 
         // ---- BARRIERS: thin walls along ways, with collision ----
@@ -1416,6 +1524,7 @@ export default function StreetEngine({ lat0, lon0 }) {
     };
     const onKey = (e) => {
       keys[e.code] = e.type === "keydown";
+      if (editor.mode && (e.code === "Space" || e.code === "KeyC")) e.preventDefault();
       if (e.type === "keydown" && e.code === "KeyV" && !e.repeat) {
         player.third = !player.third;
         if (avatar) avatar.visible = player.third;
@@ -1423,12 +1532,48 @@ export default function StreetEngine({ lat0, lon0 }) {
       if (e.type === "keydown" && !e.repeat) {
         if (e.code === "KeyE") setMode("editor");
         if (e.code === "KeyB") setMode("debug");
+        if (editor.mode === "editor") {
+          // tool hotkeys, Blender/Minecraft style
+          const api = engineRef.current.editorApi;
+          if (e.code === "Digit1") api.setTool(null);
+          if (e.code === "Digit2") api.setTool({ type: "flatten", radius: editor.tool?.radius || 12 });
+          if (e.code === "Digit3") api.setTool({ type: "raise", radius: editor.tool?.radius || 12 });
+          if (e.code === "Digit4") api.setTool({ type: "lower", radius: editor.tool?.radius || 12 });
+          if (e.code === "Digit5") api.setTool({ type: "hide" });
+          if (e.code === "Escape") { api.setTool(null); clearSelBox(); editor.selected = null; }
+          if (e.code === "KeyZ" && (e.ctrlKey || e.metaKey)) {
+            e.preventDefault();
+            const u = editor.undo.pop();
+            if (!u) setEditorMsg("nothing to undo");
+            else if (u.type === "asset") {
+              const rec = editor.placed.pop();
+              if (rec) {
+                scene.remove(rec.group);
+                const arr = engineRef.current.edits.assets || [];
+                const ai = arr.indexOf(rec.entry);
+                if (ai >= 0) arr.splice(ai, 1);
+              }
+              editor.selected = null;
+              clearSelBox();
+              setEditorMsg("undid asset placement");
+            } else if (u.type === "hide") {
+              const hidden = engineRef.current.edits.hidden || [];
+              const hi = hidden.indexOf(u.id);
+              if (hi >= 0) hidden.splice(hi, 1);
+              setEditorMsg(`undid hide of ${u.id}`);
+            } else if (u.type === "terrain") {
+              (engineRef.current.edits.terrain || []).pop();
+              patchTerrain(u.x, u.z, u.r, u.prevH);
+              setEditorMsg("undid terrain edit");
+            }
+          }
+        }
         if (editor.mode === "editor" && editor.selected !== null) {
           const rec = editor.placed[editor.selected];
           if (rec) {
-            if (e.code === "KeyR") rec.entry.rotY = rec.group.rotation.y += Math.PI / 12;
-            if (e.code === "BracketLeft") rec.group.scale.setScalar((rec.entry.scale = Math.max(0.1, (rec.entry.scale || 1) * 0.9)));
-            if (e.code === "BracketRight") rec.group.scale.setScalar((rec.entry.scale = Math.min(50, (rec.entry.scale || 1) * 1.1)));
+            if (e.code === "KeyR") { rec.entry.rotY = rec.group.rotation.y += Math.PI / 12; selBox?.update(); }
+            if (e.code === "BracketLeft") { rec.group.scale.setScalar((rec.entry.scale = Math.max(0.1, (rec.entry.scale || 1) * 0.9))); selBox?.update(); }
+            if (e.code === "BracketRight") { rec.group.scale.setScalar((rec.entry.scale = Math.min(50, (rec.entry.scale || 1) * 1.1))); selBox?.update(); }
             if (e.code === "KeyX") {
               scene.remove(rec.group);
               editor.placed.splice(editor.selected, 1);
@@ -1436,6 +1581,7 @@ export default function StreetEngine({ lat0, lon0 }) {
               const ai = arr.indexOf(rec.entry);
               if (ai >= 0) arr.splice(ai, 1);
               editor.selected = null;
+              clearSelBox();
               setEditorMsg("asset deleted — 💾 Save to persist");
             }
           }
@@ -1443,9 +1589,27 @@ export default function StreetEngine({ lat0, lon0 }) {
       }
     };
     const onMouse = (e) => {
+      if (editor.mode) {
+        if (fly.rmb) {
+          fly.heading += e.movementX * 0.0028;
+          fly.pitch = Math.max(-1.45, Math.min(1.45, fly.pitch - e.movementY * 0.0028));
+        } else {
+          updateHover(e);
+        }
+        return;
+      }
       if (document.pointerLockElement !== canvas) return;
       player.heading += e.movementX * 0.0022;
       player.pitch = Math.max(-1.45, Math.min(1.45, player.pitch - e.movementY * 0.0022));
+    };
+    const onMouseDown = (e) => {
+      if (editor.mode && e.button === 2) { fly.rmb = true; e.preventDefault(); }
+    };
+    const onMouseUp = (e) => {
+      if (e.button === 2) fly.rmb = false;
+    };
+    const onContextMenu = (e) => {
+      if (editor.mode) e.preventDefault();
     };
     const onLock = () => {
       const locked = document.pointerLockElement === canvas;
@@ -1458,6 +1622,9 @@ export default function StreetEngine({ lat0, lon0 }) {
       renderer.setSize(mount.clientWidth, mount.clientHeight);
     };
     canvas.addEventListener("click", onClick);
+    canvas.addEventListener("mousedown", onMouseDown);
+    window.addEventListener("mouseup", onMouseUp);
+    canvas.addEventListener("contextmenu", onContextMenu);
     window.addEventListener("keydown", onKey);
     window.addEventListener("keyup", onKey);
     document.addEventListener("mousemove", onMouse);
@@ -1484,7 +1651,23 @@ export default function StreetEngine({ lat0, lon0 }) {
       if (keys.KeyS || keys.ArrowDown) f -= 1;
       if (keys.KeyD || keys.ArrowRight) r += 1;
       if (keys.KeyA || keys.ArrowLeft) r -= 1;
-      player.moving = !!(f || r);
+      if (editor.mode) {
+        // free-fly: WASD along the look direction, Space/C vertical, Shift fast
+        const sp = (keys.ShiftLeft || keys.ShiftRight ? 75 : 28) * dt;
+        const sinH = Math.sin(fly.heading), cosH = Math.cos(fly.heading);
+        const cosP = Math.cos(fly.pitch), sinP = Math.sin(fly.pitch);
+        fly.x += (f * sinH * cosP + r * cosH) * sp;
+        fly.z += (-f * cosH * cosP + r * sinH) * sp;
+        fly.y += f * sinP * sp + ((keys.Space ? 1 : 0) - (keys.KeyC ? 1 : 0)) * sp;
+        const minY = groundHeight(fly.x, fly.z) + 1.2;
+        if (fly.y < minY) fly.y = minY;
+        camera.position.set(fly.x, fly.y, fly.z);
+        camera.rotation.y = -fly.heading;
+        camera.rotation.x = fly.pitch;
+        player.moving = false;
+        f = 0; r = 0;
+      }
+      player.moving = editor.mode ? false : !!(f || r);
       if (player.moving) {
         const run =
           keys.ShiftLeft || keys.ShiftRight || touch?.sprint ? RUN_MULT : 1;
@@ -1525,7 +1708,7 @@ export default function StreetEngine({ lat0, lon0 }) {
         }
       }
 
-      if (player.third && avatar) {
+      if (!editor.mode && player.third && avatar) {
         avatar.position.set(player.x, gy, player.z);
         avatar.rotation.y = -player.heading + Math.PI;
         // chase camera: shorten the boom if it would sit inside a building,
@@ -1540,7 +1723,7 @@ export default function StreetEngine({ lat0, lon0 }) {
         camera.position.set(cx, cy, cz);
         camera.rotation.y = -player.heading;
         camera.rotation.x = -0.22 + player.pitch * 0.4;
-      } else {
+      } else if (!editor.mode) {
         camera.position.set(player.x, gy + EYE, player.z);
         camera.rotation.y = -player.heading;
         camera.rotation.x = player.pitch;
@@ -1686,6 +1869,11 @@ export default function StreetEngine({ lat0, lon0 }) {
         player,
         insideBuilding,
         groundHeight,
+        propMarkers: () => engineRef.current.propMarkers || [],
+        pickAt: (cx, cy) => {
+          const h = pickPoint({ clientX: cx, clientY: cy });
+          return h ? resolveOsmAt(h) : null;
+        },
         meshes: () => {
           const out = [];
           scene.traverse((o) => {
@@ -1722,6 +1910,9 @@ export default function StreetEngine({ lat0, lon0 }) {
         window.__engineReady = false;
       }
       canvas.removeEventListener("click", onClick);
+      canvas.removeEventListener("mousedown", onMouseDown);
+      window.removeEventListener("mouseup", onMouseUp);
+      canvas.removeEventListener("contextmenu", onContextMenu);
       window.removeEventListener("keydown", onKey);
       window.removeEventListener("keyup", onKey);
       document.removeEventListener("mousemove", onMouse);
@@ -1814,12 +2005,12 @@ export default function StreetEngine({ lat0, lon0 }) {
             onChange={(ev) => engineRef.current.editorApi?.setEditorKey(ev.target.value)}
             className="mb-2 w-full rounded bg-black/40 px-2 py-1 outline-none ring-1 ring-white/10 focus:ring-accent"
           />
-          <div className="mb-2 flex flex-wrap gap-1">
-            <button type="button" className={toolBtn} onClick={() => engineRef.current.editorApi?.setTool(null)}>Select</button>
-            <button type="button" className={toolBtn} onClick={() => engineRef.current.editorApi?.setTool({ type: "flatten", radius: brushRadius })}>Flatten</button>
-            <button type="button" className={toolBtn} onClick={() => engineRef.current.editorApi?.setTool({ type: "raise", radius: brushRadius })}>▲ Raise</button>
-            <button type="button" className={toolBtn} onClick={() => engineRef.current.editorApi?.setTool({ type: "lower", radius: brushRadius })}>▼ Lower</button>
-            <button type="button" className={toolBtn} onClick={() => engineRef.current.editorApi?.setTool({ type: "hide" })}>🗑 Hide OSM</button>
+          <div className="mb-2 grid grid-cols-3 gap-1">
+            <button type="button" className={toolBtn} onClick={() => engineRef.current.editorApi?.setTool(null)}><kbd className="mr-1 opacity-50">1</kbd>Select</button>
+            <button type="button" className={toolBtn} onClick={() => engineRef.current.editorApi?.setTool({ type: "flatten", radius: brushRadius })}><kbd className="mr-1 opacity-50">2</kbd>Flatten</button>
+            <button type="button" className={toolBtn} onClick={() => engineRef.current.editorApi?.setTool({ type: "raise", radius: brushRadius })}><kbd className="mr-1 opacity-50">3</kbd>Raise</button>
+            <button type="button" className={toolBtn} onClick={() => engineRef.current.editorApi?.setTool({ type: "lower", radius: brushRadius })}><kbd className="mr-1 opacity-50">4</kbd>Lower</button>
+            <button type="button" className={toolBtn} onClick={() => engineRef.current.editorApi?.setTool({ type: "hide" })}><kbd className="mr-1 opacity-50">5</kbd>Hide</button>
             <button type="button" className={toolBtnPrimary} onClick={() => engineRef.current.editorApi?.save()}>💾 Save</button>
           </div>
           <label className="mb-2 flex items-center gap-2 text-slate-400">
@@ -1855,9 +2046,11 @@ export default function StreetEngine({ lat0, lon0 }) {
             )}
           </div>
           {editorMsg && <div className="mt-2 text-emerald-300">{editorMsg}</div>}
-          <div className="mt-2 text-slate-500">
-            R rotate · [ ] scale · X delete placed asset · E close. Terrain brushes stack
-            per click; 🗑 Hide removes broken/floating OSM features on next load.
+          <div className="mt-2 space-y-0.5 text-slate-500">
+            <div>✈ WASD fly · Space/C up/down · Shift fast · hold RMB to look</div>
+            <div>1-5 tools · click to apply · Ctrl+Z undo · Esc deselect · E exit</div>
+            <div>Selected asset: R rotate · [ ] scale · X delete</div>
+            <div>Hover shows what you'd pick; Hide removes OSM features on reload.</div>
           </div>
         </div>
       )}
@@ -1897,7 +2090,7 @@ export default function StreetEngine({ lat0, lon0 }) {
               <div className="mt-2 text-slate-500">Overrides are local (stored in R2), merged over OSM data on reload.</div>
             </>
           )}
-          <div className="mt-2 text-slate-500">B closes debug mode.</div>
+          <div className="mt-2 text-slate-500">✈ WASD fly · Space/C up/down · RMB look · B exit</div>
         </div>
       )}
     </main>
