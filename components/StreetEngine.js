@@ -297,8 +297,23 @@ export default function StreetEngine({ lat0, lon0 }) {
     // ---- editor / debug ----
     engineRef.current.edits = engineRef.current.edits || {};
     const editor = { mode: null, tool: null, placed: [], selected: null, undo: [] };
-    // free-fly camera rig for editor/debug (Minecraft-creative style)
-    const fly = { x: 0, y: 0, z: 0, heading: 0, pitch: 0, rmb: false };
+    // free-fly camera rig for editor/debug — Blender-style:
+    // scroll zoom, MMB orbit, Shift+MMB pan, RMB (or MMB) freelook fallback
+    const fly = {
+      x: 0, y: 0, z: 0, heading: 0, pitch: 0,
+      rmb: false, orbit: null, pan: false, grab: null,
+    };
+    const flyForward = () => {
+      const cp = Math.cos(fly.pitch);
+      return new THREE.Vector3(Math.sin(fly.heading) * cp, Math.sin(fly.pitch), -Math.cos(fly.heading) * cp);
+    };
+    const lookAtPivot = () => {
+      const o = fly.orbit;
+      const d = flyForward();
+      fly.x = o.px - d.x * o.dist;
+      fly.y = o.py - d.y * o.dist;
+      fly.z = o.pz - d.z * o.dist;
+    };
     const raycaster = new THREE.Raycaster();
 
     // hover visuals: brush ring for terrain tools, outline for pickable features,
@@ -481,12 +496,21 @@ export default function StreetEngine({ lat0, lon0 }) {
           for (let o = hit.object; o; o = o.parent)
             if (o === editor.placed[i].group) { idx = i; break outer; }
         }
+        if (idx === null) {
+          // small assets are easy to miss — select the nearest within 3m
+          let bd = 3;
+          for (let i = 0; i < editor.placed.length; i++) {
+            const gp = editor.placed[i].group.position;
+            const d = Math.hypot(x - gp.x, z - gp.z);
+            if (d < bd) { bd = d; idx = i; }
+          }
+        }
         editor.selected = idx;
         if (idx !== null) showSelBox(editor.placed[idx].group);
         else clearSelBox();
         setEditorMsg(
           idx !== null
-            ? `selected ${editor.placed[idx].entry.name} — R rotate · [ ] scale · X delete`
+            ? `selected ${editor.placed[idx].entry.name} — G move · R rotate · [ ] scale · X delete`
             : "nothing selected — click a placed asset, or pick a tool"
         );
         return;
@@ -1518,6 +1542,17 @@ export default function StreetEngine({ lat0, lon0 }) {
     // ---- input ----
     const canvas = renderer.domElement;
     const onClick = (e) => {
+      if (editor.mode === "editor" && fly.grab) {
+        // commit the move (Blender G → click confirms)
+        const { rec, orig } = fly.grab;
+        const g = toGeo(rec.group.position.x, rec.group.position.z);
+        rec.entry.lat = g.lat;
+        rec.entry.lon = g.lon;
+        editor.undo.push({ type: "move", rec, orig });
+        fly.grab = null;
+        setEditorMsg(`moved ${rec.entry.name} — 💾 Save to persist`);
+        return;
+      }
       if (editor.mode === "debug") { debugPick(e); return; }
       if (editor.mode === "editor") { editorClick(e); return; }
       if (document.pointerLockElement !== canvas) canvas.requestPointerLock?.();
@@ -1540,7 +1575,20 @@ export default function StreetEngine({ lat0, lon0 }) {
           if (e.code === "Digit3") api.setTool({ type: "raise", radius: editor.tool?.radius || 12 });
           if (e.code === "Digit4") api.setTool({ type: "lower", radius: editor.tool?.radius || 12 });
           if (e.code === "Digit5") api.setTool({ type: "hide" });
-          if (e.code === "Escape") { api.setTool(null); clearSelBox(); editor.selected = null; }
+          if (e.code === "KeyG" && editor.selected !== null && !fly.grab) {
+            const rec = editor.placed[editor.selected];
+            if (rec) {
+              fly.grab = { rec, orig: { lat: rec.entry.lat, lon: rec.entry.lon } };
+              setEditorMsg(`moving ${rec.entry.name} — move mouse, click to confirm, Esc to cancel`);
+            }
+          } else if (e.code === "Escape" && fly.grab) {
+            const { rec, orig } = fly.grab;
+            const pl = toLocal(orig.lat, orig.lon);
+            rec.group.position.set(pl.x, groundHeight(pl.x, pl.z) + (rec.entry.yOffset || 0), pl.z);
+            selBox?.update();
+            fly.grab = null;
+            setEditorMsg("move cancelled");
+          } else if (e.code === "Escape") { api.setTool(null); clearSelBox(); editor.selected = null; }
           if (e.code === "KeyZ" && (e.ctrlKey || e.metaKey)) {
             e.preventDefault();
             const u = editor.undo.pop();
@@ -1561,6 +1609,13 @@ export default function StreetEngine({ lat0, lon0 }) {
               const hi = hidden.indexOf(u.id);
               if (hi >= 0) hidden.splice(hi, 1);
               setEditorMsg(`undid hide of ${u.id}`);
+            } else if (u.type === "move") {
+              const pl = toLocal(u.orig.lat, u.orig.lon);
+              u.rec.entry.lat = u.orig.lat;
+              u.rec.entry.lon = u.orig.lon;
+              u.rec.group.position.set(pl.x, groundHeight(pl.x, pl.z) + (u.rec.entry.yOffset || 0), pl.z);
+              selBox?.update();
+              setEditorMsg("undid move");
             } else if (u.type === "terrain") {
               (engineRef.current.edits.terrain || []).pop();
               patchTerrain(u.x, u.z, u.r, u.prevH);
@@ -1590,9 +1645,29 @@ export default function StreetEngine({ lat0, lon0 }) {
     };
     const onMouse = (e) => {
       if (editor.mode) {
-        if (fly.rmb) {
+        if (fly.orbit) {
+          fly.heading += e.movementX * 0.006;
+          fly.pitch = Math.max(-1.45, Math.min(1.45, fly.pitch - e.movementY * 0.006));
+          lookAtPivot();
+        } else if (fly.pan) {
+          const d = flyForward();
+          const right = new THREE.Vector3(Math.cos(fly.heading), 0, Math.sin(fly.heading));
+          const up = new THREE.Vector3().crossVectors(right, d).negate().normalize();
+          const sp = Math.max(4, fly.y - groundHeight(fly.x, fly.z) + 6) * 0.0022;
+          fly.x += (-e.movementX * right.x + e.movementY * up.x) * sp;
+          fly.y += e.movementY * up.y * sp;
+          fly.z += (-e.movementX * right.z + e.movementY * up.z) * sp;
+        } else if (fly.rmb) {
           fly.heading += e.movementX * 0.0028;
           fly.pitch = Math.max(-1.45, Math.min(1.45, fly.pitch - e.movementY * 0.0028));
+        } else if (fly.grab) {
+          // grabbed asset follows the cursor across the ground (Blender G)
+          const hit = pickPoint(e);
+          if (hit) {
+            const rec = fly.grab.rec;
+            rec.group.position.set(hit.point.x, groundHeight(hit.point.x, hit.point.z) + (rec.entry.yOffset || 0), hit.point.z);
+            selBox?.update();
+          }
         } else {
           updateHover(e);
         }
@@ -1603,10 +1678,37 @@ export default function StreetEngine({ lat0, lon0 }) {
       player.pitch = Math.max(-1.45, Math.min(1.45, player.pitch - e.movementY * 0.0022));
     };
     const onMouseDown = (e) => {
-      if (editor.mode && e.button === 2) { fly.rmb = true; e.preventDefault(); }
+      if (!editor.mode) return;
+      if (e.button === 2) { fly.rmb = true; e.preventDefault(); }
+      if (e.button === 1) {
+        e.preventDefault();
+        if (e.shiftKey) { fly.pan = true; return; }
+        // orbit pivot: whatever is under the cursor, else 30m ahead
+        const hit = pickPoint(e);
+        const d = flyForward();
+        const pv = hit ? hit.point : { x: fly.x + d.x * 30, y: fly.y + d.y * 30, z: fly.z + d.z * 30 };
+        fly.orbit = {
+          px: pv.x, py: pv.y, pz: pv.z,
+          dist: Math.max(2, Math.hypot(fly.x - pv.x, fly.y - pv.y, fly.z - pv.z)),
+        };
+      }
     };
     const onMouseUp = (e) => {
       if (e.button === 2) fly.rmb = false;
+      if (e.button === 1) { fly.orbit = null; fly.pan = false; }
+    };
+    const onWheel = (e) => {
+      if (!editor.mode) return;
+      e.preventDefault();
+      // Blender-style dolly, speed scales with height above ground
+      const d = flyForward();
+      const scale = Math.max(4, fly.y - groundHeight(fly.x, fly.z) + 6);
+      const step = -Math.sign(e.deltaY) * scale * 0.22;
+      fly.x += d.x * step;
+      fly.y += d.y * step;
+      fly.z += d.z * step;
+      const minY = groundHeight(fly.x, fly.z) + 1.2;
+      if (fly.y < minY) fly.y = minY;
     };
     const onContextMenu = (e) => {
       if (editor.mode) e.preventDefault();
@@ -1624,6 +1726,7 @@ export default function StreetEngine({ lat0, lon0 }) {
     canvas.addEventListener("click", onClick);
     canvas.addEventListener("mousedown", onMouseDown);
     window.addEventListener("mouseup", onMouseUp);
+    canvas.addEventListener("wheel", onWheel, { passive: false });
     canvas.addEventListener("contextmenu", onContextMenu);
     window.addEventListener("keydown", onKey);
     window.addEventListener("keyup", onKey);
@@ -1870,6 +1973,7 @@ export default function StreetEngine({ lat0, lon0 }) {
         insideBuilding,
         groundHeight,
         propMarkers: () => engineRef.current.propMarkers || [],
+        fly,
         pickAt: (cx, cy) => {
           const h = pickPoint({ clientX: cx, clientY: cy });
           return h ? resolveOsmAt(h) : null;
@@ -1912,6 +2016,7 @@ export default function StreetEngine({ lat0, lon0 }) {
       canvas.removeEventListener("click", onClick);
       canvas.removeEventListener("mousedown", onMouseDown);
       window.removeEventListener("mouseup", onMouseUp);
+      canvas.removeEventListener("wheel", onWheel);
       canvas.removeEventListener("contextmenu", onContextMenu);
       window.removeEventListener("keydown", onKey);
       window.removeEventListener("keyup", onKey);
@@ -1968,7 +2073,7 @@ export default function StreetEngine({ lat0, lon0 }) {
           modeLabel="🎮 STREET ENGINE"
           hintText={
             uiMode === "editor"
-              ? "EDITOR · WASD fly · Space/C up/down · RMB look · 1-5 tools · click to apply"
+              ? "EDITOR · scroll zoom · MMB orbit · RMB look · WASD fly · 1-5 tools"
               : uiMode === "debug"
               ? "TAG INSPECTOR · WASD fly · RMB look · click a building/road/prop"
               : hudLocked
@@ -2086,9 +2191,9 @@ export default function StreetEngine({ lat0, lon0 }) {
           </div>
           {editorMsg && <div className="mt-2 text-emerald-300">{editorMsg}</div>}
           <div className="mt-2 space-y-0.5 text-slate-500">
-            <div>✈ WASD fly · Space/C up/down · Shift fast · hold RMB to look</div>
+            <div>✈ Scroll zoom · MMB orbit · Shift+MMB pan · RMB look · WASD fly · Space/C up/down</div>
             <div>1-5 tools · click to apply · Ctrl+Z undo · Esc deselect · E exit</div>
-            <div>Selected asset: R rotate · [ ] scale · X delete</div>
+            <div>Selected asset: G move · R rotate · [ ] scale · X delete</div>
             <div>Hover shows what you'd pick; Hide removes OSM features on reload.</div>
           </div>
         </div>
@@ -2129,7 +2234,7 @@ export default function StreetEngine({ lat0, lon0 }) {
               <div className="mt-2 text-slate-500">Overrides are local (stored in R2), merged over OSM data on reload.</div>
             </>
           )}
-          <div className="mt-2 text-slate-500">✈ WASD fly · Space/C up/down · RMB look · B exit</div>
+          <div className="mt-2 text-slate-500">✈ Scroll zoom · MMB orbit · Shift+MMB pan · RMB look · WASD fly · B exit</div>
         </div>
       )}
     </main>
