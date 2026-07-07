@@ -115,6 +115,8 @@ export default function StreetEngine({ lat0, lon0 }) {
     });
     renderer.setSize(mount.clientWidth, mount.clientHeight);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     mount.appendChild(renderer.domElement);
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0x9cc4e8);
@@ -150,18 +152,31 @@ export default function StreetEngine({ lat0, lon0 }) {
     scene.add(hemi);
     const sun = new THREE.DirectionalLight(0xfff2dd, 1.6);
     sun.position.set(300, 500, -200);
+    // one tight shadow map around the player — big depth win for ~1-2 ms
+    sun.castShadow = true;
+    sun.shadow.mapSize.set(2048, 2048);
+    sun.shadow.camera.near = 50;
+    sun.shadow.camera.far = 1200;
+    sun.shadow.camera.left = -180;
+    sun.shadow.camera.right = 180;
+    sun.shadow.camera.top = 180;
+    sun.shadow.camera.bottom = -180;
+    sun.shadow.bias = -0.0004;
     scene.add(sun);
+    scene.add(sun.target);
 
     // ---- settings hooks (time of day / weather / quality) ----
     const daySky = new THREE.Color(0x9cc4e8);
     const duskSky = new THREE.Color(0xd8926a);
     const nightSky = new THREE.Color(0x0c1428);
     let weatherAmt = 0;
+    const sunDir = new THREE.Vector3(300, 500, -200);
     const applySky = (hour) => {
       // sun elevation from local solar hour
       const t = ((hour - 6) / 12) * Math.PI; // 6h→sunrise, 18h→sunset
       const elev = Math.sin(t);
-      sun.position.set(Math.cos(t) * 500, Math.max(elev, -0.2) * 500, -200);
+      sunDir.set(Math.cos(t) * 500, Math.max(elev, 0.08) * 500, -200);
+      sun.position.set(sunDir.x, sunDir.y, sunDir.z);
       sun.intensity = Math.max(0, elev) * 1.6 + 0.05;
       hemi.intensity = 0.25 + Math.max(0, elev) * 0.85;
       const sky = new THREE.Color();
@@ -365,6 +380,7 @@ export default function StreetEngine({ lat0, lon0 }) {
         tileCanvases.push({ g: tg, texture, x0: tl.x, z0: tl.z, sizeX, sizeZ, w: W });
         const terrMat = new THREE.MeshLambertMaterial({ map: texture });
         const mesh = new THREE.Mesh(geo, terrMat);
+        mesh.receiveShadow = true;
         mesh.position.set(tl.x + sizeX / 2, 0, tl.z + sizeZ / 2);
         scene.add(mesh);
         if (geo.userData.skirt) {
@@ -398,6 +414,7 @@ export default function StreetEngine({ lat0, lon0 }) {
         const props = []; // {kind, x, z, tags}
         const barrierWays = []; // {pts, kind}
         const powerLines = []; // {pts}
+        const waterways = []; // {pts, width} centerline ribbons
         const treeSpots = [];
         const flatPolys = []; // {ring, color, lift}
         let featureIdx = 0;
@@ -488,6 +505,26 @@ export default function StreetEngine({ lat0, lon0 }) {
           }
           if (!way.geometry || way.geometry.length < 2) continue;
 
+          if (way.type === "relation" && way.members &&
+              (way.tags?.natural === "water" || way.tags?.waterway === "riverbank" || way.tags?.water)) {
+            // multipolygon water: each outer member ring becomes a polygon
+            for (const m of way.members) {
+              if (m.role !== "outer" || !m.geometry || m.geometry.length < 3) continue;
+              flatPolys.push({ way: { geometry: m.geometry }, color: 0x6fa8d8, lift: 0.06 });
+            }
+            continue;
+          }
+          if (way.geometry && /^(river|stream|canal)$/.test(way.tags?.waterway || "")) {
+            const w = way.tags.waterway === "river" ? 24 : way.tags.waterway === "canal" ? 10 : 4;
+            waterways.push({
+              pts: way.geometry.map((g) => {
+                const q2 = toLocal(g.lat, g.lon);
+                return new THREE.Vector2(q2.x, q2.z);
+              }),
+              width: parseFloat(way.tags.width) || w,
+            });
+            continue;
+          }
           if (
             way.tags?.natural === "water" ||
             way.tags?.waterway === "riverbank"
@@ -607,12 +644,13 @@ export default function StreetEngine({ lat0, lon0 }) {
         for (const [color, geos] of byColor) {
           const merged = mergeGeometries(geos, false);
           tris += (merged.index ? merged.index.count : merged.attributes.position.count) / 3;
-          scene.add(
-            new THREE.Mesh(
-              merged,
-              new THREE.MeshLambertMaterial({ color, map: facadeTex })
-            )
+          const bMesh = new THREE.Mesh(
+            merged,
+            new THREE.MeshLambertMaterial({ color, map: facadeTex })
           );
+          bMesh.castShadow = true;
+          bMesh.receiveShadow = true;
+          scene.add(bMesh);
         }
         // ---- DECAL ROADS: terrain-conforming ribbons. Each cross-section
         // edge samples the ground at ITS OWN position (handles cross-slope),
@@ -824,6 +862,53 @@ export default function StreetEngine({ lat0, lon0 }) {
           }
         }
 
+        // ---- WATERWAY RIBBONS: draped blue strips for centerline-only water ----
+        if (waterways.length) {
+          const geos = [];
+          for (const wline of waterways) {
+            const pts = [];
+            for (let i = 0; i < wline.pts.length; i++) {
+              pts.push(wline.pts[i]);
+              if (i < wline.pts.length - 1) {
+                const d = wline.pts[i].distanceTo(wline.pts[i + 1]);
+                const steps = Math.min(24, Math.floor(d / 10));
+                for (let k = 1; k <= steps; k++)
+                  pts.push(new THREE.Vector2().lerpVectors(wline.pts[i], wline.pts[i + 1], k / (steps + 1)));
+              }
+            }
+            if (pts.length < 2) continue;
+            const half = wline.width / 2;
+            const v = [], idx = [];
+            for (let i = 0; i < pts.length; i++) {
+              const dir = new THREE.Vector2();
+              if (i === 0) dir.subVectors(pts[1], pts[0]);
+              else if (i === pts.length - 1) dir.subVectors(pts[i], pts[i - 1]);
+              else dir.subVectors(pts[i + 1], pts[i - 1]);
+              dir.normalize();
+              const nx = -dir.y * half, nz = dir.x * half;
+              const lx = pts[i].x + nx, lz = pts[i].y + nz;
+              const rx = pts[i].x - nx, rz = pts[i].y - nz;
+              v.push(lx, groundHeight(lx, lz) - 0.4, lz, rx, groundHeight(rx, rz) - 0.4, rz);
+              if (i > 0) { const a = (i - 1) * 2; idx.push(a, a + 1, a + 2, a + 1, a + 3, a + 2); }
+            }
+            const g2 = new THREE.BufferGeometry();
+            g2.setAttribute("position", new THREE.Float32BufferAttribute(v, 3));
+            g2.setIndex(idx);
+            geos.push(g2);
+          }
+          if (geos.length) {
+            const merged = mergeGeometries(geos, false);
+            merged.computeVertexNormals();
+            const m = new THREE.Mesh(
+              merged,
+              new THREE.MeshLambertMaterial({ color: 0x5fa0d4, side: THREE.DoubleSide,
+                polygonOffset: true, polygonOffsetFactor: -3, polygonOffsetUnits: -3 })
+            );
+            m.renderOrder = 1;
+            scene.add(m);
+          }
+        }
+
         // ---- BRIDGES: level deck + railings + pillars; deck is walkable ----
         const bridgeDecks = []; // {pts, halfW, y0, y1, len, cum}
         {
@@ -837,8 +922,13 @@ export default function StreetEngine({ lat0, lon0 }) {
             const cum = [0];
             for (let i = 1; i < P.length; i++) cum.push(cum[i - 1] + P[i].distanceTo(P[i - 1]));
             const len = cum[cum.length - 1] || 1;
-            const y0 = groundHeight(P[0].x, P[0].y) + 1.2;
-            const y1 = groundHeight(P[P.length - 1].x, P[P.length - 1].y) + 1.2;
+            // level deck at the HIGHER endpoint + real clearance, so decks
+            // visibly span the dip/water instead of hugging it
+            const e0 = groundHeight(P[0].x, P[0].y);
+            const e1 = groundHeight(P[P.length - 1].x, P[P.length - 1].y);
+            const deckLevel = Math.max(e0, e1) + 2.5;
+            const y0 = deckLevel;
+            const y1 = deckLevel;
             const halfW = br.width / 2;
             const deckY = (t) => y0 + (y1 - y0) * t;
             const v = [], uv = [], idx = [];
@@ -879,6 +969,33 @@ export default function StreetEngine({ lat0, lon0 }) {
             rg.computeVertexNormals();
             railMat.side = THREE.DoubleSide;
             scene.add(new THREE.Mesh(rg, railMat));
+            // side girders: skirts dropping below the deck so the span reads
+            // as a structure from a distance
+            {
+              const gv = [], gidx = [];
+              for (let i = 0; i < P.length; i++) {
+                const t = cum[i] / len;
+                const dir = new THREE.Vector2();
+                if (i === 0) dir.subVectors(P[1], P[0]);
+                else if (i === P.length - 1) dir.subVectors(P[i], P[i - 1]);
+                else dir.subVectors(P[i + 1], P[i - 1]);
+                dir.normalize();
+                const nx = -dir.y * halfW, nz = dir.x * halfW;
+                const y = deckY(t);
+                gv.push(P[i].x + nx, y, P[i].y + nz, P[i].x + nx, y - 1.1, P[i].y + nz);
+                gv.push(P[i].x - nx, y, P[i].y - nz, P[i].x - nx, y - 1.1, P[i].y - nz);
+                if (i > 0) {
+                  const b2 = (i - 1) * 4;
+                  gidx.push(b2, b2 + 1, b2 + 4, b2 + 1, b2 + 5, b2 + 4);
+                  gidx.push(b2 + 2, b2 + 3, b2 + 6, b2 + 3, b2 + 7, b2 + 6);
+                }
+              }
+              const gg = new THREE.BufferGeometry();
+              gg.setAttribute("position", new THREE.Float32BufferAttribute(gv, 3));
+              gg.setIndex(gidx);
+              gg.computeVertexNormals();
+              scene.add(new THREE.Mesh(gg, new THREE.MeshLambertMaterial({ color: 0x4a5058, side: THREE.DoubleSide })));
+            }
             // pillars every ~25 m down to the ground
             for (let dCum = 12; dCum < len; dCum += 25) {
               let i = 1;
@@ -1207,6 +1324,9 @@ export default function StreetEngine({ lat0, lon0 }) {
         a.needsUpdate = true;
         precip.points.position.set(player.x, gy, player.z);
       }
+      // keep the shadow frustum centred on the player, offset toward the sun
+      sun.target.position.set(player.x, gy, player.z);
+      sun.position.set(player.x + sunDir.x, gy + sunDir.y, player.z + sunDir.z);
       {
         const g = toGeo(player.x, player.z);
         posRef.current = { lat: g.lat, lon: g.lon, heading: player.heading, height: gy + 2 };

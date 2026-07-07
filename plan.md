@@ -56,3 +56,128 @@ Benchmark baseline and results live in `benchmarks/before.json`, `benchmarks/aft
 | Street FPS | 3 | **16** |
 | Street minimap draws / 12s | 225 | **13** |
 | Street React renders | 8 | **6** |
+
+---
+
+# Expansion Plan — Data Accuracy · Graphics · R2 · Ambitious Ideas
+
+Researched 2026-07-07. No code changed yet — this is the agreed backlog.
+
+## Phase 7 — Data accuracy for free (why the Pune bridge is missing)
+
+**Diagnosis (verified live):** the North Main Road bridge EXISTS in OSM — 3
+`highway + bridge=yes` ways within 650 m of our Pune spawn, and our query does
+fetch them. Two things hide it:
+
+1. **Rivers don't render.** The Mula-Mutha (like most large rivers worldwide)
+   is mapped as a **multipolygon relation**, and we only fetch `way`s. No
+   water under the bridge → the deck reads as ordinary road. This is the #1
+   reason non-western areas "look flat": Indian/Asian cities lean heavily on
+   relations for water, big campuses, and complex buildings.
+2. **Bridge deck heuristic is timid** — deck sits 1.2 m over endpoint ground
+   with railings only; over a wide river dip that reads as road, not bridge.
+
+- [x] 7.1 Fetch relations: add `relation(${around})[natural=water];
+      relation(${around})[waterway=riverbank];relation(${around})[building];`
+      with `out geom` and assemble outer rings server-side (members come
+      inline with `out geom`). Render exactly like way-polygons.
+- [x] 7.2 Bridge visual upgrade: clearance = max(endpoint ground, water level
+      + 4 m); side girders + darker underside so decks read as bridges even
+      without water.
+- [ ] 7.3 Per-category Overpass caps (buildings 2000 / roads 800 / landuse
+      600 / props 700) instead of one shared cap — dense cells can't starve a
+      category. (Buildings already split; finish the job.)
+- [ ] 7.4 `building:part` support — towers like Mumbai/Dubai skylines are
+      modeled as parts; we currently drop them.
+- [ ] 7.5 Terrain upgrade where free lidar exists: keep Terrarium (30 m)
+      global, override with Copernicus GLO-30 (already in Terrarium) and
+      national lidar (USGS 3DEP, UK/NL/DK) via a per-region source map.
+      India: no free lidar; Cartosat DEM (ISRO Bhuvan) is 30 m and
+      registration-gated — not worth the pipeline; skip.
+- [ ] 7.6 Overture as *validator*, not just filler: cross-check OSM building
+      count vs Overture per cell; if OSM < 30% of Overture, auto-blend.
+- [ ] 7.7 Name-aware props: shop/amenity nodes with `name` → storefront signs
+      (the "living city" layer from OSM_TAGS.md §5).
+
+## Phase 8 — Graphics pipeline improvements
+
+- [x] 8.1 **Instancing everywhere**: props are individual meshes today
+      (~100s of draw calls). Merge per-kind into `InstancedMesh` (lamps,
+      benches, bollards…) — one draw call per prop type. Biggest win.
+- [x] 8.2 **Shadows**: a single directional-light shadow map (2048, tight
+      frustum around the player, updated when sun moves) transforms depth
+      perception at street level for ~1-2 ms/frame.
+- [ ] 8.3 **SSAO / post stack**: contact shadows where buildings meet ground
+      kill the "floating boxes" look. three r170 post-processing works;
+      consider N8AO (cheap SSAO lib).
+- [ ] 8.4 **Upgrade three r170 → r17x + WebGPURenderer** (production-ready
+      since r171, auto-fallback to WebGL2). TSL is still rough-edged; adopt
+      renderer first, TSL later. Expect wins on many-object scenes.
+- [ ] 8.5 Texture atlas for facades: bake 4-6 facade variants into one atlas,
+      vary by UV offset per building — visual variety at zero extra draws.
+- [ ] 8.6 Roof geometry from `roof:shape` (gabled/hipped) — kills "every
+      building is a box"; cheap lathe/prism generation.
+- [ ] 8.7 Distance fog tuned per weather + height fog for dawn/dusk moods;
+      tonemapping (ACES) + slight bloom on lamp glows at night.
+- [ ] 8.8 LOD rings: full detail < 300 m, merged-untextured 300-800 m,
+      billboards beyond — prerequisite for seamless streaming (Phase 10.1).
+
+## Phase 9 — R2 to the fullest (better quality, zero egress cost)
+
+Free tier facts (verified): 10 GB Standard storage, 1 M Class-A (writes),
+10 M Class-B (reads) per month, **zero egress**. `r2.dev` is rate-limited for
+testing only; a **custom domain puts the bucket behind Cloudflare's CDN**
+with real caching.
+
+- [ ] 9.1 **Custom domain on the bucket** (e.g. `assets.walktheworld.dev`) →
+      cached at Cloudflare edge, cache-control headers honored. Every asset
+      below then ships CDN-fast worldwide.
+- [ ] 9.2 **Pre-baked ground textures**: today every client composites OSM
+      tiles + paints roads into a canvas (CPU work, OSM tile-server load,
+      z15-capped blur). Instead: server bakes the finished 2048² ground
+      texture per cell ONCE (tiles + roads + areas + crossings), stores WebP
+      in R2 (~150-400 KB). Clients download one image — faster load, sharper
+      ground (can bake at z17 quality), OSM tile policy pressure gone.
+- [ ] 9.3 **Pre-built city meshes**: bake parsed geometry (buildings merged,
+      roads, props transforms) into a compact binary (or Draco/glTF) per
+      cell. Client skips Overpass parse + extrusion entirely — near-instant
+      cell loads. R2 becomes a world CDN, not just a JSON cache.
+- [ ] 9.4 Region pre-bake script: warm the 16 fast-travel cities + rings
+      around them overnight (stays comfortably inside free-tier ops).
+- [ ] 9.5 Asset pack in R2: facade atlas, road/rail textures, avatar, future
+      GLBs — versioned folder, immutable cache headers.
+- [x] 9.6 Gzip city JSONs (they compress 6-10×) until 9.3 replaces them.
+
+## Phase 10 — Ambitious ideas (pick the ones that spark)
+
+- [ ] 10.1 **Seamless world streaming** — walk forever; neighbor cells stream
+      in/out (needs 8.8 LODs). The single biggest "wow".
+- [ ] 10.2 **Time machine** — OSM has history; Overture has releases. Slider
+      that rebuilds the same street from 2015 vs today's data.
+- [ ] 10.3 **Live layer** — OpenSky aircraft overhead with real flight
+      numbers; GTFS-RT buses/trains gliding along their actual routes;
+      day/night terminator on the globe.
+- [ ] 10.4 **Photo mode** — free camera + DoF + filters + watermark
+      "walktheworld.dev · Pune" → users share screenshots = free marketing.
+- [ ] 10.5 **Walk journal** — trail line on the minimap, km walked, countries
+      visited, elevation climbed; export a "walk card" image.
+- [ ] 10.6 **Ambient audio** — birds in parks, traffic on roads, waves at
+      coasts, rain audio tied to live weather (freesound.org CC0).
+- [ ] 10.7 **NPC pedestrians/traffic** — instanced mannequins walking road
+      graphs, simple cars on driveable roads; density from real POI density.
+- [ ] 10.8 **"Guess where I am"** — hide the HUD, drop somewhere random,
+      let the player guess on the world map (the descoped GeoGuessr, single
+      player, zero backend).
+- [ ] 10.9 **VR walk** (WebXR) — three.js supports it; walking your childhood
+      street in VR is an unforgettable demo.
+- [ ] 10.10 **Seasonal foliage** — tree color by latitude + month (green
+      summer, orange October, bare + snow in winter).
+
+## Suggested sequencing
+
+1. **6.1 + 6.2** (relations + bridge visuals) — fixes Pune-class gaps, the
+   stated pain.
+2. **7.1 + 7.2** (instancing + shadows) — cheap, dramatic.
+3. **8.1 + 8.2** (custom domain + baked ground) — quality AND speed AND
+   removes OSM tile-server dependence.
+4. Then one Phase 9 pick — 10.1 if ambitious, 10.4 if quick.
