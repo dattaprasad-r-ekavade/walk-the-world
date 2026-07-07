@@ -7,12 +7,16 @@ import { BUILDING_COLORS, ROAD_STYLE } from "@/lib/engine/styles";
 import { makeFacadeTexture, makeRoadTexture, makeRailTexture } from "@/lib/engine/textures";
 import { lon2tx, lat2ty, tx2lon, ty2lat, EARTH_R, makeLocalFrame } from "@/lib/engine/geo";
 import { placeProps } from "@/lib/engine/props";
-import { fetchCityData } from "@/lib/engine/cityData";
+import { fetchCityData, cityCacheKey } from "@/lib/engine/cityData";
 import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
+import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
+
+const toolBtn = "rounded bg-white/10 px-2 py-1 hover:bg-white/20";
+const toolBtnPrimary = "rounded bg-emerald-500/80 px-2 py-1 font-semibold text-black hover:bg-emerald-400";
 import { trackRender, recordFpsSample } from "@/lib/perf";
 import { STREET } from "@/lib/engine/street/constants";
 import { createCollision } from "@/lib/engine/street/collision";
-import { createGroundHeight } from "@/lib/engine/street/ground-height";
+import { createGroundHeight, createTerrainPatcher } from "@/lib/engine/street/ground-height";
 import { createHudRef } from "@/lib/engine/street/hud-ref";
 import { GameShell } from "@/components/game-shell/GameShell";
 import { useRouter } from "next/navigation";
@@ -55,6 +59,36 @@ export default function StreetEngine({ lat0, lon0 }) {
   const [place, setPlace] = useState(null);
   const [bigMap, setBigMap] = useState(false);
   const [liveWx, setLiveWx] = useState(null);
+  const [uiMode, setUiMode] = useState(null); // 'editor' | 'debug' | null
+  const [debugSel, setDebugSel] = useState(null);
+  const [tagDraft, setTagDraft] = useState("");
+  const [assetList, setAssetList] = useState([]);
+  const [editorMsg, setEditorMsg] = useState(null);
+
+  useEffect(() => {
+    if (uiMode !== "editor") return;
+    fetch("/api/assets")
+      .then((r) => (r.ok ? r.json() : []))
+      .then((d) => setAssetList(Array.isArray(d) ? d : d.assets || []))
+      .catch(() => setAssetList([]));
+  }, [uiMode]);
+
+  useEffect(() => {
+    if (debugSel?.tags)
+      setTagDraft(Object.entries(debugSel.tags).map(([k, v]) => `${k}=${v}`).join("\n"));
+    else setTagDraft("");
+  }, [debugSel]);
+
+  const saveTagDraft = async () => {
+    if (!debugSel?.id) return;
+    const tags = {};
+    for (const line of tagDraft.split("\n")) {
+      const i = line.indexOf("=");
+      if (i > 0) tags[line.slice(0, i).trim()] = line.slice(i + 1).trim();
+    }
+    const ok = await engineRef.current.editorApi?.setTagOverride(debugSel.id, tags);
+    setDebugSel({ ...debugSel, tags, saved: ok ? "override saved to R2 ✓ (applied on reload)" : "save failed — set editor key in E panel" });
+  };
 
   const useRealWeather = async () => {
     setLiveWx("loading");
@@ -104,6 +138,10 @@ export default function StreetEngine({ lat0, lon0 }) {
       console.warn("[street] city data:", e?.message);
       return null;
     });
+    const editsKey = cityCacheKey(lat0, lon0);
+    const editsPromise = fetch(`/api/edits/${editsKey}`)
+      .then((r) => (r.ok ? r.json() : {}))
+      .catch(() => ({}));
 
     // ---- local ENU conversion (lib/engine/geo) ----
     const { toLocal, toGeo } = makeLocalFrame(lat0, lon0);
@@ -248,9 +286,154 @@ export default function StreetEngine({ lat0, lon0 }) {
     const player = { x: 0, z: 0, heading: 0, pitch: 0, third: false, moving: false };
     const keys = {};
     const terrainTiles = new Map();
+    const tileMeshes = []; // {key, mesh} — for live terrain patching
     const tileCanvases = [];
-    const { addFootprint, insideBuilding } = createCollision(GRID);
+    const { addFootprint, insideBuilding, footprintAt } = createCollision(GRID);
+
+    // ---- editor / debug ----
+    engineRef.current.edits = engineRef.current.edits || {};
+    const editor = { mode: null, tool: null, placed: [], selected: null };
+    const raycaster = new THREE.Raycaster();
+    const gltfLoader = new GLTFLoader();
+    const loadGLB = (url) =>
+      new Promise((res, rej) => gltfLoader.load(url, (g) => res(g.scene), undefined, rej));
+    const placeAsset = async (entry, record) => {
+      try {
+        const obj = await loadGLB(entry.url);
+        obj.traverse((o) => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } });
+        const p = toLocal(entry.lat, entry.lon);
+        obj.position.set(p.x, groundHeight(p.x, p.z) + (entry.yOffset || 0), p.z);
+        obj.rotation.y = entry.rotY || 0;
+        obj.scale.setScalar(entry.scale || 1);
+        scene.add(obj);
+        editor.placed.push({ group: obj, entry });
+        if (record) ((engineRef.current.edits.assets ||= [])).push(entry);
+      } catch (err) {
+        console.warn("[editor] asset load failed:", err?.message);
+        setEditorMsg(`failed to load ${entry.name}`);
+      }
+    };
+    const saveEdits = async () => {
+      try {
+        const res = await fetch(`/api/edits/${editsKey}`, {
+          method: "PUT",
+          headers: {
+            "content-type": "application/json",
+            "x-editor-key": localStorage.getItem("wtw_editor_key") || "",
+          },
+          body: JSON.stringify(engineRef.current.edits || {}),
+        });
+        return res.ok;
+      } catch { return false; }
+    };
+    const pickPoint = (e) => {
+      const el = renderer.domElement;
+      const rect = el.getBoundingClientRect();
+      const ndc = new THREE.Vector2(
+        ((e.clientX - rect.left) / rect.width) * 2 - 1,
+        -((e.clientY - rect.top) / rect.height) * 2 + 1
+      );
+      raycaster.setFromCamera(ndc, camera);
+      const hits = raycaster.intersectObjects(scene.children, true);
+      return hits.find((h) => h.object.isMesh) || null;
+    };
+    const distToSeg = (x, z, a, b) => {
+      const dx = b.x - a.x, dz = b.z - a.z;
+      const L2 = dx * dx + dz * dz;
+      const t = L2 ? Math.max(0, Math.min(1, ((x - a.x) * dx + (z - a.z) * dz) / L2)) : 0;
+      return Math.hypot(x - (a.x + t * dx), z - (a.z + t * dz));
+    };
+    const debugPick = (e) => {
+      const hit = pickPoint(e);
+      if (!hit) { setDebugSel(null); return; }
+      const { x, z } = hit.point;
+      // wall hits land exactly ON the footprint edge — nudge along the ray
+      const dir = raycaster.ray.direction;
+      const nx = x + dir.x * 0.4, nz = z + dir.z * 0.4;
+      let sel = null;
+      const fp = footprintAt(x, z) || footprintAt(nx, nz);
+      if (fp?.meta?.id) sel = { kind: "building", id: fp.meta.id, tags: { ...fp.meta.tags } };
+      else {
+        let best = null;
+        for (const rp of engineRef.current.roadPaths || []) {
+          if (!rp.id) continue;
+          for (let i = 0; i < rp.pts.length - 1; i++) {
+            // road pts are THREE.Vector2 in the XZ plane: .y holds z
+            const a = rp.pts[i], b2 = rp.pts[i + 1];
+            const d = distToSeg(x, z, { x: a.x, z: a.y }, { x: b2.x, z: b2.y });
+            if (d <= Math.max((rp.width || 6) * 0.75, 5) && (!best || d < best.d)) best = { d, rp };
+          }
+        }
+        if (best) sel = { kind: "road", id: best.rp.id, tags: { ...best.rp.tags } };
+      }
+      if (sel) {
+        const ov = engineRef.current.edits?.tagOverrides?.[sel.id];
+        if (ov) sel.tags = { ...sel.tags, ...ov };
+      }
+      setDebugSel(sel || { kind: "none" });
+    };
+    const editorClick = async (e) => {
+      const hit = pickPoint(e);
+      if (!hit) return;
+      const { x, z } = hit.point;
+      const t = editor.tool;
+      if (!t) {
+        let idx = null;
+        outer: for (let i = 0; i < editor.placed.length; i++) {
+          for (let o = hit.object; o; o = o.parent)
+            if (o === editor.placed[i].group) { idx = i; break outer; }
+        }
+        editor.selected = idx;
+        setEditorMsg(
+          idx !== null
+            ? `selected ${editor.placed[idx].entry.name} — R rotate · [ ] scale · X delete`
+            : "nothing selected — click a placed asset, or pick a tool"
+        );
+        return;
+      }
+      if (t.type === "asset") {
+        const g = toGeo(x, z);
+        await placeAsset({ name: t.name, url: t.url, lat: g.lat, lon: g.lon, rotY: 0, scale: 1 }, true);
+        setEditorMsg(`placed ${t.name} — 💾 Save to persist`);
+      } else if (t.type === "flatten") {
+        const h = groundHeight(x, z);
+        patchTerrain(x, z, t.radius || 12, h);
+        const g = toGeo(x, z);
+        ((engineRef.current.edits.terrain ||= [])).push({ lat: g.lat, lon: g.lon, radius: t.radius || 12, height: h });
+        setEditorMsg("terrain flattened — 💾 Save to persist");
+      }
+    };
+    const setMode = (m) => {
+      editor.mode = editor.mode === m ? null : m;
+      if (editor.mode && document.pointerLockElement) document.exitPointerLock();
+      setUiMode(editor.mode);
+      if (editor.mode !== "debug") setDebugSel(null);
+      if (editor.mode !== "editor") { editor.tool = null; editor.selected = null; setEditorMsg(null); }
+    };
+    engineRef.current.setMode = setMode;
+    engineRef.current.editorApi = {
+      setTool: (t) => {
+        editor.tool = t;
+        editor.selected = null;
+        setEditorMsg(
+          !t ? "select mode — click a placed asset"
+          : t.type === "flatten" ? `flatten armed (${t.radius}m) — click ground`
+          : `${t.name} armed — click ground to place`
+        );
+      },
+      save: async () => {
+        const ok = await saveEdits();
+        setEditorMsg(ok ? "saved to R2 ✓" : "save failed — check editor key");
+        return ok;
+      },
+      setTagOverride: async (id, tags) => {
+        ((engineRef.current.edits.tagOverrides ||= {}))[id] = tags;
+        return saveEdits();
+      },
+      setEditorKey: (k) => localStorage.setItem("wtw_editor_key", k),
+    };
     let groundHeight = () => 0;
+    let patchTerrain = () => {};
     const spinners = [];
     const lampGlows = [];
     let avatar = null;
@@ -269,6 +452,7 @@ export default function StreetEngine({ lat0, lon0 }) {
             jobs.push(loadTerrainTile(ctx + dx, cty + dy, false));
       await Promise.all(jobs);
       groundHeight = createGroundHeight(terrainTiles);
+      patchTerrain = createTerrainPatcher(terrainTiles, tileMeshes);
       setReadyPct(55);
     };
 
@@ -381,6 +565,7 @@ export default function StreetEngine({ lat0, lon0 }) {
         const terrMat = new THREE.MeshLambertMaterial({ map: texture });
         const mesh = new THREE.Mesh(geo, terrMat);
         mesh.receiveShadow = true;
+        tileMeshes.push({ key: `${tx}/${ty}`, mesh });
         mesh.position.set(tl.x + sizeX / 2, 0, tl.z + sizeZ / 2);
         scene.add(mesh);
         if (geo.userData.skirt) {
@@ -607,7 +792,7 @@ export default function StreetEngine({ lat0, lon0 }) {
               (h > 60 ? 0x9fb6d9 : h > 25 ? 0xd4cfc4 : 0xe3ddd2);
             if (!byColor.has(color)) byColor.set(color, []);
             byColor.get(color).push(geo);
-            addFootprint(ring);
+            addFootprint(ring, { id: `${way.type}/${way.id}`, tags: way.tags });
           } else if (way.tags?.highway && ROAD_STYLE[way.tags.highway]) {
             const [color, width] = ROAD_STYLE[way.tags.highway];
             const raw = way.geometry.map((g) => {
@@ -629,7 +814,7 @@ export default function StreetEngine({ lat0, lon0 }) {
             if (way.tags.bridge) {
               bridges.push({ pts, width: Math.max(width, 6), isRail: false });
             } else {
-              roadPaths.push({ pts, color, width });
+              roadPaths.push({ pts, color, width, id: `${way.type}/${way.id}`, tags: way.tags });
             }
             const walkable = !["motorway", "trunk"].includes(way.tags.highway);
             if (walkable)
@@ -1101,6 +1286,7 @@ export default function StreetEngine({ lat0, lon0 }) {
         // ---- PROPS (lib/engine/props): tag -> asset builders ----
         placeProps(props, { scene, groundHeight, spinners, lampGlows });
         engineRef.current.spinners = spinners;
+        engineRef.current.roadPaths = roadPaths;
         engineRef.current.lampGlows = lampGlows;
 
         // ---- BARRIERS: thin walls along ways, with collision ----
@@ -1199,7 +1385,9 @@ export default function StreetEngine({ lat0, lon0 }) {
 
     // ---- input ----
     const canvas = renderer.domElement;
-    const onClick = () => {
+    const onClick = (e) => {
+      if (editor.mode === "debug") { debugPick(e); return; }
+      if (editor.mode === "editor") { editorClick(e); return; }
       if (document.pointerLockElement !== canvas) canvas.requestPointerLock?.();
     };
     const onKey = (e) => {
@@ -1207,6 +1395,27 @@ export default function StreetEngine({ lat0, lon0 }) {
       if (e.type === "keydown" && e.code === "KeyV" && !e.repeat) {
         player.third = !player.third;
         if (avatar) avatar.visible = player.third;
+      }
+      if (e.type === "keydown" && !e.repeat) {
+        if (e.code === "KeyE") setMode("editor");
+        if (e.code === "KeyB") setMode("debug");
+        if (editor.mode === "editor" && editor.selected !== null) {
+          const rec = editor.placed[editor.selected];
+          if (rec) {
+            if (e.code === "KeyR") rec.entry.rotY = rec.group.rotation.y += Math.PI / 12;
+            if (e.code === "BracketLeft") rec.group.scale.setScalar((rec.entry.scale = Math.max(0.1, (rec.entry.scale || 1) * 0.9)));
+            if (e.code === "BracketRight") rec.group.scale.setScalar((rec.entry.scale = Math.min(50, (rec.entry.scale || 1) * 1.1)));
+            if (e.code === "KeyX") {
+              scene.remove(rec.group);
+              editor.placed.splice(editor.selected, 1);
+              const arr = engineRef.current.edits.assets || [];
+              const ai = arr.indexOf(rec.entry);
+              if (ai >= 0) arr.splice(ai, 1);
+              editor.selected = null;
+              setEditorMsg("asset deleted — 💾 Save to persist");
+            }
+          }
+        }
       }
     };
     const onMouse = (e) => {
@@ -1364,10 +1573,27 @@ export default function StreetEngine({ lat0, lon0 }) {
 
       setStage("Fetching city data…");
       const cityData = await cityDataPromise;
+      const edits = (await editsPromise) || {};
+      engineRef.current.edits = edits;
+      engineRef.current.editsKey = editsKey;
       if (disposed) return;
+
+      // terrain patches: flatten circles into the heightmap BEFORE city build
+      for (const tp of edits.terrain || []) {
+        const c = toLocal(tp.lat, tp.lon);
+        patchTerrain(c.x, c.z, tp.radius || 10, tp.height);
+      }
+      // tag overrides: local corrections over OSM data ("way/123": {k: v})
+      if (cityData && edits.tagOverrides) {
+        for (const el of cityData.elements || []) {
+          const ov = edits.tagOverrides[`${el.type}/${el.id}`];
+          if (ov) el.tags = { ...(el.tags || {}), ...ov };
+        }
+      }
 
       await loadCity(cityData);
       if (disposed) return;
+      for (const entry of edits.assets || []) placeAsset(entry, false);
 
       setReadyPct(100);
       if (!disposed) window.__engineReady = true;
@@ -1535,6 +1761,84 @@ export default function StreetEngine({ lat0, lon0 }) {
             { label: "🌐 Globe View", onClick: () => router.push("/") },
           ]}
         />
+      )}
+
+      {readyPct >= 100 && uiMode === "editor" && (
+        <div className="absolute left-4 top-16 z-20 w-72 rounded-xl border border-white/10 bg-slate-950/90 p-4 text-xs text-slate-200 shadow-xl backdrop-blur">
+          <div className="mb-2 flex items-center justify-between">
+            <span className="font-bold tracking-wide">🛠 MAP EDITOR</span>
+            <button type="button" className="text-slate-400 hover:text-white" onClick={() => engineRef.current.setMode?.("editor")}>✕</button>
+          </div>
+          <input
+            type="password"
+            placeholder="editor key"
+            defaultValue={typeof window !== "undefined" ? localStorage.getItem("wtw_editor_key") || "" : ""}
+            onChange={(ev) => engineRef.current.editorApi?.setEditorKey(ev.target.value)}
+            className="mb-2 w-full rounded bg-black/40 px-2 py-1 outline-none ring-1 ring-white/10 focus:ring-accent"
+          />
+          <div className="mb-2 flex gap-1">
+            <button type="button" className={toolBtn} onClick={() => engineRef.current.editorApi?.setTool(null)}>Select</button>
+            <button type="button" className={toolBtn} onClick={() => engineRef.current.editorApi?.setTool({ type: "flatten", radius: 12 })}>Flatten</button>
+            <button type="button" className={toolBtnPrimary} onClick={() => engineRef.current.editorApi?.save()}>💾 Save</button>
+          </div>
+          <div className="mb-1 text-slate-400">Assets — click to arm, then click the ground:</div>
+          <div className="max-h-40 space-y-1 overflow-auto">
+            {assetList.map((a) => (
+              <button
+                type="button"
+                key={a.name}
+                className="block w-full truncate rounded bg-white/5 px-2 py-1 text-left hover:bg-white/15"
+                onClick={() => engineRef.current.editorApi?.setTool({ type: "asset", name: a.name, url: a.url })}
+              >
+                📦 {a.name}
+              </button>
+            ))}
+            {assetList.length === 0 && (
+              <div className="text-slate-500">no assets yet — upload .glb files at <span className="font-mono">/editor</span></div>
+            )}
+          </div>
+          {editorMsg && <div className="mt-2 text-emerald-300">{editorMsg}</div>}
+          <div className="mt-2 text-slate-500">R rotate · [ ] scale · X delete · E close</div>
+        </div>
+      )}
+
+      {readyPct >= 100 && uiMode === "debug" && (
+        <div className="absolute left-4 top-16 z-20 w-80 rounded-xl border border-white/10 bg-slate-950/90 p-4 text-xs text-slate-200 shadow-xl backdrop-blur">
+          <div className="mb-2 flex items-center justify-between">
+            <span className="font-bold tracking-wide">🔍 OSM DEBUG</span>
+            <button type="button" className="text-slate-400 hover:text-white" onClick={() => engineRef.current.setMode?.("debug")}>✕</button>
+          </div>
+          {!debugSel && <div className="text-slate-400">Click a building or road to inspect its OSM tags.</div>}
+          {debugSel?.kind === "none" && <div className="text-slate-400">Nothing with OSM data there.</div>}
+          {debugSel?.id && (
+            <>
+              <div className="mb-1 font-mono text-amber-300">
+                {debugSel.kind} · {debugSel.id}
+              </div>
+              <textarea
+                rows={8}
+                value={tagDraft}
+                onChange={(ev) => setTagDraft(ev.target.value)}
+                spellCheck={false}
+                className="w-full rounded bg-black/40 p-2 font-mono outline-none ring-1 ring-white/10 focus:ring-accent"
+              />
+              <div className="mt-2 flex items-center gap-2">
+                <button type="button" className={toolBtnPrimary} onClick={saveTagDraft}>💾 Save override</button>
+                <a
+                  className="rounded bg-white/10 px-2 py-1 hover:bg-white/20"
+                  href={`https://www.openstreetmap.org/edit?${debugSel.id.replace("/", "=")}`}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Edit on OSM ↗
+                </a>
+              </div>
+              {debugSel.saved && <div className="mt-2 text-emerald-300">{debugSel.saved}</div>}
+              <div className="mt-2 text-slate-500">Overrides are local (stored in R2), merged over OSM data on reload.</div>
+            </>
+          )}
+          <div className="mt-2 text-slate-500">B closes debug mode.</div>
+        </div>
       )}
     </main>
   );

@@ -181,3 +181,25 @@ with real caching.
 3. **8.1 + 8.2** (custom domain + baked ground) — quality AND speed AND
    removes OSM tile-server dependence.
 4. Then one Phase 9 pick — 10.1 if ambitious, 10.4 if quick.
+
+
+## Phase 11 — Editor & debug tooling (done)
+
+- [x] **11.1 Asset library** — upload .glb to R2 under `assets/` via `/editor` page
+      (`POST /api/assets?name=x.glb`, `x-editor-key` header = `EDITOR_SECRET`).
+      Listing: `GET /api/assets`. Files served same-origin via
+      `GET /api/assets/<name>` so GLTFLoader needs no bucket CORS.
+- [x] **11.2 Map editor (E key in /street)** — arm an asset and click the ground
+      to place; Select tool + R rotate / [ ] scale / X delete; Flatten tool
+      patches the heightmap live. 💾 Save persists per-cell edits to R2
+      (`edits/<cellkey>.json` via PUT `/api/edits/<key>`); placements and
+      terrain patches re-apply on every load.
+- [x] **11.3 Debug mode (B key in /street)** — click any building or road to see
+      its OSM tags (buildings via footprint meta, roads via nearest-centerline
+      lookup). Tags editable as `key=value` lines → saved as local overrides in
+      the same edits JSON, merged over Overpass data on reload. "Edit on OSM"
+      deep-links to openstreetmap.org for real upstream fixes.
+
+Dashboard steps still open (both optional): R2 Cache Rule for edge caching, and
+a bucket CORS policy if you ever want the browser to fetch city JSON / GLBs
+directly from https://myjyotishai.in instead of through the API routes.
