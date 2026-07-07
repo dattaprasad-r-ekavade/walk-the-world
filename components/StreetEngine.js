@@ -1967,9 +1967,13 @@ export default function StreetEngine({ lat0, lon0 }) {
           walking
           modeLabel="🎮 STREET ENGINE"
           hintText={
-            hudLocked
-              ? "WASD move · mouse look · Shift sprint · V view · Tab map · M travel"
-              : "Click the view to capture the mouse · WASD to walk · M travel · P menu"
+            uiMode === "editor"
+              ? "EDITOR · WASD fly · Space/C up/down · RMB look · 1-5 tools · click to apply"
+              : uiMode === "debug"
+              ? "TAG INSPECTOR · WASD fly · RMB look · click a building/road/prop"
+              : hudLocked
+              ? "WASD move · mouse look · Shift sprint · V view · Tab map · M travel · E edit"
+              : "Click the view to capture the mouse · WASD to walk · M travel · E edit · B tags"
           }
           hudRef={hudDomRef}
           coordsFallback={{ lat: lat0, lon: lon0 }}
@@ -1992,6 +1996,35 @@ export default function StreetEngine({ lat0, lon0 }) {
         />
       )}
 
+      {readyPct >= 100 && (
+        <div className="absolute bottom-16 right-4 z-20 flex gap-2">
+          <button
+            type="button"
+            onClick={() => engineRef.current.setMode?.("editor")}
+            className={`rounded-lg border px-3 py-2 text-xs font-semibold backdrop-blur transition-colors ${
+              uiMode === "editor"
+                ? "border-emerald-400 bg-emerald-500/80 text-black"
+                : "border-white/15 bg-slate-950/70 text-slate-200 hover:bg-slate-800/80"
+            }`}
+            title="Map editor (E): place assets, sculpt terrain, hide broken features"
+          >
+            🛠 Edit <kbd className="ml-1 opacity-60">E</kbd>
+          </button>
+          <button
+            type="button"
+            onClick={() => engineRef.current.setMode?.("debug")}
+            className={`rounded-lg border px-3 py-2 text-xs font-semibold backdrop-blur transition-colors ${
+              uiMode === "debug"
+                ? "border-sky-400 bg-sky-500/80 text-black"
+                : "border-white/15 bg-slate-950/70 text-slate-200 hover:bg-slate-800/80"
+            }`}
+            title="OSM tag inspector (B): click features to view/fix their tags"
+          >
+            🔍 Tags <kbd className="ml-1 opacity-60">B</kbd>
+          </button>
+        </div>
+      )}
+
       {readyPct >= 100 && uiMode === "editor" && (
         <div className="absolute left-4 top-16 z-20 w-72 rounded-xl border border-white/10 bg-slate-950/90 p-4 text-xs text-slate-200 shadow-xl backdrop-blur">
           <div className="mb-2 flex items-center justify-between">
@@ -2000,11 +2033,17 @@ export default function StreetEngine({ lat0, lon0 }) {
           </div>
           <input
             type="password"
-            placeholder="editor key"
+            placeholder="editor key (needed only to Save)"
             defaultValue={typeof window !== "undefined" ? localStorage.getItem("wtw_editor_key") || "" : ""}
             onChange={(ev) => engineRef.current.editorApi?.setEditorKey(ev.target.value)}
             className="mb-2 w-full rounded bg-black/40 px-2 py-1 outline-none ring-1 ring-white/10 focus:ring-accent"
           />
+          {typeof window !== "undefined" && !localStorage.getItem("wtw_editor_key") && (
+            <p className="mb-2 text-[11px] leading-snug text-amber-300/90">
+              You can explore every tool without a key — it's only required to 💾 Save.
+              The key is the EDITOR_SECRET env var of this deployment.
+            </p>
+          )}
           <div className="mb-2 grid grid-cols-3 gap-1">
             <button type="button" className={toolBtn} onClick={() => engineRef.current.editorApi?.setTool(null)}><kbd className="mr-1 opacity-50">1</kbd>Select</button>
             <button type="button" className={toolBtn} onClick={() => engineRef.current.editorApi?.setTool({ type: "flatten", radius: brushRadius })}><kbd className="mr-1 opacity-50">2</kbd>Flatten</button>
