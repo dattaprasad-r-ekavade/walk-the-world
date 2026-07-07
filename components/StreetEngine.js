@@ -64,6 +64,7 @@ export default function StreetEngine({ lat0, lon0 }) {
   const [tagDraft, setTagDraft] = useState("");
   const [assetList, setAssetList] = useState([]);
   const [editorMsg, setEditorMsg] = useState(null);
+  const [brushRadius, setBrushRadius] = useState(12);
 
   useEffect(() => {
     if (uiMode !== "editor") return;
@@ -343,29 +344,30 @@ export default function StreetEngine({ lat0, lon0 }) {
       const t = L2 ? Math.max(0, Math.min(1, ((x - a.x) * dx + (z - a.z) * dz) / L2)) : 0;
       return Math.hypot(x - (a.x + t * dx), z - (a.z + t * dz));
     };
+    // Resolve the OSM feature at a raycast hit: building footprint first
+    // (nudged along the ray — wall hits land exactly ON the edge), then the
+    // nearest road centerline. Shared by debug mode and the hide tool.
+    const resolveOsmAt = (hit) => {
+      const { x, z } = hit.point;
+      const dir = raycaster.ray.direction;
+      const fp = footprintAt(x, z) || footprintAt(x + dir.x * 0.4, z + dir.z * 0.4);
+      if (fp?.meta?.id) return { kind: "building", id: fp.meta.id, tags: { ...fp.meta.tags } };
+      let best = null;
+      for (const rp of engineRef.current.roadPaths || []) {
+        if (!rp.id) continue;
+        for (let i = 0; i < rp.pts.length - 1; i++) {
+          // road pts are THREE.Vector2 in the XZ plane: .y holds z
+          const a = rp.pts[i], b2 = rp.pts[i + 1];
+          const d = distToSeg(x, z, { x: a.x, z: a.y }, { x: b2.x, z: b2.y });
+          if (d <= Math.max((rp.width || 6) * 0.75, 5) && (!best || d < best.d)) best = { d, rp };
+        }
+      }
+      return best ? { kind: "road", id: best.rp.id, tags: { ...best.rp.tags } } : null;
+    };
     const debugPick = (e) => {
       const hit = pickPoint(e);
       if (!hit) { setDebugSel(null); return; }
-      const { x, z } = hit.point;
-      // wall hits land exactly ON the footprint edge — nudge along the ray
-      const dir = raycaster.ray.direction;
-      const nx = x + dir.x * 0.4, nz = z + dir.z * 0.4;
-      let sel = null;
-      const fp = footprintAt(x, z) || footprintAt(nx, nz);
-      if (fp?.meta?.id) sel = { kind: "building", id: fp.meta.id, tags: { ...fp.meta.tags } };
-      else {
-        let best = null;
-        for (const rp of engineRef.current.roadPaths || []) {
-          if (!rp.id) continue;
-          for (let i = 0; i < rp.pts.length - 1; i++) {
-            // road pts are THREE.Vector2 in the XZ plane: .y holds z
-            const a = rp.pts[i], b2 = rp.pts[i + 1];
-            const d = distToSeg(x, z, { x: a.x, z: a.y }, { x: b2.x, z: b2.y });
-            if (d <= Math.max((rp.width || 6) * 0.75, 5) && (!best || d < best.d)) best = { d, rp };
-          }
-        }
-        if (best) sel = { kind: "road", id: best.rp.id, tags: { ...best.rp.tags } };
-      }
+      let sel = resolveOsmAt(hit);
       if (sel) {
         const ov = engineRef.current.edits?.tagOverrides?.[sel.id];
         if (ov) sel.tags = { ...sel.tags, ...ov };
@@ -395,12 +397,22 @@ export default function StreetEngine({ lat0, lon0 }) {
         const g = toGeo(x, z);
         await placeAsset({ name: t.name, url: t.url, lat: g.lat, lon: g.lon, rotY: 0, scale: 1 }, true);
         setEditorMsg(`placed ${t.name} — 💾 Save to persist`);
-      } else if (t.type === "flatten") {
-        const h = groundHeight(x, z);
-        patchTerrain(x, z, t.radius || 12, h);
+      } else if (t.type === "flatten" || t.type === "raise" || t.type === "lower") {
+        const r = t.radius || 12;
+        // flatten targets the clicked height; raise/lower shift it (repeat
+        // clicks stack) — enough to close terrain gaps or bury seams by hand
+        const h =
+          groundHeight(x, z) + (t.type === "raise" ? 1.5 : t.type === "lower" ? -1.5 : 0);
+        patchTerrain(x, z, r, h);
         const g = toGeo(x, z);
-        ((engineRef.current.edits.terrain ||= [])).push({ lat: g.lat, lon: g.lon, radius: t.radius || 12, height: h });
-        setEditorMsg("terrain flattened — 💾 Save to persist");
+        ((engineRef.current.edits.terrain ||= [])).push({ lat: g.lat, lon: g.lon, radius: r, height: h });
+        setEditorMsg(`terrain ${t.type} applied (${r}m) — 💾 Save to persist`);
+      } else if (t.type === "hide") {
+        const sel = resolveOsmAt(hit);
+        if (!sel) { setEditorMsg("nothing with OSM data there"); return; }
+        const hidden = (engineRef.current.edits.hidden ||= []);
+        if (!hidden.includes(sel.id)) hidden.push(sel.id);
+        setEditorMsg(`${sel.id} hidden on next load — 💾 Save to persist (${hidden.length} hidden)`);
       }
     };
     const setMode = (m) => {
@@ -417,7 +429,8 @@ export default function StreetEngine({ lat0, lon0 }) {
         editor.selected = null;
         setEditorMsg(
           !t ? "select mode — click a placed asset"
-          : t.type === "flatten" ? `flatten armed (${t.radius}m) — click ground`
+          : t.type === "hide" ? "hide armed — click a building/road to remove it"
+          : ["flatten", "raise", "lower"].includes(t.type) ? `${t.type} armed (${t.radius}m) — click ground`
           : `${t.name} armed — click ground to place`
         );
       },
@@ -431,6 +444,14 @@ export default function StreetEngine({ lat0, lon0 }) {
         return saveEdits();
       },
       setEditorKey: (k) => localStorage.setItem("wtw_editor_key", k),
+      clearHidden: () => {
+        engineRef.current.edits.hidden = [];
+        setEditorMsg("hidden list cleared — 💾 Save, then reload to restore");
+      },
+      clearTerrain: () => {
+        engineRef.current.edits.terrain = [];
+        setEditorMsg("terrain edits cleared — 💾 Save, then reload to restore");
+      },
     };
     let groundHeight = () => 0;
     let patchTerrain = () => {};
@@ -1583,6 +1604,13 @@ export default function StreetEngine({ lat0, lon0 }) {
         const c = toLocal(tp.lat, tp.lon);
         patchTerrain(c.x, c.z, tp.radius || 10, tp.height);
       }
+      // hidden features: stray/broken OSM elements removed by the editor
+      if (cityData && edits.hidden?.length) {
+        const hiddenSet = new Set(edits.hidden);
+        cityData.elements = (cityData.elements || []).filter(
+          (el) => !hiddenSet.has(`${el.type}/${el.id}`)
+        );
+      }
       // tag overrides: local corrections over OSM data ("way/123": {k: v})
       if (cityData && edits.tagOverrides) {
         for (const el of cityData.elements || []) {
@@ -1776,10 +1804,29 @@ export default function StreetEngine({ lat0, lon0 }) {
             onChange={(ev) => engineRef.current.editorApi?.setEditorKey(ev.target.value)}
             className="mb-2 w-full rounded bg-black/40 px-2 py-1 outline-none ring-1 ring-white/10 focus:ring-accent"
           />
-          <div className="mb-2 flex gap-1">
+          <div className="mb-2 flex flex-wrap gap-1">
             <button type="button" className={toolBtn} onClick={() => engineRef.current.editorApi?.setTool(null)}>Select</button>
-            <button type="button" className={toolBtn} onClick={() => engineRef.current.editorApi?.setTool({ type: "flatten", radius: 12 })}>Flatten</button>
+            <button type="button" className={toolBtn} onClick={() => engineRef.current.editorApi?.setTool({ type: "flatten", radius: brushRadius })}>Flatten</button>
+            <button type="button" className={toolBtn} onClick={() => engineRef.current.editorApi?.setTool({ type: "raise", radius: brushRadius })}>▲ Raise</button>
+            <button type="button" className={toolBtn} onClick={() => engineRef.current.editorApi?.setTool({ type: "lower", radius: brushRadius })}>▼ Lower</button>
+            <button type="button" className={toolBtn} onClick={() => engineRef.current.editorApi?.setTool({ type: "hide" })}>🗑 Hide OSM</button>
             <button type="button" className={toolBtnPrimary} onClick={() => engineRef.current.editorApi?.save()}>💾 Save</button>
+          </div>
+          <label className="mb-2 flex items-center gap-2 text-slate-400">
+            brush
+            <input
+              type="range"
+              min={4}
+              max={60}
+              value={brushRadius}
+              onChange={(ev) => setBrushRadius(Number(ev.target.value))}
+              className="flex-1"
+            />
+            {brushRadius}m
+          </label>
+          <div className="mb-2 flex gap-1">
+            <button type="button" className={toolBtn} onClick={() => engineRef.current.editorApi?.clearHidden()}>Unhide all</button>
+            <button type="button" className={toolBtn} onClick={() => engineRef.current.editorApi?.clearTerrain()}>Reset terrain</button>
           </div>
           <div className="mb-1 text-slate-400">Assets — click to arm, then click the ground:</div>
           <div className="max-h-40 space-y-1 overflow-auto">
@@ -1798,7 +1845,10 @@ export default function StreetEngine({ lat0, lon0 }) {
             )}
           </div>
           {editorMsg && <div className="mt-2 text-emerald-300">{editorMsg}</div>}
-          <div className="mt-2 text-slate-500">R rotate · [ ] scale · X delete · E close</div>
+          <div className="mt-2 text-slate-500">
+            R rotate · [ ] scale · X delete placed asset · E close. Terrain brushes stack
+            per click; 🗑 Hide removes broken/floating OSM features on next load.
+          </div>
         </div>
       )}
 

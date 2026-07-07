@@ -200,6 +200,12 @@ with real caching.
       the same edits JSON, merged over Overpass data on reload. "Edit on OSM"
       deep-links to openstreetmap.org for real upstream fixes.
 
+- [x] **11.4 Terrain brushes & OSM feature removal** — editor now has Raise /
+      Lower / Flatten brushes (4-60m radius slider, clicks stack) for closing
+      terrain gaps by hand, and a 🗑 Hide OSM tool that removes stray/broken
+      buildings or roads (persisted per cell, filtered out on load; "Unhide
+      all" / "Reset terrain" to revert).
+
 Dashboard steps still open (both optional): R2 Cache Rule for edge caching, and
 a bucket CORS policy if you ever want the browser to fetch city JSON / GLBs
 directly from https://myjyotishai.in instead of through the API routes.
