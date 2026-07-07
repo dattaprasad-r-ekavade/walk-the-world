@@ -51,6 +51,9 @@ export default function StreetEngine({ lat0, lon0 }) {
   const togglePanel = useGameStore((s) => s.togglePanel);
   const settings = useGameStore((s) => s.settings);
   const changeSettingStore = useGameStore((s) => s.changeSetting);
+  const savedPlaces = useGameStore((s) => s.savedPlaces);
+  const addPlace = useGameStore((s) => s.addPlace);
+  const removePlace = useGameStore((s) => s.removePlace);
 
   const mountRef = useRef(null);
   const [stage, setStage] = useState("Preparing engine…");
@@ -1762,6 +1765,13 @@ export default function StreetEngine({ lat0, lon0 }) {
           settings={settings}
           onSettingChange={changeSetting}
           onTravel={(la, lo) => router.push(`/street?lat=${la}&lon=${lo}`)}
+          savedPlaces={savedPlaces}
+          onSavePlace={() => {
+            const cur = posRef.current || { lat: lat0, lon: lon0 };
+            const name = window.prompt("Name this place", place ?? "");
+            if (name) addPlace(name.trim(), cur.lat, cur.lon);
+          }}
+          onRemovePlace={removePlace}
           onGoHome={() => router.push("/")}
           walking
           modeLabel="🎮 STREET ENGINE"

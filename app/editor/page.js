@@ -3,11 +3,16 @@
 // Asset Library — upload GLB models to R2, then place them in the world via
 // the street engine's edit mode (E key at any location).
 import { useEffect, useState } from 'react';
+import { useGameStore } from '@/stores/game-store';
 
 export default function EditorPage() {
   const [assets, setAssets] = useState([]);
   const [status, setStatus] = useState('');
   const [editorKey, setEditorKey] = useState('');
+  const [mounted, setMounted] = useState(false);
+  const lastPosition = useGameStore((s) => s.lastPosition);
+  const savedPlaces = useGameStore((s) => s.savedPlaces);
+  useEffect(() => setMounted(true), []);
 
   useEffect(() => {
     setEditorKey(localStorage.getItem('wtw_editor_key') || '');
@@ -38,10 +43,42 @@ export default function EditorPage() {
   return (
     <main className="min-h-screen bg-[#05070d] p-8 text-slate-100">
       <h1 className="text-2xl font-bold">🧰 Asset Library</h1>
-      <p className="mt-1 text-sm text-slate-400">
-        GLB models stored in R2 · place them in-world with <kbd className="rounded bg-slate-800 px-1">E</kbd> on any
-        street · <a className="text-blue-400 underline" href="/street">open street engine</a>
-      </p>
+      <p className="mt-1 text-sm text-slate-400">GLB models stored in R2 — this page only manages uploads.</p>
+
+      <div className="mt-4 max-w-xl rounded-xl border border-emerald-500/30 bg-emerald-950/30 p-4 text-sm leading-relaxed">
+        <p className="font-semibold text-emerald-300">The editor itself lives in the world:</p>
+        <p className="mt-1 text-slate-300">
+          Walk anywhere in the street engine and press <kbd className="rounded bg-slate-800 px-1.5">E</kbd> — place
+          assets, raise/lower/flatten terrain, hide broken OSM features. Press{' '}
+          <kbd className="rounded bg-slate-800 px-1.5">B</kbd> to inspect and fix OSM tags.
+        </p>
+        {mounted && (
+          <div className="mt-3 flex flex-wrap gap-2">
+            {lastPosition && (
+              <a
+                className="rounded-lg bg-emerald-500/80 px-3 py-1.5 font-semibold text-black hover:bg-emerald-400"
+                href={`/street?lat=${lastPosition.lat.toFixed(5)}&lon=${lastPosition.lon.toFixed(5)}`}
+              >
+                ▶ Continue where you left off
+              </a>
+            )}
+            {(savedPlaces || []).map((pl) => (
+              <a
+                key={pl.name}
+                className="rounded-lg bg-white/10 px-3 py-1.5 hover:bg-white/20"
+                href={`/street?lat=${pl.lat.toFixed(5)}&lon=${pl.lon.toFixed(5)}`}
+              >
+                ★ {pl.name}
+              </a>
+            ))}
+            {!lastPosition && (
+              <a className="rounded-lg bg-white/10 px-3 py-1.5 hover:bg-white/20" href="/street">
+                Open street engine
+              </a>
+            )}
+          </div>
+        )}
+      </div>
 
       <div className="mt-6 max-w-xl rounded-xl border border-slate-700 bg-slate-900/60 p-4">
         <label className="block text-sm text-slate-400">Editor key (from EDITOR_SECRET in .env.local)</label>

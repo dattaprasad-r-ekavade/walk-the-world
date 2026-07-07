@@ -40,6 +40,9 @@ export function GameShell({
   settings,
   onSettingChange,
   onTravel,
+  savedPlaces,
+  onSavePlace,
+  onRemovePlace,
   onGoHome,
   onToggleWalk,
   onToggleView,
@@ -163,6 +166,9 @@ export function GameShell({
         <TravelPanel
           onClose={() => setPanel(null)}
           onTravel={onTravel}
+          savedPlaces={savedPlaces}
+          onSavePlace={onSavePlace}
+          onRemovePlace={onRemovePlace}
           extraTop={
             onGeolocation ? (
               <button type="button" className={travelBtnWide} onClick={onGeolocation} disabled={geoBusy}>

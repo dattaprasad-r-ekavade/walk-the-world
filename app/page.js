@@ -41,6 +41,9 @@ export default function Home() {
   const changeSetting = useGameStore((s) => s.changeSetting);
   const savePosition = useGameStore((s) => s.savePosition);
   const lastPosition = useGameStore((s) => s.lastPosition);
+  const savedPlaces = useGameStore((s) => s.savedPlaces);
+  const addPlace = useGameStore((s) => s.addPlace);
+  const removePlace = useGameStore((s) => s.removePlace);
 
   const [ready, setReady] = useState(false);
   const [hasTiles, setHasTiles] = useState(false);
@@ -165,6 +168,15 @@ export default function Home() {
         settings={settings}
         onSettingChange={applySettings}
         onTravel={fly}
+        savedPlaces={savedPlaces}
+        onSavePlace={() => {
+          const lat = hudStatus.lat ?? lastPosition?.lat;
+          const lon = hudStatus.lon ?? lastPosition?.lon;
+          if (lat === undefined || lon === undefined) return;
+          const name = window.prompt('Name this place', place?.text ?? place ?? '');
+          if (name) addPlace(name.trim(), lat, lon);
+        }}
+        onRemovePlace={removePlace}
         onGoHome={home}
         onToggleWalk={() =>
           walking ? controllerRef.current?.exitWalk() : controllerRef.current?.enterWalk()

@@ -42,7 +42,14 @@ export function LoadingScreen({ logo = '🌍', title = 'WALK THE WORLD', pct, st
   );
 }
 
-export function TravelPanel({ onTravel, onClose, extraTop = null }) {
+export function TravelPanel({
+  onTravel,
+  onClose,
+  extraTop = null,
+  savedPlaces = [],
+  onSavePlace,
+  onRemovePlace,
+}) {
   return (
     <div className={glassPanel}>
       <div className={panelHead}>
@@ -53,6 +60,33 @@ export function TravelPanel({ onTravel, onClose, extraTop = null }) {
       </div>
       <div className="grid grid-cols-2 gap-2.5">
         {extraTop}
+        {onSavePlace && (
+          <button type="button" className={travelBtnWide} onClick={onSavePlace}>
+            ☆ Save current location
+          </button>
+        )}
+        {savedPlaces.map((p) => (
+          <div key={p.name} className="relative">
+            <button
+              type="button"
+              className={`${travelBtn} w-full pr-8`}
+              onClick={() => onTravel(p.lat, p.lon)}
+            >
+              <span className="mr-1">★</span>
+              {p.name}
+            </button>
+            {onRemovePlace && (
+              <button
+                type="button"
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-500 hover:text-red-400"
+                onClick={() => onRemovePlace(p.name)}
+                aria-label={`Delete ${p.name}`}
+              >
+                ✕
+              </button>
+            )}
+          </div>
+        ))}
         {PLACES.map((p) => (
           <button key={p.name} type="button" className={travelBtn} onClick={() => onTravel(p.lat, p.lon)}>
             <span className="mr-1">📍</span>
