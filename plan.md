@@ -279,3 +279,91 @@ All data comes from tags already in the cached city JSON — no new APIs.
 
 Suggested order: 12.1 → 12.2 → 12.4 (cold start is the complaint) → 13.1 →
 13.3 → 13.2 (visible life fastest) → rest.
+
+
+## Phase 14 — Planet-scale data pipeline (real data, zero Overpass)
+
+- [ ] **14.1 Offline cell generator.** Download `planet.osm.pbf` (~80GB, free)
+      or per-country extracts from Geofabrik; run an osmium/pyosmium script
+      that emits the exact same city-cell JSON the API produces today; bulk
+      upload to R2. All cities on Earth ≈ 300GB ($4.50/mo R2) generated in
+      days on one machine — no Overpass, no rate limits, no cold cells ever.
+      Free-tier variant: generate only the seed catalog + top-N city cores
+      (10GB free = ~160k dense cells ≈ every major downtown on the planet).
+- [ ] **14.2 Overture height/landuse backfill.** Overture ships ML-derived
+      building heights + land use with better coverage than OSM in sparse
+      regions (Machu Picchu-grade areas). Merge into cells at generation time
+      via the existing DuckDB pipeline.
+- [ ] **14.3 GTFS transit (real timetables).** Thousands of agencies publish
+      GTFS feeds free (transitland index). Buses/trams gliding on real routes
+      at real times of day — pairs with the live clock. Per-city static JSON
+      baked into R2, no runtime API.
+
+## Phase 15 — Living crowds & stickiness
+
+- [ ] **15.1 VAT pedestrians (the T-pose fix).** Bake a walk cycle to a
+      Vertex Animation Texture in Blender (OpenVAT, free) from a CC0 rigged
+      character; playback in a small shader with per-instance time offsets.
+      Proven at 2000+ animated instances on low-end GPUs — real walking
+      humans, still one draw call. Ship mesh+VAT via the asset library.
+- [ ] **15.2 Photo mode.** Hide HUD, free camera, optional grain/vignette,
+      one-click screenshot download. Near-zero effort, maximum shareability.
+- [ ] **15.3 Passport & walk stats.** km walked per city, places visited,
+      date-stamped "stamps" (localStorage). "Walked 4.2 km in Tokyo."
+- [ ] **15.4 Daily destination.** Date-seeded "today's walk" city on the
+      menu — a reason to return every day. One function.
+- [ ] **15.5 Where-am-I mini-game.** Random drop, guess the city from what
+      you see (GeoGuessr-style). Data already in the cells.
+- [ ] **15.6 Multiplayer ghosts.** Cloudflare Worker + Durable Object
+      (free tier: 100k req/day — plenty) relaying player positions over
+      WebSocket; translucent avatars. "Walking Tokyo with 3 others."
+
+## Phase 16 — Renderer leap
+
+- [ ] **16.1 WebGPU migration.** three.js WebGPURenderer is production-ready
+      (r171+) with automatic WebGL2 fallback via `three/webgpu`; Safari 26
+      closed the gap. Unlocks compute-shader crowds (thousands of agents) and
+      TSL node materials. Big refactor — its own branch, benchmarked before/
+      after like the original engine rewrite.
+- [ ] **16.2 Postprocessing tier (quality-gated).** SSAO + bloom (night
+      windows/lamp pools would bloom beautifully) + vignette/color-grade LUT
+      behind the existing quality setting. LUT + vignette are nearly free;
+      SSAO/bloom only on "high".
+- [ ] **16.3 GPU auto-detect.** Probe GPU tier on boot (render-time sample or
+      WEBGL_debug_renderer_info) → auto-pick quality so weak phones never see
+      shadows+population at once.
+- [ ] **16.4 PWA.** Manifest + service worker caching visited cells: install
+      to home screen, re-walk your neighborhood offline.
+
+## Phase 17 — Real visuals on a free budget (research 2026)
+
+Verdicts first: **Google Photorealistic 3D Tiles — skip.** Now an Enterprise
+SKU at only 1,000 free root-tile events/month (the $200 universal credit died
+March 2025); a single busy demo day would blow it. Everything below is $0.
+
+- [ ] **17.1 CC0 PBR material set.** Poly Haven + ambientCG are fully CC0
+      (commercial OK, no attribution): photoscanned facades, asphalt,
+      concrete, terracotta at 1-2K resolution. Download once, host on R2
+      (free egress), replace the procedural canvas textures: real plaster/
+      brick/glass facades, tiling asphalt with normal maps. Biggest visual
+      upgrade per hour of work available. ~20-40MB of textures total.
+- [ ] **17.2 HDRI sky + image-based lighting.** Poly Haven HDRIs (CC0): a
+      handful of sky domes (clear noon, golden hour, overcast, night) as
+      scene.environment — physically-plausible ambient light and reflections
+      instead of flat hemisphere light. Blend selection into the live
+      clock/weather system. A few MB each, cached in R2.
+- [ ] **17.3 OSM appearance tags we already download but ignore.**
+      `building:colour`, `building:material`, `roof:colour`, `roof:shape`
+      (gabled/hipped/dome!), `building:part` (detailed landmark massing —
+      e.g. tiered towers). Zero new data cost — parse what's in the cells.
+- [ ] **17.4 Satellite ground option.** Esri World Imagery tiles are free
+      with attribution for non-commercial apps — a settings toggle swapping
+      the OSM raster ground for aerial imagery. Real rooftops/ground colors
+      under the extruded buildings; keep OSM raster as default for the game
+      look.
+- [ ] **17.5 Facade UV rework → storefronts.** Switch facade UVs from
+      world-meters to per-floor bands so ground floors get shopfront glass +
+      doors near POIs and floor counts read correctly. Prereq for 17.1
+      looking its best.
+
+Suggested order: 17.1 → 17.2 → 15.1 → 15.2/15.3 (cheap wins) → 14.1 → 16.x.
