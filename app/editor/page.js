@@ -81,6 +81,12 @@ export default function EditorPage() {
       </div>
 
       <div className="mt-6 max-w-xl rounded-xl border border-slate-700 bg-slate-900/60 p-4">
+        <p className="mb-3 text-xs leading-relaxed text-slate-500">
+          Special names: <code className="rounded bg-slate-800 px-1">car.glb</code>,{' '}
+          <code className="rounded bg-slate-800 px-1">bird.glb</code>,{' '}
+          <code className="rounded bg-slate-800 px-1">pedestrian.glb</code> replace the built-in
+          traffic / birds / people models world-wide (models should face +Z).
+        </p>
         <label className="block text-sm text-slate-400">Editor key (from EDITOR_SECRET in .env.local)</label>
         <input
           type="password"

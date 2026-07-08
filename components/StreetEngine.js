@@ -1936,12 +1936,60 @@ export default function StreetEngine({ lat0, lon0 }) {
       for (const entry of edits.assets || []) placeAsset(entry, false);
 
       // ---- populated world: pedestrians, traffic, birds, POI signs ----
+      // Special asset names replace the built-in shapes: upload car.glb,
+      // bird.glb or pedestrian.glb to the library and traffic/birds/people
+      // render with those models (instanced, so still one draw call each).
+      const loadPopModels = async () => {
+        const out = {};
+        try {
+          const list = await fetch("/api/assets").then((r) => (r.ok ? r.json() : []));
+          const names = new Set((Array.isArray(list) ? list : []).map((a) => a.name));
+          const specs = [
+            ["car", "car.glb", 4.4, "length"],
+            ["bird", "bird.glb", 0.8, "length"],
+            ["ped", "pedestrian.glb", 1.75, "height"],
+          ];
+          for (const [mkey, file, target, mode] of specs) {
+            if (!names.has(file)) continue;
+            try {
+              const root = await loadGLB(`/api/assets/${file}`);
+              root.updateMatrixWorld(true);
+              const geos = [], mats = [];
+              root.traverse((o) => {
+                if (o.isMesh) {
+                  const g2 = o.geometry.clone().applyMatrix4(o.matrixWorld);
+                  geos.push(g2);
+                  mats.push(o.material);
+                }
+              });
+              if (!geos.length) continue;
+              const merged = mergeGeometries(geos, true);
+              merged.computeBoundingBox();
+              const size = new THREE.Vector3();
+              merged.boundingBox.getSize(size);
+              const cur = mode === "height" ? size.y : Math.max(size.x, size.z);
+              const sc = target / (cur || 1);
+              merged.scale(sc, sc, sc);
+              merged.computeBoundingBox();
+              const bb = merged.boundingBox;
+              merged.translate(-(bb.min.x + bb.max.x) / 2, -bb.min.y, -(bb.min.z + bb.max.z) / 2);
+              out[mkey] = { geometry: merged, material: mats.length > 1 ? mats : mats[0] };
+              console.log(`[population] using ${file} for ${mkey}`);
+            } catch (err) {
+              console.warn(`[population] ${file}:`, err?.message);
+            }
+          }
+        } catch { /* library unreachable — built-ins */ }
+        return out;
+      };
       try {
+        const popModels = await loadPopModels();
         population = createPopulation({
           scene,
           groundHeight,
           roadPaths: engineRef.current.roadPaths || [],
           pois: engineRef.current.pois || [],
+          models: popModels,
         });
         console.log("[population]", population.counts);
         ambience.set({ density: Math.min(1, population.counts.peds / 140) });
