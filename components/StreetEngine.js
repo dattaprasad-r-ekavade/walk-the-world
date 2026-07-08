@@ -232,6 +232,7 @@ export default function StreetEngine({ lat0, lon0 }) {
       // windows light up as the sun sets (elev < ~0.08 → fully lit)
       const winGlow = Math.max(0, Math.min(1, (0.08 - elev) * 9)) * 0.85;
       for (const bm of engineRef.current.buildingMats || []) bm.emissiveIntensity = winGlow;
+      if (engineRef.current.lampPools) engineRef.current.lampPools.opacity = winGlow * 0.9;
       const sky = new THREE.Color();
       if (elev > 0.25) sky.copy(daySky);
       else if (elev > -0.05) sky.lerpColors(duskSky, daySky, (elev + 0.05) / 0.3);
@@ -774,6 +775,28 @@ export default function StreetEngine({ lat0, lon0 }) {
         const flatPolys = []; // {ring, color, lift}
         const pois = []; // {x, z, name, type} shops/amenities for signs + density
         const crossings = []; // pedestrian crossing nodes → zebra paint
+        const roofGeos = []; // hipped roofs for small houses
+        const clutterGeos = []; // water tanks / AC units on big flat roofs
+        const roofCapGeos = []; // flat building tops, split from the walls
+        // slice one material group out of a non-indexed geometry (ExtrudeGeometry
+        // marks caps as group 0 and side walls as group 1)
+        const sliceGroup = (geo, matIndex) => {
+          const gr = geo.groups.find((g2) => g2.materialIndex === matIndex);
+          if (!gr) return null;
+          const out = new THREE.BufferGeometry();
+          for (const name of ["position", "normal", "uv"]) {
+            const attr = geo.attributes[name];
+            if (!attr) continue;
+            out.setAttribute(
+              name,
+              new THREE.BufferAttribute(
+                attr.array.slice(gr.start * attr.itemSize, (gr.start + gr.count) * attr.itemSize),
+                attr.itemSize
+              )
+            );
+          }
+          return out;
+        };
         let featureIdx = 0;
         const total = data.elements.length;
 
@@ -971,8 +994,64 @@ export default function StreetEngine({ lat0, lon0 }) {
               BUILDING_COLORS[way.tags.building] ||
               (h > 60 ? 0x9fb6d9 : h > 25 ? 0xd4cfc4 : 0xe3ddd2);
             if (!byColor.has(color)) byColor.set(color, []);
-            byColor.get(color).push(geo);
+            // split caps (roof/underside) from the walls so the window facade
+            // texture — and its night glow — never appears on rooftops
+            const wallGeo = sliceGroup(geo, 1) || geo;
+            const capGeo = sliceGroup(geo, 0);
+            byColor.get(color).push(wallGeo);
+            if (capGeo) roofCapGeos.push(capGeo);
             addFootprint(ring, { id: `${way.type}/${way.id}`, tags: way.tags });
+
+            // footprint centroid + area (shoelace) for roof decisions
+            let cx = 0, cz = 0, area = 0;
+            for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+              const cross = ring[j][0] * ring[i][1] - ring[i][0] * ring[j][1];
+              area += cross;
+              cx += (ring[j][0] + ring[i][0]) * cross;
+              cz += (ring[j][1] + ring[i][1]) * cross;
+            }
+            area = Math.abs(area / 2);
+            {
+              let a2 = 0, sx = 0, sz = 0;
+              for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+                const cr = ring[j][0] * ring[i][1] - ring[i][0] * ring[j][1];
+                a2 += cr;
+                sx += (ring[j][0] + ring[i][0]) * cr;
+                sz += (ring[j][1] + ring[i][1]) * cr;
+              }
+              if (Math.abs(a2) > 1e-6) { cx = sx / (3 * a2); cz = sz / (3 * a2); }
+              else { cx = ring[0][0]; cz = ring[0][1]; }
+            }
+            const roofY = base + h + 4;
+            const isHouse = /^(house|detached|bungalow|hut|residential)$/.test(way.tags.building) && area < 260 && h < 12;
+            if (isHouse && ring.length <= 8) {
+              // hipped roof: fan from a raised apex to the wall-top ring
+              const apexH = Math.min(3.2, 1.6 + Math.sqrt(area) * 0.12);
+              const v = [], idx2 = [];
+              for (const [rx, rz] of ring) v.push(rx, roofY, rz);
+              v.push(cx, roofY + apexH, cz);
+              const apex = ring.length;
+              for (let i = 0; i < ring.length; i++)
+                idx2.push(i, apex, (i + 1) % ring.length);
+              const rg = new THREE.BufferGeometry();
+              rg.setAttribute("position", new THREE.Float32BufferAttribute(v, 3));
+              rg.setIndex(idx2);
+              rg.computeVertexNormals();
+              roofGeos.push(rg);
+            } else if (area > 350 && ring.length >= 4) {
+              // big flat roof: water tank + AC boxes near the centroid
+              const rot = (way.id % 6) * 0.5;
+              const tank = new THREE.CylinderGeometry(1.1, 1.1, 2.2, 10);
+              tank.translate(cx + Math.cos(rot) * 3, roofY + 1.1, cz + Math.sin(rot) * 3);
+              clutterGeos.push(tank);
+              const nAc = 1 + (way.id % 3);
+              for (let k = 0; k < nAc; k++) {
+                const ac = new THREE.BoxGeometry(1.4, 0.9, 1.1);
+                const aa = rot + 1.8 + k * 1.9;
+                ac.translate(cx + Math.cos(aa) * (2.5 + k), roofY + 0.45, cz + Math.sin(aa) * (2.5 + k));
+                clutterGeos.push(ac);
+              }
+            }
           } else if (way.tags?.highway && ROAD_STYLE[way.tags.highway]) {
             const [color, width] = ROAD_STYLE[way.tags.highway];
             const raw = way.geometry.map((g) => {
@@ -1024,6 +1103,35 @@ export default function StreetEngine({ lat0, lon0 }) {
           bMesh.receiveShadow = true;
           scene.add(bMesh);
         }
+        if (roofCapGeos.length) {
+          const capMesh = new THREE.Mesh(
+            mergeGeometries(roofCapGeos, false),
+            new THREE.MeshLambertMaterial({ color: 0x8f8d86 }) // roof concrete
+          );
+          capMesh.castShadow = true;
+          capMesh.receiveShadow = true;
+          scene.add(capMesh);
+        }
+        // ---- ROOFS & ROOFTOP CLUTTER (merged: 2 draw calls) ----
+        if (roofGeos.length) {
+          const rMesh = new THREE.Mesh(
+            mergeGeometries(roofGeos, false),
+            new THREE.MeshLambertMaterial({ color: 0x9a5340, flatShading: true }) // terracotta
+          );
+          rMesh.castShadow = true;
+          rMesh.receiveShadow = true;
+          scene.add(rMesh);
+          console.log(`[roofs] ${roofGeos.length} hipped roofs`);
+        }
+        if (clutterGeos.length) {
+          const cMesh = new THREE.Mesh(
+            mergeGeometries(clutterGeos, false),
+            new THREE.MeshLambertMaterial({ color: 0xb8bcC2 })
+          );
+          cMesh.castShadow = true;
+          scene.add(cMesh);
+        }
+
         // ---- DECAL ROADS: terrain-conforming ribbons. Each cross-section
         // edge samples the ground at ITS OWN position (handles cross-slope),
         // rows every ~9 m (follows along-slope), lifted 8 cm with a strong
@@ -1517,6 +1625,38 @@ export default function StreetEngine({ lat0, lon0 }) {
         engineRef.current.propMarkers = props; // {kind,x,z,tags,id} for picking
         engineRef.current.pois = pois;
         engineRef.current.lampGlows = lampGlows;
+        // ---- night light pools under street lamps (one instanced mesh,
+        // opacity driven by the sky cycle alongside the window glow) ----
+        if (lampGlows.length) {
+          const pc = document.createElement("canvas");
+          pc.width = pc.height = 128;
+          const pg2 = pc.getContext("2d");
+          const grad = pg2.createRadialGradient(64, 64, 4, 64, 64, 62);
+          grad.addColorStop(0, "rgba(255,214,130,0.55)");
+          grad.addColorStop(0.5, "rgba(255,205,110,0.22)");
+          grad.addColorStop(1, "rgba(255,200,100,0)");
+          pg2.fillStyle = grad;
+          pg2.fillRect(0, 0, 128, 128);
+          const poolTex = new THREE.CanvasTexture(pc);
+          const poolMat = new THREE.MeshBasicMaterial({
+            map: poolTex,
+            transparent: true,
+            opacity: 0,
+            depthWrite: false,
+            blending: THREE.AdditiveBlending,
+          });
+          const poolGeo = new THREE.CircleGeometry(4.2, 20).rotateX(-Math.PI / 2);
+          const pools = new THREE.InstancedMesh(poolGeo, poolMat, Math.min(lampGlows.length, 400));
+          const pm = new THREE.Matrix4();
+          for (let i = 0; i < pools.count; i++) {
+            const gpos = lampGlows[i].position;
+            pm.setPosition(gpos.x, groundHeight(gpos.x, gpos.z) + 0.08, gpos.z);
+            pools.setMatrixAt(i, pm);
+          }
+          pools.renderOrder = 5;
+          scene.add(pools);
+          engineRef.current.lampPools = poolMat;
+        }
 
         // ---- BARRIERS: thin walls along ways, with collision ----
         {
