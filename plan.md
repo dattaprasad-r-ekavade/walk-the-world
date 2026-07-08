@@ -389,3 +389,35 @@ March 2025); a single busy demo day would blow it. Everything below is $0.
       CREDITS.md before shipping.
 
 Suggested order: 17.1 → 17.2 → 17.6 → 15.1 → 15.2/15.3 (cheap wins) → 14.1 → 16.x.
+
+
+## Phase 18 — Player vehicles & movement modes
+
+Everything below reuses existing systems: car/GLB models, groundHeight,
+footprint collision, the road graph, water polygons, the live clock.
+
+- [ ] **18.1 Drivable car (the big one).** Walk up to any traffic car, press
+      C → take the wheel. Arcade physics (~150 lines): throttle/brake/steer,
+      grip + speed-based turn radius, slight drift, collision vs the
+      footprint grid (bounce, not crash), off-road allowed at half speed.
+      Chase camera = the existing third-person boom. Headlights at night,
+      engine hum through the ambience master. Exit re-spawns the walker.
+- [ ] **18.2 Bicycle / scooter.** Same controller, tamer constants, fits
+      footways — the natural way to see Amsterdam or Goa. Cheap once 18.1
+      exists.
+- [ ] **18.3 Boat.** Water polygons are already parsed (rivers/lakes) —
+      a small boat clamped to water with shore collision. Venice, the
+      Mula-Mutha, Sydney harbour.
+- [ ] **18.4 Taxi / delivery missions.** Purpose for driving: pick up a
+      pedestrian, drop at a named POI (both already in the data), timer +
+      earnings tally in localStorage. Turns the sandbox into a game loop.
+- [ ] **18.5 Time trials + ghost replays.** Checkpoint runs on real streets;
+      best-run ghost recorded to localStorage (positions @ 10Hz ≈ a few KB).
+      Beat your own ghost through Shibuya.
+- [ ] **18.6 Traffic obeys signals.** OSM `highway=traffic_signals` nodes are
+      in the cells already — AI cars queue at red lights on a simple timer
+      cycle; player ignores them at their peril (18.4 fare bonus for clean
+      driving). Sells the simulation instantly.
+
+Order: 18.1 → 18.4 → 18.6 (car → purpose → believability), 18.2/18.3/18.5
+as side quests.
