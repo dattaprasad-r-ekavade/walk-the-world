@@ -2531,7 +2531,7 @@ export default function StreetEngine({ lat0, lon0 }) {
       )}
 
       {readyPct >= 100 && (
-        <div className="absolute bottom-16 right-4 z-20 flex gap-2">
+        <div className="absolute bottom-32 right-4 z-20 flex flex-col items-end gap-2">
           <button
             type="button"
             onClick={() => engineRef.current.setMode?.("editor")}

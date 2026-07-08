@@ -11,6 +11,7 @@ import { useGameKeyboard } from '@/hooks/use-game-keyboard';
 import { useReverseGeocode } from '@/hooks/use-reverse-geocode';
 import { useGameStore } from '@/stores/game-store';
 import { trackRender } from '@/lib/perf';
+import { cityCacheKey } from '@/lib/engine/cityData';
 import {
   menuBtn,
   menuBtnPrimary,
@@ -68,6 +69,9 @@ export default function Home() {
   const fly = (lat, lon) => {
     setScreen('play');
     setPanel(null);
+    // warm the city cell WHILE the fly-down animation plays — by the time the
+    // street engine boots, a cold Overpass fetch has had a 10-15s head start
+    fetch(`/api/city/${cityCacheKey(lat, lon)}`).catch(() => {});
     controllerRef.current?.flyToStreet(lat, lon);
   };
 
