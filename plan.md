@@ -96,7 +96,7 @@ fetch them. Two things hide it:
       registration-gated — not worth the pipeline; skip.
 - [ ] 7.6 Overture as *validator*, not just filler: cross-check OSM building
       count vs Overture per cell; if OSM < 30% of Overture, auto-blend.
-- [ ] 7.7 Name-aware props: shop/amenity nodes with `name` → storefront signs
+- [x] 7.7 Name-aware props: shop/amenity nodes with `name` → storefront signs (done in 13.3: sprite name-boards + colored awnings at POIs)
       (the "living city" layer from OSM_TAGS.md §5).
 
 ## Phase 8 — Graphics pipeline improvements
@@ -107,7 +107,7 @@ fetch them. Two things hide it:
 - [x] 8.2 **Shadows**: a single directional-light shadow map (2048, tight
       frustum around the player, updated when sun moves) transforms depth
       perception at street level for ~1-2 ms/frame.
-- [ ] 8.3 **SSAO / post stack**: contact shadows where buildings meet ground
+- [x] 8.3 **SSAO / post stack**: contact shadows where buildings meet ground (done cheaper: baked vertex-color AO on walls + painted footprint contact shadows; true SSAO/bloom deferred to 16.2)
       kill the "floating boxes" look. three r170 post-processing works;
       consider N8AO (cheap SSAO lib).
 - [ ] 8.4 **Upgrade three r170 → r17x + WebGPURenderer** (production-ready
@@ -115,7 +115,7 @@ fetch them. Two things hide it:
       renderer first, TSL later. Expect wins on many-object scenes.
 - [ ] 8.5 Texture atlas for facades: bake 4-6 facade variants into one atlas,
       vary by UV offset per building — visual variety at zero extra draws.
-- [ ] 8.6 Roof geometry from `roof:shape` (gabled/hipped) — kills "every
+- [ ] 8.6 Roof geometry from `roof:shape` (gabled/hipped) — kills "every (partial: heuristic hipped roofs on small houses + rooftop tanks/AC shipped; tag-driven shapes still open → 17.3)
       building is a box"; cheap lathe/prism generation.
 - [ ] 8.7 Distance fog tuned per weather + height fog for dawn/dusk moods;
       tonemapping (ACES) + slight bloom on lamp glows at night.
@@ -129,7 +129,7 @@ Free tier facts (verified): 10 GB Standard storage, 1 M Class-A (writes),
 testing only; a **custom domain puts the bucket behind Cloudflare's CDN**
 with real caching.
 
-- [ ] 9.1 **Custom domain on the bucket** (e.g. `assets.walktheworld.dev`) →
+- [x] 9.1 **Custom domain on the bucket** (done: apex https://myjyotishai.in serves the bucket; client tries it first via NEXT_PUBLIC_R2_PUBLIC_BASE) →
       cached at Cloudflare edge, cache-control headers honored. Every asset
       below then ships CDN-fast worldwide.
 - [ ] 9.2 **Pre-baked ground textures**: today every client composites OSM
@@ -142,9 +142,9 @@ with real caching.
       roads, props transforms) into a compact binary (or Draco/glTF) per
       cell. Client skips Overpass parse + extrusion entirely — near-instant
       cell loads. R2 becomes a world CDN, not just a JSON cache.
-- [ ] 9.4 Region pre-bake script: warm the 16 fast-travel cities + rings
+- [x] 9.4 Region pre-bake script: warm the 16 fast-travel cities + rings (done as scripts/warm-cities.mjs + lib/seedPlaces.js: 88 places / 440 cells, resumable)
       around them overnight (stays comfortably inside free-tier ops).
-- [ ] 9.5 Asset pack in R2: facade atlas, road/rail textures, avatar, future
+- [ ] 9.5 Asset pack in R2: facade atlas, road/rail textures, avatar, future (partial: GLB model library in R2 done — car/bird/test-cube; texture packs land with 17.1)
       GLBs — versioned folder, immutable cache headers.
 - [x] 9.6 Gzip city JSONs (they compress 6-10×) until 9.3 replaces them.
 
@@ -157,15 +157,15 @@ with real caching.
 - [ ] 10.3 **Live layer** — OpenSky aircraft overhead with real flight
       numbers; GTFS-RT buses/trains gliding along their actual routes;
       day/night terminator on the globe.
-- [ ] 10.4 **Photo mode** — free camera + DoF + filters + watermark
+- [ ] 10.4 **Photo mode** — free camera + DoF + filters + watermark (= 15.2)
       "walktheworld.dev · Pune" → users share screenshots = free marketing.
 - [ ] 10.5 **Walk journal** — trail line on the minimap, km walked, countries
       visited, elevation climbed; export a "walk card" image.
-- [ ] 10.6 **Ambient audio** — birds in parks, traffic on roads, waves at
+- [x] 10.6 **Ambient audio** — birds in parks, traffic on roads, waves at (done in 13.4: synthesized traffic/wind/rain beds, hour+weather aware, mute button)
       coasts, rain audio tied to live weather (freesound.org CC0).
-- [ ] 10.7 **NPC pedestrians/traffic** — instanced mannequins walking road
+- [x] 10.7 **NPC pedestrians/traffic** — instanced mannequins walking road (done in 13.1/13.2, plus real GLB models via asset library; VAT walk animation → 15.1)
       graphs, simple cars on driveable roads; density from real POI density.
-- [ ] 10.8 **"Guess where I am"** — hide the HUD, drop somewhere random,
+- [ ] 10.8 **"Guess where I am"** — hide the HUD, drop somewhere random, (= 15.5)
       let the player guess on the world map (the descoped GeoGuessr, single
       player, zero backend).
 - [ ] 10.9 **VR walk** (WebXR) — three.js supports it; walking your childhood
