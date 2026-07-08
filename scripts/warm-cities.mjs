@@ -16,6 +16,12 @@ const argsAll = process.argv.slice(2);
 const BASE = (argsAll.find((a) => !a.startsWith("--")) || "http://localhost:3000").replace(/\/$/, "");
 const LIST_ONLY = argsAll.includes("--list");
 const GROUP = (argsAll.find((a) => a.startsWith("--group=")) || "").slice(8).replace(/"/g, "");
+//   --budget=30     stop starting new fetches after N seconds (resumable runs)
+//   --state=file    JSON checkpoint of finished cells, skipped instantly on re-run
+//   --conc=2        parallel fetches
+const BUDGET = Number((argsAll.find((a) => a.startsWith("--budget=")) || "").slice(9)) || 0;
+const STATE_FILE = (argsAll.find((a) => a.startsWith("--state=")) || "").slice(8);
+const CONC = Number((argsAll.find((a) => a.startsWith("--conc=")) || "").slice(7)) || 2;
 const CACHE_VERSION = 5; // keep in sync with lib/engine/cityData.js
 const D = 0.0055; // neighbor cell offset used by the engine's prefetch
 
@@ -52,14 +58,33 @@ if (LIST_ONLY) {
   process.exit(0);
 }
 
-console.log(`Warming ${cells.size} cells (${placeCount} places + neighbors) against ${BASE}\n`);
+import { readFileSync, writeFileSync } from "fs";
+const done = new Set();
+if (STATE_FILE) {
+  try { for (const k of JSON.parse(readFileSync(STATE_FILE, "utf8"))) done.add(k); } catch { /* fresh */ }
+}
+const entries = [...cells.entries()].filter(([k]) => !done.has(k));
+console.log(`Warming ${entries.length}/${cells.size} cells (${done.size} already done) against ${BASE}\n`);
 
-let ok = 0, fail = 0, i = 0;
-const entries = [...cells.entries()];
-const CONCURRENCY = 2; // stay polite to Overpass on cold cells
+// pre-flight: don't start until the server actually answers (a startup race
+// otherwise burns the whole list on instant connection-refused errors)
+let up = false;
+for (let tries = 0; tries < 20 && !up; tries++) {
+  try { await fetch(`${BASE}/api/assets`, { signal: AbortSignal.timeout(3000) }); up = true; }
+  catch { await new Promise((r) => setTimeout(r, 1000)); }
+}
+if (!up) { console.log(`server at ${BASE} not reachable — aborting (state kept)`); process.exit(1); }
 
+let ok = 0, fail = 0, i = 0, connFails = 0;
+const t0all = Date.now();
+const CONCURRENCY = CONC; // stay polite to Overpass on cold cells
+
+const saveState = () => {
+  if (STATE_FILE) writeFileSync(STATE_FILE, JSON.stringify([...done]));
+};
 async function worker() {
   while (i < entries.length) {
+    if (BUDGET && (Date.now() - t0all) / 1000 > BUDGET) return;
     const [k, { name }] = entries[i++];
     const t0 = Date.now();
     try {
@@ -70,6 +95,8 @@ async function worker() {
       if (res.ok) {
         const d = await res.json();
         ok++;
+        done.add(k);
+        saveState();
         console.log(`✓ ${name.padEnd(16)} ${k}  ${d.elements?.length ?? 0} elements  ${secs}s`);
       } else {
         fail++;
@@ -78,9 +105,14 @@ async function worker() {
     } catch (e) {
       fail++;
       console.log(`✗ ${name.padEnd(16)} ${k}  ${e?.message}`);
+      if (String(e?.message).includes("fetch failed") && ++connFails > 5) {
+        console.log("too many connection failures — server gone, stopping (state kept)");
+        return;
+      }
     }
   }
 }
 
 await Promise.all(Array.from({ length: CONCURRENCY }, worker));
-console.log(`\nDone: ${ok} warm, ${fail} failed (re-run to retry failures).`);
+saveState();
+console.log(`\nThis run: ${ok} warmed, ${fail} failed · total done ${done.size}/${cells.size}`);
