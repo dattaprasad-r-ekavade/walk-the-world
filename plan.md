@@ -366,4 +366,26 @@ March 2025); a single busy demo day would blow it. Everything below is $0.
       doors near POIs and floor counts read correctly. Prereq for 17.1
       looking its best.
 
-Suggested order: 17.1 → 17.2 → 15.1 → 15.2/15.3 (cheap wins) → 14.1 → 16.x.
+
+- [ ] **17.6 Ambient music (licensed-safe soundtrack).** Layer real music
+      under the synthesized ambience (13.4), tied to context: calm exploration
+      bed by day, mellower variant at night, regional flavor optional later.
+      Safe sources, researched:
+      * **CC0 / public domain (zero risk, no attribution):**
+        [Pixabay Music](https://pixabay.com/music/search/cc0/) (Pixabay
+        Content License — free in apps, no credit),
+        [OpenGameArt CC0 music](https://opengameart.org/content/cc0-music-0),
+        [itch.io CC0 music packs](https://itch.io/game-assets/tag-cc0/tag-music),
+        FreePD.com, and Kenney audio packs. Prefer these.
+      * **CC-BY (fine with a CREDITS.md line):** Kevin MacLeod / incompetech,
+        Free Music Archive (filter by license!), Musopen classical recordings.
+      * **Avoid:** "royalty-free" libraries with per-project terms (Epidemic,
+        Artlist), YouTube Audio Library (YouTube-only terms), anything CC-NC
+        if the portfolio ever earns a rupee.
+      Implementation sketch: 2-3 loopable OGG tracks (~1-2MB each) in R2
+      under `audio/`, HTMLAudio loop with gain through the existing ambience
+      master (so the 🔊 mute button governs it), crossfade day/night by the
+      live clock, ducked under the traffic/rain beds. Licenses recorded in
+      CREDITS.md before shipping.
+
+Suggested order: 17.1 → 17.2 → 17.6 → 15.1 → 15.2/15.3 (cheap wins) → 14.1 → 16.x.
