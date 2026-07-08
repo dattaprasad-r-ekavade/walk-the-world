@@ -1967,6 +1967,13 @@ export default function StreetEngine({ lat0, lon0 }) {
               merged.computeBoundingBox();
               const size = new THREE.Vector3();
               merged.boundingBox.getSize(size);
+              // vehicles/birds must point down +Z: if the model is wider than
+              // long it was authored facing ±X — rotate it onto the Z axis
+              if (mode === "length" && size.x > size.z * 1.15) {
+                merged.rotateY(Math.PI / 2);
+                merged.computeBoundingBox();
+                merged.boundingBox.getSize(size);
+              }
               const cur = mode === "height" ? size.y : Math.max(size.x, size.z);
               const sc = target / (cur || 1);
               merged.scale(sc, sc, sc);
