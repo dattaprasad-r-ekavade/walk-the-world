@@ -261,7 +261,7 @@ All data comes from tags already in the cached city JSON — no new APIs.
 - [x] **13.2 Traffic.** (done — instanced cars on drivable ways, oneway respected) Cars as instanced boxes-with-wheels following road
       centerlines, direction from `oneway`, speed by highway class, simple
       spacing (no overtaking). Headlight sprites + red taillights at night.
-- [x] **13.3 POI life (signs).** (done — sprite name-boards for nearest named shops/amenities; lit windows still open) `shop`/`amenity` nodes → storefront signs (canvas
+- [x] **13.3 POI life (signs).** (done — sprite name-boards for nearest named shops/amenities; lit windows done — emissive night windows driven by the sky cycle) `shop`/`amenity` nodes → storefront signs (canvas
       textures), lit windows near commercial POIs at night, café awnings,
       market stalls. Makes commercial streets read as alive at zero data cost.
 - [x] **13.4 Ambient audio.** (done — synthesized traffic/wind/rain beds, hour+weather aware, mute button) Positional loops: traffic hum scaled by road

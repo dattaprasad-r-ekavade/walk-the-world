@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { LoadingScreen } from "@/components/hud/Panels";
 import { BUILDING_COLORS, ROAD_STYLE } from "@/lib/engine/styles";
-import { makeFacadeTexture, makeRoadTexture, makeRailTexture } from "@/lib/engine/textures";
+import { makeFacadeTexture, makeRoadTexture, makeRailTexture, makeLitWindowTexture } from "@/lib/engine/textures";
 import { lon2tx, lat2ty, tx2lon, ty2lat, EARTH_R, makeLocalFrame } from "@/lib/engine/geo";
 import { placeProps } from "@/lib/engine/props";
 import { fetchCityData, cityCacheKey } from "@/lib/engine/cityData";
@@ -161,6 +161,10 @@ export default function StreetEngine({ lat0, lon0 }) {
     });
     renderer.setSize(mount.clientWidth, mount.clientHeight);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
+    // filmic tone mapping: richer sky gradients, softer highlights, deeper
+    // shadow color — the single cheapest whole-scene visual upgrade
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.12;
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     mount.appendChild(renderer.domElement);
@@ -225,6 +229,9 @@ export default function StreetEngine({ lat0, lon0 }) {
       sun.position.set(sunDir.x, sunDir.y, sunDir.z);
       sun.intensity = Math.max(0, elev) * 1.6 + 0.05;
       hemi.intensity = 0.25 + Math.max(0, elev) * 0.85;
+      // windows light up as the sun sets (elev < ~0.08 → fully lit)
+      const winGlow = Math.max(0, Math.min(1, (0.08 - elev) * 9)) * 0.85;
+      for (const bm of engineRef.current.buildingMats || []) bm.emissiveIntensity = winGlow;
       const sky = new THREE.Color();
       if (elev > 0.25) sky.copy(daySky);
       else if (elev > -0.05) sky.lerpColors(duskSky, daySky, (elev + 0.05) / 0.3);
@@ -766,6 +773,7 @@ export default function StreetEngine({ lat0, lon0 }) {
         const treeSpots = [];
         const flatPolys = []; // {ring, color, lift}
         const pois = []; // {x, z, name, type} shops/amenities for signs + density
+        const crossings = []; // pedestrian crossing nodes → zebra paint
         let featureIdx = 0;
         const total = data.elements.length;
 
@@ -817,6 +825,10 @@ export default function StreetEngine({ lat0, lon0 }) {
             if (T.shop || T.amenity) {
               const pp = toLocal(way.lat, way.lon);
               pois.push({ x: pp.x, z: pp.z, name: T.name, type: T.shop || T.amenity });
+            }
+            if (T.highway === "crossing" || T.crossing) {
+              const cp = toLocal(way.lat, way.lon);
+              crossings.push({ x: cp.x, z: cp.z });
             }
             if (kind) {
               const pt = toLocal(way.lat, way.lon);
@@ -994,13 +1006,20 @@ export default function StreetEngine({ lat0, lon0 }) {
         }
         let tris = 0;
         const facadeTex = makeFacadeTexture();
+        const litTex = makeLitWindowTexture();
+        engineRef.current.buildingMats = [];
         for (const [color, geos] of byColor) {
           const merged = mergeGeometries(geos, false);
           tris += (merged.index ? merged.index.count : merged.attributes.position.count) / 3;
-          const bMesh = new THREE.Mesh(
-            merged,
-            new THREE.MeshLambertMaterial({ color, map: facadeTex })
-          );
+          const bMat = new THREE.MeshLambertMaterial({
+            color,
+            map: facadeTex,
+            emissive: 0xffffff,
+            emissiveMap: litTex, // windows glow after sunset (applySky drives it)
+            emissiveIntensity: 0,
+          });
+          engineRef.current.buildingMats.push(bMat);
+          const bMesh = new THREE.Mesh(merged, bMat);
           bMesh.castShadow = true;
           bMesh.receiveShadow = true;
           scene.add(bMesh);
@@ -1138,6 +1157,14 @@ export default function StreetEngine({ lat0, lon0 }) {
           const sz = tc.w / tc.sizeZ;
           tc.g.lineCap = "round";
           tc.g.lineJoin = "round";
+          // pass 0: sidewalk band — a light concrete strip flanking urban roads
+          for (const rp of roadPaths) {
+            if (rp.width < 6.5) continue;
+            trace(tc, rp.pts, sx, sz);
+            tc.g.strokeStyle = "rgba(196,194,186,0.85)";
+            tc.g.lineWidth = Math.max(3, rp.width * sx * 1.75);
+            tc.g.stroke();
+          }
           // pass 1: dark casing (road edges)
           for (const rp of roadPaths) {
             trace(tc, rp.pts, sx, sz);
@@ -1161,6 +1188,38 @@ export default function StreetEngine({ lat0, lon0 }) {
             tc.g.setLineDash([12, 10]);
             tc.g.stroke();
             tc.g.setLineDash([]);
+          }
+          // pass 4: zebra crossings at OSM highway=crossing nodes
+          for (const cr of crossings) {
+            // nearest road segment gives stripe orientation + width
+            let best = null;
+            for (const rp of roadPaths) {
+              for (let i = 0; i < rp.pts.length - 1; i++) {
+                const a = rp.pts[i], b = rp.pts[i + 1];
+                const ddx = b.x - a.x, ddz = b.y - a.y;
+                const L2 = ddx * ddx + ddz * ddz || 1;
+                let tt = ((cr.x - a.x) * ddx + (cr.z - a.y) * ddz) / L2;
+                tt = Math.max(0, Math.min(1, tt));
+                const qx = a.x + ddx * tt, qz = a.y + ddz * tt;
+                const d = Math.hypot(cr.x - qx, cr.z - qz);
+                if (d < 12 && (!best || d < best.d))
+                  best = { d, ang: Math.atan2(ddz, ddx), width: rp.width || 6 };
+              }
+            }
+            if (!best) continue;
+            const px = (cr.x - tc.x0) * sx, py = (cr.z - tc.z0) * sz;
+            if (px < -20 || py < -20 || px > tc.w + 20 || py > tc.w + 20) continue;
+            tc.g.save();
+            tc.g.translate(px, py);
+            tc.g.rotate(best.ang);
+            tc.g.fillStyle = "rgba(245,245,240,0.92)";
+            const wpx = best.width * sx * 0.92; // stripe length spans the road
+            const bar = Math.max(1.2, 0.55 * sx); // ~0.55 m wide bars
+            const gap = bar * 1.1;
+            for (let k = -2; k <= 2; k++) {
+              tc.g.fillRect(k * (bar + gap) - bar / 2, -wpx / 2, bar, wpx);
+            }
+            tc.g.restore();
           }
           tc.texture.needsUpdate = true;
         }
@@ -2067,6 +2126,7 @@ export default function StreetEngine({ lat0, lon0 }) {
         groundHeight,
         propMarkers: () => engineRef.current.propMarkers || [],
         fly,
+        setTime: (h) => engineRef.current.setTime?.(h),
         pickAt: (cx, cy) => {
           const h = pickPoint({ clientX: cx, clientY: cy });
           return h ? resolveOsmAt(h) : null;
