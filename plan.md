@@ -421,3 +421,37 @@ footprint collision, the road graph, water polygons, the live clock.
 
 Order: 18.1 → 18.4 → 18.6 (car → purpose → believability), 18.2/18.3/18.5
 as side quests.
+
+
+## Phase 19 — CPU architecture: Workers & WebAssembly (honest verdicts)
+
+Reality check first: the engine is GPU/draw-call and network bound. Per-frame
+JS (population ~250 agents, grid-indexed groundHeight, footprint collision)
+measures in fractions of a millisecond — WASM there would be complexity for
+nothing. Where it DOES pay:
+
+- [ ] **19.1 Web Worker city builder (do this before any WASM).** The
+      "Building city (x/y)…" phase runs geometry construction on the main
+      thread — that's the hitching during streaming. Move parse + geometry
+      into a Worker, transfer finished BufferGeometry arrays back
+      (zero-copy via transferables). Kills jank on every load; also makes
+      seamless world streaming (10.1) feasible. No WASM required.
+- [ ] **19.2 Rapier physics (Rust→WASM) for Phase 18 vehicles.** The one
+      clearly justified WASM adoption: ~1MB module, deterministic rigid-body
+      physics, raycast vehicle controller built in. Real suspension, mass,
+      collisions against building footprints as static colliders. Hand-rolled
+      arcade physics (18.1) is fine for v1; Rapier is the upgrade when cars
+      should FEEL heavy. Also free: falling crates, props with mass.
+- [ ] **19.3 WASM earcut triangulation (only if profiling says so).** Building
+      extrusion leans on JS earcut inside three.js; a WASM earcut can cut
+      polygon triangulation 2-5×. But it's a one-time build cost already
+      hidden behind 19.1's worker — profile after 19.1, adopt only if the
+      worker build still exceeds ~1s on dense cells.
+- [ ] **19.4 Where NOT to use WASM (recorded so we don't relearn it):**
+      per-frame agent updates (too few agents, crossing the JS↔WASM boundary
+      per frame can cost more than it saves), JSON parsing (native parse is
+      already C++), gzip (native DecompressionStream), anything GPU-bound.
+      If crowds ever scale 10-50× (post-16.1), prefer GPU compute over WASM.
+
+Order: 19.1 with/before 10.1 streaming; 19.2 lands with Phase 18; 19.3 only
+after profiling.
