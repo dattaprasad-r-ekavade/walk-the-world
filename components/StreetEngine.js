@@ -62,6 +62,7 @@ export default function StreetEngine({ lat0, lon0 }) {
   const [place, setPlace] = useState(null);
   const [bigMap, setBigMap] = useState(false);
   const [liveWx, setLiveWx] = useState(null);
+  const [cityStreaming, setCityStreaming] = useState(false);
   const [uiMode, setUiMode] = useState(null); // 'editor' | 'debug' | null
   const [debugSel, setDebugSel] = useState(null);
   const [tagDraft, setTagDraft] = useState("");
@@ -1881,7 +1882,13 @@ export default function StreetEngine({ lat0, lon0 }) {
       loadAvatar();
       loop();
 
-      setStage("Fetching city data…");
+      // ---- PROGRESSIVE FIRST PAINT: the world is walkable on terrain alone
+      // (the OSM ground texture already shows roads/blocks). Drop the loading
+      // screen NOW and stream the city in behind a small toast — cold Overpass
+      // cells used to block first paint for 2-3 minutes here. ----
+      setReadyPct(100);
+      setCityStreaming(true);
+      setStage("Streaming city…");
       const cityData = await cityDataPromise;
       const edits = (await editsPromise) || {};
       engineRef.current.edits = edits;
@@ -1912,7 +1919,7 @@ export default function StreetEngine({ lat0, lon0 }) {
       if (disposed) return;
       for (const entry of edits.assets || []) placeAsset(entry, false);
 
-      setReadyPct(100);
+      setCityStreaming(false);
       if (!disposed) window.__engineReady = true;
       // Safe spawn: never inside a building — spiral to nearest open spot.
       if (insideBuilding(player.x, player.z)) {
@@ -2099,6 +2106,13 @@ export default function StreetEngine({ lat0, lon0 }) {
             { label: "🌐 Globe View", onClick: () => router.push("/") },
           ]}
         />
+      )}
+
+      {readyPct >= 100 && cityStreaming && (
+        <div className="pointer-events-none absolute left-1/2 top-4 z-20 -translate-x-1/2 rounded-full border border-white/15 bg-slate-950/80 px-4 py-1.5 text-xs text-slate-200 backdrop-blur">
+          <span className="mr-2 inline-block h-2 w-2 animate-pulse rounded-full bg-emerald-400 align-middle" />
+          {stage}
+        </div>
       )}
 
       {readyPct >= 100 && (

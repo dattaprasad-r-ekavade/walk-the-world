@@ -209,3 +209,73 @@ with real caching.
 Dashboard steps still open (both optional): R2 Cache Rule for edge caching, and
 a bucket CORS policy if you ever want the browser to fetch city JSON / GLBs
 directly from https://myjyotishai.in instead of through the API routes.
+
+
+## Phase 12 — Cold-start: first image in seconds, not minutes
+
+**Diagnosis (measured in code, matches user reports exactly).** The loading
+screen blocks until `readyPct >= 100`, and that waits on `await cityDataPromise`
+— the full Overpass fetch. On a cold cell the server tries pass 1 (20s × 2
+mirrors) then pass 2 (60s × 2 mirrors) = up to **160s worst case**, but the
+Vercel function is capped at `maxDuration 120` → killed → 500 → client gets
+`null` → "Ready (terrain only)". That is precisely "2–3 minutes for the first
+image, and no buildings". Terrain itself is ready at readyPct 55 within ~5–10s;
+users just never see it.
+
+- [x] **12.1 Progressive first paint (the big one).** Drop the loading screen
+      as soon as terrain + spawn are ready (~readyPct 55→100 after terrain).
+      Walk immediately on "map-textured" ground (the OSM raster already shows
+      roads/footprints), stream buildings in when Overpass answers, with a
+      small "streaming city…" toast instead of a blocking bar. First image
+      ~5–10s even on stone-cold cells.
+- [x] **12.2 Seed the cache.** `scripts/warm-cities.mjs`: loop the fast-travel
+      PLACES (+ 4 neighbor cells each) through `/api/city/`. Run once locally
+      (or on a schedule) — every demo city becomes a warm R2 hit (~1–3s).
+      Whatever is rendered once is cached forever, so seed what users will try.
+- [ ] **12.3 Serve warm cells without touching Vercel.** `cityData.js` already
+      tries `NEXT_PUBLIC_R2_PUBLIC_BASE` first; it currently fails on missing
+      bucket CORS and falls back to the API. Dashboard steps (both free):
+      R2 bucket → Settings → CORS policy allowing GET from the app origins,
+      and a Cache Rule on myjyotishai.in (currently `cf-cache-status: DYNAMIC`)
+      → warm loads become pure CDN, zero function invocations.
+- [x] **12.4 Overpass budget that fits serverless.** Passes [15s, 40s] instead
+      of [20s, 60s]; add `overpass.private.coffee` as third mirror (same
+      operator as kumi, explicitly no rate limits); accept partial results —
+      if buildings answered but infra timed out, render buildings-only and
+      let a background retry fill the rest. Worst case fits inside the
+      function cap with room to respond.
+- [ ] **12.5 Instant placeholder city (later).** While Overpass streams, drop
+      simple grey blocks from Overture-cached footprints if present, replaced
+      when real data lands.
+
+## Phase 13 — Populated world (living cities)
+
+All data comes from tags already in the cached city JSON — no new APIs.
+
+- [ ] **13.1 Pedestrians.** Low-poly walkers on the walkable-way graph
+      (footways/residential/paths already in roadPaths). One InstancedMesh,
+      LOD-style: near instances get bobbing walk animation via vertex shader
+      time offset, far ones slide. Density from POI counts per area (shops,
+      amenities) × time-of-day curve (lunch rush, empty at 3am, matches the
+      live-clock/weather system — fewer people in rain).
+- [ ] **13.2 Traffic.** Cars as instanced boxes-with-wheels following road
+      centerlines, direction from `oneway`, speed by highway class, simple
+      spacing (no overtaking). Headlight sprites + red taillights at night.
+- [ ] **13.3 POI life.** `shop`/`amenity` nodes → storefront signs (canvas
+      textures), lit windows near commercial POIs at night, café awnings,
+      market stalls. Makes commercial streets read as alive at zero data cost.
+- [ ] **13.4 Ambient audio.** Positional loops: traffic hum scaled by road
+      class density, birds in `leisure=park`/tree clusters by day, crickets at
+      night, rain layer tied to the existing weather state. Web Audio, tiny.
+- [ ] **13.5 Transit ghosts.** Buses/trams gliding along `route` relations and
+      the existing rails; stops already render (stations array).
+- [ ] **13.6 Birds & animals.** Instanced flocking birds (classic boids, ~50
+      instances), pigeons that scatter when the player runs through, dogs in
+      parks.
+- [ ] **13.7 Multiplayer ghosts (ambitious).** Other live players as
+      translucent avatars: positions over WebSocket via a Cloudflare Worker +
+      Durable Object (free tier covers portfolio traffic easily). "You are
+      walking Tokyo with 3 others right now."
+
+Suggested order: 12.1 → 12.2 → 12.4 (cold start is the complaint) → 13.1 →
+13.3 → 13.2 (visible life fastest) → rest.
