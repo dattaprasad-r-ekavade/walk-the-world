@@ -252,24 +252,24 @@ users just never see it.
 
 All data comes from tags already in the cached city JSON — no new APIs.
 
-- [ ] **13.1 Pedestrians.** Low-poly walkers on the walkable-way graph
+- [x] **13.1 Pedestrians.** (done — instanced walkers on the street graph, hour/weather density) Low-poly walkers on the walkable-way graph
       (footways/residential/paths already in roadPaths). One InstancedMesh,
       LOD-style: near instances get bobbing walk animation via vertex shader
       time offset, far ones slide. Density from POI counts per area (shops,
       amenities) × time-of-day curve (lunch rush, empty at 3am, matches the
       live-clock/weather system — fewer people in rain).
-- [ ] **13.2 Traffic.** Cars as instanced boxes-with-wheels following road
+- [x] **13.2 Traffic.** (done — instanced cars on drivable ways, oneway respected) Cars as instanced boxes-with-wheels following road
       centerlines, direction from `oneway`, speed by highway class, simple
       spacing (no overtaking). Headlight sprites + red taillights at night.
-- [ ] **13.3 POI life.** `shop`/`amenity` nodes → storefront signs (canvas
+- [x] **13.3 POI life (signs).** (done — sprite name-boards for nearest named shops/amenities; lit windows still open) `shop`/`amenity` nodes → storefront signs (canvas
       textures), lit windows near commercial POIs at night, café awnings,
       market stalls. Makes commercial streets read as alive at zero data cost.
-- [ ] **13.4 Ambient audio.** Positional loops: traffic hum scaled by road
+- [x] **13.4 Ambient audio.** (done — synthesized traffic/wind/rain beds, hour+weather aware, mute button) Positional loops: traffic hum scaled by road
       class density, birds in `leisure=park`/tree clusters by day, crickets at
       night, rain layer tied to the existing weather state. Web Audio, tiny.
 - [ ] **13.5 Transit ghosts.** Buses/trams gliding along `route` relations and
       the existing rails; stops already render (stations array).
-- [ ] **13.6 Birds & animals.** Instanced flocking birds (classic boids, ~50
+- [x] **13.6 Birds (flock done, ground animals open) & animals.** Instanced flocking birds (classic boids, ~50
       instances), pigeons that scatter when the player runs through, dogs in
       parks.
 - [ ] **13.7 Multiplayer ghosts (ambitious).** Other live players as

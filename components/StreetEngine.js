@@ -10,6 +10,8 @@ import { placeProps } from "@/lib/engine/props";
 import { fetchCityData, cityCacheKey } from "@/lib/engine/cityData";
 import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
+import { createPopulation } from "@/lib/engine/population";
+import { createAmbience } from "@/lib/engine/ambience";
 
 const toolBtn = "rounded bg-white/10 px-2 py-1 hover:bg-white/20";
 const toolBtnPrimary = "rounded bg-emerald-500/80 px-2 py-1 font-semibold text-black hover:bg-emerald-400";
@@ -63,6 +65,7 @@ export default function StreetEngine({ lat0, lon0 }) {
   const [bigMap, setBigMap] = useState(false);
   const [liveWx, setLiveWx] = useState(null);
   const [cityStreaming, setCityStreaming] = useState(false);
+  const [mutedUi, setMutedUi] = useState(false);
   const [uiMode, setUiMode] = useState(null); // 'editor' | 'debug' | null
   const [debugSel, setDebugSel] = useState(null);
   const [tagDraft, setTagDraft] = useState("");
@@ -294,6 +297,8 @@ export default function StreetEngine({ lat0, lon0 }) {
     const tileMeshes = []; // {key, mesh} — for live terrain patching
     const tileCanvases = [];
     const { addFootprint, insideBuilding, footprintAt } = createCollision(GRID);
+    let population = null;
+    const ambience = createAmbience();
 
     // ---- editor / debug ----
     engineRef.current.edits = engineRef.current.edits || {};
@@ -558,6 +563,8 @@ export default function StreetEngine({ lat0, lon0 }) {
       if (editor.mode !== "editor") { editor.tool = null; editor.selected = null; setEditorMsg(null); }
     };
     engineRef.current.setMode = setMode;
+    engineRef.current.toggleMute = () => setMutedUi(ambience.toggleMute());
+    setMutedUi(ambience.muted);
     engineRef.current.editorApi = {
       setTool: (t) => {
         editor.tool = t;
@@ -758,6 +765,7 @@ export default function StreetEngine({ lat0, lon0 }) {
         const waterways = []; // {pts, width} centerline ribbons
         const treeSpots = [];
         const flatPolys = []; // {ring, color, lift}
+        const pois = []; // {x, z, name, type} shops/amenities for signs + density
         let featureIdx = 0;
         const total = data.elements.length;
 
@@ -806,6 +814,10 @@ export default function StreetEngine({ lat0, lon0 }) {
               T.historic === "monument" || T.historic === "memorial" ? "memorial" :
               T["generator:source"] === "wind" ? "turbine" :
               T.power === "tower" ? "pylon" : null;
+            if (T.shop || T.amenity) {
+              const pp = toLocal(way.lat, way.lon);
+              pois.push({ x: pp.x, z: pp.z, name: T.name, type: T.shop || T.amenity });
+            }
             if (kind) {
               const pt = toLocal(way.lat, way.lon);
               props.push({ kind, x: pt.x, z: pt.z, tags: T, id: `${way.type}/${way.id}` });
@@ -1444,6 +1456,7 @@ export default function StreetEngine({ lat0, lon0 }) {
         engineRef.current.spinners = spinners;
         engineRef.current.roadPaths = roadPaths;
         engineRef.current.propMarkers = props; // {kind,x,z,tags,id} for picking
+        engineRef.current.pois = pois;
         engineRef.current.lampGlows = lampGlows;
 
         // ---- BARRIERS: thin walls along ways, with collision ----
@@ -1543,6 +1556,7 @@ export default function StreetEngine({ lat0, lon0 }) {
     // ---- input ----
     const canvas = renderer.domElement;
     const onClick = (e) => {
+      ambience.start();
       if (editor.mode === "editor" && fly.grab) {
         // commit the move (Blender G → click confirms)
         const { rec, orig } = fly.grab;
@@ -1737,7 +1751,7 @@ export default function StreetEngine({ lat0, lon0 }) {
 
     // ---- main loop ----
     const clock = new THREE.Clock();
-    let fpsCount = 0, fpsTime = performance.now(), fpsVal = 0, hudTick = 0, precipTick = 0;
+    let fpsCount = 0, fpsTime = performance.now(), fpsVal = 0, hudTick = 0, precipTick = 0, ambTick = 0;
     const loop = () => {
       if (!running) return;
       requestAnimationFrame(loop);
@@ -1834,6 +1848,8 @@ export default function StreetEngine({ lat0, lon0 }) {
       }
       // animate wind turbines + precipitation
       for (const r of engineRef.current.spinners || []) r.rotation.z += dt * 1.4;
+      population?.update(dt, player, engineRefHour, !!precip);
+      if (++ambTick % 120 === 0) ambience.set({ hour: engineRefHour, raining: !!precip });
       if (precip && ++precipTick % 2 === 0) {
         const a = precip.geo.attributes.position;
         for (let i = 0; i < a.count; i++) {
@@ -1918,6 +1934,21 @@ export default function StreetEngine({ lat0, lon0 }) {
       await loadCity(cityData);
       if (disposed) return;
       for (const entry of edits.assets || []) placeAsset(entry, false);
+
+      // ---- populated world: pedestrians, traffic, birds, POI signs ----
+      try {
+        population = createPopulation({
+          scene,
+          groundHeight,
+          roadPaths: engineRef.current.roadPaths || [],
+          pois: engineRef.current.pois || [],
+        });
+        console.log("[population]", population.counts);
+        ambience.set({ density: Math.min(1, population.counts.peds / 140) });
+        engineRef.current.population = population;
+      } catch (err) {
+        console.warn("[population]", err?.message);
+      }
 
       setCityStreaming(false);
       if (!disposed) window.__engineReady = true;
@@ -2030,6 +2061,8 @@ export default function StreetEngine({ lat0, lon0 }) {
       document.removeEventListener("mousemove", onMouse);
       document.removeEventListener("pointerlockchange", onLock);
       window.removeEventListener("resize", onResize);
+      population?.dispose();
+      ambience.dispose();
       renderer.dispose();
       mount.removeChild(renderer.domElement);
     };
@@ -2128,6 +2161,14 @@ export default function StreetEngine({ lat0, lon0 }) {
             title="Map editor (E): place assets, sculpt terrain, hide broken features"
           >
             🛠 Edit <kbd className="ml-1 opacity-60">E</kbd>
+          </button>
+          <button
+            type="button"
+            onClick={() => engineRef.current.toggleMute?.()}
+            className="rounded-lg border border-white/15 bg-slate-950/70 px-3 py-2 text-xs font-semibold text-slate-200 backdrop-blur hover:bg-slate-800/80"
+            title="Ambient sound on/off"
+          >
+            {mutedUi ? "🔇" : "🔊"}
           </button>
           <button
             type="button"
