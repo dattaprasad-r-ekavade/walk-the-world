@@ -778,6 +778,7 @@ export default function StreetEngine({ lat0, lon0 }) {
         const roofGeos = []; // hipped roofs for small houses
         const clutterGeos = []; // water tanks / AC units on big flat roofs
         const roofCapGeos = []; // flat building tops, split from the walls
+        const buildingRings = []; // footprints → painted contact shadows
         // slice one material group out of a non-indexed geometry (ExtrudeGeometry
         // marks caps as group 0 and side walls as group 1)
         const sliceGroup = (geo, matIndex) => {
@@ -998,9 +999,28 @@ export default function StreetEngine({ lat0, lon0 }) {
             // texture — and its night glow — never appears on rooftops
             const wallGeo = sliceGroup(geo, 1) || geo;
             const capGeo = sliceGroup(geo, 0);
+            {
+              // fake ambient occlusion (walls darken toward the street) plus a
+              // per-building tint jitter so batched buildings stop looking cloned
+              const posA = wallGeo.attributes.position;
+              const colA = new Float32Array(posA.count * 3);
+              const jr = 0.90 + ((way.id % 13) / 13) * 0.2;
+              const jg = 0.90 + ((way.id % 7) / 7) * 0.2;
+              const jb = 0.90 + ((way.id % 11) / 11) * 0.2;
+              const gy0 = base + 4; // ≈ street level for this building
+              for (let vi = 0; vi < posA.count; vi++) {
+                const vy = posA.getY(vi);
+                const ao = 0.66 + 0.34 * Math.max(0, Math.min(1, (vy - gy0) / 9));
+                colA[vi * 3] = ao * jr;
+                colA[vi * 3 + 1] = ao * jg;
+                colA[vi * 3 + 2] = ao * jb;
+              }
+              wallGeo.setAttribute("color", new THREE.BufferAttribute(colA, 3));
+            }
             byColor.get(color).push(wallGeo);
             if (capGeo) roofCapGeos.push(capGeo);
             addFootprint(ring, { id: `${way.type}/${way.id}`, tags: way.tags });
+            buildingRings.push(ring);
 
             // footprint centroid + area (shoelace) for roof decisions
             let cx = 0, cz = 0, area = 0;
@@ -1093,6 +1113,7 @@ export default function StreetEngine({ lat0, lon0 }) {
           const bMat = new THREE.MeshLambertMaterial({
             color,
             map: facadeTex,
+            vertexColors: true, // baked AO gradient + per-building tint
             emissive: 0xffffff,
             emissiveMap: litTex, // windows glow after sunset (applySky drives it)
             emissiveIntensity: 0,
@@ -1130,6 +1151,94 @@ export default function StreetEngine({ lat0, lon0 }) {
           );
           cMesh.castShadow = true;
           scene.add(cMesh);
+        }
+
+        // ---- LIVED-IN LAYER: shop awnings + street furniture (merged) ----
+        {
+          const AWNING_COLORS = [0xb8433a, 0x2f7a4d, 0x2f5d8a, 0xb8862f, 0x7a3a6e];
+          const awningGeos = [];
+          const nearestRoadDir = (x, z, maxD) => {
+            let best = null;
+            for (const rp of roadPaths) {
+              for (let i = 0; i < rp.pts.length - 1; i++) {
+                const a = rp.pts[i], b = rp.pts[i + 1];
+                const ddx = b.x - a.x, ddz = b.y - a.y;
+                const L2 = ddx * ddx + ddz * ddz || 1;
+                let tt = ((x - a.x) * ddx + (z - a.y) * ddz) / L2;
+                tt = Math.max(0, Math.min(1, tt));
+                const qx = a.x + ddx * tt, qz = a.y + ddz * tt;
+                const d = Math.hypot(x - qx, z - qz);
+                if (d < maxD && (!best || d < best.d)) best = { d, ang: Math.atan2(ddx, ddz) };
+              }
+            }
+            return best;
+          };
+          let ai = 0;
+          for (const poi of pois) {
+            if (ai >= 60) break;
+            const rd = nearestRoadDir(poi.x, poi.z, 18);
+            if (!rd) continue;
+            const g2 = new THREE.BoxGeometry(3.0, 0.14, 1.3);
+            g2.rotateX(0.28); // slight downward tilt
+            const cl = new THREE.Color(AWNING_COLORS[ai % AWNING_COLORS.length]);
+            const ca = new Float32Array(g2.attributes.position.count * 3);
+            for (let k = 0; k < ca.length; k += 3) { ca[k] = cl.r; ca[k+1] = cl.g; ca[k+2] = cl.b; }
+            g2.setAttribute("color", new THREE.BufferAttribute(ca, 3));
+            const m4a = new THREE.Matrix4().makeRotationY(rd.ang);
+            m4a.setPosition(poi.x, groundHeight(poi.x, poi.z) + 2.7, poi.z);
+            g2.applyMatrix4(m4a);
+            awningGeos.push(g2);
+            ai++;
+          }
+          // bins + benches spaced along wider walkable roads
+          const furnGeos = [];
+          let placed = 0;
+          for (const rp of roadPaths) {
+            if (placed >= 220) break;
+            if ((rp.width || 0) < 6.5 || !rp.id) continue;
+            let acc = 30;
+            for (let i = 0; i < rp.pts.length - 1 && placed < 220; i++) {
+              const a = rp.pts[i], b = rp.pts[i + 1];
+              const segL = Math.hypot(b.x - a.x, b.y - a.y);
+              acc += segL;
+              if (acc < 55) continue;
+              acc = 0;
+              const tdx = (b.x - a.x) / (segL || 1), tdz = (b.y - a.y) / (segL || 1);
+              const sideSign = placed % 2 === 0 ? 1 : -1;
+              const off = (rp.width / 2 + 1.1) * sideSign;
+              const fx = a.x + -tdz * off, fz = a.y + tdx * off;
+              const gy2 = groundHeight(fx, fz);
+              let fg;
+              const colF = new THREE.Color(placed % 3 === 0 ? 0x3a3d42 : 0x7a5a38);
+              if (placed % 3 === 0) {
+                fg = new THREE.CylinderGeometry(0.32, 0.28, 0.85, 8); // bin
+                fg.translate(fx, gy2 + 0.42, fz);
+              } else {
+                fg = new THREE.BoxGeometry(1.7, 0.1, 0.5); // bench seat
+                const back = new THREE.BoxGeometry(1.7, 0.45, 0.08);
+                back.translate(0, 0.28, -0.24);
+                fg = mergeGeometries([fg, back], false);
+                const m4f = new THREE.Matrix4().makeRotationY(Math.atan2(tdx, tdz));
+                m4f.setPosition(fx, gy2 + 0.5, fz);
+                fg.applyMatrix4(m4f);
+              }
+              const cf = new Float32Array(fg.attributes.position.count * 3);
+              for (let k = 0; k < cf.length; k += 3) { cf[k] = colF.r; cf[k+1] = colF.g; cf[k+2] = colF.b; }
+              fg.setAttribute("color", new THREE.BufferAttribute(cf, 3));
+              furnGeos.push(fg);
+              placed++;
+            }
+          }
+          const livedIn = [...awningGeos, ...furnGeos];
+          if (livedIn.length) {
+            const liMesh = new THREE.Mesh(
+              mergeGeometries(livedIn, false),
+              new THREE.MeshLambertMaterial({ vertexColors: true })
+            );
+            liMesh.castShadow = true;
+            scene.add(liMesh);
+            console.log(`[lived-in] ${awningGeos.length} awnings, ${furnGeos.length} furniture`);
+          }
         }
 
         // ---- DECAL ROADS: terrain-conforming ribbons. Each cross-section
@@ -1265,6 +1374,24 @@ export default function StreetEngine({ lat0, lon0 }) {
           const sz = tc.w / tc.sizeZ;
           tc.g.lineCap = "round";
           tc.g.lineJoin = "round";
+          // pass -1: soft contact shadows under buildings — grounds every
+          // extrusion into the map texture (fake ambient occlusion)
+          tc.g.save();
+          tc.g.shadowColor = "rgba(0,0,0,0.55)";
+          tc.g.shadowBlur = 7;
+          tc.g.fillStyle = "rgba(20,22,26,0.30)";
+          for (const ring of buildingRings) {
+            tc.g.beginPath();
+            for (let i = 0; i < ring.length; i++) {
+              const px = (ring[i][0] - tc.x0) * sx;
+              const py = (ring[i][1] - tc.z0) * sz;
+              if (i === 0) tc.g.moveTo(px, py);
+              else tc.g.lineTo(px, py);
+            }
+            tc.g.closePath();
+            tc.g.fill();
+          }
+          tc.g.restore();
           // pass 0: sidewalk band — a light concrete strip flanking urban roads
           for (const rp of roadPaths) {
             if (rp.width < 6.5) continue;
