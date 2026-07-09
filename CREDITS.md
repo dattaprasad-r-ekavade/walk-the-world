@@ -17,3 +17,28 @@ uploaded as `pedestrian.glb` will work today.
 
 To replace any of these: upload a `.glb` with the same name at `/editor`
 (models should face +Z; sideways-authored vehicles are auto-rotated).
+
+## Audio
+
+Ambient music uses a synthesized day/night pad by default (no external files).
+Optional CC0 loops can be dropped at `public/audio/day.ogg` and
+`public/audio/night.ogg` — the ambience system picks them up automatically.
+
+| Asset | Notes | License | Suggested sources |
+|---|---|---|---|
+| `day.ogg` / `night.ogg` (optional) | Loopable exploration beds | Prefer CC0 | [Pixabay Music](https://pixabay.com/music/search/cc0/), [OpenGameArt CC0](https://opengameart.org/content/cc0-music-0), Kenney audio packs |
+
+## Imagery
+
+| Layer | Provider | License / terms |
+|---|---|---|
+| Street ground (default) | OpenStreetMap raster tiles | © OpenStreetMap contributors |
+| Street ground (satellite toggle) | Esri World Imagery | Free for non-commercial apps; attribution required |
+| Elevation | AWS Terrarium (Mapzen) | Open data |
+
+## Materials & lighting (17.1 / 17.2)
+
+Street materials are procedural PBR (`lib/engine/materials.js`) with optional
+CC0 photoscanned maps later (Poly Haven / ambientCG → R2 or `/public/textures`).
+IBL uses a procedural equirect sky → PMREM (`lib/engine/env-map.js`); swap in
+Poly Haven HDRIs when hosted.

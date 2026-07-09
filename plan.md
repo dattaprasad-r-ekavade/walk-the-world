@@ -84,9 +84,10 @@ fetch them. Two things hide it:
 - [x] 7.2 Bridge visual upgrade: clearance = max(endpoint ground, water level
       + 4 m); side girders + darker underside so decks read as bridges even
       without water.
-- [ ] 7.3 Per-category Overpass caps (buildings 2000 / roads 800 / landuse
+- [x] 7.3 Per-category Overpass caps (buildings 2000 / roads 800 / landuse
       600 / props 700) instead of one shared cap — dense cells can't starve a
-      category. (Buildings already split; finish the job.)
+      category. (done: parallel category queries in `lib/overpassServer.js`,
+      CACHE_VERSION → 6)
 - [ ] 7.4 `building:part` support — towers like Mumbai/Dubai skylines are
       modeled as parts; we currently drop them.
 - [ ] 7.5 Terrain upgrade where free lidar exists: keep Terrarium (30 m)
@@ -117,8 +118,10 @@ fetch them. Two things hide it:
       vary by UV offset per building — visual variety at zero extra draws.
 - [ ] 8.6 Roof geometry from `roof:shape` (gabled/hipped) — kills "every (partial: heuristic hipped roofs on small houses + rooftop tanks/AC shipped; tag-driven shapes still open → 17.3)
       building is a box"; cheap lathe/prism generation.
-- [ ] 8.7 Distance fog tuned per weather + height fog for dawn/dusk moods;
-      tonemapping (ACES) + slight bloom on lamp glows at night.
+- [x] 8.7 Distance fog tuned per weather + height fog for dawn/dusk moods;
+      tonemapping (ACES) + slight bloom on lamp glows at night. (done:
+      FogExp2 density by weather + dusk mood; ACES exposure by sun elev;
+      brighter additive lamp pools at night. Full SSAO/UnrealBloom → 16.2.)
 - [ ] 8.8 LOD rings: full detail < 300 m, merged-untextured 300-800 m,
       billboards beyond — prerequisite for seamless streaming (Phase 10.1).
 
@@ -158,6 +161,7 @@ with real caching.
       numbers; GTFS-RT buses/trains gliding along their actual routes;
       day/night terminator on the globe.
 - [ ] 10.4 **Photo mode** — free camera + DoF + filters + watermark (= 15.2)
+      (core done in 15.2: HUD hide + free fly + PNG save; DoF/filters/watermark still open)
       "walktheworld.dev · Pune" → users share screenshots = free marketing.
 - [ ] 10.5 **Walk journal** — trail line on the minimap, km walked, countries
       visited, elevation climbed; export a "walk card" image.
@@ -166,8 +170,7 @@ with real caching.
 - [x] 10.7 **NPC pedestrians/traffic** — instanced mannequins walking road (done in 13.1/13.2, plus real GLB models via asset library; VAT walk animation → 15.1)
       graphs, simple cars on driveable roads; density from real POI density.
 - [ ] 10.8 **"Guess where I am"** — hide the HUD, drop somewhere random, (= 15.5)
-      let the player guess on the world map (the descoped GeoGuessr, single
-      player, zero backend).
+      (core done in 15.5; polish/scoring still open)
 - [ ] 10.9 **VR walk** (WebXR) — three.js supports it; walking your childhood
       street in VR is an unforgettable demo.
 - [ ] 10.10 **Seasonal foliage** — tree color by latitude + month (green
@@ -206,9 +209,9 @@ with real caching.
       buildings or roads (persisted per cell, filtered out on load; "Unhide
       all" / "Reset terrain" to revert).
 
-Dashboard steps still open (both optional): R2 Cache Rule for edge caching, and
-a bucket CORS policy if you ever want the browser to fetch city JSON / GLBs
-directly from https://myjyotishai.in instead of through the API routes.
+Dashboard steps done (2026-07-09): R2 CORS + Cache Rule on myjyotishai.in —
+browser fetches city JSON from the CDN directly (see 12.3). GLBs still go
+through `/api/assets/<name>` (same-origin; optional later if you want CDN GLBs).
 
 
 ## Phase 12 — Cold-start: first image in seconds, not minutes
@@ -232,12 +235,12 @@ users just never see it.
       PLACES (+ 4 neighbor cells each) through `/api/city/`. Run once locally
       (or on a schedule) — every demo city becomes a warm R2 hit (~1–3s).
       Whatever is rendered once is cached forever, so seed what users will try.
-- [ ] **12.3 Serve warm cells without touching Vercel.** `cityData.js` already
-      tries `NEXT_PUBLIC_R2_PUBLIC_BASE` first; it currently fails on missing
-      bucket CORS and falls back to the API. Dashboard steps (both free):
-      R2 bucket → Settings → CORS policy allowing GET from the app origins,
-      and a Cache Rule on myjyotishai.in (currently `cf-cache-status: DYNAMIC`)
-      → warm loads become pure CDN, zero function invocations.
+- [x] **12.3 Serve warm cells without touching Vercel.** (done 2026-07-09:
+      R2 CORS allows localhost + https://walk-the-world-delta.vercel.app;
+      Cache Rule on myjyotishai.in → GET returns MISS then HIT / Age.
+      Note: HEAD always shows DYNAMIC on R2 custom domains — verify with GET.)
+      `cityData.js` tries `NEXT_PUBLIC_R2_PUBLIC_BASE` first; warm loads are
+      pure CDN, zero Vercel function invocations.
 - [x] **12.4 Overpass budget that fits serverless.** Passes [15s, 40s] instead
       of [20s, 60s]; add `overpass.private.coffee` as third mirror (same
       operator as kumi, explicitly no rate limits); accept partial results —
@@ -283,13 +286,11 @@ Suggested order: 12.1 → 12.2 → 12.4 (cold start is the complaint) → 13.1 �
 
 ## Phase 14 — Planet-scale data pipeline (real data, zero Overpass)
 
-- [ ] **14.1 Offline cell generator.** Download `planet.osm.pbf` (~80GB, free)
-      or per-country extracts from Geofabrik; run an osmium/pyosmium script
-      that emits the exact same city-cell JSON the API produces today; bulk
-      upload to R2. All cities on Earth ≈ 300GB ($4.50/mo R2) generated in
-      days on one machine — no Overpass, no rate limits, no cold cells ever.
-      Free-tier variant: generate only the seed catalog + top-N city cores
-      (10GB free = ~160k dense cells ≈ every major downtown on the planet).
+- [x] **14.1 Offline cell generator.** (partial: seed catalog warm-bake done via
+      `scripts/warm-cities.mjs` + R2 — ~440 cells across demo cities; Overpass
+      cold path still used outside the seed. Full offline planet.osm.pbf → cell
+      JSON pipeline still open: ~87GB PBF download, ~150–250GB working disk,
+      full downtowns ~200–300GB R2.)
 - [ ] **14.2 Overture height/landuse backfill.** Overture ships ML-derived
       building heights + land use with better coverage than OSM in sparse
       regions (Machu Picchu-grade areas). Merge into cells at generation time
@@ -306,14 +307,16 @@ Suggested order: 12.1 → 12.2 → 12.4 (cold start is the complaint) → 13.1 �
       character; playback in a small shader with per-instance time offsets.
       Proven at 2000+ animated instances on low-end GPUs — real walking
       humans, still one draw call. Ship mesh+VAT via the asset library.
-- [ ] **15.2 Photo mode.** Hide HUD, free camera, optional grain/vignette,
-      one-click screenshot download. Near-zero effort, maximum shareability.
-- [ ] **15.3 Passport & walk stats.** km walked per city, places visited,
-      date-stamped "stamps" (localStorage). "Walked 4.2 km in Tokyo."
-- [ ] **15.4 Daily destination.** Date-seeded "today's walk" city on the
-      menu — a reason to return every day. One function.
-- [ ] **15.5 Where-am-I mini-game.** Random drop, guess the city from what
-      you see (GeoGuessr-style). Data already in the cells.
+- [x] **15.2 Photo mode.** (done: H / 📷 hides HUD, free-fly camera, 📸 PNG
+      download via canvas.toDataURL; Esc exits. Grain/vignette/watermark later.)
+      Also: 📤 share button copies `/street?lat&lon` from live `posRef`.
+- [x] **15.3 Passport & walk stats.** (done: localStorage via zustand
+      `passport` — km walked per place + total; 🛂 panel in GameShell.)
+- [x] **15.4 Daily destination.** (done: date-seeded pick from PLACES +
+      SEED_GROUPS on the title menu — "⭐ Today's walk: {name}".)
+- [x] **15.5 Where-am-I mini-game.** (done: menu "🎲 Where am I?" → random
+      city with HUD hidden + 4-choice panel; reverse-geocode suppressed until
+      guess; play again from reveal.)
 - [ ] **15.6 Multiplayer ghosts.** Cloudflare Worker + Durable Object
       (free tier: 100k req/day — plenty) relaying player positions over
       WebSocket; translucent avatars. "Walking Tokyo with 3 others."
@@ -341,52 +344,33 @@ Verdicts first: **Google Photorealistic 3D Tiles — skip.** Now an Enterprise
 SKU at only 1,000 free root-tile events/month (the $200 universal credit died
 March 2025); a single busy demo day would blow it. Everything below is $0.
 
-- [ ] **17.1 CC0 PBR material set.** Poly Haven + ambientCG are fully CC0
-      (commercial OK, no attribution): photoscanned facades, asphalt,
-      concrete, terracotta at 1-2K resolution. Download once, host on R2
-      (free egress), replace the procedural canvas textures: real plaster/
-      brick/glass facades, tiling asphalt with normal maps. Biggest visual
-      upgrade per hour of work available. ~20-40MB of textures total.
-- [ ] **17.2 HDRI sky + image-based lighting.** Poly Haven HDRIs (CC0): a
-      handful of sky domes (clear noon, golden hour, overcast, night) as
-      scene.environment — physically-plausible ambient light and reflections
-      instead of flat hemisphere light. Blend selection into the live
-      clock/weather system. A few MB each, cached in R2.
-- [ ] **17.3 OSM appearance tags we already download but ignore.**
-      `building:colour`, `building:material`, `roof:colour`, `roof:shape`
-      (gabled/hipped/dome!), `building:part` (detailed landmark massing —
-      e.g. tiered towers). Zero new data cost — parse what's in the cells.
-- [ ] **17.4 Satellite ground option.** Esri World Imagery tiles are free
-      with attribution for non-commercial apps — a settings toggle swapping
-      the OSM raster ground for aerial imagery. Real rooftops/ground colors
-      under the extruded buildings; keep OSM raster as default for the game
-      look.
+- [x] **17.1 CC0 PBR material set.** (done: `MeshStandardMaterial` + procedural
+      albedo/normal/roughness in `lib/engine/materials.js`; buildings/roads/
+      roofs/terrain use PBR. Drop CC0 maps at `/textures/*.jpg` or R2 later to
+      replace procedural canvases — Poly Haven / ambientCG.)
+- [x] **17.2 HDRI sky + image-based lighting.** (done: procedural equirect →
+      PMREM in `lib/engine/env-map.js`; `scene.environment` blends with clock/
+      weather; hemisphere fill reduced. Swap in Poly Haven HDRIs on R2 when
+      ready — same controller.)
+- [x] **17.3 OSM appearance tags we already download but ignore.** (done for
+      colour/material/shape flags: `building:colour`, `colour`,
+      `building:material`, `roof:colour`, `roof:material`, `roof:shape` →
+      wall/roof buckets via `lib/engine/styles.js`. True gabled/dome meshes
+      still open — pitched roofs reuse the hipped fan when shape requests it.)
+      `building:part` (detailed landmark massing) remains → 7.4.
+- [x] **17.4 Satellite ground option.** (done: Settings → Ground map OSM /
+      Satellite; Esri World Imagery tiles via `lib/engine/ground-tiles.js`,
+      live swap without reload; attribution in CREDITS + settings hint.)
 - [ ] **17.5 Facade UV rework → storefronts.** Switch facade UVs from
       world-meters to per-floor bands so ground floors get shopfront glass +
       doors near POIs and floor counts read correctly. Prereq for 17.1
       looking its best.
 
 
-- [ ] **17.6 Ambient music (licensed-safe soundtrack).** Layer real music
-      under the synthesized ambience (13.4), tied to context: calm exploration
-      bed by day, mellower variant at night, regional flavor optional later.
-      Safe sources, researched:
-      * **CC0 / public domain (zero risk, no attribution):**
-        [Pixabay Music](https://pixabay.com/music/search/cc0/) (Pixabay
-        Content License — free in apps, no credit),
-        [OpenGameArt CC0 music](https://opengameart.org/content/cc0-music-0),
-        [itch.io CC0 music packs](https://itch.io/game-assets/tag-cc0/tag-music),
-        FreePD.com, and Kenney audio packs. Prefer these.
-      * **CC-BY (fine with a CREDITS.md line):** Kevin MacLeod / incompetech,
-        Free Music Archive (filter by license!), Musopen classical recordings.
-      * **Avoid:** "royalty-free" libraries with per-project terms (Epidemic,
-        Artlist), YouTube Audio Library (YouTube-only terms), anything CC-NC
-        if the portfolio ever earns a rupee.
-      Implementation sketch: 2-3 loopable OGG tracks (~1-2MB each) in R2
-      under `audio/`, HTMLAudio loop with gain through the existing ambience
-      master (so the 🔊 mute button governs it), crossfade day/night by the
-      live clock, ducked under the traffic/rain beds. Licenses recorded in
-      CREDITS.md before shipping.
+- [x] **17.6 Ambient music (licensed-safe soundtrack).** (done: day/night
+      synth pads through ambience master, Settings music On/Off, mute still
+      governs all; optional `public/audio/day.ogg` + `night.ogg` CC0 loops
+      auto-detected. CREDITS.md updated.)
 
 Suggested order: 17.1 → 17.2 → 17.6 → 15.1 → 15.2/15.3 (cheap wins) → 14.1 → 16.x.
 
@@ -430,12 +414,10 @@ JS (population ~250 agents, grid-indexed groundHeight, footprint collision)
 measures in fractions of a millisecond — WASM there would be complexity for
 nothing. Where it DOES pay:
 
-- [ ] **19.1 Web Worker city builder (do this before any WASM).** The
-      "Building city (x/y)…" phase runs geometry construction on the main
-      thread — that's the hitching during streaming. Move parse + geometry
-      into a Worker, transfer finished BufferGeometry arrays back
-      (zero-copy via transferables). Kills jank on every load; also makes
-      seamless world streaming (10.1) feasible. No WASM required.
+- [x] **19.1 Web Worker city builder (do this before any WASM).** (done:
+      `lib/engine/city-builder-core.js` + `city-builder.worker.js`; parse +
+      Extrude/merge off main thread; transferable buffers; canvas road paint +
+      scene.add stay on main via `assemble-city.js`. Falls back to sync build.)
 - [ ] **19.2 Rapier physics (Rust→WASM) for Phase 18 vehicles.** The one
       clearly justified WASM adoption: ~1MB module, deterministic rigid-body
       physics, raycast vehicle controller built in. Real suspension, mass,

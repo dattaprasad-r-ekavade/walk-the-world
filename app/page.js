@@ -12,6 +12,8 @@ import { useReverseGeocode } from '@/hooks/use-reverse-geocode';
 import { useGameStore } from '@/stores/game-store';
 import { trackRender } from '@/lib/perf';
 import { cityCacheKey } from '@/lib/engine/cityData';
+import { dailyDestination, whereAmIRound } from '@/lib/daily';
+import { copyText, streetShareUrl } from '@/lib/share';
 import {
   menuBtn,
   menuBtnPrimary,
@@ -45,12 +47,22 @@ export default function Home() {
   const savedPlaces = useGameStore((s) => s.savedPlaces);
   const addPlace = useGameStore((s) => s.addPlace);
   const removePlace = useGameStore((s) => s.removePlace);
+  const passport = useGameStore((s) => s.passport);
+  const photoMode = useGameStore((s) => s.photoMode);
+  const setPhotoMode = useGameStore((s) => s.setPhotoMode);
+  const togglePhotoMode = useGameStore((s) => s.togglePhotoMode);
+  const whereAmI = useGameStore((s) => s.whereAmI);
+  const startWhereAmI = useGameStore((s) => s.startWhereAmI);
+  const guessWhereAmI = useGameStore((s) => s.guessWhereAmI);
+  const clearWhereAmI = useGameStore((s) => s.clearWhereAmI);
 
   const [ready, setReady] = useState(false);
   const [hasTiles, setHasTiles] = useState(false);
   const [progress, setProgress] = useState({ pct: 0, stage: 'Starting…' });
   const [bigMap, setBigMap] = useState(false);
   const [geoBusy, setGeoBusy] = useState(false);
+  const [shareToast, setShareToast] = useState(null);
+  const [todayWalk] = useState(() => dailyDestination());
 
   const walking = hudStatus.mode === 'walk';
   const { place, replayPlace } = useReverseGeocode(hudStatus.lat, hudStatus.lon, walking);
@@ -69,6 +81,7 @@ export default function Home() {
   const fly = (lat, lon) => {
     setScreen('play');
     setPanel(null);
+    setPhotoMode(false);
     // warm the city cell WHILE the fly-down animation plays — by the time the
     // street engine boots, a cold Overpass fetch has had a 10-15s head start
     fetch(`/api/city/${cityCacheKey(lat, lon)}`).catch(() => {});
@@ -77,6 +90,7 @@ export default function Home() {
 
   const home = () => {
     setPanel(null);
+    setPhotoMode(false);
     controllerRef.current?.homeView();
   };
 
@@ -93,9 +107,45 @@ export default function Home() {
     );
   };
 
+  const flashToast = (msg) => {
+    setShareToast(msg);
+    setTimeout(() => setShareToast(null), 2200);
+  };
+
+  const shareSpot = async () => {
+    const lat = posRef.current?.lat ?? hudStatus.lat ?? lastPosition?.lat;
+    const lon = posRef.current?.lon ?? hudStatus.lon ?? lastPosition?.lon;
+    const url = streetShareUrl(lat, lon);
+    if (!url) {
+      flashToast('No position yet');
+      return;
+    }
+    const ok = await copyText(url);
+    flashToast(ok ? 'Link copied' : 'Could not copy link');
+  };
+
+  const launchWhereAmI = () => {
+    const round = whereAmIRound();
+    if (!round) return;
+    startWhereAmI(round);
+    setScreen('play');
+    router.push(`/street?lat=${round.lat.toFixed(5)}&lon=${round.lon.toFixed(5)}&guess=1`);
+  };
+
   useGameKeyboard(
     (e) => {
       if (screen !== 'play') return;
+      if (e.code === 'Escape' && photoMode) {
+        setPhotoMode(false);
+        return;
+      }
+      if (photoMode && e.code !== 'KeyH') return;
+      if (e.code === 'KeyH') {
+        e.preventDefault();
+        togglePhotoMode();
+        setPanel(null);
+        return;
+      }
       if (e.code === 'KeyM') togglePanel('travel');
       if (e.code === 'KeyP') togglePanel('pause');
       if (e.code === 'Tab') {
@@ -104,7 +154,7 @@ export default function Home() {
       }
       if (e.code === 'KeyN') replayPlace();
     },
-    [screen, togglePanel, replayPlace]
+    [screen, togglePanel, replayPlace, photoMode, setPhotoMode, togglePhotoMode, setPanel]
   );
 
   const hintText = walking
@@ -147,6 +197,20 @@ export default function Home() {
                 disabled={!ready}
               >
                 {ready ? '▶ Start Exploring' : 'Loading world…'}
+              </button>
+              {todayWalk && (
+                <button
+                  type="button"
+                  className={menuBtn}
+                  disabled={!ready}
+                  onClick={() => fly(todayWalk.lat, todayWalk.lon)}
+                  title={`${todayWalk.lat.toFixed(4)}, ${todayWalk.lon.toFixed(4)}`}
+                >
+                  ⭐ Today&apos;s walk: {todayWalk.name}
+                </button>
+              )}
+              <button type="button" className={menuBtn} disabled={!ready} onClick={launchWhereAmI}>
+                🎲 Where am I?
               </button>
               <button type="button" className={menuBtn} onClick={() => togglePanel('travel')}>
                 🗺 Fast Travel
@@ -198,6 +262,18 @@ export default function Home() {
         walking={walking}
         modeLabel={walking ? '🚶 ON FOOT' : '✈ FLYING'}
         hintText={hintText}
+        photoMode={photoMode}
+        passport={passport}
+        shareToast={shareToast}
+        whereAmI={whereAmI}
+        onWhereAmIGuess={guessWhereAmI}
+        onWhereAmIClose={clearWhereAmI}
+        onWhereAmIAgain={launchWhereAmI}
+        onShare={shareSpot}
+        onPhotoMode={() => {
+          togglePhotoMode();
+          setPanel(null);
+        }}
         settingsExtra={
           <div className="mb-4">
             <label className={settingLabel}>
@@ -224,12 +300,14 @@ export default function Home() {
         pauseButtons={[
           { label: '▶ Resume', primary: true, onClick: () => setPanel(null) },
           { label: '🗺 Fast Travel', onClick: () => setPanel('travel') },
+          { label: '🛂 Passport', onClick: () => setPanel('passport') },
           { label: '⚙ Settings', onClick: () => setPanel('settings') },
           { label: '🎮 Controls', onClick: () => setPanel('controls') },
           {
             label: '🏠 Main Menu',
             onClick: () => {
               setPanel(null);
+              setPhotoMode(false);
               setScreen('menu');
               home();
             },

@@ -12,3 +12,5 @@ pat.txt
 /agent-tools
 .vercel
 .env*.local
+/output
+

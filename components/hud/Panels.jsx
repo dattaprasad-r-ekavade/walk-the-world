@@ -149,6 +149,50 @@ export function SettingsPanel({ settings, onChange, onClose, children }) {
         />
       </div>
       {children}
+      <div className="mb-4">
+        <label className={settingLabel}>
+          <span>🗺 Ground map</span>
+        </label>
+        <div className="flex gap-2">
+          {[
+            ['osm', 'OSM'],
+            ['satellite', 'Satellite'],
+          ].map(([id, label]) => (
+            <button
+              key={id}
+              type="button"
+              className={(settings.groundSource || 'osm') === id ? qualityBtnActive : qualityBtn}
+              onClick={() => onChange({ groundSource: id })}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+        {(settings.groundSource || 'osm') === 'satellite' && (
+          <p className="mt-1.5 text-[11px] text-slate-500">Imagery © Esri — non-commercial use</p>
+        )}
+      </div>
+      <div className="mb-4">
+        <label className={settingLabel}>
+          <span>🎵 Ambient music</span>
+        </label>
+        <div className="flex gap-2">
+          <button
+            type="button"
+            className={settings.music !== false ? qualityBtnActive : qualityBtn}
+            onClick={() => onChange({ music: true })}
+          >
+            On
+          </button>
+          <button
+            type="button"
+            className={settings.music === false ? qualityBtnActive : qualityBtn}
+            onClick={() => onChange({ music: false })}
+          >
+            Off
+          </button>
+        </div>
+      </div>
       <div>
         <label className={settingLabel}>
           <span>🖥 Quality</span>
@@ -200,11 +244,12 @@ export function ControlsPanel({ onClose }) {
     ['Shift', 'Sprint'],
     ['V', 'First / third person'],
     ['F', 'Toggle walk / fly'],
+    ['H', 'Photo mode (hide HUD · free look)'],
     ['M', 'Fast travel map'],
     ['Tab', 'Expand / collapse the map'],
     ['N', 'Show current location name'],
     ['P', 'Pause menu'],
-    ['Esc', 'Release mouse'],
+    ['Esc', 'Release mouse / exit photo mode'],
     ['Touch', 'Left joystick move · right side look · RUN sprint'],
   ];
 
@@ -228,6 +273,98 @@ export function ControlsPanel({ onClose }) {
           ))}
         </tbody>
       </table>
+    </div>
+  );
+}
+
+export function PassportPanel({ passport, onClose }) {
+  const cities = Object.entries(passport?.cities || {}).sort((a, b) => b[1].km - a[1].km);
+  const totalKm = passport?.totalKm || 0;
+
+  return (
+    <div className={glassPanel}>
+      <div className={panelHead}>
+        <h2 className={panelTitle}>🛂 Passport</h2>
+        <button type="button" className={panelClose} onClick={onClose} aria-label="Close">
+          ✕
+        </button>
+      </div>
+      <p className="mb-4 text-sm text-slate-300">
+        Walked <span className="font-semibold text-white tabular-nums">{totalKm.toFixed(2)} km</span>
+        {cities.length > 0 && (
+          <> · <span className="tabular-nums">{cities.length}</span> place{cities.length === 1 ? '' : 's'}</>
+        )}
+      </p>
+      {cities.length === 0 ? (
+        <p className="text-sm text-slate-500">Start walking — distance and stamps save on this device.</p>
+      ) : (
+        <ul className="max-h-72 space-y-2 overflow-auto text-sm">
+          {cities.map(([name, s]) => (
+            <li
+              key={name}
+              className="flex items-center justify-between gap-3 rounded-lg border border-accent/15 bg-black/20 px-3 py-2"
+            >
+              <span className="truncate text-slate-200">
+                <span className="mr-1.5">📍</span>
+                {name}
+              </span>
+              <span className="shrink-0 tabular-nums text-slate-400">
+                {s.km < 0.1 ? `${Math.round(s.km * 1000)} m` : `${s.km.toFixed(2)} km`}
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
+export function WhereAmIPanel({ round, onGuess, onClose, onPlayAgain }) {
+  if (!round) return null;
+  return (
+    <div className={glassPanel}>
+      <div className={panelHead}>
+        <h2 className={panelTitle}>🎲 Where am I?</h2>
+        <button type="button" className={panelClose} onClick={onClose} aria-label="Close">
+          ✕
+        </button>
+      </div>
+      {!round.revealed ? (
+        <>
+          <p className="mb-3 text-sm text-slate-400">
+            Look around — HUD is hidden. Guess the city from what you see.
+          </p>
+          <div className="grid grid-cols-2 gap-2">
+            {round.options.map((name) => (
+              <button
+                key={name}
+                type="button"
+                className={travelBtn}
+                onClick={() => onGuess(name)}
+              >
+                {name}
+              </button>
+            ))}
+          </div>
+        </>
+      ) : (
+        <div className="space-y-3 text-sm">
+          <p className={round.correct ? 'text-emerald-300' : 'text-amber-200'}>
+            {round.correct ? '✓ Correct!' : `✗ It was ${round.answer}`}
+          </p>
+          <p className="text-slate-400">Walk around or play another round.</p>
+          <div className="flex flex-col gap-2">
+            {onPlayAgain && (
+              <button type="button" className={travelBtnWide} onClick={onPlayAgain}>
+                🎲 Play again
+              </button>
+            )}
+            <button type="button" className={travelBtnWide} onClick={onClose}>
+              Keep walking
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

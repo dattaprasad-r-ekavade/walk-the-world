@@ -22,7 +22,7 @@ const GROUP = (argsAll.find((a) => a.startsWith("--group=")) || "").slice(8).rep
 const BUDGET = Number((argsAll.find((a) => a.startsWith("--budget=")) || "").slice(9)) || 0;
 const STATE_FILE = (argsAll.find((a) => a.startsWith("--state=")) || "").slice(8);
 const CONC = Number((argsAll.find((a) => a.startsWith("--conc=")) || "").slice(7)) || 2;
-const CACHE_VERSION = 5; // keep in sync with lib/engine/cityData.js
+const CACHE_VERSION = 6; // keep in sync with lib/engine/cityData.js
 const D = 0.0055; // neighbor cell offset used by the engine's prefetch
 
 const key = (lat, lon) => `wtw_city${CACHE_VERSION}_${lat.toFixed(3)}_${lon.toFixed(3)}`;

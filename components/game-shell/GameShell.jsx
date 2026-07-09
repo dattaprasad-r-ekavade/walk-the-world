@@ -6,6 +6,8 @@ import {
   SettingsPanel,
   PauseMenu,
   ControlsPanel,
+  PassportPanel,
+  WhereAmIPanel,
   travelBtnWide,
 } from '@/components/hud/Panels';
 import { MobileControls } from '@/components/MobileControls';
@@ -56,17 +58,29 @@ export function GameShell({
   modeLabel,
   hintText,
   hudRef,
+  photoMode = false,
+  onShare,
+  onPhotoMode,
+  onPhotoCapture,
+  passport,
+  shareToast,
+  whereAmI,
+  onWhereAmIGuess,
+  onWhereAmIClose,
+  onWhereAmIAgain,
   children,
 }) {
   const lat = status.lat ?? coordsFallback?.lat;
   const lon = status.lon ?? coordsFallback?.lon;
   const fpsLow = status.fps > 0 && status.fps < 40;
+  // Where-am-I keeps photoMode on until guess — hide HUD chrome but allow the guess panel
+  const showHud = screen === 'play' && !photoMode;
 
   return (
     <>
       {children}
 
-      {screen === 'play' && (
+      {showHud && (
         <>
           <div className="absolute right-4 top-4 z-20 flex flex-col items-center gap-1.5 sm:right-5 sm:top-5">
             <Minimap
@@ -94,6 +108,19 @@ export function GameShell({
             <button type="button" title="Settings" className={toolbarBtn} onClick={() => setPanel(panel === 'settings' ? null : 'settings')}>
               ⚙
             </button>
+            <button type="button" title="Passport" className={toolbarBtn} onClick={() => setPanel(panel === 'passport' ? null : 'passport')}>
+              🛂
+            </button>
+            {onShare && (
+              <button type="button" title="Copy share link" className={toolbarBtn} onClick={onShare}>
+                📤
+              </button>
+            )}
+            {onPhotoMode && (
+              <button type="button" title="Photo mode (H)" className={toolbarBtn} onClick={onPhotoMode}>
+                📷
+              </button>
+            )}
             {engine === 'cesium' && (
               <>
                 <button type="button" title="First/third person (V)" className={toolbarBtn} onClick={onToggleView}>
@@ -162,6 +189,38 @@ export function GameShell({
         </>
       )}
 
+      {photoMode && screen === 'play' && !whereAmI && (
+        <div className="pointer-events-none absolute inset-x-0 bottom-6 z-30 flex flex-col items-center gap-2">
+          <p className="rounded-full border border-white/15 bg-slate-950/75 px-4 py-1.5 text-xs text-slate-200 backdrop-blur">
+            Photo mode · Esc or H to exit
+            {onPhotoCapture ? ' · click 📸 to save' : ''}
+          </p>
+          {onPhotoCapture && (
+            <button
+              type="button"
+              className="pointer-events-auto rounded-full border border-white/20 bg-slate-950/85 px-5 py-2 text-sm font-semibold text-white backdrop-blur hover:bg-slate-800"
+              onClick={onPhotoCapture}
+            >
+              📸 Save screenshot
+            </button>
+          )}
+        </div>
+      )}
+
+      {whereAmI && !whereAmI.revealed && screen === 'play' && (
+        <div className="pointer-events-none absolute inset-x-0 top-6 z-30 flex justify-center">
+          <p className="rounded-full border border-white/15 bg-slate-950/75 px-4 py-1.5 text-xs text-slate-200 backdrop-blur">
+            Where am I? · look around · pick a city below
+          </p>
+        </div>
+      )}
+
+      {shareToast && (
+        <div className="pointer-events-none absolute left-1/2 top-6 z-[60] -translate-x-1/2 rounded-full border border-emerald-400/30 bg-emerald-950/90 px-4 py-1.5 text-xs text-emerald-100 shadow-lg backdrop-blur">
+          {shareToast}
+        </div>
+      )}
+
       {panel === 'travel' && (
         <TravelPanel
           onClose={() => setPanel(null)}
@@ -187,9 +246,22 @@ export function GameShell({
 
       {panel === 'controls' && <ControlsPanel onClose={() => setPanel(null)} />}
 
+      {panel === 'passport' && (
+        <PassportPanel passport={passport} onClose={() => setPanel(null)} />
+      )}
+
+      {panel === 'whereami' && whereAmI && (
+        <WhereAmIPanel
+          round={whereAmI}
+          onGuess={onWhereAmIGuess}
+          onClose={onWhereAmIClose}
+          onPlayAgain={onWhereAmIAgain}
+        />
+      )}
+
       {panel === 'pause' && screen === 'play' && <PauseMenu buttons={pauseButtons} />}
 
-      {screen === 'play' && <MobileControls />}
+      {showHud && <MobileControls enabled={!photoMode} />}
     </>
   );
 }

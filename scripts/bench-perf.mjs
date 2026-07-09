@@ -20,7 +20,7 @@ const outPath = args.includes('--out')
   : join(ROOT, 'benchmarks', 'results.json');
 
 const ROME = { lat: 41.8902, lon: 12.4922 };
-const CITY_KEY = 'wtw_city5_41.890_12.492';
+const CITY_KEY = 'wtw_city6_41.890_12.492';
 const WALK_MS = 12_000;
 const READY_TIMEOUT = 180_000;
 
