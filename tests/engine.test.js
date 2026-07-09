@@ -197,6 +197,77 @@ describe('vehicle controller (18.1)', () => {
   });
 });
 
+describe('tier-0 traffic heuristics', () => {
+  it('slows arterials at rush hour and weights roads by class', async () => {
+    const { congestionFactor, pickWeightedRoad, CAR_DENSITY } = await import('../lib/engine/population.js');
+    expect(congestionFactor(8, 'primary')).toBeLessThan(congestionFactor(3, 'primary'));
+    expect(congestionFactor(8, 'residential')).toBeGreaterThan(congestionFactor(8, 'motorway'));
+    expect(CAR_DENSITY.motorway).toBeGreaterThan(CAR_DENSITY.residential);
+    const roads = [
+      { hw: 'residential', width: 6, oneway: false },
+      { hw: 'primary', width: 13, oneway: false },
+    ];
+    const picks = { residential: 0, primary: 0 };
+    for (let i = 0; i < 200; i++) picks[pickWeightedRoad(roads).hw]++;
+    expect(picks.primary).toBeGreaterThan(picks.residential);
+  });
+
+  it('cycles traffic signals red → amber → green (18.6)', async () => {
+    const { signalPhase, SIGNAL_CYCLE } = await import('../lib/engine/population.js');
+    expect(signalPhase(0)).toBe('red');
+    expect(signalPhase(12)).toBe('amber');
+    expect(signalPhase(16)).toBe('green');
+    expect(signalPhase(SIGNAL_CYCLE)).toBe('red');
+    expect(signalPhase(5, 20)).toBe('green'); // offset wraps into green
+  });
+});
+
+describe('gpu auto quality (16.3)', () => {
+  it('returns a valid quality tier', async () => {
+    const { detectGpuQuality } = await import('../lib/engine/gpu-tier.js');
+    const q = detectGpuQuality(null);
+    expect(['low', 'medium', 'high']).toContain(q);
+  });
+});
+
+describe('walk trail buffer (10.5)', () => {
+  it('dedupes close points and caps length', async () => {
+    const { createTrailBuffer } = await import('../lib/engine/trail-buffer.js');
+    const buf = createTrailBuffer();
+    expect(buf.push(18.52, 73.85)).toBe(true);
+    expect(buf.push(18.52, 73.85)).toBe(false); // too close
+    expect(buf.push(18.521, 73.851)).toBe(true);
+    expect(buf.points.length).toBe(2);
+    expect(buf.takeDirty()?.length).toBe(2);
+    expect(buf.takeDirty()).toBeNull();
+  });
+});
+
+describe('walk card (10.5)', () => {
+  it('renders a canvas with passport stats', async () => {
+    const { renderWalkCard } = await import('../lib/engine/walk-card.js');
+    // jsdom may lack canvas — skip soft if so
+    if (typeof document === 'undefined' || !document.createElement('canvas').getContext) {
+      return;
+    }
+    const c = renderWalkCard(
+      {
+        totalKm: 1.25,
+        elevClimbed: 40,
+        cities: { Pune: { km: 1.25 } },
+        countries: { India: 1 },
+        trail: [
+          { lat: 18.52, lon: 73.85 },
+          { lat: 18.521, lon: 73.851 },
+        ],
+      },
+      { place: 'Pune, India' }
+    );
+    expect(c.width).toBe(720);
+    expect(c.height).toBe(420);
+  });
+});
+
 describe('city builder core (19.1)', () => {
   it('extrudes a building and returns transferable buffers', async () => {
     const { buildCityGeometry } = await import('../lib/engine/city-builder-core.js');

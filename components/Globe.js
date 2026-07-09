@@ -6,6 +6,8 @@ import { loadCesium } from "@/lib/loadCesium";
 import { MONUMENTS } from "@/lib/monuments";
 import { trackStatusUpdate } from "@/lib/perf";
 import { touchInputRef, readTouchMovement } from "@/lib/touch-input";
+import { applyAutoQuality } from "@/lib/engine/gpu-tier";
+import { useGameStore } from "@/stores/game-store";
 
 // CesiumJS 3D globe — stylized single-player walking game.
 //
@@ -743,7 +745,45 @@ export default function Globe({ controllerRef, onReady, onStatus, onProgress, po
       scene.preUpdate.addEventListener(tickListener);
 
       let facadeShaderRef = osmBuildings ? osmBuildings.customShader : null;
-      let manualQuality = false;
+      let manualQuality = useGameStore.getState().settings?.qualityMode === "manual";
+      const applyQualityTier = (quality) => {
+        if (!quality) return;
+        if (quality === "low") {
+          viewer.resolutionScale = 0.65;
+          scene.globe.maximumScreenSpaceError = 3.5;
+          scene.postProcessStages.fxaa.enabled = false;
+          if (osmBuildings) {
+            osmBuildings.maximumScreenSpaceError = 44;
+            osmBuildings.customShader = undefined;
+          }
+        } else if (quality === "medium") {
+          viewer.resolutionScale = 0.85;
+          scene.globe.maximumScreenSpaceError = 2.5;
+          scene.postProcessStages.fxaa.enabled = false;
+          if (osmBuildings) {
+            osmBuildings.maximumScreenSpaceError = 28;
+            osmBuildings.customShader = facadeShaderRef;
+          }
+        } else {
+          viewer.resolutionScale = 1.0;
+          scene.globe.maximumScreenSpaceError = 2.0;
+          scene.postProcessStages.fxaa.enabled = true;
+          if (osmBuildings) {
+            osmBuildings.maximumScreenSpaceError = 20;
+            osmBuildings.customShader = facadeShaderRef;
+          }
+        }
+      };
+      // 16.3: auto-pick once if user hasn't locked a preset
+      if (!manualQuality) {
+        const q = applyAutoQuality(
+          () => useGameStore.getState().settings,
+          (patch) => useGameStore.getState().changeSetting(patch)
+        );
+        applyQualityTier(q);
+      } else {
+        applyQualityTier(useGameStore.getState().settings?.quality || "medium");
+      }
       const applySettings = ({ hour, weather, quality, engine } = {}) => {
         if (engine) walkEngine = engine;
         if (hour !== undefined) {
@@ -772,31 +812,7 @@ export default function Globe({ controllerRef, onReady, onStatus, onProgress, po
         }
         if (quality) {
           manualQuality = true;
-          if (quality === "low") {
-            viewer.resolutionScale = 0.65;
-            scene.globe.maximumScreenSpaceError = 3.5;
-            scene.postProcessStages.fxaa.enabled = false;
-            if (osmBuildings) {
-              osmBuildings.maximumScreenSpaceError = 44;
-              osmBuildings.customShader = undefined; // flat = fastest
-            }
-          } else if (quality === "medium") {
-            viewer.resolutionScale = 0.85;
-            scene.globe.maximumScreenSpaceError = 2.5;
-            scene.postProcessStages.fxaa.enabled = false;
-            if (osmBuildings) {
-              osmBuildings.maximumScreenSpaceError = 28;
-              osmBuildings.customShader = facadeShaderRef;
-            }
-          } else {
-            viewer.resolutionScale = 1.0;
-            scene.globe.maximumScreenSpaceError = 2.0;
-            scene.postProcessStages.fxaa.enabled = true;
-            if (osmBuildings) {
-              osmBuildings.maximumScreenSpaceError = 20;
-              osmBuildings.customShader = facadeShaderRef;
-            }
-          }
+          applyQualityTier(quality);
         }
       };
 

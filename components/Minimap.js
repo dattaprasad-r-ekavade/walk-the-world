@@ -34,11 +34,34 @@ function zoomForHeight(h) {
   return Math.max(2, Math.min(17, z));
 }
 
-export default function Minimap({ lat, lon, heading = 0, height, size = 176, zoomBias = 0, posRef }) {
+/** Project lon/lat into minimap pixel space given center + zoom. */
+function project(lat, lon, z, xf, yf, cx, cy) {
+  const n = 1 << z;
+  const x = ((lon + 180) / 360) * n;
+  const latR = (lat * Math.PI) / 180;
+  const y =
+    ((1 - Math.log(Math.tan(latR) + 1 / Math.cos(latR)) / Math.PI) / 2) * n;
+  return {
+    x: cx + (x - xf) * TILE,
+    y: cy + (y - yf) * TILE,
+  };
+}
+
+export default function Minimap({
+  lat,
+  lon,
+  heading = 0,
+  height,
+  size = 176,
+  zoomBias = 0,
+  posRef,
+  trailRef,
+  trail = [],
+}) {
   const SIZE = size;
   const canvasRef = useRef(null);
-  const stateRef = useRef({ lat, lon, heading, height });
-  stateRef.current = { lat, lon, heading, height };
+  const stateRef = useRef({ lat, lon, heading, height, trail });
+  stateRef.current = { lat, lon, heading, height, trail };
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -55,7 +78,12 @@ export default function Minimap({ lat, lon, heading = 0, height, size = 176, zoo
     const draw = (now) => {
       raf = requestAnimationFrame(draw);
       const live = posRef?.current;
-      const { lat, lon, heading, height } = live || stateRef.current;
+      const liveTrail = trailRef?.current?.points || stateRef.current.trail;
+      const { lat, lon, heading, height } = {
+        ...stateRef.current,
+        ...(live || {}),
+      };
+      const trail = liveTrail?.length ? liveTrail : stateRef.current.trail;
 
       const posChanged =
         lat !== lastPos.lat ||
@@ -110,6 +138,27 @@ export default function Minimap({ lat, lon, heading = 0, height, size = 176, zoo
         ctx.fillStyle = grad;
         ctx.fillRect(0, 0, SIZE, SIZE);
 
+        // 10.5: walk trail
+        if (trail?.length >= 2) {
+          ctx.beginPath();
+          let started = false;
+          for (const p of trail) {
+            if (!Number.isFinite(p.lat) || !Number.isFinite(p.lon)) continue;
+            const pt = project(p.lat, p.lon, z, xf, yf, cx, cy);
+            if (!started) {
+              ctx.moveTo(pt.x, pt.y);
+              started = true;
+            } else ctx.lineTo(pt.x, pt.y);
+          }
+          if (started) {
+            ctx.strokeStyle = "rgba(255,215,94,0.85)";
+            ctx.lineWidth = 2.2;
+            ctx.lineJoin = "round";
+            ctx.lineCap = "round";
+            ctx.stroke();
+          }
+        }
+
         ctx.save();
         ctx.translate(cx, cy);
         ctx.rotate(heading || 0);
@@ -145,7 +194,7 @@ export default function Minimap({ lat, lon, heading = 0, height, size = 176, zoo
     };
     raf = requestAnimationFrame(draw);
     return () => cancelAnimationFrame(raf);
-  }, [SIZE, zoomBias, posRef]);
+  }, [SIZE, zoomBias, posRef, trailRef]);
 
   return (
     <canvas

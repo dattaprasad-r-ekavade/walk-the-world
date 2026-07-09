@@ -196,6 +196,9 @@ export function SettingsPanel({ settings, onChange, onClose, children }) {
       <div>
         <label className={settingLabel}>
           <span>🖥 Quality</span>
+          {settings.qualityMode === 'auto' && (
+            <span className="ml-2 text-[10px] font-normal uppercase tracking-wide text-slate-500">auto</span>
+          )}
         </label>
         <div className="flex gap-2">
           {['low', 'medium', 'high'].map((q) => (
@@ -203,12 +206,15 @@ export function SettingsPanel({ settings, onChange, onClose, children }) {
               key={q}
               type="button"
               className={settings.quality === q ? qualityBtnActive : qualityBtn}
-              onClick={() => onChange({ quality: q })}
+              onClick={() => onChange({ quality: q, qualityMode: 'manual' })}
             >
               {q[0].toUpperCase() + q.slice(1)}
             </button>
           ))}
         </div>
+        <p className="mt-1.5 text-[11px] text-slate-500">
+          High enables SSAO + bloom. Auto picks a tier from your GPU on first load.
+        </p>
       </div>
     </div>
   );
@@ -278,9 +284,11 @@ export function ControlsPanel({ onClose }) {
   );
 }
 
-export function PassportPanel({ passport, onClose }) {
+export function PassportPanel({ passport, onClose, onExportCard, place }) {
   const cities = Object.entries(passport?.cities || {}).sort((a, b) => b[1].km - a[1].km);
   const totalKm = passport?.totalKm || 0;
+  const elev = Math.round(passport?.elevClimbed || 0);
+  const countries = Object.keys(passport?.countries || {}).length;
 
   return (
     <div className={glassPanel}>
@@ -292,10 +300,25 @@ export function PassportPanel({ passport, onClose }) {
       </div>
       <p className="mb-4 text-sm text-slate-300">
         Walked <span className="font-semibold text-white tabular-nums">{totalKm.toFixed(2)} km</span>
+        {elev > 0 && (
+          <> · climbed <span className="tabular-nums text-white">{elev} m</span></>
+        )}
         {cities.length > 0 && (
           <> · <span className="tabular-nums">{cities.length}</span> place{cities.length === 1 ? '' : 's'}</>
         )}
+        {countries > 0 && (
+          <> · <span className="tabular-nums">{countries}</span> countr{countries === 1 ? 'y' : 'ies'}</>
+        )}
       </p>
+      {onExportCard && (
+        <button
+          type="button"
+          className={`${travelBtn} mb-4 w-full`}
+          onClick={() => onExportCard(passport, place)}
+        >
+          🪪 Export walk card
+        </button>
+      )}
       {cities.length === 0 ? (
         <p className="text-sm text-slate-500">Start walking — distance and stamps save on this device.</p>
       ) : (

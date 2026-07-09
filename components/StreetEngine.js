@@ -16,6 +16,9 @@ import { runCityBuilder } from "@/lib/engine/city-builder";
 import { assembleCityFromBuild } from "@/lib/engine/street/assemble-city";
 import { getSimpleStandard } from "@/lib/engine/materials";
 import { createVehicleController } from "@/lib/engine/street/vehicle";
+import { createPostFx } from "@/lib/engine/post-fx";
+import { applyAutoQuality } from "@/lib/engine/gpu-tier";
+import { createTrailBuffer } from "@/lib/engine/trail-buffer";
 
 const toolBtn = "rounded bg-white/10 px-2 py-1 hover:bg-white/20";
 const toolBtnPrimary = "rounded bg-emerald-500/80 px-2 py-1 font-semibold text-black hover:bg-emerald-400";
@@ -66,6 +69,8 @@ export default function StreetEngine({ lat0, lon0 }) {
   const setPhotoMode = useGameStore((s) => s.setPhotoMode);
   const togglePhotoMode = useGameStore((s) => s.togglePhotoMode);
   const recordWalk = useGameStore((s) => s.recordWalk);
+  const setTrail = useGameStore((s) => s.setTrail);
+  const recordElevClimb = useGameStore((s) => s.recordElevClimb);
   const whereAmI = useGameStore((s) => s.whereAmI);
   const startWhereAmI = useGameStore((s) => s.startWhereAmI);
   const guessWhereAmI = useGameStore((s) => s.guessWhereAmI);
@@ -129,6 +134,10 @@ export default function StreetEngine({ lat0, lon0 }) {
     } else setLiveWx("unavailable");
   };
   const posRef = useRef(null);
+  const trailRef = useRef(null);
+  if (!trailRef.current) {
+    trailRef.current = createTrailBuffer(useGameStore.getState().passport?.trail);
+  }
   const engineRef = useRef({});
 
   useEffect(() => {
@@ -245,6 +254,16 @@ export default function StreetEngine({ lat0, lon0 }) {
     );
     camera.rotation.order = "YXZ";
 
+    // 16.3: auto-pick quality on first boot (skipped if user locked a preset)
+    const bootQuality = applyAutoQuality(
+      () => useGameStore.getState().settings,
+      (patch) => useGameStore.getState().changeSetting(patch),
+      renderer
+    );
+    // 16.2: SSAO + bloom only on high (wired after lights exist)
+    let postFx = null;
+    let applyQuality = () => {};
+
     const makeGlow = (inner, outer, size) => {
       const c = document.createElement("canvas");
       c.width = c.height = 128;
@@ -286,6 +305,28 @@ export default function StreetEngine({ lat0, lon0 }) {
     scene.add(sun);
     scene.add(sun.target);
 
+    postFx = createPostFx(renderer, scene, camera);
+    postFx.setSize(mount.clientWidth, mount.clientHeight);
+    applyQuality = (q) => {
+      const quality = q || "medium";
+      renderer.setPixelRatio(
+        quality === "low"
+          ? 0.75
+          : quality === "medium"
+            ? Math.min(window.devicePixelRatio, 1.25)
+            : Math.min(window.devicePixelRatio, 2)
+      );
+      renderer.shadowMap.enabled = quality !== "low";
+      sun.castShadow = quality !== "low";
+      if (quality === "low") sun.shadow.mapSize.set(512, 512);
+      else if (quality === "medium") sun.shadow.mapSize.set(1024, 1024);
+      else sun.shadow.mapSize.set(2048, 2048);
+      renderer.setSize(mount.clientWidth, mount.clientHeight);
+      postFx.setSize(mount.clientWidth, mount.clientHeight);
+      postFx.setEnabled(quality === "high");
+    };
+    applyQuality(bootQuality || useGameStore.getState().settings?.quality || "medium");
+
     // ---- settings hooks (time of day / weather / quality) ----
     const daySky = new THREE.Color(0x9cc4e8);
     const duskSky = new THREE.Color(0xd8926a);
@@ -323,6 +364,7 @@ export default function StreetEngine({ lat0, lon0 }) {
       // exposure: warmer/brighter dusk, cooler night
       renderer.toneMappingExposure =
         elev > 0.2 ? 1.15 : elev > 0 ? 1.28 : 0.92 + winGlow * 0.25;
+      postFx?.setNightBloom(winGlow);
       // sun + moon ride opposite ends of the same arc
       sunSprite.position.set(Math.cos(t) * 4200, elev * 4200, -1600);
       moonSprite.position.set(-Math.cos(t) * 4200, -elev * 4200, -1600);
@@ -373,10 +415,7 @@ export default function StreetEngine({ lat0, lon0 }) {
     };
 
     engineRef.current.setQuality = (q) => {
-      renderer.setPixelRatio(
-        q === "low" ? 0.75 : q === "medium" ? Math.min(window.devicePixelRatio, 1.25) : Math.min(window.devicePixelRatio, 2)
-      );
-      renderer.setSize(mount.clientWidth, mount.clientHeight);
+      applyQuality(q);
     };
 
     // ---- state ----
@@ -685,7 +724,8 @@ export default function StreetEngine({ lat0, lon0 }) {
       }
     };
     engineRef.current.captureScreenshot = (placeLabel) => {
-      renderer.render(scene, camera);
+      if (postFx) postFx.render();
+      else renderer.render(scene, camera);
       const cur = posRef.current || { lat: lat0, lon: lon0 };
       return downloadCanvasPng(
         renderer.domElement,
@@ -1168,6 +1208,7 @@ export default function StreetEngine({ lat0, lon0 }) {
       camera.aspect = mount.clientWidth / mount.clientHeight;
       camera.updateProjectionMatrix();
       renderer.setSize(mount.clientWidth, mount.clientHeight);
+      postFx?.setSize(mount.clientWidth, mount.clientHeight);
     };
     canvas.addEventListener("click", onClick);
     canvas.addEventListener("mousedown", onMouseDown);
@@ -1184,14 +1225,27 @@ export default function StreetEngine({ lat0, lon0 }) {
     const clock = new THREE.Clock();
     let fpsCount = 0, fpsTime = performance.now(), fpsVal = 0, hudTick = 0, precipTick = 0, ambTick = 0;
     let walkMetersAccum = 0;
+    let lastElev = null;
+    let elevClimbAccum = 0;
+    let trailTick = 0;
     const flushWalk = () => {
-      if (walkMetersAccum <= 0) return;
+      if (walkMetersAccum <= 0 && elevClimbAccum <= 0) return;
       const city =
         (typeof placeRef.current === "string" && placeRef.current) ||
         placeRef.current?.text ||
         "Unknown";
-      recordWalk(walkMetersAccum, city);
-      walkMetersAccum = 0;
+      const country =
+        typeof placeRef.current === "string" && placeRef.current.includes(",")
+          ? placeRef.current.split(",").pop()?.trim()
+          : null;
+      if (walkMetersAccum > 0) {
+        recordWalk(walkMetersAccum, city, country);
+        walkMetersAccum = 0;
+      }
+      if (elevClimbAccum > 0) {
+        recordElevClimb(elevClimbAccum);
+        elevClimbAccum = 0;
+      }
     };
     const loop = () => {
       if (!running) return;
@@ -1252,14 +1306,7 @@ export default function StreetEngine({ lat0, lon0 }) {
           player.moving = Math.abs(pose.speed) > 0.3;
           if (player.moving) {
             walkMetersAccum += Math.abs(pose.speed) * dt;
-            if (walkMetersAccum >= 8) {
-              const city =
-                (typeof placeRef.current === "string" && placeRef.current) ||
-                placeRef.current?.text ||
-                "Unknown";
-              recordWalk(walkMetersAccum, city);
-              walkMetersAccum = 0;
-            }
+            if (walkMetersAccum >= 8) flushWalk();
           }
         }
         f = 0;
@@ -1284,14 +1331,7 @@ export default function StreetEngine({ lat0, lon0 }) {
         const moved = Math.hypot(player.x - ox, player.z - oz);
         if (moved > 0) {
           walkMetersAccum += moved;
-          if (walkMetersAccum >= 8) {
-            const city =
-              (typeof placeRef.current === "string" && placeRef.current) ||
-              placeRef.current?.text ||
-              "Unknown";
-            recordWalk(walkMetersAccum, city);
-            walkMetersAccum = 0;
-          }
+          if (walkMetersAccum >= 8) flushWalk();
         }
       }
       let gy = groundHeight(player.x, player.z);
@@ -1359,8 +1399,19 @@ export default function StreetEngine({ lat0, lon0 }) {
       {
         const g = toGeo(player.x, player.z);
         posRef.current = { lat: g.lat, lon: g.lon, heading: player.heading, height: gy + 2 };
+        // 10.5: trail + elevation climbed (live buffer — no React churn)
+        if (++trailTick % 8 === 0 && player.moving) {
+          trailRef.current?.push(g.lat, g.lon);
+          if (trailTick % 96 === 0) {
+            const snap = trailRef.current?.takeDirty();
+            if (snap) setTrail(snap);
+          }
+        }
+        if (lastElev != null && gy > lastElev + 0.15) elevClimbAccum += gy - lastElev;
+        lastElev = gy;
       }
-      renderer.render(scene, camera);
+      if (postFx) postFx.render();
+      else renderer.render(scene, camera);
 
       fpsCount++;
       const now = performance.now();
@@ -1501,6 +1552,7 @@ export default function StreetEngine({ lat0, lon0 }) {
           roadPaths: engineRef.current.roadPaths || [],
           pois: engineRef.current.pois || [],
           models: popModels,
+          signals: (engineRef.current.propMarkers || []).filter((p) => p.kind === "signals"),
         });
         console.log("[population]", population.counts);
         ambience.set({ density: Math.min(1, population.counts.peds / 140) });
@@ -1621,6 +1673,10 @@ export default function StreetEngine({ lat0, lon0 }) {
         window.__engineReady = false;
       }
       flushWalk();
+      {
+        const snap = trailRef.current?.snapshot();
+        if (snap?.length) setTrail(snap);
+      }
       canvas.removeEventListener("click", onClick);
       canvas.removeEventListener("mousedown", onMouseDown);
       window.removeEventListener("mouseup", onMouseUp);
@@ -1632,6 +1688,7 @@ export default function StreetEngine({ lat0, lon0 }) {
       document.removeEventListener("pointerlockchange", onLock);
       window.removeEventListener("resize", onResize);
       population?.dispose();
+      postFx?.dispose();
       ambience.dispose();
       envCtrl.dispose();
       renderer.dispose();
@@ -1664,6 +1721,7 @@ export default function StreetEngine({ lat0, lon0 }) {
           screen="play"
           status={streetStatus}
           posRef={posRef}
+          trailRef={trailRef}
           panel={panel}
           setPanel={setPanel}
           bigMap={bigMap}
@@ -1700,6 +1758,20 @@ export default function StreetEngine({ lat0, lon0 }) {
           passport={passport}
           shareToast={shareToast}
           whereAmI={whereAmI}
+          onExportWalkCard={() => {
+            import("@/lib/engine/walk-card").then(({ downloadWalkCard }) => {
+              const p = useGameStore.getState().passport;
+              const live = trailRef.current?.snapshot();
+              const label =
+                (typeof placeRef.current === "string" && placeRef.current) ||
+                placeRef.current?.text ||
+                "Walk card";
+              downloadWalkCard(
+                { ...p, trail: live?.length ? live : p.trail },
+                { place: label }
+              );
+            });
+          }}
           onWhereAmIGuess={guessWhereAmI}
           onWhereAmIClose={clearWhereAmI}
           onWhereAmIAgain={() => {

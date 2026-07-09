@@ -163,8 +163,10 @@ with real caching.
 - [~] 10.4 **Photo mode** — free camera + DoF + filters + watermark (= 15.2)
       (core done in 15.2: HUD hide + free fly + PNG save; DoF/filters/watermark still open)
       "walktheworld.dev · Pune" → users share screenshots = free marketing.
-- [~] 10.5 **Walk journal** — trail line on the minimap, km walked, countries
+- [x] 10.5 **Walk journal** — trail line on the minimap, km walked, countries
       visited, elevation climbed; export a "walk card" image.
+      (done: live trail buffer → minimap gold path; passport tracks elev +
+      countries; Passport → Export walk card PNG.)
 - [x] 10.6 **Ambient audio** — birds in parks, traffic on roads, waves at (done in 13.4: synthesized traffic/wind/rain beds, hour+weather aware, mute button)
       coasts, rain audio tied to live weather (freesound.org CC0).
 - [x] 10.7 **NPC pedestrians/traffic** — instanced mannequins walking road (done in 13.1/13.2, plus real GLB models via asset library; VAT walk animation → 15.1)
@@ -326,13 +328,18 @@ Suggested order: 12.1 → 12.2 → 12.4 (cold start is the complaint) → 13.1 �
       closed the gap. Unlocks compute-shader crowds (thousands of agents) and
       TSL node materials. Big refactor — its own branch, benchmarked before/
       after like the original engine rewrite.
-- [~] **16.2 Postprocessing tier (quality-gated).** SSAO + bloom (night
+- [x] **16.2 Postprocessing tier (quality-gated).** SSAO + bloom (night
       windows/lamp pools would bloom beautifully) + vignette/color-grade LUT
       behind the existing quality setting. LUT + vignette are nearly free;
       SSAO/bloom only on "high".
-- [~] **16.3 GPU auto-detect.** Probe GPU tier on boot (render-time sample or
+      (done: `lib/engine/post-fx.js` EffectComposer + SSAOPass + UnrealBloomPass
+      + OutputPass; enabled only when quality=high; night bloom scales with
+      window glow.)
+- [x] **16.3 GPU auto-detect.** Probe GPU tier on boot (render-time sample or
       WEBGL_debug_renderer_info) → auto-pick quality so weak phones never see
       shadows+population at once.
+      (done: `lib/engine/gpu-tier.js`; qualityMode auto|manual; Settings
+      buttons lock manual; street + globe apply on boot.)
 - [~] **16.4 PWA.** Manifest + service worker caching visited cells: install
       to home screen, re-walk your neighborhood offline.
 
@@ -393,10 +400,12 @@ footprint collision, the road graph, water polygons, the live clock.
 - [~] **18.5 Time trials + ghost replays.** Checkpoint runs on real streets;
       best-run ghost recorded to localStorage (positions @ 10Hz ≈ a few KB).
       Beat your own ghost through Shibuya.
-- [~] **18.6 Traffic obeys signals.** OSM `highway=traffic_signals` nodes are
+- [x] **18.6 Traffic obeys signals.** OSM `highway=traffic_signals` nodes are
       in the cells already — AI cars queue at red lights on a simple timer
       cycle; player ignores them at their peril (18.4 fare bonus for clean
       driving). Sells the simulation instantly.
+      (done: `signalPhase` + approach stop in `population.js`; signals from
+      propMarkers; staggered 28s red/amber/green cycle.)
 
 Order: 18.1 → 18.4 → 18.6 (car → purpose → believability), 18.2/18.3/18.5
 as side quests.

@@ -65,6 +65,7 @@ export function GameShell({
   screen,
   status,
   posRef,
+  trailRef,
   panel,
   setPanel,
   bigMap,
@@ -99,6 +100,7 @@ export function GameShell({
   onWhereAmIGuess,
   onWhereAmIClose,
   onWhereAmIAgain,
+  onExportWalkCard,
   liveTemp,
   children,
 }) {
@@ -238,6 +240,8 @@ export function GameShell({
                 heading={status.heading}
                 height={status.height}
                 posRef={posRef}
+                trailRef={trailRef}
+                trail={passport?.trail}
               />
             </button>
             <div className={coordsPill}>
@@ -279,6 +283,8 @@ export function GameShell({
                 heading={status.heading}
                 height={status.height}
                 posRef={posRef}
+                trailRef={trailRef}
+                trail={passport?.trail}
                 size={Math.min(560, typeof window !== 'undefined' ? window.innerHeight - 160 : 560)}
                 zoomBias={-1}
               />
@@ -360,7 +366,12 @@ export function GameShell({
       {panel === 'controls' && <ControlsPanel onClose={() => setPanel(null)} />}
 
       {panel === 'passport' && (
-        <PassportPanel passport={passport} onClose={() => setPanel(null)} />
+        <PassportPanel
+          passport={passport}
+          place={placeLabel}
+          onClose={() => setPanel(null)}
+          onExportCard={onExportWalkCard}
+        />
       )}
 
       {panel === 'whereami' && whereAmI && (

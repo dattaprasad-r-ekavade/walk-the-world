@@ -78,6 +78,15 @@ export default function Home() {
     controllerRef.current?.applySettings(patch);
   };
 
+  const exportWalkCard = () => {
+    import('@/lib/engine/walk-card').then(({ downloadWalkCard }) => {
+      const p = useGameStore.getState().passport;
+      const label =
+        (typeof place === 'string' && place) || place?.text || 'Walk card';
+      downloadWalkCard(p, { place: label });
+    });
+  };
+
   const fly = (lat, lon) => {
     setScreen('play');
     setPanel(null);
@@ -267,6 +276,7 @@ export default function Home() {
         passport={passport}
         shareToast={shareToast}
         whereAmI={whereAmI}
+        onExportWalkCard={exportWalkCard}
         onWhereAmIGuess={guessWhereAmI}
         onWhereAmIClose={clearWhereAmI}
         onWhereAmIAgain={launchWhereAmI}
