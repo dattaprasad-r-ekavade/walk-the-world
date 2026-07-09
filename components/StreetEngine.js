@@ -1160,6 +1160,11 @@ export default function StreetEngine({ lat0, lon0 }) {
         return;
       }
       if (document.pointerLockElement !== canvas) return;
+      // While driving: A/D steers the car — mouse only pitches the chase cam
+      if (vehicle.active) {
+        player.pitch = Math.max(-0.35, Math.min(0.45, player.pitch - e.movementY * 0.0022));
+        return;
+      }
       player.heading += e.movementX * 0.0022;
       player.pitch = Math.max(-1.45, Math.min(1.45, player.pitch - e.movementY * 0.0022));
     };
@@ -1258,7 +1263,7 @@ export default function StreetEngine({ lat0, lon0 }) {
         const tm = readTouchMovement(touch);
         f += tm.f;
         r += tm.r;
-        applyTouchLook(touch, player);
+        applyTouchLook(touch, player, 1, { driving: vehicle.active });
       }
       if (keys.KeyW || keys.ArrowUp) f += 1;
       if (keys.KeyS || keys.ArrowDown) f -= 1;
@@ -1553,6 +1558,7 @@ export default function StreetEngine({ lat0, lon0 }) {
           pois: engineRef.current.pois || [],
           models: popModels,
           signals: (engineRef.current.propMarkers || []).filter((p) => p.kind === "signals"),
+          insideBuilding,
         });
         console.log("[population]", population.counts);
         ambience.set({ density: Math.min(1, population.counts.peds / 140) });
@@ -1751,7 +1757,7 @@ export default function StreetEngine({ lat0, lon0 }) {
               : uiMode === "debug"
               ? "TAG INSPECTOR · WASD fly · RMB look · click a building/road/prop"
               : hudLocked
-              ? "WASD move · mouse look · Shift sprint · C enter/exit car · V view · M travel · H photo"
+              ? "WASD move · mouse look · Shift sprint · C enter/exit car · A/D steer · V view · M travel · H photo"
               : "Click to capture mouse · WASD walk · C enter car · M travel · H photo"
           }
           hudRef={hudDomRef}

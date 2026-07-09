@@ -188,12 +188,41 @@ describe('vehicle controller (18.1)', () => {
       groundHeight: () => 10,
     });
     expect(vc.enter({ x: 0, z: 0, heading: 0, speed: 2 }, 0)).toBe(true);
+    // AI heading 0 (+Z) converts to walk heading π
+    expect(vc.state.heading).toBeCloseTo(Math.PI, 5);
     const pose = vc.update(0.5, { f: 1, r: 0.2 }, { nearRoad: true });
     expect(pose.speed).toBeGreaterThan(2);
-    expect(pose.x).not.toBe(0);
+    expect(Math.hypot(pose.x, pose.z)).toBeGreaterThan(0.5);
     const exit = vc.exit();
     expect(vc.active).toBe(false);
     expect(exit.carIndex).toBe(0);
+  });
+
+  it('A/D steers heading while throttle moves the car', async () => {
+    const { createVehicleController } = await import('../lib/engine/street/vehicle.js');
+    const vc = createVehicleController({
+      insideBuilding: () => false,
+      groundHeight: () => 0,
+    });
+    vc.enter({ x: 0, z: 0, heading: Math.PI, speed: 8 }, 0); // already walk-facing after convert = 2π
+    // enter adds π, so start from mesh heading π → walk 2π ≡ 0
+    const h0 = vc.state.heading;
+    vc.update(0.3, { f: 1, r: 1 }, { nearRoad: true });
+    expect(vc.state.heading).not.toBeCloseTo(h0, 2);
+  });
+});
+
+describe('nameplate exterior placement', () => {
+  it('pushes labels out of a square footprint toward the road', async () => {
+    const { placeOutsideBuilding } = await import('../lib/engine/population.js');
+    // 10×10 building centered at origin
+    const inside = (x, z) => Math.abs(x) < 5 && Math.abs(z) < 5;
+    const roads = [{ pts: [{ x: 0, y: 12 }, { x: 0, y: 20 }] }];
+    const out = placeOutsideBuilding(0, 0, inside, { roadPaths: roads });
+    expect(out.moved).toBe(true);
+    expect(inside(out.x, out.z)).toBe(false);
+    // should prefer +Z (toward road at y=12)
+    expect(out.z).toBeGreaterThan(4);
   });
 });
 
