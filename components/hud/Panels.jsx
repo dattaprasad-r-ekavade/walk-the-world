@@ -155,7 +155,7 @@ export function SettingsPanel({ settings, onChange, onClose, children }) {
         </label>
         <div className="flex gap-2">
           {[
-            ['osm', 'OSM'],
+            ['osm', 'Map'],
             ['satellite', 'Satellite'],
           ].map(([id, label]) => (
             <button
@@ -168,8 +168,10 @@ export function SettingsPanel({ settings, onChange, onClose, children }) {
             </button>
           ))}
         </div>
-        {(settings.groundSource || 'osm') === 'satellite' && (
+        {(settings.groundSource || 'osm') === 'satellite' ? (
           <p className="mt-1.5 text-[11px] text-slate-500">Imagery © Esri — non-commercial use</p>
+        ) : (
+          <p className="mt-1.5 text-[11px] text-slate-500">Carto Voyager (no labels) · © OSM</p>
         )}
       </div>
       <div className="mb-4">

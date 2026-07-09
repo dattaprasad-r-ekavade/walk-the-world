@@ -188,8 +188,8 @@ describe('vehicle controller (18.1)', () => {
       groundHeight: () => 10,
     });
     expect(vc.enter({ x: 0, z: 0, heading: 0, speed: 2 }, 0)).toBe(true);
-    // AI heading 0 (+Z) converts to walk heading π
-    expect(vc.state.heading).toBeCloseTo(Math.PI, 5);
+    // mesh heading kept as-is (+Z forward)
+    expect(vc.state.heading).toBeCloseTo(0, 5);
     const pose = vc.update(0.5, { f: 1, r: 0.2 }, { nearRoad: true });
     expect(pose.speed).toBeGreaterThan(2);
     expect(Math.hypot(pose.x, pose.z)).toBeGreaterThan(0.5);
@@ -198,30 +198,39 @@ describe('vehicle controller (18.1)', () => {
     expect(exit.carIndex).toBe(0);
   });
 
-  it('A/D steers heading while throttle moves the car', async () => {
+  it('WASD: W moves along nose, A/D turns the car heading', async () => {
     const { createVehicleController } = await import('../lib/engine/street/vehicle.js');
     const vc = createVehicleController({
       insideBuilding: () => false,
       groundHeight: () => 0,
     });
-    vc.enter({ x: 0, z: 0, heading: Math.PI, speed: 8 }, 0); // already walk-facing after convert = 2π
-    // enter adds π, so start from mesh heading π → walk 2π ≡ 0
+    vc.enter({ x: 0, z: 0, heading: 0, speed: 8 }, 0);
     const h0 = vc.state.heading;
-    vc.update(0.3, { f: 1, r: 1 }, { nearRoad: true });
-    expect(vc.state.heading).not.toBeCloseTo(h0, 2);
+    // W + D: accelerate and turn right
+    const pose = vc.update(0.4, { f: 1, r: 1 }, { nearRoad: true });
+    expect(pose.heading).not.toBeCloseTo(h0, 2);
+    expect(pose.z).toBeGreaterThan(0); // heading 0 → +Z
+  });
+});
+
+describe('road materials', () => {
+  it('maps highway class to asphalt marking kind', async () => {
+    const { roadMarkKind } = await import('../lib/engine/materials.js');
+    expect(roadMarkKind('primary')).toBe('arterial');
+    expect(roadMarkKind('residential')).toBe('residential');
+    expect(roadMarkKind('footway')).toBe('path');
+    expect(roadMarkKind('service')).toBe('plain');
   });
 });
 
 describe('nameplate exterior placement', () => {
   it('pushes labels out of a square footprint toward the road', async () => {
     const { placeOutsideBuilding } = await import('../lib/engine/population.js');
-    // 10×10 building centered at origin
     const inside = (x, z) => Math.abs(x) < 5 && Math.abs(z) < 5;
     const roads = [{ pts: [{ x: 0, y: 12 }, { x: 0, y: 20 }] }];
     const out = placeOutsideBuilding(0, 0, inside, { roadPaths: roads });
     expect(out.moved).toBe(true);
     expect(inside(out.x, out.z)).toBe(false);
-    // should prefer +Z (toward road at y=12)
     expect(out.z).toBeGreaterThan(4);
   });
 });

@@ -107,7 +107,7 @@ export function MobileControls({ enabled = true }) {
     <div className="pointer-events-none fixed inset-0 z-[25] touch-none" aria-hidden="true">
       <div
         ref={stickRef}
-        className="pointer-events-auto absolute bottom-7 left-6 flex h-[120px] w-[120px] touch-none items-center justify-center rounded-full border-2 border-accent/35 bg-void-900/50 backdrop-blur-sm"
+        className="pointer-events-auto absolute bottom-7 left-6 flex h-[120px] w-[120px] touch-none items-center justify-center rounded-full border-2 border-black/50 bg-[rgba(11,18,32,0.88)] shadow-[0_4px_20px_rgba(0,0,0,0.5)]"
         onTouchStart={onStickStart}
         onTouchMove={onStickMove}
         onTouchEnd={onStickEnd}
@@ -127,7 +127,7 @@ export function MobileControls({ enabled = true }) {
       />
       <button
         type="button"
-        className="pointer-events-auto absolute bottom-9 right-6 rounded-full border-2 border-amber-400/50 bg-amber-950/80 px-4 py-3 text-xs font-bold tracking-widest text-amber-100 shadow-lg backdrop-blur-sm active:scale-95"
+        className="pointer-events-auto absolute bottom-9 right-6 rounded-full border-2 border-amber-400/50 bg-[rgba(26,20,8,0.92)] px-4 py-3 text-xs font-bold tracking-widest text-amber-100 shadow-[0_4px_16px_rgba(0,0,0,0.5)] active:scale-95"
         onTouchStart={(e) => {
           stateRef.current.sprint = true;
           e.preventDefault();

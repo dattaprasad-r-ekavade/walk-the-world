@@ -18,7 +18,8 @@ import {
   hintBar,
   rail,
   searchField,
-  statusCard,
+  statusStrip,
+  statusStripItem,
   statusCardLabel,
   statusCardValue,
   topBar,
@@ -51,9 +52,9 @@ function RailBtn({ title, active, onClick, children }) {
   );
 }
 
-function StatusCard({ label, value, valueClass = '' }) {
+function StatusItem({ label, value, valueClass = '' }) {
   return (
-    <div className={statusCard}>
+    <div className={statusStripItem}>
       <div className={statusCardLabel}>{label}</div>
       <div className={`${statusCardValue} ${valueClass}`}>{value}</div>
     </div>
@@ -226,11 +227,11 @@ export function GameShell({
             </RailBtn>
           </div>
 
-          {/* Minimap + coords */}
-          <div className="absolute right-3 top-[4.75rem] z-20 flex flex-col items-center gap-1.5 sm:right-5 sm:top-[5.25rem]">
+          {/* Minimap + coords — compact, corner only */}
+          <div className="pointer-events-auto absolute right-2 top-[4.25rem] z-20 flex flex-col items-end gap-1 sm:right-3 sm:top-[4.5rem]">
             <button
               type="button"
-              className="rounded-full p-0.5 transition-transform hover:scale-[1.02]"
+              className="rounded-full border border-black/40 bg-[rgba(11,18,32,0.85)] p-0.5 shadow-[0_4px_16px_rgba(0,0,0,0.4)] transition-transform hover:scale-[1.02]"
               title="Expand map (Tab)"
               onClick={() => setBigMap(true)}
             >
@@ -242,6 +243,7 @@ export function GameShell({
                 posRef={posRef}
                 trailRef={trailRef}
                 trail={passport?.trail}
+                size={128}
               />
             </button>
             <div className={coordsPill}>
@@ -249,23 +251,20 @@ export function GameShell({
             </div>
           </div>
 
-          {/* Bottom status strip */}
-          <div
-            ref={hudRef}
-            className="absolute bottom-12 left-1/2 z-20 flex w-[min(720px,94vw)] -translate-x-1/2 flex-wrap justify-center gap-2 sm:bottom-14 sm:gap-2.5"
-          >
-            <StatusCard label="Engine" value={modeLabel || '—'} />
-            <StatusCard
-              label="Altitude"
+          {/* Bottom status — one compact strip, not five cards */}
+          <div ref={hudRef} className={statusStrip}>
+            <StatusItem label="Engine" value={modeLabel || '—'} />
+            <StatusItem
+              label="Alt"
               value={formatElevation(status.elevation ?? (status.height ? Math.round(status.height) : null))}
             />
-            <StatusCard
-              label="Performance"
-              value={status.fps > 0 ? `${status.fps} FPS` : '—'}
+            <StatusItem
+              label="FPS"
+              value={status.fps > 0 ? String(status.fps) : '—'}
               valueClass={fpsLow ? 'text-amber-300' : 'text-sky-300'}
             />
-            <StatusCard label="Local time" value={formatClock(settings?.hour)} />
-            <StatusCard label="Weather" value={formatWeatherLabel(settings?.weather, liveTemp)} />
+            <StatusItem label="Time" value={formatClock(settings?.hour)} />
+            <StatusItem label="Wx" value={formatWeatherLabel(settings?.weather, liveTemp)} />
           </div>
 
           <div className={hintBar} data-hud-hint>
@@ -299,7 +298,7 @@ export function GameShell({
           )}
           {walking && place && (
             <div
-              className="pointer-events-none absolute bottom-[7.5rem] right-6 z-20 max-w-[70vw] animate-loc-toast text-right font-display text-2xl font-extrabold italic tracking-wide text-transparent bg-gradient-to-b from-white to-slate-400 bg-clip-text drop-shadow-[0_2px_3px_rgba(0,0,0,0.85)] sm:text-3xl"
+              className="pointer-events-none absolute bottom-[5.5rem] right-3 z-20 max-w-[42vw] animate-loc-toast rounded-lg border border-black/40 bg-[rgba(11,18,32,0.88)] px-2.5 py-1 text-right font-display text-sm font-bold tracking-wide text-white shadow-[0_4px_16px_rgba(0,0,0,0.45)] sm:bottom-24 sm:right-4 sm:text-base"
               key={place.key ?? place}
             >
               {place.text ?? place}
@@ -310,7 +309,7 @@ export function GameShell({
 
       {photoMode && screen === 'play' && !whereAmI && (
         <div className="pointer-events-none absolute inset-x-0 bottom-6 z-30 flex flex-col items-center gap-2">
-          <p className="rounded-full border border-white/15 bg-slate-950/75 px-4 py-1.5 text-xs text-slate-200 backdrop-blur">
+          <p className="rounded-full border border-black/40 bg-[rgba(11,18,32,0.92)] px-4 py-1.5 text-xs text-slate-100 shadow-[0_4px_16px_rgba(0,0,0,0.45)]">
             Photo mode · Esc or H to exit
             {onPhotoCapture ? ' · click 📸 to save' : ''}
           </p>

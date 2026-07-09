@@ -1160,11 +1160,8 @@ export default function StreetEngine({ lat0, lon0 }) {
         return;
       }
       if (document.pointerLockElement !== canvas) return;
-      // While driving: A/D steers the car — mouse only pitches the chase cam
-      if (vehicle.active) {
-        player.pitch = Math.max(-0.35, Math.min(0.45, player.pitch - e.movementY * 0.0022));
-        return;
-      }
+      // Driving: WASD only — mouse does not yaw (camera follows the car)
+      if (vehicle.active) return;
       player.heading += e.movementX * 0.0022;
       player.pitch = Math.max(-1.45, Math.min(1.45, player.pitch - e.movementY * 0.0022));
     };
@@ -1295,16 +1292,27 @@ export default function StreetEngine({ lat0, lon0 }) {
         if (pose) {
           player.x = pose.x;
           player.z = pose.z;
-          player.heading = pose.heading;
+          // Keep walk heading for HUD/minimap; car mesh uses pose.heading (+Z)
+          player.heading = pose.heading + Math.PI;
+          player.pitch = 0;
           population?.setDrivenPose?.(pose.carIndex, pose);
           const night = (engineRefHour ?? 12) < 6.5 || (engineRefHour ?? 12) >= 19;
           const hl = night ? 2.4 : 0;
           headL.intensity = hl;
           headR.intensity = hl;
+          // headlights along car nose (+Z at heading 0)
           const fx = pose.x + Math.sin(pose.heading) * 2.2;
-          const fz = pose.z - Math.cos(pose.heading) * 2.2;
-          headL.position.set(pose.x + Math.cos(pose.heading) * 0.6, pose.y + 0.9, pose.z + Math.sin(pose.heading) * 0.6);
-          headR.position.set(pose.x - Math.cos(pose.heading) * 0.6, pose.y + 0.9, pose.z - Math.sin(pose.heading) * 0.6);
+          const fz = pose.z + Math.cos(pose.heading) * 2.2;
+          headL.position.set(
+            pose.x - Math.cos(pose.heading) * 0.6,
+            pose.y + 0.9,
+            pose.z + Math.sin(pose.heading) * 0.6
+          );
+          headR.position.set(
+            pose.x + Math.cos(pose.heading) * 0.6,
+            pose.y + 0.9,
+            pose.z - Math.sin(pose.heading) * 0.6
+          );
           headL.target.position.set(fx, pose.y + 0.4, fz);
           headR.target.position.set(fx, pose.y + 0.4, fz);
           ambience.set?.({ engine: Math.min(1, Math.abs(pose.speed) / 22) });
@@ -1362,20 +1370,33 @@ export default function StreetEngine({ lat0, lon0 }) {
         }
       }
 
-      if (!editor.mode && !fly.photo && (player.third || vehicle.active)) {
-        if (avatar && !vehicle.active) {
+      if (!editor.mode && !fly.photo && vehicle.active) {
+        // Chase cam locked behind the car — lookAt so WASD turns the car, not the view
+        const vh = vehicle.state.heading;
+        let back = 11;
+        const boomX = () => player.x - Math.sin(vh) * back;
+        const boomZ = () => player.z - Math.cos(vh) * back;
+        for (let tries = 0; tries < 3 && insideBuilding(boomX(), boomZ()); tries++) back *= 0.55;
+        const cx = boomX();
+        const cz = boomZ();
+        const camGround = groundHeight(cx, cz);
+        const cy = Math.max(gy + 4.2, camGround + 0.6);
+        camera.position.set(cx, cy, cz);
+        camera.lookAt(player.x, gy + 1.2, player.z);
+      } else if (!editor.mode && !fly.photo && player.third) {
+        if (avatar) {
           avatar.position.set(player.x, gy, player.z);
           avatar.rotation.y = -player.heading + Math.PI;
         }
         // chase camera: shorten the boom if it would sit inside a building,
         // and never let it dip below the terrain
-        let back = vehicle.active ? 11 : 7;
+        let back = 7;
         const boomX = () => player.x - Math.sin(player.heading) * back;
         const boomZ = () => player.z + Math.cos(player.heading) * back;
         for (let tries = 0; tries < 3 && insideBuilding(boomX(), boomZ()); tries++) back *= 0.55;
         const cx = boomX(), cz = boomZ();
         const camGround = groundHeight(cx, cz);
-        const cy = Math.max(gy + (vehicle.active ? 4.2 : 3), camGround + 0.6);
+        const cy = Math.max(gy + 3, camGround + 0.6);
         camera.position.set(cx, cy, cz);
         camera.rotation.y = -player.heading;
         camera.rotation.x = -0.22 + player.pitch * 0.4;
@@ -1757,7 +1778,7 @@ export default function StreetEngine({ lat0, lon0 }) {
               : uiMode === "debug"
               ? "TAG INSPECTOR · WASD fly · RMB look · click a building/road/prop"
               : hudLocked
-              ? "WASD move · mouse look · Shift sprint · C enter/exit car · A/D steer · V view · M travel · H photo"
+              ? "WASD move · mouse look · Shift sprint · C enter/exit car · WASD drive · V view · M travel · H photo"
               : "Click to capture mouse · WASD walk · C enter car · M travel · H photo"
           }
           hudRef={hudDomRef}

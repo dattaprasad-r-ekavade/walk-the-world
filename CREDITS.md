@@ -31,7 +31,7 @@ Optional CC0 loops can be dropped at `public/audio/day.ogg` and
 
 | Layer | Provider | License / terms |
 |---|---|---|
-| Street ground (default) | OpenStreetMap raster tiles | © OpenStreetMap contributors |
+| Street ground (default) | Carto Voyager **nolabels** (OSM data) | © CARTO, © OpenStreetMap contributors — no street-name text on roads |
 | Street ground (satellite toggle) | Esri World Imagery | Free for non-commercial apps; attribution required |
 | Elevation | AWS Terrarium (Mapzen) | Open data |
 

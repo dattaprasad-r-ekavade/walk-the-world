@@ -199,7 +199,7 @@ export default function Minimap({
   return (
     <canvas
       ref={canvasRef}
-      className="rounded-full bg-void-900/90 shadow-hud ring-1 ring-white/15"
+      className="rounded-full bg-[#0b1220] shadow-[0_4px_16px_rgba(0,0,0,0.5)] ring-1 ring-black/50"
       style={{ width: SIZE, height: SIZE }}
     />
   );
