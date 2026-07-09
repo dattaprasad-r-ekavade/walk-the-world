@@ -13,20 +13,51 @@ import {
 import { MobileControls } from '@/components/MobileControls';
 import {
   coordsPill,
+  formatClock,
+  formatWeatherLabel,
   hintBar,
-  hudChip,
-  hudChipMode,
+  rail,
+  searchField,
+  statusCard,
+  statusCardLabel,
+  statusCardValue,
+  topBar,
+  topBarInner,
   toolbarBtn,
+  toolbarBtnActive,
 } from '@/lib/ui';
 
 function formatElevation(m) {
   if (m === null || m === undefined) return '—';
-  return m >= 1000 ? `${(m / 1000).toFixed(2)} km` : `${m} m`;
+  return m >= 1000 ? `${(m / 1000).toFixed(2)} km` : `${Math.round(m)} m`;
 }
 
 function formatCoord(v, pos, neg) {
   if (v === undefined || v === null || !isFinite(v)) return '';
   return `${Math.abs(v).toFixed(4)}° ${v >= 0 ? pos : neg}`;
+}
+
+function RailBtn({ title, active, onClick, children }) {
+  return (
+    <button
+      type="button"
+      title={title}
+      aria-label={title}
+      className={active ? toolbarBtnActive : toolbarBtn}
+      onClick={onClick}
+    >
+      {children}
+    </button>
+  );
+}
+
+function StatusCard({ label, value, valueClass = '' }) {
+  return (
+    <div className={statusCard}>
+      <div className={statusCardLabel}>{label}</div>
+      <div className={`${statusCardValue} ${valueClass}`}>{value}</div>
+    </div>
+  );
 }
 
 export function GameShell({
@@ -68,13 +99,16 @@ export function GameShell({
   onWhereAmIGuess,
   onWhereAmIClose,
   onWhereAmIAgain,
+  liveTemp,
   children,
 }) {
   const lat = status.lat ?? coordsFallback?.lat;
   const lon = status.lon ?? coordsFallback?.lon;
   const fpsLow = status.fps > 0 && status.fps < 40;
-  // Where-am-I keeps photoMode on until guess — hide HUD chrome but allow the guess panel
   const showHud = screen === 'play' && !photoMode;
+  const placeLabel = typeof place === 'string' ? place : place?.text;
+
+  const openTravel = () => setPanel(panel === 'travel' ? null : 'travel');
 
   return (
     <>
@@ -82,73 +116,152 @@ export function GameShell({
 
       {showHud && (
         <>
-          <div className="absolute right-4 top-4 z-20 flex flex-col items-center gap-1.5 sm:right-5 sm:top-5">
-            <Minimap
-              lat={lat}
-              lon={lon}
-              heading={status.heading}
-              height={status.height}
-              posRef={posRef}
-            />
+          {/* Top brand + search + actions */}
+          <div className={topBar}>
+            <div className={topBarInner}>
+              <span className="text-lg leading-none" aria-hidden>
+                🌍
+              </span>
+              <div className="min-w-0 leading-tight">
+                <div className="font-display text-[11px] font-bold tracking-[0.18em] text-white sm:text-xs">
+                  WALK THE WORLD
+                </div>
+                <div className="hidden text-[10px] tracking-wide text-slate-500 sm:block">
+                  Explore anywhere
+                </div>
+              </div>
+            </div>
+
+            <button type="button" className={searchField} onClick={openTravel} title="Fast travel (M)">
+              <span className="text-slate-500" aria-hidden>
+                ⌕
+              </span>
+              <span className="truncate text-slate-400">
+                {placeLabel || 'Search for a place…'}
+              </span>
+            </button>
+
+            <div className={`${topBarInner} gap-1.5`}>
+              <button
+                type="button"
+                title="Passport"
+                className={panel === 'passport' ? toolbarBtnActive : toolbarBtn}
+                onClick={() => setPanel(panel === 'passport' ? null : 'passport')}
+              >
+                🛂
+              </button>
+              {onShare && (
+                <button type="button" title="Copy share link" className={toolbarBtn} onClick={onShare}>
+                  ↗
+                </button>
+              )}
+              {onPhotoMode && (
+                <button type="button" title="Photo mode (H)" className={toolbarBtn} onClick={onPhotoMode}>
+                  📷
+                </button>
+              )}
+              <button
+                type="button"
+                title="Settings"
+                className={panel === 'settings' ? toolbarBtnActive : toolbarBtn}
+                onClick={() => setPanel(panel === 'settings' ? null : 'settings')}
+              >
+                ⚙
+              </button>
+            </div>
+          </div>
+
+          {/* Left icon rail */}
+          <nav className={rail} aria-label="Main">
+            <RailBtn title="Menu (P)" active={panel === 'pause'} onClick={() => setPanel(panel === 'pause' ? null : 'pause')}>
+              ☰
+            </RailBtn>
+            <RailBtn title="Fast travel (M)" active={panel === 'travel'} onClick={openTravel}>
+              🗺
+            </RailBtn>
+            <RailBtn title="Expand map (Tab)" active={bigMap} onClick={() => setBigMap((b) => !b)}>
+              ◉
+            </RailBtn>
+            <RailBtn title="Passport" active={panel === 'passport'} onClick={() => setPanel(panel === 'passport' ? null : 'passport')}>
+              🛂
+            </RailBtn>
+            <RailBtn title="Globe view" onClick={onGoHome}>
+              🌐
+            </RailBtn>
+            <RailBtn title="Settings" active={panel === 'settings'} onClick={() => setPanel(panel === 'settings' ? null : 'settings')}>
+              ⚙
+            </RailBtn>
+            {engine === 'cesium' && (
+              <>
+                <RailBtn title="First/third person (V)" onClick={onToggleView}>
+                  {status.view === 'third' ? '👁' : '👤'}
+                </RailBtn>
+                {walking && (
+                  <RailBtn title="Street Engine" onClick={onStreetEngine}>
+                    🎮
+                  </RailBtn>
+                )}
+                <RailBtn title="Toggle walk/fly (F)" onClick={onToggleWalk}>
+                  {walking ? '✈' : '🚶'}
+                </RailBtn>
+              </>
+            )}
+          </nav>
+
+          {/* Mobile fallback toolbar (rail is sm+) */}
+          <div className="absolute left-3 top-[4.75rem] z-20 flex flex-col gap-2 sm:hidden">
+            <RailBtn title="Menu" active={panel === 'pause'} onClick={() => setPanel(panel === 'pause' ? null : 'pause')}>
+              ☰
+            </RailBtn>
+            <RailBtn title="Travel" active={panel === 'travel'} onClick={openTravel}>
+              🗺
+            </RailBtn>
+            <RailBtn title="Globe" onClick={onGoHome}>
+              🌐
+            </RailBtn>
+            <RailBtn title="Settings" active={panel === 'settings'} onClick={() => setPanel(panel === 'settings' ? null : 'settings')}>
+              ⚙
+            </RailBtn>
+          </div>
+
+          {/* Minimap + coords */}
+          <div className="absolute right-3 top-[4.75rem] z-20 flex flex-col items-center gap-1.5 sm:right-5 sm:top-[5.25rem]">
+            <button
+              type="button"
+              className="rounded-full p-0.5 transition-transform hover:scale-[1.02]"
+              title="Expand map (Tab)"
+              onClick={() => setBigMap(true)}
+            >
+              <Minimap
+                lat={lat}
+                lon={lon}
+                heading={status.heading}
+                height={status.height}
+                posRef={posRef}
+              />
+            </button>
             <div className={coordsPill}>
               {formatCoord(lat, 'N', 'S')} · {formatCoord(lon, 'E', 'W')}
             </div>
           </div>
 
-          <div className="absolute left-4 top-4 z-20 flex flex-col gap-2 sm:left-5 sm:top-5">
-            <button type="button" title="Menu (P)" className={toolbarBtn} onClick={() => setPanel(panel === 'pause' ? null : 'pause')}>
-              ☰
-            </button>
-            <button type="button" title="Fast travel (M)" className={toolbarBtn} onClick={() => setPanel(panel === 'travel' ? null : 'travel')}>
-              🗺
-            </button>
-            <button type="button" title="Globe view" className={toolbarBtn} onClick={onGoHome}>
-              🌐
-            </button>
-            <button type="button" title="Settings" className={toolbarBtn} onClick={() => setPanel(panel === 'settings' ? null : 'settings')}>
-              ⚙
-            </button>
-            <button type="button" title="Passport" className={toolbarBtn} onClick={() => setPanel(panel === 'passport' ? null : 'passport')}>
-              🛂
-            </button>
-            {onShare && (
-              <button type="button" title="Copy share link" className={toolbarBtn} onClick={onShare}>
-                📤
-              </button>
-            )}
-            {onPhotoMode && (
-              <button type="button" title="Photo mode (H)" className={toolbarBtn} onClick={onPhotoMode}>
-                📷
-              </button>
-            )}
-            {engine === 'cesium' && (
-              <>
-                <button type="button" title="First/third person (V)" className={toolbarBtn} onClick={onToggleView}>
-                  {status.view === 'third' ? '👁' : '👤'}
-                </button>
-                {walking && (
-                  <button type="button" title="Street Engine" className={toolbarBtn} onClick={onStreetEngine}>
-                    🎮
-                  </button>
-                )}
-                <button type="button" title="Toggle walk/fly (F)" className={toolbarBtn} onClick={onToggleWalk}>
-                  {walking ? '✈' : '🚶'}
-                </button>
-              </>
-            )}
-          </div>
-
-          <div ref={hudRef} className="absolute bottom-4 left-4 z-20 flex flex-wrap gap-2 sm:bottom-5 sm:left-5">
-            <span className={hudChipMode}>{modeLabel}</span>
-            <span className={hudChip} data-hud-elev>
-              ⛰ {formatElevation(status.elevation ?? (status.height ? Math.round(status.height) : null))}
-            </span>
-            <span
-              className={`${hudChip} ${fpsLow ? 'text-amber-300' : 'text-sky-300'}`}
-              data-hud-fps
-            >
-              {status.fps > 0 ? `${status.fps} FPS` : ''}
-            </span>
+          {/* Bottom status strip */}
+          <div
+            ref={hudRef}
+            className="absolute bottom-12 left-1/2 z-20 flex w-[min(720px,94vw)] -translate-x-1/2 flex-wrap justify-center gap-2 sm:bottom-14 sm:gap-2.5"
+          >
+            <StatusCard label="Engine" value={modeLabel || '—'} />
+            <StatusCard
+              label="Altitude"
+              value={formatElevation(status.elevation ?? (status.height ? Math.round(status.height) : null))}
+            />
+            <StatusCard
+              label="Performance"
+              value={status.fps > 0 ? `${status.fps} FPS` : '—'}
+              valueClass={fpsLow ? 'text-amber-300' : 'text-sky-300'}
+            />
+            <StatusCard label="Local time" value={formatClock(settings?.hour)} />
+            <StatusCard label="Weather" value={formatWeatherLabel(settings?.weather, liveTemp)} />
           </div>
 
           <div className={hintBar} data-hud-hint>
@@ -180,7 +293,7 @@ export function GameShell({
           )}
           {walking && place && (
             <div
-              className="pointer-events-none absolute bottom-16 right-6 z-20 max-w-[70vw] animate-loc-toast text-right font-display text-2xl font-extrabold italic tracking-wide text-transparent bg-gradient-to-b from-white to-slate-400 bg-clip-text drop-shadow-[0_2px_3px_rgba(0,0,0,0.85)] sm:text-3xl"
+              className="pointer-events-none absolute bottom-[7.5rem] right-6 z-20 max-w-[70vw] animate-loc-toast text-right font-display text-2xl font-extrabold italic tracking-wide text-transparent bg-gradient-to-b from-white to-slate-400 bg-clip-text drop-shadow-[0_2px_3px_rgba(0,0,0,0.85)] sm:text-3xl"
               key={place.key ?? place}
             >
               {place.text ?? place}

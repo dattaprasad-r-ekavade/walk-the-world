@@ -88,14 +88,14 @@ fetch them. Two things hide it:
       600 / props 700) instead of one shared cap — dense cells can't starve a
       category. (done: parallel category queries in `lib/overpassServer.js`,
       CACHE_VERSION → 6)
-- [ ] 7.4 `building:part` support — towers like Mumbai/Dubai skylines are
+- [~] 7.4 `building:part` support — towers like Mumbai/Dubai skylines are
       modeled as parts; we currently drop them.
-- [ ] 7.5 Terrain upgrade where free lidar exists: keep Terrarium (30 m)
+- [~] 7.5 Terrain upgrade where free lidar exists: keep Terrarium (30 m)
       global, override with Copernicus GLO-30 (already in Terrarium) and
       national lidar (USGS 3DEP, UK/NL/DK) via a per-region source map.
       India: no free lidar; Cartosat DEM (ISRO Bhuvan) is 30 m and
       registration-gated — not worth the pipeline; skip.
-- [ ] 7.6 Overture as *validator*, not just filler: cross-check OSM building
+- [~] 7.6 Overture as *validator*, not just filler: cross-check OSM building
       count vs Overture per cell; if OSM < 30% of Overture, auto-blend.
 - [x] 7.7 Name-aware props: shop/amenity nodes with `name` → storefront signs (done in 13.3: sprite name-boards + colored awnings at POIs)
       (the "living city" layer from OSM_TAGS.md §5).
@@ -111,18 +111,18 @@ fetch them. Two things hide it:
 - [x] 8.3 **SSAO / post stack**: contact shadows where buildings meet ground (done cheaper: baked vertex-color AO on walls + painted footprint contact shadows; true SSAO/bloom deferred to 16.2)
       kill the "floating boxes" look. three r170 post-processing works;
       consider N8AO (cheap SSAO lib).
-- [ ] 8.4 **Upgrade three r170 → r17x + WebGPURenderer** (production-ready
+- [~] 8.4 **Upgrade three r170 → r17x + WebGPURenderer** (production-ready
       since r171, auto-fallback to WebGL2). TSL is still rough-edged; adopt
       renderer first, TSL later. Expect wins on many-object scenes.
-- [ ] 8.5 Texture atlas for facades: bake 4-6 facade variants into one atlas,
+- [~] 8.5 Texture atlas for facades: bake 4-6 facade variants into one atlas,
       vary by UV offset per building — visual variety at zero extra draws.
-- [ ] 8.6 Roof geometry from `roof:shape` (gabled/hipped) — kills "every (partial: heuristic hipped roofs on small houses + rooftop tanks/AC shipped; tag-driven shapes still open → 17.3)
+- [~] 8.6 Roof geometry from `roof:shape` (gabled/hipped) — kills "every (partial: heuristic hipped roofs on small houses + rooftop tanks/AC shipped; tag-driven shapes still open → 17.3)
       building is a box"; cheap lathe/prism generation.
 - [x] 8.7 Distance fog tuned per weather + height fog for dawn/dusk moods;
       tonemapping (ACES) + slight bloom on lamp glows at night. (done:
       FogExp2 density by weather + dusk mood; ACES exposure by sun elev;
       brighter additive lamp pools at night. Full SSAO/UnrealBloom → 16.2.)
-- [ ] 8.8 LOD rings: full detail < 300 m, merged-untextured 300-800 m,
+- [~] 8.8 LOD rings: full detail < 300 m, merged-untextured 300-800 m,
       billboards beyond — prerequisite for seamless streaming (Phase 10.1).
 
 ## Phase 9 — R2 to the fullest (better quality, zero egress cost)
@@ -135,45 +135,45 @@ with real caching.
 - [x] 9.1 **Custom domain on the bucket** (done: apex https://myjyotishai.in serves the bucket; client tries it first via NEXT_PUBLIC_R2_PUBLIC_BASE) →
       cached at Cloudflare edge, cache-control headers honored. Every asset
       below then ships CDN-fast worldwide.
-- [ ] 9.2 **Pre-baked ground textures**: today every client composites OSM
+- [~] 9.2 **Pre-baked ground textures**: today every client composites OSM
       tiles + paints roads into a canvas (CPU work, OSM tile-server load,
       z15-capped blur). Instead: server bakes the finished 2048² ground
       texture per cell ONCE (tiles + roads + areas + crossings), stores WebP
       in R2 (~150-400 KB). Clients download one image — faster load, sharper
       ground (can bake at z17 quality), OSM tile policy pressure gone.
-- [ ] 9.3 **Pre-built city meshes**: bake parsed geometry (buildings merged,
+- [~] 9.3 **Pre-built city meshes**: bake parsed geometry (buildings merged,
       roads, props transforms) into a compact binary (or Draco/glTF) per
       cell. Client skips Overpass parse + extrusion entirely — near-instant
       cell loads. R2 becomes a world CDN, not just a JSON cache.
 - [x] 9.4 Region pre-bake script: warm the 16 fast-travel cities + rings (done as scripts/warm-cities.mjs + lib/seedPlaces.js: 88 places / 440 cells, resumable)
       around them overnight (stays comfortably inside free-tier ops).
-- [ ] 9.5 Asset pack in R2: facade atlas, road/rail textures, avatar, future (partial: GLB model library in R2 done — car/bird/test-cube; texture packs land with 17.1)
+- [~] 9.5 Asset pack in R2: facade atlas, road/rail textures, avatar, future (partial: GLB model library in R2 done — car/bird/test-cube; texture packs land with 17.1)
       GLBs — versioned folder, immutable cache headers.
 - [x] 9.6 Gzip city JSONs (they compress 6-10×) until 9.3 replaces them.
 
 ## Phase 10 — Ambitious ideas (pick the ones that spark)
 
-- [ ] 10.1 **Seamless world streaming** — walk forever; neighbor cells stream
+- [~] 10.1 **Seamless world streaming** — walk forever; neighbor cells stream
       in/out (needs 8.8 LODs). The single biggest "wow".
-- [ ] 10.2 **Time machine** — OSM has history; Overture has releases. Slider
+- [~] 10.2 **Time machine** — OSM has history; Overture has releases. Slider
       that rebuilds the same street from 2015 vs today's data.
-- [ ] 10.3 **Live layer** — OpenSky aircraft overhead with real flight
+- [~] 10.3 **Live layer** — OpenSky aircraft overhead with real flight
       numbers; GTFS-RT buses/trains gliding along their actual routes;
       day/night terminator on the globe.
-- [ ] 10.4 **Photo mode** — free camera + DoF + filters + watermark (= 15.2)
+- [~] 10.4 **Photo mode** — free camera + DoF + filters + watermark (= 15.2)
       (core done in 15.2: HUD hide + free fly + PNG save; DoF/filters/watermark still open)
       "walktheworld.dev · Pune" → users share screenshots = free marketing.
-- [ ] 10.5 **Walk journal** — trail line on the minimap, km walked, countries
+- [~] 10.5 **Walk journal** — trail line on the minimap, km walked, countries
       visited, elevation climbed; export a "walk card" image.
 - [x] 10.6 **Ambient audio** — birds in parks, traffic on roads, waves at (done in 13.4: synthesized traffic/wind/rain beds, hour+weather aware, mute button)
       coasts, rain audio tied to live weather (freesound.org CC0).
 - [x] 10.7 **NPC pedestrians/traffic** — instanced mannequins walking road (done in 13.1/13.2, plus real GLB models via asset library; VAT walk animation → 15.1)
       graphs, simple cars on driveable roads; density from real POI density.
-- [ ] 10.8 **"Guess where I am"** — hide the HUD, drop somewhere random, (= 15.5)
+- [~] 10.8 **"Guess where I am"** — hide the HUD, drop somewhere random, (= 15.5)
       (core done in 15.5; polish/scoring still open)
-- [ ] 10.9 **VR walk** (WebXR) — three.js supports it; walking your childhood
+- [~] 10.9 **VR walk** (WebXR) — three.js supports it; walking your childhood
       street in VR is an unforgettable demo.
-- [ ] 10.10 **Seasonal foliage** — tree color by latitude + month (green
+- [~] 10.10 **Seasonal foliage** — tree color by latitude + month (green
       summer, orange October, bare + snow in winter).
 
 ## Suggested sequencing
@@ -247,7 +247,7 @@ users just never see it.
       if buildings answered but infra timed out, render buildings-only and
       let a background retry fill the rest. Worst case fits inside the
       function cap with room to respond.
-- [ ] **12.5 Instant placeholder city (later).** While Overpass streams, drop
+- [~] **12.5 Instant placeholder city (later).** While Overpass streams, drop
       simple grey blocks from Overture-cached footprints if present, replaced
       when real data lands.
 
@@ -270,12 +270,12 @@ All data comes from tags already in the cached city JSON — no new APIs.
 - [x] **13.4 Ambient audio.** (done — synthesized traffic/wind/rain beds, hour+weather aware, mute button) Positional loops: traffic hum scaled by road
       class density, birds in `leisure=park`/tree clusters by day, crickets at
       night, rain layer tied to the existing weather state. Web Audio, tiny.
-- [ ] **13.5 Transit ghosts.** Buses/trams gliding along `route` relations and
+- [~] **13.5 Transit ghosts.** Buses/trams gliding along `route` relations and
       the existing rails; stops already render (stations array).
 - [x] **13.6 Birds (flock done, ground animals open) & animals.** Instanced flocking birds (classic boids, ~50
       instances), pigeons that scatter when the player runs through, dogs in
       parks.
-- [ ] **13.7 Multiplayer ghosts (ambitious).** Other live players as
+- [~] **13.7 Multiplayer ghosts (ambitious).** Other live players as
       translucent avatars: positions over WebSocket via a Cloudflare Worker +
       Durable Object (free tier covers portfolio traffic easily). "You are
       walking Tokyo with 3 others right now."
@@ -291,22 +291,20 @@ Suggested order: 12.1 → 12.2 → 12.4 (cold start is the complaint) → 13.1 �
       cold path still used outside the seed. Full offline planet.osm.pbf → cell
       JSON pipeline still open: ~87GB PBF download, ~150–250GB working disk,
       full downtowns ~200–300GB R2.)
-- [ ] **14.2 Overture height/landuse backfill.** Overture ships ML-derived
+- [~] **14.2 Overture height/landuse backfill.** Overture ships ML-derived
       building heights + land use with better coverage than OSM in sparse
       regions (Machu Picchu-grade areas). Merge into cells at generation time
       via the existing DuckDB pipeline.
-- [ ] **14.3 GTFS transit (real timetables).** Thousands of agencies publish
+- [~] **14.3 GTFS transit (real timetables).** Thousands of agencies publish
       GTFS feeds free (transitland index). Buses/trams gliding on real routes
       at real times of day — pairs with the live clock. Per-city static JSON
       baked into R2, no runtime API.
 
 ## Phase 15 — Living crowds & stickiness
 
-- [ ] **15.1 VAT pedestrians (the T-pose fix).** Bake a walk cycle to a
-      Vertex Animation Texture in Blender (OpenVAT, free) from a CC0 rigged
-      character; playback in a small shader with per-instance time offsets.
-      Proven at 2000+ animated instances on low-end GPUs — real walking
-      humans, still one draw call. Ship mesh+VAT via the asset library.
+- [x] **15.1 VAT pedestrians (the T-pose fix).** (done: procedural walk-cycle
+      vertex shader on InstancedMesh via `lib/engine/ped-walk.js` + `aPhase`;
+      Blender VAT textures can still replace later via asset library.)
 - [x] **15.2 Photo mode.** (done: H / 📷 hides HUD, free-fly camera, 📸 PNG
       download via canvas.toDataURL; Esc exits. Grain/vignette/watermark later.)
       Also: 📤 share button copies `/street?lat&lon` from live `posRef`.
@@ -317,25 +315,25 @@ Suggested order: 12.1 → 12.2 → 12.4 (cold start is the complaint) → 13.1 �
 - [x] **15.5 Where-am-I mini-game.** (done: menu "🎲 Where am I?" → random
       city with HUD hidden + 4-choice panel; reverse-geocode suppressed until
       guess; play again from reveal.)
-- [ ] **15.6 Multiplayer ghosts.** Cloudflare Worker + Durable Object
+- [~] **15.6 Multiplayer ghosts.** Cloudflare Worker + Durable Object
       (free tier: 100k req/day — plenty) relaying player positions over
       WebSocket; translucent avatars. "Walking Tokyo with 3 others."
 
 ## Phase 16 — Renderer leap
 
-- [ ] **16.1 WebGPU migration.** three.js WebGPURenderer is production-ready
+- [~] **16.1 WebGPU migration.** three.js WebGPURenderer is production-ready
       (r171+) with automatic WebGL2 fallback via `three/webgpu`; Safari 26
       closed the gap. Unlocks compute-shader crowds (thousands of agents) and
       TSL node materials. Big refactor — its own branch, benchmarked before/
       after like the original engine rewrite.
-- [ ] **16.2 Postprocessing tier (quality-gated).** SSAO + bloom (night
+- [~] **16.2 Postprocessing tier (quality-gated).** SSAO + bloom (night
       windows/lamp pools would bloom beautifully) + vignette/color-grade LUT
       behind the existing quality setting. LUT + vignette are nearly free;
       SSAO/bloom only on "high".
-- [ ] **16.3 GPU auto-detect.** Probe GPU tier on boot (render-time sample or
+- [~] **16.3 GPU auto-detect.** Probe GPU tier on boot (render-time sample or
       WEBGL_debug_renderer_info) → auto-pick quality so weak phones never see
       shadows+population at once.
-- [ ] **16.4 PWA.** Manifest + service worker caching visited cells: install
+- [~] **16.4 PWA.** Manifest + service worker caching visited cells: install
       to home screen, re-walk your neighborhood offline.
 
 ## Phase 17 — Real visuals on a free budget (research 2026)
@@ -361,10 +359,9 @@ March 2025); a single busy demo day would blow it. Everything below is $0.
 - [x] **17.4 Satellite ground option.** (done: Settings → Ground map OSM /
       Satellite; Esri World Imagery tiles via `lib/engine/ground-tiles.js`,
       live swap without reload; attribution in CREDITS + settings hint.)
-- [ ] **17.5 Facade UV rework → storefronts.** Switch facade UVs from
-      world-meters to per-floor bands so ground floors get shopfront glass +
-      doors near POIs and floor counts read correctly. Prereq for 17.1
-      looking its best.
+- [x] **17.5 Facade UV rework → storefronts.** (done: facade atlas +
+      `remapWallUVs` in `lib/engine/facade-uv.js`; storefront band for retail/
+      commercial + near-POI buildings; upper floors use window bands.)
 
 
 - [x] **17.6 Ambient music (licensed-safe soundtrack).** (done: day/night
@@ -372,7 +369,8 @@ March 2025); a single busy demo day would blow it. Everything below is $0.
       governs all; optional `public/audio/day.ogg` + `night.ogg` CC0 loops
       auto-detected. CREDITS.md updated.)
 
-Suggested order: 17.1 → 17.2 → 17.6 → 15.1 → 15.2/15.3 (cheap wins) → 14.1 → 16.x.
+Shipped 2026-07-09: 17.5 + 15.1 + 18.1 + glass UI. Remaining phase items
+marked skipped ([~]) unless revisited.
 
 
 ## Phase 18 — Player vehicles & movement modes
@@ -380,25 +378,22 @@ Suggested order: 17.1 → 17.2 → 17.6 → 15.1 → 15.2/15.3 (cheap wins) → 
 Everything below reuses existing systems: car/GLB models, groundHeight,
 footprint collision, the road graph, water polygons, the live clock.
 
-- [ ] **18.1 Drivable car (the big one).** Walk up to any traffic car, press
-      C → take the wheel. Arcade physics (~150 lines): throttle/brake/steer,
-      grip + speed-based turn radius, slight drift, collision vs the
-      footprint grid (bounce, not crash), off-road allowed at half speed.
-      Chase camera = the existing third-person boom. Headlights at night,
-      engine hum through the ambience master. Exit re-spawns the walker.
-- [ ] **18.2 Bicycle / scooter.** Same controller, tamer constants, fits
+- [x] **18.1 Drivable car (the big one).** (done: C enter/exit nearest AI car;
+      arcade controller in `lib/engine/street/vehicle.js`; chase cam, night
+      headlights, engine hum via ambience; bounce vs footprints; half speed off-road.)
+- [~] **18.2 Bicycle / scooter.** Same controller, tamer constants, fits
       footways — the natural way to see Amsterdam or Goa. Cheap once 18.1
       exists.
-- [ ] **18.3 Boat.** Water polygons are already parsed (rivers/lakes) —
+- [~] **18.3 Boat.** Water polygons are already parsed (rivers/lakes) —
       a small boat clamped to water with shore collision. Venice, the
       Mula-Mutha, Sydney harbour.
-- [ ] **18.4 Taxi / delivery missions.** Purpose for driving: pick up a
+- [~] **18.4 Taxi / delivery missions.** Purpose for driving: pick up a
       pedestrian, drop at a named POI (both already in the data), timer +
       earnings tally in localStorage. Turns the sandbox into a game loop.
-- [ ] **18.5 Time trials + ghost replays.** Checkpoint runs on real streets;
+- [~] **18.5 Time trials + ghost replays.** Checkpoint runs on real streets;
       best-run ghost recorded to localStorage (positions @ 10Hz ≈ a few KB).
       Beat your own ghost through Shibuya.
-- [ ] **18.6 Traffic obeys signals.** OSM `highway=traffic_signals` nodes are
+- [~] **18.6 Traffic obeys signals.** OSM `highway=traffic_signals` nodes are
       in the cells already — AI cars queue at red lights on a simple timer
       cycle; player ignores them at their peril (18.4 fare bonus for clean
       driving). Sells the simulation instantly.
@@ -418,18 +413,18 @@ nothing. Where it DOES pay:
       `lib/engine/city-builder-core.js` + `city-builder.worker.js`; parse +
       Extrude/merge off main thread; transferable buffers; canvas road paint +
       scene.add stay on main via `assemble-city.js`. Falls back to sync build.)
-- [ ] **19.2 Rapier physics (Rust→WASM) for Phase 18 vehicles.** The one
+- [~] **19.2 Rapier physics (Rust→WASM) for Phase 18 vehicles.** The one
       clearly justified WASM adoption: ~1MB module, deterministic rigid-body
       physics, raycast vehicle controller built in. Real suspension, mass,
       collisions against building footprints as static colliders. Hand-rolled
       arcade physics (18.1) is fine for v1; Rapier is the upgrade when cars
       should FEEL heavy. Also free: falling crates, props with mass.
-- [ ] **19.3 WASM earcut triangulation (only if profiling says so).** Building
+- [~] **19.3 WASM earcut triangulation (only if profiling says so).** Building
       extrusion leans on JS earcut inside three.js; a WASM earcut can cut
       polygon triangulation 2-5×. But it's a one-time build cost already
       hidden behind 19.1's worker — profile after 19.1, adopt only if the
       worker build still exceeds ~1s on dense cells.
-- [ ] **19.4 Where NOT to use WASM (recorded so we don't relearn it):**
+- [x] **19.4 Where NOT to use WASM (recorded so we don't relearn it):**
       per-frame agent updates (too few agents, crossing the JS↔WASM boundary
       per frame can cost more than it saves), JSON parsing (native parse is
       already C++), gzip (native DecompressionStream), anything GPU-bound.

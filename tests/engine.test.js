@@ -147,6 +147,56 @@ describe('share helpers', () => {
   });
 });
 
+describe('ui helpers', () => {
+  it('formats clock and weather labels', async () => {
+    const { formatClock, formatWeatherLabel } = await import('../lib/ui.js');
+    expect(formatClock(12)).toBe('12:00 PM');
+    expect(formatClock(0)).toBe('12:00 AM');
+    expect(formatClock(18.5)).toBe('6:30 PM');
+    expect(formatWeatherLabel(0)).toBe('Clear sky');
+    expect(formatWeatherLabel(90, 24)).toBe('24°C Rain');
+  });
+});
+
+describe('facade UV (17.5)', () => {
+  it('remaps wall UVs into storefront / window bands', async () => {
+    const THREE = await import('three');
+    const { remapWallUVs, wantsStorefront, STORE_V1, WIN_V0 } = await import('../lib/engine/facade-uv.js');
+    expect(wantsStorefront({ building: 'retail' })).toBe(true);
+    expect(wantsStorefront({ building: 'house' })).toBe(false);
+    const geo = new THREE.BoxGeometry(4, 6.4, 0.2);
+    geo.translate(0, 3.2, 0);
+    remapWallUVs(geo, { base: -1.5, height: 6.4, shopfront: true, seed: 1 });
+    const uv = geo.attributes.uv;
+    expect(uv).toBeTruthy();
+    let minV = 1, maxV = 0;
+    for (let i = 0; i < uv.count; i++) {
+      const v = uv.getY(i);
+      minV = Math.min(minV, v);
+      maxV = Math.max(maxV, v);
+    }
+    expect(minV).toBeLessThan(STORE_V1);
+    expect(maxV).toBeGreaterThan(WIN_V0);
+  });
+});
+
+describe('vehicle controller (18.1)', () => {
+  it('accelerates and steers without entering buildings', async () => {
+    const { createVehicleController } = await import('../lib/engine/street/vehicle.js');
+    const vc = createVehicleController({
+      insideBuilding: () => false,
+      groundHeight: () => 10,
+    });
+    expect(vc.enter({ x: 0, z: 0, heading: 0, speed: 2 }, 0)).toBe(true);
+    const pose = vc.update(0.5, { f: 1, r: 0.2 }, { nearRoad: true });
+    expect(pose.speed).toBeGreaterThan(2);
+    expect(pose.x).not.toBe(0);
+    const exit = vc.exit();
+    expect(vc.active).toBe(false);
+    expect(exit.carIndex).toBe(0);
+  });
+});
+
 describe('city builder core (19.1)', () => {
   it('extrudes a building and returns transferable buffers', async () => {
     const { buildCityGeometry } = await import('../lib/engine/city-builder-core.js');

@@ -245,6 +245,7 @@ export function ControlsPanel({ onClose }) {
     ['V', 'First / third person'],
     ['F', 'Toggle walk / fly'],
     ['H', 'Photo mode (hide HUD · free look)'],
+    ['C', 'Enter / exit nearby traffic car'],
     ['M', 'Fast travel map'],
     ['Tab', 'Expand / collapse the map'],
     ['N', 'Show current location name'],

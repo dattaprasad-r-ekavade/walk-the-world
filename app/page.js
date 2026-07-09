@@ -159,9 +159,9 @@ export default function Home() {
 
   const hintText = walking
     ? hudStatus.locked
-      ? 'WASD move · mouse look · Shift sprint · V view · Tab map · F fly'
-      : 'Click the view to look around · F fly mode · M map'
-    : 'Double-click the ground to land & walk · drag orbit · scroll zoom · M map';
+      ? 'WASD move · mouse look · Shift sprint · V view · Tab map · M travel · H photo'
+      : 'Click the view to look around · WASD walk · M travel · H photo'
+    : 'Double-click the ground to land & walk · drag orbit · scroll zoom · M travel';
 
   return (
     <main>
@@ -185,10 +185,11 @@ export default function Home() {
       {screen === 'menu' && (
         <div className={overlay}>
           <div className={`${menuCard} relative`}>
-            <div className="pointer-events-none absolute -inset-20 -z-10 rounded-full bg-accent/10 blur-3xl" />
+            <div className="pointer-events-none absolute -inset-24 -z-10 rounded-full bg-accent/15 blur-3xl" />
+            <div className="pointer-events-none absolute inset-x-10 top-8 -z-10 h-40 rounded-full bg-sky-500/10 blur-2xl" />
             <div className={menuLogo}>🌍</div>
             <h1 className={menuTitle}>WALK THE WORLD</h1>
-            <p className={menuSub}>An open-world walk across the real Earth</p>
+            <p className={menuSub}>Explore anywhere on Earth</p>
             <div className="mt-8 flex flex-col items-center gap-3">
               <button
                 type="button"
@@ -260,7 +261,7 @@ export default function Home() {
         onGeolocation={goToMyLocation}
         geoBusy={geoBusy}
         walking={walking}
-        modeLabel={walking ? '🚶 ON FOOT' : '✈ FLYING'}
+        modeLabel={walking ? 'On foot' : 'Flying'}
         hintText={hintText}
         photoMode={photoMode}
         passport={passport}

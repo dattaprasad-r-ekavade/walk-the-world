@@ -9,11 +9,10 @@ populated-world system (`lib/engine/population.js`):
 | `bird.glb` | Stork | three.js examples (mirada / ro.me) | CC-BY | [three.js repo](https://github.com/mrdoob/three.js/tree/dev/examples/models/gltf) |
 | `test-cube.glb` | Test cube | generated in-repo | — | — |
 
-Pedestrians currently use the built-in low-poly walker: rigged character GLBs
-(e.g. KayKit's CC0 Adventurers) merge into their T/A bind pose when instanced
-statically, which reads as broken. Swapping them in properly needs the skinned
-instancing planned in Phase 13.1 follow-up. Any *static-posed* character GLB
-uploaded as `pedestrian.glb` will work today.
+Pedestrians use a procedural walk-cycle vertex shader (`lib/engine/ped-walk.js`)
+so built-in instances animate without a Blender VAT bake. Optional
+`pedestrian.glb` still overrides geometry (static material). Full VAT textures
+from OpenVAT remain a drop-in upgrade later.
 
 To replace any of these: upload a `.glb` with the same name at `/editor`
 (models should face +Z; sideways-authored vehicles are auto-rotated).

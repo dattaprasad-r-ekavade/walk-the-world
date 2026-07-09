@@ -150,7 +150,7 @@ export default function Minimap({ lat, lon, heading = 0, height, size = 176, zoo
   return (
     <canvas
       ref={canvasRef}
-      className="rounded-full bg-void-900 shadow-hud"
+      className="rounded-full bg-void-900/90 shadow-hud ring-1 ring-white/15"
       style={{ width: SIZE, height: SIZE }}
     />
   );

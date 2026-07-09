@@ -21,7 +21,7 @@ module.exports = {
         },
         hud: {
           border: 'rgba(120, 160, 255, 0.28)',
-          glass: 'rgba(8, 14, 26, 0.82)',
+          glass: 'rgba(8, 14, 26, 0.72)',
         },
       },
       fontFamily: {
@@ -29,8 +29,9 @@ module.exports = {
         display: ['var(--font-display)', 'system-ui', 'sans-serif'],
       },
       boxShadow: {
-        hud: '0 4px 24px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(120, 160, 255, 0.2)',
-        panel: '0 24px 64px rgba(0, 0, 0, 0.65)',
+        hud: '0 8px 32px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.06)',
+        glass: '0 8px 28px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.06)',
+        panel: '0 28px 80px rgba(0, 0, 0, 0.7)',
         glow: '0 0 40px rgba(90, 150, 255, 0.45)',
       },
       animation: {

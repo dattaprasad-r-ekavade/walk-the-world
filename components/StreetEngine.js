@@ -15,6 +15,7 @@ import { createEnvController } from "@/lib/engine/env-map";
 import { runCityBuilder } from "@/lib/engine/city-builder";
 import { assembleCityFromBuild } from "@/lib/engine/street/assemble-city";
 import { getSimpleStandard } from "@/lib/engine/materials";
+import { createVehicleController } from "@/lib/engine/street/vehicle";
 
 const toolBtn = "rounded bg-white/10 px-2 py-1 hover:bg-white/20";
 const toolBtnPrimary = "rounded bg-emerald-500/80 px-2 py-1 font-semibold text-black hover:bg-emerald-400";
@@ -77,6 +78,7 @@ export default function StreetEngine({ lat0, lon0 }) {
   const [place, setPlace] = useState(null);
   const [bigMap, setBigMap] = useState(false);
   const [liveWx, setLiveWx] = useState(null);
+  const [liveTemp, setLiveTemp] = useState(null);
   const [cityStreaming, setCityStreaming] = useState(false);
   const [mutedUi, setMutedUi] = useState(false);
   const [uiMode, setUiMode] = useState(null); // 'editor' | 'debug' | null
@@ -122,6 +124,7 @@ export default function StreetEngine({ lat0, lon0 }) {
     const r = await engineRef.current.applyRealWeather?.();
     if (r) {
       changeSettingStore({ hour: r.hour, weather: r.weather });
+      setLiveTemp(r.temp);
       setLiveWx(`${r.temp}°C · ${r.rain > 0.05 ? "raining" : "dry"} — synced`);
     } else setLiveWx("unavailable");
   };
@@ -383,6 +386,18 @@ export default function StreetEngine({ lat0, lon0 }) {
     const tileMeshes = []; // {key, mesh} — for live terrain patching
     const tileCanvases = [];
     const { addFootprint, insideBuilding, footprintAt } = createCollision(GRID);
+    const ghRef = { fn: () => 0 };
+    const vehicle = createVehicleController({
+      insideBuilding,
+      groundHeight: (x, z) => ghRef.fn(x, z),
+    });
+    // headlights for night driving
+    const headL = new THREE.SpotLight(0xfff2dd, 0, 48, 0.42, 0.45, 1.2);
+    const headR = new THREE.SpotLight(0xfff2dd, 0, 48, 0.42, 0.45, 1.2);
+    scene.add(headL);
+    scene.add(headR);
+    scene.add(headL.target);
+    scene.add(headR.target);
     let population = null;
     const ambience = createAmbience();
     const groundSource =
@@ -727,6 +742,7 @@ export default function StreetEngine({ lat0, lon0 }) {
             jobs.push(loadTerrainTile(ctx + dx, cty + dy, false));
       await Promise.all(jobs);
       groundHeight = createGroundHeight(terrainTiles);
+      ghRef.fn = groundHeight;
       patchTerrain = createTerrainPatcher(terrainTiles, tileMeshes);
       setReadyPct(55);
     };
@@ -961,8 +977,32 @@ export default function StreetEngine({ lat0, lon0 }) {
       if (editor.mode && (e.code === "Space" || e.code === "KeyC")) e.preventDefault();
       if (fly.photo && (e.code === "Space" || e.code === "KeyC")) e.preventDefault();
       if (e.type === "keydown" && e.code === "KeyV" && !e.repeat) {
-        player.third = !player.third;
-        if (avatar) avatar.visible = player.third;
+        if (!vehicle.active) {
+          player.third = !player.third;
+          if (avatar) avatar.visible = player.third;
+        }
+      }
+      if (e.type === "keydown" && e.code === "KeyC" && !e.repeat && !editor.mode && !fly.photo) {
+        e.preventDefault();
+        if (vehicle.active) {
+          const pose = vehicle.exit();
+          population?.releaseCar?.(pose.carIndex, pose);
+          player.x = pose.x;
+          player.z = pose.z;
+          player.heading = pose.heading;
+          player.third = false;
+          if (avatar) avatar.visible = false;
+          headL.intensity = 0;
+          headR.intensity = 0;
+          ambience.set?.({ engine: 0 });
+        } else if (population?.getNearestCar) {
+          const near = population.getNearestCar(player.x, player.z, 6.5);
+          if (near && population.takeCar(near.index)) {
+            vehicle.enter(near, near.index);
+            player.third = true;
+            if (avatar) avatar.visible = false;
+          }
+        }
       }
       if (e.type === "keydown" && !e.repeat) {
         if (e.code === "KeyE") setMode("editor");
@@ -1187,7 +1227,44 @@ export default function StreetEngine({ lat0, lon0 }) {
         f = 0; r = 0;
       }
       player.moving = editor.mode || fly.photo ? false : !!(f || r);
-      if (player.moving) {
+      if (vehicle.active && !editor.mode && !fly.photo) {
+        const pose = vehicle.update(
+          dt,
+          { f, r },
+          { nearRoad: population?.nearDrivable?.(vehicle.state.x, vehicle.state.z) !== false }
+        );
+        if (pose) {
+          player.x = pose.x;
+          player.z = pose.z;
+          player.heading = pose.heading;
+          population?.setDrivenPose?.(pose.carIndex, pose);
+          const night = (engineRefHour ?? 12) < 6.5 || (engineRefHour ?? 12) >= 19;
+          const hl = night ? 2.4 : 0;
+          headL.intensity = hl;
+          headR.intensity = hl;
+          const fx = pose.x + Math.sin(pose.heading) * 2.2;
+          const fz = pose.z - Math.cos(pose.heading) * 2.2;
+          headL.position.set(pose.x + Math.cos(pose.heading) * 0.6, pose.y + 0.9, pose.z + Math.sin(pose.heading) * 0.6);
+          headR.position.set(pose.x - Math.cos(pose.heading) * 0.6, pose.y + 0.9, pose.z - Math.sin(pose.heading) * 0.6);
+          headL.target.position.set(fx, pose.y + 0.4, fz);
+          headR.target.position.set(fx, pose.y + 0.4, fz);
+          ambience.set?.({ engine: Math.min(1, Math.abs(pose.speed) / 22) });
+          player.moving = Math.abs(pose.speed) > 0.3;
+          if (player.moving) {
+            walkMetersAccum += Math.abs(pose.speed) * dt;
+            if (walkMetersAccum >= 8) {
+              const city =
+                (typeof placeRef.current === "string" && placeRef.current) ||
+                placeRef.current?.text ||
+                "Unknown";
+              recordWalk(walkMetersAccum, city);
+              walkMetersAccum = 0;
+            }
+          }
+        }
+        f = 0;
+        r = 0;
+      } else if (player.moving) {
         const run =
           keys.ShiftLeft || keys.ShiftRight || touch?.sprint ? RUN_MULT : 1;
         const d = WALK_SPEED * run * dt;
@@ -1240,18 +1317,20 @@ export default function StreetEngine({ lat0, lon0 }) {
         }
       }
 
-      if (!editor.mode && !fly.photo && player.third && avatar) {
-        avatar.position.set(player.x, gy, player.z);
-        avatar.rotation.y = -player.heading + Math.PI;
+      if (!editor.mode && !fly.photo && (player.third || vehicle.active)) {
+        if (avatar && !vehicle.active) {
+          avatar.position.set(player.x, gy, player.z);
+          avatar.rotation.y = -player.heading + Math.PI;
+        }
         // chase camera: shorten the boom if it would sit inside a building,
         // and never let it dip below the terrain
-        let back = 7;
+        let back = vehicle.active ? 11 : 7;
         const boomX = () => player.x - Math.sin(player.heading) * back;
         const boomZ = () => player.z + Math.cos(player.heading) * back;
         for (let tries = 0; tries < 3 && insideBuilding(boomX(), boomZ()); tries++) back *= 0.55;
         const cx = boomX(), cz = boomZ();
         const camGround = groundHeight(cx, cz);
-        const cy = Math.max(gy + 3, camGround + 0.6);
+        const cy = Math.max(gy + (vehicle.active ? 4.2 : 3), camGround + 0.6);
         camera.position.set(cx, cy, cz);
         camera.rotation.y = -player.heading;
         camera.rotation.x = -0.22 + player.pitch * 0.4;
@@ -1468,6 +1547,12 @@ export default function StreetEngine({ lat0, lon0 }) {
           return { hour: Math.round(localHour * 2) / 2, weather: Math.round(w), temp: c.temperature_2m, rain: c.precipitation };
         } catch { return null; }
       };
+      // soft-sync HUD status strip once (non-blocking)
+      engineRef.current.applyRealWeather?.().then((r) => {
+        if (!r || disposed) return;
+        changeSettingStore({ hour: r.hour, weather: r.weather });
+        setLiveTemp(r.temp);
+      });
 
       // ---- R2 neighbor prefetch: warm 4 adjacent cells in the background.
       // Reuses fetchCityData so cached cells are ALWAYS full-fidelity (a lean
@@ -1596,7 +1681,8 @@ export default function StreetEngine({ lat0, lon0 }) {
           onRemovePlace={removePlace}
           onGoHome={() => router.push("/")}
           walking
-          modeLabel="🎮 STREET ENGINE"
+          modeLabel="Street"
+          liveTemp={liveTemp}
           hintText={
             photoMode
               ? "PHOTO · WASD fly · click to look · 📸 save · Esc/H exit"
@@ -1605,8 +1691,8 @@ export default function StreetEngine({ lat0, lon0 }) {
               : uiMode === "debug"
               ? "TAG INSPECTOR · WASD fly · RMB look · click a building/road/prop"
               : hudLocked
-              ? "WASD move · mouse look · Shift sprint · V view · Tab map · M travel · H photo · E edit"
-              : "Click the view to capture the mouse · WASD to walk · M travel · H photo · E edit · B tags"
+              ? "WASD move · mouse look · Shift sprint · C enter/exit car · V view · M travel · H photo"
+              : "Click to capture mouse · WASD walk · C enter car · M travel · H photo"
           }
           hudRef={hudDomRef}
           coordsFallback={{ lat: lat0, lon: lon0 }}
