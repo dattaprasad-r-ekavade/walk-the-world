@@ -1628,6 +1628,8 @@ export default function StreetEngine({ lat0, lon0 }) {
         insideBuilding,
         groundHeight,
         propMarkers: () => engineRef.current.propMarkers || [],
+        nameplates: () => population?.getNameplateStats?.(player) || [],
+        tickPopulation: () => population?.update?.(1 / 60, player, engineRefHour, false),
         fly,
         setTime: (h) => engineRef.current.setTime?.(h),
         pickAt: (cx, cy) => {
