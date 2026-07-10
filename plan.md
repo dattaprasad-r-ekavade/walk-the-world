@@ -441,3 +441,38 @@ nothing. Where it DOES pay:
 
 Order: 19.1 with/before 10.1 streaming; 19.2 lands with Phase 18; 19.3 only
 after profiling.
+
+
+## Phase 20 — Field fixes & hardening (done, post-13..19 drop)
+
+Changes landed while reviewing/hardening the big feature drop:
+
+- [x] **20.1 GLB external textures.** Kenney models reference
+      `Textures/colormap.png` externally → 404 → untextured traffic. GLTFLoader
+      LoadingManager now flattens relative resource URLs to
+      `/api/assets/<basename>`; asset API accepts/serves png/jpg/webp/bin;
+      `colormap.png` uploaded to R2 (CREDITS updated).
+- [x] **20.2 Seed catalog + resumable warm script.** `lib/seedPlaces.js`
+      (Indian cities, Goa, world capitals, 7 wonders + fast travel = 88 places
+      / 440 cells ≈ 19 MB) and warm-cities flags `--list/--group/--budget/
+      --state/--conc` + server pre-flight; `npm run seed / seed:list /
+      seed:local`. Cloudflare CORS + Cache Rule validated live
+      (allow-origin present; MISS → HIT).
+- [x] **20.3 Map-screen UI pass.** Syne → Outfit (standard fonts only);
+      top-center toast lane collision fixed (streaming toast → bottom,
+      where-am-I hint below top bar, notifications own z-60); z-lane contract
+      documented in lib/ui.js; minimap trail gets dark casing for white tiles.
+- [x] **20.4 Vehicle heading conversion.** Walk 0 = −Z vs car 0 = +Z is a
+      MIRROR (π − h), not a π offset — fixed in exit(), drive-loop HUD
+      heading, releaseCar. Verified headless (enter/throttle/steer/exit).
+- [x] **20.5 London bugs.** (a) Cars no longer teleport at way-ends (median
+      London drivable way = 45 m): continue onto connected way ≤18 m, U-turn
+      at dead ends, last-resort respawn ≥120 m from player. (b) Facade
+      z-shimmer: camera near 0.1 → 0.35 (3.5× depth precision). (c) Stacked
+      duplicate footprints deduped by signature in the city builder.
+- [x] **20.6 A/D steering direction.** +heading turns toward +X = LEFT of
+      +Z-forward, so D must decrease heading — steering negated in vehicle.js.
+- [x] **20.7 Working-tree corruption recovery.** Mount sync truncated 5 files
+      (incl. overpassServer.js, unparseable) after the last commit; restored
+      from HEAD. Rule of thumb recorded: after committing on this machine,
+      `node --check` recently-edited files — trust the repo over the disk.
