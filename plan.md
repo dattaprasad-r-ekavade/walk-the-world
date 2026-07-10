@@ -153,8 +153,8 @@ with real caching.
 
 ## Phase 10 — Ambitious ideas (pick the ones that spark)
 
-- [~] 10.1 **Seamless world streaming** — walk forever; neighbor cells stream
-      in/out (needs 8.8 LODs). The single biggest "wow".
+- [x] 10.1 **Seamless world streaming** — walk forever; neighbor cells stream
+      in/out (R2-first via `fetchCityDataNear` + per-cell assemble/evict).
 - [~] 10.2 **Time machine** — OSM has history; Overture has releases. Slider
       that rebuilds the same street from 2015 vs today's data.
 - [~] 10.3 **Live layer** — OpenSky aircraft overhead with real flight

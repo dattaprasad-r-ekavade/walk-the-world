@@ -14,6 +14,7 @@ import { whereAmIRound } from "@/lib/daily";
 import { createEnvController } from "@/lib/engine/env-map";
 import { runCityBuilder } from "@/lib/engine/city-builder";
 import { assembleCityFromBuild } from "@/lib/engine/street/assemble-city";
+import { createCellStreamer } from "@/lib/engine/street/cell-stream";
 import { getSimpleStandard } from "@/lib/engine/materials";
 import { createVehicleController } from "@/lib/engine/street/vehicle";
 import { createPostFx } from "@/lib/engine/post-fx";
@@ -426,7 +427,7 @@ export default function StreetEngine({ lat0, lon0 }) {
     const terrainTiles = new Map();
     const tileMeshes = []; // {key, mesh} — for live terrain patching
     const tileCanvases = [];
-    const { addFootprint, insideBuilding, footprintAt } = createCollision(GRID);
+    const { addFootprint, insideBuilding, footprintAt, removeFootprintsByCell } = createCollision(GRID);
     const ghRef = { fn: () => 0 };
     const vehicle = createVehicleController({
       insideBuilding,
@@ -972,6 +973,7 @@ export default function StreetEngine({ lat0, lon0 }) {
           lon0,
           spinners,
           lampGlows,
+          cellKey: cityCacheKey(lat0, lon0),
         });
       } catch (e) {
         console.warn("[street] city build failed:", e?.message || e);
@@ -1437,6 +1439,8 @@ export default function StreetEngine({ lat0, lon0 }) {
       {
         const g = toGeo(player.x, player.z);
         posRef.current = { lat: g.lat, lon: g.lon, heading: player.heading, height: gy + 2 };
+        // Stream neighbor city cells as the player walks (~every 0.5s).
+        if (hudTick % 30 === 0) engineRef.current.cellStreamer?.tick(g.lat, g.lon);
         // 10.5: trail + elevation climbed (live buffer — no React churn)
         if (++trailTick % 8 === 0 && player.moving) {
           trailRef.current?.push(g.lat, g.lon);
@@ -1619,6 +1623,39 @@ export default function StreetEngine({ lat0, lon0 }) {
       }
       setStage(cityData ? "Ready" : "Ready (terrain only)");
 
+      // ---- Walk-time cell streaming: assemble neighbor cells as the player
+      // crosses ~650 m boundaries (R2 warm hits are ~1–2s; cold Overpass slower).
+      const cellStreamer = createCellStreamer({
+        scene,
+        lat0,
+        lon0,
+        toLocal,
+        groundHeight,
+        addFootprint,
+        insideBuilding,
+        removeFootprintsByCell,
+        tileCanvases,
+        engineRef,
+        player,
+        terrainTiles,
+        isDisposed: () => disposed,
+        onLoading: (n) => {
+          if (disposed) return;
+          if (n > 0) {
+            setCityStreaming(true);
+            setStage("Loading neighborhood…");
+          } else {
+            setCityStreaming(false);
+            setStage("Ready");
+          }
+        },
+        maxCells: 9,
+      });
+      cellStreamer.markLoaded(cityCacheKey(lat0, lon0), lat0, lon0);
+      engineRef.current.cellStreamer = cellStreamer;
+      // Kick off the ring of neighbors immediately (don't wait 10s).
+      cellStreamer.tick(lat0, lon0);
+
       // ---- live weather & time (Open-Meteo, keyless) ----
       engineRef.current.applyRealWeather = async () => {
         try {
@@ -1645,23 +1682,6 @@ export default function StreetEngine({ lat0, lon0 }) {
         setLiveTemp(r.temp);
       });
 
-      // ---- R2 neighbor prefetch: warm 4 adjacent cells in the background.
-      // Reuses fetchCityData so cached cells are ALWAYS full-fidelity (a lean
-      // prefetch query would poison the shared cache with partial data). ----
-      setTimeout(async () => {
-        const D = 0.0055;
-        const cells = [[lat0 + D, lon0], [lat0 - D, lon0], [lat0, lon0 + D], [lat0, lon0 - D]];
-        const CONCURRENCY = 2;
-        let i = 0;
-        const worker = async () => {
-          while (i < cells.length && !disposed) {
-            const idx = i++;
-            const [la, lo] = cells[idx];
-            try { await fetchCityData(la, lo); } catch { /* best effort */ }
-          }
-        };
-        await Promise.all(Array.from({ length: CONCURRENCY }, worker));
-      }, 10000);
       window.__streetDebug = {
         player,
         insideBuilding,
@@ -1734,6 +1754,7 @@ export default function StreetEngine({ lat0, lon0 }) {
       postFx?.dispose();
       ambience.dispose();
       envCtrl.dispose();
+      engineRef.current.cellStreamer?.dispose?.();
       renderer.dispose();
       mount.removeChild(renderer.domElement);
     };
