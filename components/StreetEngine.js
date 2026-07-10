@@ -87,6 +87,7 @@ export default function StreetEngine({ lat0, lon0 }) {
   const [liveTemp, setLiveTemp] = useState(null);
   const [cityStreaming, setCityStreaming] = useState(false);
   const [mutedUi, setMutedUi] = useState(false);
+  const [liveHud, setLiveHud] = useState({ fps: 0, elev: null });
   const [uiMode, setUiMode] = useState(null); // 'editor' | 'debug' | null
   const [debugSel, setDebugSel] = useState(null);
   const [tagDraft, setTagDraft] = useState("");
@@ -1472,6 +1473,12 @@ export default function StreetEngine({ lat0, lon0 }) {
           locked: document.pointerLockElement === canvas,
           third: player.third,
         });
+        // GameShell reads React `status.fps` — keep it in sync (data-hud-fps is gone).
+        setLiveHud((prev) =>
+          prev.fps === fpsVal && prev.elev === Math.round(gy)
+            ? prev
+            : { fps: fpsVal, elev: Math.round(gy) }
+        );
       }
     };
 
@@ -1768,9 +1775,9 @@ export default function StreetEngine({ lat0, lon0 }) {
     lon: lon0,
     heading: 0,
     height: 200,
-    fps: 0,
+    fps: liveHud.fps,
     locked: hudLocked,
-    elevation: null,
+    elevation: liveHud.elev,
   };
 
   return (
