@@ -24,9 +24,10 @@ Ambient music uses a synthesized day/night pad by default (no external files).
 Optional CC0 loops can be dropped at `public/audio/day.ogg` and
 `public/audio/night.ogg` — the ambience system picks them up automatically.
 
-| Asset | Notes | License | Suggested sources |
-|---|---|---|---|
-| `day.ogg` / `night.ogg` (optional) | Loopable exploration beds | Prefer CC0 | [Pixabay Music](https://pixabay.com/music/search/cc0/), [OpenGameArt CC0](https://opengameart.org/content/cc0-music-0), Kenney audio packs |
+| Asset | Track | Author | License | Source |
+|---|---|---|---|---|
+| `day.ogg` | Ambient Relaxing Loop | isaiah658 | CC0 (no attribution required) | [OpenGameArt](https://opengameart.org/content/ambient-relaxing-loop) |
+| `night.ogg` | Nighttime Solitude | celestialghost8 | CC0 | [OpenGameArt](https://opengameart.org/content/nighttime-solitude) |
 
 ## Imagery
 
