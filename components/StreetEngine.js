@@ -1652,6 +1652,7 @@ export default function StreetEngine({ lat0, lon0 }) {
         maxCells: 9,
       });
       cellStreamer.markLoaded(cityCacheKey(lat0, lon0), lat0, lon0);
+      cellStreamer.noteSpawnElements?.(cityData?.elements);
       engineRef.current.cellStreamer = cellStreamer;
       // Kick off the ring of neighbors immediately (don't wait 10s).
       cellStreamer.tick(lat0, lon0);
