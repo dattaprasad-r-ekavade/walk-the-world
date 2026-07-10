@@ -1301,8 +1301,9 @@ export default function StreetEngine({ lat0, lon0 }) {
         if (pose) {
           player.x = pose.x;
           player.z = pose.z;
-          // Keep walk heading for HUD/minimap; car mesh uses pose.heading (+Z)
-          player.heading = pose.heading + Math.PI;
+          // Keep walk heading for HUD/minimap; car mesh uses pose.heading (+Z).
+          // Conversion is a MIRROR (walk 0 = −Z, car 0 = +Z), not a π offset.
+          player.heading = Math.PI - pose.heading;
           player.pitch = 0;
           population?.setDrivenPose?.(pose.carIndex, pose);
           const night = (engineRefHour ?? 12) < 6.5 || (engineRefHour ?? 12) >= 19;
@@ -1665,6 +1666,8 @@ export default function StreetEngine({ lat0, lon0 }) {
         groundHeight,
         propMarkers: () => engineRef.current.propMarkers || [],
         nameplates: () => population?.getNameplateStats?.(player) || [],
+        vehicle,
+        population: () => population,
         tickPopulation: () => population?.update?.(1 / 60, player, engineRefHour, false),
         fly,
         setTime: (h) => engineRef.current.setTime?.(h),
