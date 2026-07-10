@@ -8,6 +8,7 @@ populated-world system (`lib/engine/population.js`):
 | `car.glb` | Vehicle Truck (red) | Kenney | CC0 1.0 | [Starter Kit Racing](https://github.com/KenneyNL/Starter-Kit-Racing) |
 | `bird.glb` | Stork | three.js examples (mirada / ro.me) | CC-BY | [three.js repo](https://github.com/mrdoob/three.js/tree/dev/examples/models/gltf) |
 | `test-cube.glb` | Test cube | generated in-repo | — | — |
+| `colormap.png` | Shared texture for the Kenney vehicle GLBs | Kenney | CC0 1.0 | [Starter Kit Racing](https://github.com/KenneyNL/Starter-Kit-Racing) |
 
 Pedestrians use a procedural walk-cycle vertex shader (`lib/engine/ped-walk.js`)
 so built-in instances animate without a Blender VAT bake. Optional

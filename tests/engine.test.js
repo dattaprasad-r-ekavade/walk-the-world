@@ -127,7 +127,7 @@ describe('where-am-i round (15.5)', () => {
 describe('ground tiles (17.4)', () => {
   it('builds osm and esri urls', async () => {
     const { groundTileUrl } = await import('../lib/engine/ground-tiles.js');
-    expect(groundTileUrl('osm', 15, 10, 20)).toContain('openstreetmap.org/15/10/20');
+    expect(groundTileUrl('osm', 15, 10, 20)).toContain('voyager_nolabels/15/10/20');
     expect(groundTileUrl('satellite', 15, 10, 20)).toContain('World_Imagery');
     expect(groundTileUrl('satellite', 15, 10, 20)).toContain('/15/20/10');
   });

@@ -8,7 +8,7 @@ export const runtime = "nodejs";
 export const maxDuration = 60;
 
 const PUBLIC_BASE = process.env.NEXT_PUBLIC_R2_PUBLIC_BASE || "";
-const NAME_RE = /^[a-zA-Z0-9._-]{1,80}\.(glb|gltf)$/;
+const NAME_RE = /^[a-zA-Z0-9._-]{1,80}\.(glb|gltf|png|jpg|jpeg|webp|bin)$/;
 
 export async function GET() {
   if (!isConfigured()) return NextResponse.json({ error: "r2 not configured" }, { status: 501 });
@@ -32,6 +32,11 @@ export async function POST(req) {
   if (!buf.length || buf.length > 30_000_000) {
     return NextResponse.json({ error: "empty or >30MB" }, { status: 400 });
   }
-  await uploadBinary(`assets/${name}`, buf, "model/gltf-binary");
+    const ct = name.endsWith(".png") ? "image/png"
+    : /\.jpe?g$/.test(name) ? "image/jpeg"
+    : name.endsWith(".webp") ? "image/webp"
+    : name.endsWith(".bin") ? "application/octet-stream"
+    : "model/gltf-binary";
+  await uploadBinary(`assets/${name}`, buf, ct);
   return NextResponse.json({ ok: true, url: `/api/assets/${name}` });
 }

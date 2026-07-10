@@ -533,7 +533,16 @@ export default function StreetEngine({ lat0, lon0 }) {
         else outlineLine.visible = false;
       }
     };
-    const gltfLoader = new GLTFLoader();
+    // GLBs with external resources (e.g. Kenney's Textures/colormap.png)
+    // resolve relative to the model URL — flatten every relative request to
+    // the asset library so textures load from /api/assets/<basename>
+    const gltfManager = new THREE.LoadingManager();
+    gltfManager.setURLModifier((url) => {
+      if (/^(https?:|\/|data:|blob:)/.test(url)) return url;
+      const base = url.split("/").pop();
+      return `/api/assets/${base}`;
+    });
+    const gltfLoader = new GLTFLoader(gltfManager);
     const loadGLB = (url) =>
       new Promise((res, rej) => gltfLoader.load(url, (g) => res(g.scene), undefined, rej));
     const placeAsset = async (entry, record) => {
