@@ -367,3 +367,59 @@ describe('env map (17.2)', () => {
     expect(c.height).toBe(256);
   });
 });
+
+describe('cell-clip ownership', () => {
+  it('keeps corridors unclipped and buildings by tile ownership', async () => {
+    const {
+      clipElementsToCell,
+      takeUnseenElements,
+      forgetElementIds,
+      CELL_STEP,
+    } = await import('../lib/engine/cell-clip.js');
+    const lat0 = 18.52;
+    const lon0 = 73.855;
+    const els = [
+      {
+        type: 'way',
+        id: 1,
+        tags: { highway: 'primary' },
+        geometry: [
+          { lat: lat0 + CELL_STEP, lon: lon0 },
+          { lat: lat0 + CELL_STEP * 2, lon: lon0 },
+        ],
+      },
+      {
+        type: 'way',
+        id: 2,
+        tags: { building: 'yes' },
+        geometry: [
+          { lat: lat0 + 0.0001, lon: lon0 },
+          { lat: lat0 + 0.0002, lon: lon0 },
+          { lat: lat0 + 0.0002, lon: lon0 + 0.0001 },
+        ],
+      },
+      {
+        type: 'way',
+        id: 3,
+        tags: { building: 'yes' },
+        geometry: [
+          { lat: lat0 + CELL_STEP, lon: lon0 },
+          { lat: lat0 + CELL_STEP + 0.0001, lon: lon0 },
+        ],
+      },
+    ];
+    const owned = clipElementsToCell(els, lat0, lon0);
+    expect(owned.some((e) => e.id === 1)).toBe(true);
+    expect(owned.some((e) => e.id === 2)).toBe(true);
+    expect(owned.some((e) => e.id === 3)).toBe(false);
+
+    const seen = new Set();
+    const first = takeUnseenElements(owned, seen);
+    expect(first.elements.length).toBe(2);
+    const again = takeUnseenElements(owned, seen);
+    expect(again.elements.length).toBe(0);
+    forgetElementIds(first.ids, seen);
+    const afterForget = takeUnseenElements(owned, seen);
+    expect(afterForget.elements.length).toBe(2);
+  });
+});

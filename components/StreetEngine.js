@@ -15,6 +15,7 @@ import { createEnvController } from "@/lib/engine/env-map";
 import { runCityBuilder } from "@/lib/engine/city-builder";
 import { assembleCityFromBuild } from "@/lib/engine/street/assemble-city";
 import { createCellStreamer } from "@/lib/engine/street/cell-stream";
+import { clipElementsToCell } from "@/lib/engine/cell-clip";
 import { getSimpleStandard } from "@/lib/engine/materials";
 import { createVehicleController } from "@/lib/engine/street/vehicle";
 import { createPostFx } from "@/lib/engine/post-fx";
@@ -782,6 +783,7 @@ export default function StreetEngine({ lat0, lon0 }) {
     let avatar = null;
     let running = true;
     let hudDom = null;
+    const terrainLoading = new Set();
     const loadTerrain = async () => {
       setStage("Streaming terrain…"); setReadyPct(15);
       const ctx = Math.floor(lon2tx(lon0, Z));
@@ -810,6 +812,9 @@ export default function StreetEngine({ lat0, lon0 }) {
       });
 
     const loadTerrainTile = async (tx, ty, isCenter) => {
+      const tKey = `${tx}/${ty}`;
+      if (terrainTiles.has(tKey) || terrainLoading.has(tKey)) return;
+      terrainLoading.add(tKey);
       try {
         const img = await loadImage(
           `https://s3.amazonaws.com/elevation-tiles-prod/terrarium/${Z}/${tx}/${ty}.png`
@@ -834,7 +839,7 @@ export default function StreetEngine({ lat0, lon0 }) {
         const lonL = tx2lon(tx, Z), lonR = tx2lon(tx + 1, Z);
         const tl = toLocal(latT, lonL), br = toLocal(latB, lonR);
         const sizeX = br.x - tl.x, sizeZ = br.z - tl.z;
-        terrainTiles.set(`${tx}/${ty}`, { heights, n: N, x0: tl.x, z0: tl.z, sizeX, sizeZ });
+        terrainTiles.set(tKey, { heights, n: N, x0: tl.x, z0: tl.z, sizeX, sizeZ });
 
         // geometry
         const geo = new THREE.PlaneGeometry(sizeX, sizeZ, N - 1, N - 1);
@@ -925,7 +930,7 @@ export default function StreetEngine({ lat0, lon0 }) {
         });
         const mesh = new THREE.Mesh(geo, terrMat);
         mesh.receiveShadow = true;
-        tileMeshes.push({ key: `${tx}/${ty}`, mesh });
+        tileMeshes.push({ key: tKey, mesh });
         mesh.position.set(tl.x + sizeX / 2, 0, tl.z + sizeZ / 2);
         scene.add(mesh);
         if (geo.userData.skirt) {
@@ -939,18 +944,24 @@ export default function StreetEngine({ lat0, lon0 }) {
         }
       } catch {
         /* tile failed; hole in the far terrain, fine */
+      } finally {
+        terrainLoading.delete(tKey);
       }
     };
 
     // ---- buildings + roads (Worker geometry + main-thread assemble) ----
     const loadCity = async (data) => {
       if (!data?.elements?.length) return;
-      setStage(`Building city (${data.elements.length} features)…`);
+      // Ownership clip: keep all corridors from the fetch; buildings/props
+      // only inside the spawn tile so neighbors can own the rest.
+      const elements = clipElementsToCell(data.elements, lat0, lon0);
+      if (!elements.length) return;
+      setStage(`Building city (${elements.length} features)…`);
       setReadyPct((p) => Math.max(p, 60));
       try {
         if (disposed) return;
         const built = await runCityBuilder({
-          elements: data.elements,
+          elements,
           lat0,
           lon0,
           terrainTiles,
@@ -978,6 +989,20 @@ export default function StreetEngine({ lat0, lon0 }) {
         });
       } catch (e) {
         console.warn("[street] city build failed:", e?.message || e);
+      }
+    };
+
+    /** Stream Terrarium + ground imagery as the player leaves the spawn 3×3. */
+    const ensureTerrainAround = (lat, lon) => {
+      const ctx = Math.floor(lon2tx(lon, Z));
+      const cty = Math.floor(lat2ty(lat, Z));
+      for (let dx = -1; dx <= 1; dx++) {
+        for (let dy = -1; dy <= 1; dy++) {
+          const tx = ctx + dx;
+          const ty = cty + dy;
+          if (terrainTiles.has(`${tx}/${ty}`)) continue;
+          loadTerrainTile(tx, ty, false).catch(() => {});
+        }
       }
     };
 
@@ -1440,8 +1465,11 @@ export default function StreetEngine({ lat0, lon0 }) {
       {
         const g = toGeo(player.x, player.z);
         posRef.current = { lat: g.lat, lon: g.lon, heading: player.heading, height: gy + 2 };
-        // Stream neighbor city cells as the player walks (~every 0.5s).
-        if (hudTick % 30 === 0) engineRef.current.cellStreamer?.tick(g.lat, g.lon);
+        // Stream neighbor city cells + terrain as the player walks (~every 0.5s).
+        if (hudTick % 30 === 0) {
+          engineRef.current.cellStreamer?.tick(g.lat, g.lon);
+          ensureTerrainAround(g.lat, g.lon);
+        }
         // 10.5: trail + elevation climbed (live buffer — no React churn)
         if (++trailTick % 8 === 0 && player.moving) {
           trailRef.current?.push(g.lat, g.lon);
