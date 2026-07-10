@@ -249,8 +249,10 @@ export default function StreetEngine({ lat0, lon0 }) {
     scene.background = new THREE.Color(0x9cc4e8);
     // Exp2 fog reads more natural at distance; near/far tuned in applySky
     scene.fog = new THREE.FogExp2(0x9cc4e8, 0.00055);
+    // near 0.35 (not 0.1): with far=6000 the depth-buffer ratio drops 3.5×,
+    // which stops distant facades z-shimmering (London's long straight rows)
     const camera = new THREE.PerspectiveCamera(
-      70, mount.clientWidth / mount.clientHeight, 0.1, 6000
+      70, mount.clientWidth / mount.clientHeight, 0.35, 6000
     );
     camera.rotation.order = "YXZ";
 
