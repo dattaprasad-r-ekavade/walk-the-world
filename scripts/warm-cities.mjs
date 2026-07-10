@@ -89,7 +89,7 @@ async function worker() {
     const t0 = Date.now();
     try {
       const res = await fetch(`${BASE}/api/city/${k}`, {
-        signal: AbortSignal.timeout(110_000),
+        signal: AbortSignal.timeout(300_000),
       });
       const secs = ((Date.now() - t0) / 1000).toFixed(1);
       if (res.ok) {
@@ -98,13 +98,17 @@ async function worker() {
         done.add(k);
         saveState();
         console.log(`✓ ${name.padEnd(16)} ${k}  ${d.elements?.length ?? 0} elements  ${secs}s`);
+        // Brief pause so public Overpass mirrors don't rate-limit the next cell.
+        await new Promise((r) => setTimeout(r, 12000));
       } else {
         fail++;
         console.log(`✗ ${name.padEnd(16)} ${k}  HTTP ${res.status}  ${secs}s`);
+        await new Promise((r) => setTimeout(r, 30000));
       }
     } catch (e) {
       fail++;
       console.log(`✗ ${name.padEnd(16)} ${k}  ${e?.message}`);
+      await new Promise((r) => setTimeout(r, 30000));
       if (String(e?.message).includes("fetch failed") && ++connFails > 5) {
         console.log("too many connection failures — server gone, stopping (state kept)");
         return;

@@ -37,10 +37,13 @@ export async function GET(_req, { params }) {
 
     const data = await fetchOverpassCell(coords.lat, coords.lon);
     const body = JSON.stringify(data);
+    // Await upload so seed/cold-miss responses only succeed after R2 has the cell.
     if (isConfigured()) {
-      uploadObject(`${key}.json`, body).catch((e) =>
-        console.warn("[r2] city upload failed:", e?.message)
-      );
+      try {
+        await uploadObject(`${key}.json`, body);
+      } catch (e) {
+        console.warn("[r2] city upload failed:", e?.message);
+      }
     }
     return new NextResponse(body, {
       status: 200,
