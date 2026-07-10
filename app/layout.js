@@ -1,5 +1,5 @@
 import { Suspense } from 'react';
-import { Outfit, Syne } from 'next/font/google';
+import { Outfit } from 'next/font/google';
 import './globals.css';
 import { Providers } from '@/components/Providers';
 
@@ -9,8 +9,11 @@ const outfit = Outfit({
   display: 'swap',
 });
 
-const syne = Syne({
+// Standard font for display contexts too (no decorative faces) — titles
+// keep their weight/tracking so they still read as a wordmark.
+const displayFont = Outfit({
   subsets: ['latin'],
+  weight: ['600', '700', '800'],
   variable: '--font-display',
   display: 'swap',
 });
@@ -22,7 +25,7 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" className={`${outfit.variable} ${syne.variable}`}>
+    <html lang="en" className={`${outfit.variable} ${displayFont.variable}`}>
       <body className="font-sans">
         <Providers>
           <Suspense fallback={null}>{children}</Suspense>

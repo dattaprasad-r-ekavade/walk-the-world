@@ -326,8 +326,8 @@ export function GameShell({
       )}
 
       {whereAmI && !whereAmI.revealed && screen === 'play' && (
-        <div className="pointer-events-none absolute inset-x-0 top-6 z-30 flex justify-center">
-          <p className="rounded-full border border-white/15 bg-slate-950/75 px-4 py-1.5 text-xs text-slate-200 backdrop-blur">
+        <div className="pointer-events-none absolute inset-x-0 top-16 z-30 flex justify-center">
+          <p className="rounded-full border border-black/40 bg-[rgba(11,18,32,0.92)] px-4 py-1.5 text-xs text-slate-200 shadow-[0_4px_16px_rgba(0,0,0,0.45)] backdrop-blur">
             Where am I? · look around · pick a city below
           </p>
         </div>

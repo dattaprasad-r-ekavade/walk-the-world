@@ -151,10 +151,15 @@ export default function Minimap({
             } else ctx.lineTo(pt.x, pt.y);
           }
           if (started) {
-            ctx.strokeStyle = "rgba(255,215,94,0.85)";
-            ctx.lineWidth = 2.2;
+            // dark casing first so the amber trail stays readable over
+            // white map tiles (snow, empty land, bright buildings)
+            ctx.strokeStyle = "rgba(10,16,28,0.7)";
+            ctx.lineWidth = 4.2;
             ctx.lineJoin = "round";
             ctx.lineCap = "round";
+            ctx.stroke();
+            ctx.strokeStyle = "rgba(255,215,94,0.95)";
+            ctx.lineWidth = 2.2;
             ctx.stroke();
           }
         }

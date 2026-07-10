@@ -1846,7 +1846,7 @@ export default function StreetEngine({ lat0, lon0 }) {
       )}
 
       {readyPct >= 100 && cityStreaming && !photoMode && (
-        <div className="pointer-events-none absolute left-1/2 top-4 z-20 -translate-x-1/2 rounded-full border border-white/15 bg-slate-950/80 px-4 py-1.5 text-xs text-slate-200 backdrop-blur">
+        <div className="pointer-events-none absolute bottom-24 left-1/2 z-20 -translate-x-1/2 rounded-full border border-black/40 bg-[rgba(11,18,32,0.92)] px-4 py-1.5 text-xs text-slate-200 shadow-[0_4px_16px_rgba(0,0,0,0.45)] backdrop-blur">
           <span className="mr-2 inline-block h-2 w-2 animate-pulse rounded-full bg-emerald-400 align-middle" />
           {stage}
         </div>
