@@ -14,3 +14,5 @@ pat.txt
 .env*.local
 /output
 
+
+warm-state.json
