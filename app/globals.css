@@ -6,11 +6,43 @@
   html,
   body {
     @apply h-full w-full overflow-hidden bg-void text-slate-100 antialiased;
+    color-scheme: dark;
   }
 
   main {
     @apply relative h-screen w-screen;
   }
+}
+
+@layer base {
+  :focus-visible {
+    outline: 2px solid #76f7d2;
+    outline-offset: 3px;
+  }
+
+  button,
+  a,
+  input,
+  textarea {
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+.world-vignette {
+  background:
+    radial-gradient(circle at 50% 45%, transparent 34%, rgba(2, 7, 13, 0.38) 100%),
+    linear-gradient(180deg, rgba(4, 12, 22, 0.08), rgba(4, 12, 22, 0.32));
 }
 
 /* Cesium viewer chrome */

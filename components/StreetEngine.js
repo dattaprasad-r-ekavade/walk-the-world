@@ -36,6 +36,7 @@ import { useGameKeyboard } from "@/hooks/use-game-keyboard";
 import { touchInputRef, readTouchMovement, applyTouchLook } from "@/lib/touch-input";
 import { menuBtnPrimary } from "@/lib/ui";
 import { copyText, streetShareUrl, downloadCanvasPng, photoFilename } from "@/lib/share";
+import { summarizeCityElements } from "@/lib/world-repair";
 
 // ============================================================
 // Street Engine — custom Three.js renderer for street-level
@@ -96,6 +97,7 @@ export default function StreetEngine({ lat0, lon0 }) {
   const [editorMsg, setEditorMsg] = useState(null);
   const [brushRadius, setBrushRadius] = useState(12);
   const [shareToast, setShareToast] = useState(null);
+  const [worldSummary, setWorldSummary] = useState(null);
   const placeRef = useRef(null);
 
   useEffect(() => {
@@ -543,8 +545,9 @@ export default function StreetEngine({ lat0, lon0 }) {
     // the asset library so textures load from /api/assets/<basename>
     const gltfManager = new THREE.LoadingManager();
     gltfManager.setURLModifier((url) => {
-      if (/^(https?:|\/|data:|blob:)/.test(url)) return url;
-      const base = url.split("/").pop();
+      if (/^(https?:|data:|blob:)/.test(url)) return url;
+      if (url.startsWith("/") && !url.startsWith("/api/assets/")) return url;
+      const base = url.split(/[/?#]/).filter(Boolean).pop();
       return `/api/assets/${base}`;
     });
     const gltfLoader = new GLTFLoader(gltfManager);
@@ -1527,6 +1530,7 @@ export default function StreetEngine({ lat0, lon0 }) {
       setCityStreaming(true);
       setStage("Streaming city…");
       const cityData = await cityDataPromise;
+      if (!disposed) setWorldSummary(summarizeCityElements(cityData?.elements || []));
       const edits = (await editsPromise) || {};
       engineRef.current.edits = edits;
       engineRef.current.editsKey = editsKey;
@@ -1678,7 +1682,7 @@ export default function StreetEngine({ lat0, lon0 }) {
           if (disposed) return;
           if (n > 0) {
             setCityStreaming(true);
-            setStage("Loading neighborhood…");
+            setStage("Streaming nearby streets · keep exploring");
           } else {
             setCityStreaming(false);
             setStage("Ready");
@@ -1812,7 +1816,7 @@ export default function StreetEngine({ lat0, lon0 }) {
     <main>
       <div ref={mountRef} className="cesium-container" />
       {readyPct < 100 && (
-        <LoadingScreen logo="🎮" title="STREET ENGINE" pct={readyPct} stage={stage} />
+        <LoadingScreen title="STREET ENGINE" pct={readyPct} stage={stage} />
       )}
 
       {readyPct >= 100 && (
@@ -1841,6 +1845,7 @@ export default function StreetEngine({ lat0, lon0 }) {
           walking
           modeLabel="Street"
           liveTemp={liveTemp}
+          worldSummary={worldSummary}
           hintText={
             photoMode
               ? "PHOTO · WASD fly · click to look · 📸 save · Esc/H exit"
@@ -1908,7 +1913,7 @@ export default function StreetEngine({ lat0, lon0 }) {
       )}
 
       {readyPct >= 100 && cityStreaming && !photoMode && (
-        <div className="pointer-events-none absolute bottom-24 left-1/2 z-20 -translate-x-1/2 rounded-full border border-black/40 bg-[rgba(11,18,32,0.92)] px-4 py-1.5 text-xs text-slate-200 shadow-[0_4px_16px_rgba(0,0,0,0.45)] backdrop-blur">
+        <div className="pointer-events-none absolute left-1/2 top-28 z-20 max-w-[70vw] -translate-x-1/2 whitespace-nowrap rounded-full border border-mint/20 bg-[rgba(6,15,25,0.9)] px-4 py-1.5 text-[11px] text-slate-300 shadow-[0_8px_28px_rgba(0,0,0,0.45)] backdrop-blur sm:bottom-24 sm:top-auto sm:text-xs">
           <span className="mr-2 inline-block h-2 w-2 animate-pulse rounded-full bg-emerald-400 align-middle" />
           {stage}
         </div>
@@ -1916,38 +1921,42 @@ export default function StreetEngine({ lat0, lon0 }) {
 
       {readyPct >= 100 && !photoMode && (
         <div className="absolute bottom-32 right-4 z-20 flex flex-col items-end gap-2">
-          <button
-            type="button"
-            onClick={() => engineRef.current.setMode?.("editor")}
-            className={`rounded-lg border px-3 py-2 text-xs font-semibold backdrop-blur transition-colors ${
-              uiMode === "editor"
-                ? "border-emerald-400 bg-emerald-500/80 text-black"
-                : "border-white/15 bg-slate-950/70 text-slate-200 hover:bg-slate-800/80"
-            }`}
-            title="Map editor (E): place assets, sculpt terrain, hide broken features"
-          >
-            🛠 Edit <kbd className="ml-1 opacity-60">E</kbd>
-          </button>
+          {settings.developerMode && (
+            <button
+              type="button"
+              onClick={() => engineRef.current.setMode?.("editor")}
+              className={`rounded-xl border px-3 py-2 text-xs font-semibold backdrop-blur transition-colors ${
+                uiMode === "editor"
+                  ? "border-emerald-400 bg-emerald-500/80 text-black"
+                  : "border-white/15 bg-slate-950/70 text-slate-200 hover:bg-slate-800/80"
+              }`}
+              title="Map editor (E): place assets, sculpt terrain, hide broken features"
+            >
+              Edit <kbd className="ml-1 opacity-60">E</kbd>
+            </button>
+          )}
           <button
             type="button"
             onClick={() => engineRef.current.toggleMute?.()}
-            className="rounded-lg border border-white/15 bg-slate-950/70 px-3 py-2 text-xs font-semibold text-slate-200 backdrop-blur hover:bg-slate-800/80"
+            className="hidden rounded-xl border border-white/10 bg-slate-950/75 px-3 py-2 text-[11px] font-semibold text-slate-300 backdrop-blur hover:bg-slate-800/80 sm:block"
             title="Ambient sound on/off"
           >
-            {mutedUi ? "🔇" : "🔊"}
+            {mutedUi ? "Sound off" : "Sound on"}
           </button>
-          <button
-            type="button"
-            onClick={() => engineRef.current.setMode?.("debug")}
-            className={`rounded-lg border px-3 py-2 text-xs font-semibold backdrop-blur transition-colors ${
-              uiMode === "debug"
-                ? "border-sky-400 bg-sky-500/80 text-black"
-                : "border-white/15 bg-slate-950/70 text-slate-200 hover:bg-slate-800/80"
-            }`}
-            title="OSM tag inspector (B): click features to view/fix their tags"
-          >
-            🔍 Tags <kbd className="ml-1 opacity-60">B</kbd>
-          </button>
+          {settings.developerMode && (
+            <button
+              type="button"
+              onClick={() => engineRef.current.setMode?.("debug")}
+              className={`rounded-xl border px-3 py-2 text-xs font-semibold backdrop-blur transition-colors ${
+                uiMode === "debug"
+                  ? "border-sky-400 bg-sky-500/80 text-black"
+                  : "border-white/15 bg-slate-950/70 text-slate-200 hover:bg-slate-800/80"
+              }`}
+              title="OSM tag inspector (B): click features to view/fix their tags"
+            >
+              Map data <kbd className="ml-1 opacity-60">B</kbd>
+            </button>
+          )}
         </div>
       )}
 

@@ -18,9 +18,21 @@ const displayFont = Outfit({
   display: 'swap',
 });
 
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL
+  || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000');
+
 export const metadata = {
-  title: 'Walk the World',
-  description: 'Spin a 3D globe, pick a place, and walk around in real street-level imagery.',
+  metadataBase: new URL(siteUrl),
+  title: 'Walk the World — A living planet from open data',
+  description: 'Pick a real place and explore a living 3D interpretation of its streets.',
+  applicationName: 'Walk the World',
+  manifest: '/manifest.webmanifest',
+  icons: { icon: '/icon.svg', apple: '/icon.svg' },
+  openGraph: {
+    title: 'Walk the World',
+    description: 'Real streets rebuilt from open data as a living 3D world.',
+    type: 'website',
+  },
 };
 
 export default function RootLayout({ children }) {

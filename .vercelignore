@@ -1,0 +1,16 @@
+.agents
+.codex
+.playwright-cli
+agent-tools
+benchmarks
+output
+screenshots
+scripts
+terminals
+tests
+*.log
+*.md
+.env*
+Dockerfile
+docker-compose.yml
+warm-state.json

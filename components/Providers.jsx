@@ -1,7 +1,7 @@
 'use client';
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 export function Providers({ children }) {
   const [client] = useState(
@@ -12,5 +12,10 @@ export function Providers({ children }) {
         },
       })
   );
+  useEffect(() => {
+    if ('serviceWorker' in navigator && process.env.NODE_ENV === 'production') {
+      navigator.serviceWorker.register('/sw.js').catch(() => {});
+    }
+  }, []);
   return <QueryClientProvider client={client}>{children}</QueryClientProvider>;
 }

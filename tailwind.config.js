@@ -15,10 +15,12 @@ module.exports = {
           800: '#121c34',
         },
         accent: {
-          DEFAULT: '#4d7fe0',
-          bright: '#7fa8f0',
-          dim: '#2a4ea6',
+          DEFAULT: '#2ec9a5',
+          bright: '#76f7d2',
+          dim: '#177f73',
         },
+        mint: '#76f7d2',
+        trail: '#f6b85a',
         hud: {
           border: 'rgba(120, 160, 255, 0.28)',
           glass: 'rgba(8, 14, 26, 0.72)',
@@ -32,7 +34,7 @@ module.exports = {
         hud: '0 8px 32px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.06)',
         glass: '0 8px 28px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.06)',
         panel: '0 28px 80px rgba(0, 0, 0, 0.7)',
-        glow: '0 0 40px rgba(90, 150, 255, 0.45)',
+        glow: '0 0 40px rgba(118, 247, 210, 0.32)',
       },
       animation: {
         'fade-up': 'fadeUp 0.45s ease-out',

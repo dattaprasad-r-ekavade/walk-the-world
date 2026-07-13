@@ -14,6 +14,8 @@ import { trackRender } from '@/lib/perf';
 import { cityCacheKey } from '@/lib/engine/cityData';
 import { dailyDestination, whereAmIRound } from '@/lib/daily';
 import { copyText, streetShareUrl } from '@/lib/share';
+import { BrandMark } from '@/components/Brand';
+import { AppIcon } from '@/components/AppIcon';
 import {
   menuBtn,
   menuBtnPrimary,
@@ -57,15 +59,28 @@ export default function Home() {
   const clearWhereAmI = useGameStore((s) => s.clearWhereAmI);
 
   const [ready, setReady] = useState(false);
-  const [hasTiles, setHasTiles] = useState(false);
   const [progress, setProgress] = useState({ pct: 0, stage: 'Starting…' });
   const [bigMap, setBigMap] = useState(false);
   const [geoBusy, setGeoBusy] = useState(false);
   const [shareToast, setShareToast] = useState(null);
   const [todayWalk] = useState(() => dailyDestination());
+  const [showHow, setShowHow] = useState(false);
 
   const walking = hudStatus.mode === 'walk';
   const { place, replayPlace } = useReverseGeocode(hudStatus.lat, hudStatus.lon, walking);
+
+  useEffect(() => {
+    if (ready) return undefined;
+    const fallback = window.setTimeout(() => {
+      // The guided street route does not depend on the globe renderer. Keep the
+      // portfolio path usable on software WebGL or restricted browsers where
+      // Cesium never reports ready.
+      setReady(true);
+      const current = useGameStore.getState().screen;
+      if (current === 'loading') setScreen('menu');
+    }, 8000);
+    return () => window.clearTimeout(fallback);
+  }, [ready, setScreen]);
 
   useEffect(() => {
     if (hudStatus.lat !== undefined && hudStatus.lon !== undefined) {
@@ -141,6 +156,13 @@ export default function Home() {
     router.push(`/street?lat=${round.lat.toFixed(5)}&lon=${round.lon.toFixed(5)}&guess=1`);
   };
 
+  const launchGuidedDemo = () => {
+    setScreen('play');
+    setPanel(null);
+    fetch(`/api/city/${cityCacheKey(35.6595, 139.7005)}`).catch(() => {});
+    router.push('/street?lat=35.6595&lon=139.7005&demo=1');
+  };
+
   useGameKeyboard(
     (e) => {
       if (screen !== 'play') return;
@@ -177,9 +199,8 @@ export default function Home() {
       <EngineErrorBoundary label="Cesium globe crashed">
         <Globe
           controllerRef={controllerRef}
-          onReady={({ hasTiles: tiles }) => {
+          onReady={() => {
             setReady(true);
-            setHasTiles(tiles);
             const cur = useGameStore.getState().screen;
             setScreen(cur === 'loading' ? 'menu' : cur);
           }}
@@ -193,41 +214,75 @@ export default function Home() {
 
       {screen === 'menu' && (
         <div className={overlay}>
-          <div className={`${menuCard} relative`}>
-            <div className="pointer-events-none absolute -inset-24 -z-10 rounded-full bg-accent/15 blur-3xl" />
-            <div className="pointer-events-none absolute inset-x-10 top-8 -z-10 h-40 rounded-full bg-sky-500/10 blur-2xl" />
-            <div className={menuLogo}>🌍</div>
-            <h1 className={menuTitle}>WALK THE WORLD</h1>
-            <p className={menuSub}>Explore anywhere on Earth</p>
-            <div className="mt-8 flex flex-col items-center gap-3">
-              <button
-                type="button"
-                className={menuBtnPrimary}
-                onClick={() => setScreen('play')}
-                disabled={!ready}
-              >
-                {ready ? '▶ Start Exploring' : 'Loading world…'}
-              </button>
-              {todayWalk && (
-                <button
-                  type="button"
-                  className={menuBtn}
-                  disabled={!ready}
-                  onClick={() => fly(todayWalk.lat, todayWalk.lon)}
-                  title={`${todayWalk.lat.toFixed(4)}, ${todayWalk.lon.toFixed(4)}`}
-                >
-                  ⭐ Today&apos;s walk: {todayWalk.name}
-                </button>
-              )}
-              <button type="button" className={menuBtn} disabled={!ready} onClick={launchWhereAmI}>
-                🎲 Where am I?
-              </button>
-              <button type="button" className={menuBtn} onClick={() => togglePanel('travel')}>
-                🗺 Fast Travel
-              </button>
-              <button type="button" className={menuBtn} onClick={() => togglePanel('controls')}>
-                🎮 Controls
-              </button>
+          <div className={`${menuCard} relative w-[min(980px,96vw)] overflow-hidden rounded-[30px] border border-white/10 bg-[#06101ad9] text-left shadow-[0_40px_130px_rgba(0,0,0,.72)] backdrop-blur-xl`}>
+            <div className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-mint/10 blur-3xl" />
+            <div className="pointer-events-none absolute -bottom-28 -left-24 h-72 w-72 rounded-full bg-trail/10 blur-3xl" />
+            <div className="relative grid items-center gap-8 lg:grid-cols-[1.1fr_.9fr] lg:gap-12">
+              <section>
+                <BrandMark className={menuLogo} />
+                <div className="mt-5 inline-flex items-center gap-2 rounded-full border border-mint/25 bg-mint/10 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.16em] text-mint">
+                  <span className="h-1.5 w-1.5 rounded-full bg-mint" /> A living planet from open data
+                </div>
+                <h1 className={menuTitle}>WALK THE<br className="hidden sm:block" /> WORLD</h1>
+                <p className={menuSub}>Explore anywhere on Earth</p>
+                <p className="mt-5 max-w-xl text-sm leading-7 text-slate-300 sm:text-base">
+                  Real streets rebuilt from open map data, streamed as a living 3D world, and audited by an evidence-bound AI reconstruction layer.
+                </p>
+                <div className="mt-6 grid max-w-xl grid-cols-3 gap-2 text-center">
+                  {[
+                    ['Global', 'Open data'],
+                    ['Living', 'Time + weather'],
+                    ['Auditable', 'AI repair'],
+                  ].map(([value, label]) => (
+                    <div key={value} className="rounded-2xl border border-white/8 bg-white/[.035] px-2 py-3">
+                      <div className="text-xs font-bold text-white sm:text-sm">{value}</div>
+                      <div className="mt-1 text-[9px] uppercase tracking-wider text-slate-500 sm:text-[10px]">{label}</div>
+                    </div>
+                  ))}
+                </div>
+              </section>
+
+              <section className="rounded-[24px] border border-white/10 bg-black/20 p-3 sm:p-4">
+                <div className="mb-3 flex items-center justify-between px-1">
+                  <div>
+                    <div className="text-[10px] font-bold uppercase tracking-[0.16em] text-mint">Recommended</div>
+                    <div className="mt-1 text-lg font-bold text-white">The 60-second tour</div>
+                  </div>
+                  <span className="rounded-full border border-trail/30 bg-trail/10 px-2.5 py-1 text-[10px] font-bold text-trail">SHIBUYA</span>
+                </div>
+                <div className="flex flex-col gap-2.5">
+                  <button type="button" className={menuBtnPrimary} onClick={launchGuidedDemo} disabled={!ready} data-testid="guided-demo">
+                    <span className="flex items-center justify-center gap-2"><AppIcon name="compass" /> {ready ? 'Experience the guided demo' : 'Preparing the world…'}</span>
+                  </button>
+                  <button
+                    type="button"
+                    className={menuBtn}
+                    onClick={() => setScreen('play')}
+                    disabled={!ready}
+                  >
+                    Free explore the globe
+                  </button>
+                  {todayWalk && (
+                    <button type="button" className={menuBtn} disabled={!ready} onClick={() => fly(todayWalk.lat, todayWalk.lon)} title={`${todayWalk.lat.toFixed(4)}, ${todayWalk.lon.toFixed(4)}`}>
+                      Today&apos;s walk · {todayWalk.name}
+                    </button>
+                  )}
+                  <div className="grid grid-cols-2 gap-2.5">
+                    <button type="button" className={menuBtn} disabled={!ready} onClick={launchWhereAmI}>Where am I?</button>
+                    <button type="button" className={menuBtn} onClick={() => togglePanel('travel')}>Fast travel</button>
+                  </div>
+                  <button type="button" className={menuBtn} onClick={() => setShowHow((value) => !value)} aria-expanded={showHow}>
+                    {showHow ? 'Hide how it works' : 'See how it works'}
+                  </button>
+                </div>
+                {showHow && (
+                  <ol className="mt-3 space-y-2 rounded-2xl border border-white/10 bg-black/20 p-3 text-xs leading-relaxed text-slate-400">
+                    <li><span className="mr-2 text-mint">01</span>OpenStreetMap and terrain data form each real cell.</li>
+                    <li><span className="mr-2 text-mint">02</span>A worker builds compact 3D geometry while nearby cells stream.</li>
+                    <li><span className="mr-2 text-mint">03</span>World Repair audits gaps with confidence and provenance.</li>
+                  </ol>
+                )}
+              </section>
             </div>
           </div>
         </div>
@@ -326,14 +381,6 @@ export default function Home() {
         ]}
       />
 
-      {ready && !hasTiles && screen === 'play' && (
-        <div className="absolute bottom-16 right-4 z-10 max-w-xs rounded-lg border border-amber-400/35 bg-amber-950/90 px-3.5 py-2.5 text-xs leading-relaxed text-amber-100 shadow-lg backdrop-blur-sm">
-          Basic globe mode — add a free{' '}
-          <code className="rounded bg-black/40 px-1 py-0.5 text-amber-200">NEXT_PUBLIC_CESIUM_ION_TOKEN</code>{' '}
-          in <code className="rounded bg-black/40 px-1 py-0.5 text-amber-200">.env.local</code> for terrain and 3D
-          buildings.
-        </div>
-      )}
     </main>
   );
 }

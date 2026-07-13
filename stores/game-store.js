@@ -19,6 +19,7 @@ const defaultSettings = () => ({
   engine: 'street',
   groundSource: 'osm', // 'osm' | 'satellite'
   music: true,
+  developerMode: false,
 });
 
 const TRAIL_MAX = 400;

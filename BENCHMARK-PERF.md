@@ -43,7 +43,7 @@ vs **after** (`benchmarks/after.json`).
 - `lib/cesium/` — walker-state, constants
 - Zustand session store (settings + last position)
 - TanStack Query provider + city/geocode hooks
-- `EngineErrorBoundary`, Vitest tests, GitHub Actions CI
+- `EngineErrorBoundary` and local Vitest/build verification
 - `reactStrictMode: true`
 
 ## Run benchmarks yourself

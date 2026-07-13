@@ -45,7 +45,7 @@ export function MobileControls({ enabled = true }) {
 
   if (!enabled || !show) return null;
 
-  const maxStick = 52;
+  const maxStick = 38;
   const knobX = stateRef.current.moveX * maxStick;
   const knobY = -stateRef.current.moveY * maxStick;
 
@@ -107,14 +107,14 @@ export function MobileControls({ enabled = true }) {
     <div className="pointer-events-none fixed inset-0 z-[25] touch-none" aria-hidden="true">
       <div
         ref={stickRef}
-        className="pointer-events-auto absolute bottom-7 left-6 flex h-[120px] w-[120px] touch-none items-center justify-center rounded-full border-2 border-black/50 bg-[rgba(11,18,32,0.88)] shadow-[0_4px_20px_rgba(0,0,0,0.5)]"
+        className="pointer-events-auto absolute bottom-4 left-3 flex h-24 w-24 touch-none items-center justify-center rounded-full border border-mint/20 bg-[rgba(6,15,25,0.76)] shadow-[0_8px_28px_rgba(0,0,0,0.48)] backdrop-blur-md"
         onTouchStart={onStickStart}
         onTouchMove={onStickMove}
         onTouchEnd={onStickEnd}
         onTouchCancel={onStickEnd}
       >
         <div
-          className="h-[52px] w-[52px] rounded-full bg-slate-300/90 shadow-lg transition-transform duration-75"
+          className="h-10 w-10 rounded-full border border-white/25 bg-slate-200/85 shadow-lg transition-transform duration-75"
           style={{ transform: `translate(${knobX}px, ${knobY}px)` }}
         />
       </div>
@@ -127,7 +127,7 @@ export function MobileControls({ enabled = true }) {
       />
       <button
         type="button"
-        className="pointer-events-auto absolute bottom-9 right-6 rounded-full border-2 border-amber-400/50 bg-[rgba(26,20,8,0.92)] px-4 py-3 text-xs font-bold tracking-widest text-amber-100 shadow-[0_4px_16px_rgba(0,0,0,0.5)] active:scale-95"
+        className="pointer-events-auto absolute bottom-5 right-4 rounded-full border border-trail/50 bg-[rgba(42,31,12,0.86)] px-4 py-3 text-[11px] font-bold tracking-widest text-amber-100 shadow-[0_8px_24px_rgba(0,0,0,0.45)] backdrop-blur-md active:scale-95"
         onTouchStart={(e) => {
           stateRef.current.sprint = true;
           e.preventDefault();

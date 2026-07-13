@@ -1,10 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  // standalone is for Docker/production only — it slows `next dev` on Windows.
-  ...(process.env.NODE_ENV === "production" ? { output: "standalone" } : {}),
   experimental: {
-    // Keep DuckDB out of the webpack bundle (native module).
+    // DuckDB is a native server dependency used only by the Overture API.
     serverComponentsExternalPackages: ["duckdb"],
   },
 };

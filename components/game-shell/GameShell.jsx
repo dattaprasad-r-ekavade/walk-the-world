@@ -11,6 +11,9 @@ import {
   travelBtnWide,
 } from '@/components/hud/Panels';
 import { MobileControls } from '@/components/MobileControls';
+import { BrandLockup } from '@/components/Brand';
+import { AppIcon } from '@/components/AppIcon';
+import { WorldRepairPanel } from '@/components/WorldRepairPanel';
 import {
   coordsPill,
   formatClock,
@@ -103,6 +106,7 @@ export function GameShell({
   onWhereAmIAgain,
   onExportWalkCard,
   liveTemp,
+  worldSummary,
   children,
 }) {
   const lat = status.lat ?? coordsFallback?.lat;
@@ -110,6 +114,7 @@ export function GameShell({
   const fpsLow = status.fps > 0 && status.fps < 40;
   const showHud = screen === 'play' && !photoMode;
   const placeLabel = typeof place === 'string' ? place : place?.text;
+  const developerMode = Boolean(settings?.developerMode);
 
   const openTravel = () => setPanel(panel === 'travel' ? null : 'travel');
 
@@ -121,18 +126,8 @@ export function GameShell({
         <>
           {/* Top brand + search + actions */}
           <div className={topBar}>
-            <div className={topBarInner}>
-              <span className="text-lg leading-none" aria-hidden>
-                🌍
-              </span>
-              <div className="min-w-0 leading-tight">
-                <div className="font-display text-[11px] font-bold tracking-[0.18em] text-white sm:text-xs">
-                  WALK THE WORLD
-                </div>
-                <div className="hidden text-[10px] tracking-wide text-slate-500 sm:block">
-                  Explore anywhere
-                </div>
-              </div>
+            <div className={`${topBarInner} max-w-[112px] sm:max-w-none`}>
+              <BrandLockup compact className="min-w-0" />
             </div>
 
             <button type="button" className={searchField} onClick={openTravel} title="Fast travel (M)">
@@ -144,32 +139,45 @@ export function GameShell({
               </span>
             </button>
 
-            <div className={`${topBarInner} gap-1.5`}>
+            <div className={`${topBarInner} hidden gap-1.5 sm:flex`}>
+              {worldSummary && (
+                <button
+                  type="button"
+                  aria-label="AI World Repair audit"
+                  title="AI World Repair audit"
+                  className={panel === 'worldrepair' ? toolbarBtnActive : toolbarBtn}
+                  onClick={() => setPanel(panel === 'worldrepair' ? null : 'worldrepair')}
+                >
+                  <AppIcon name="spark" />
+                </button>
+              )}
               <button
                 type="button"
                 title="Passport"
+                aria-label="Passport"
                 className={panel === 'passport' ? toolbarBtnActive : toolbarBtn}
                 onClick={() => setPanel(panel === 'passport' ? null : 'passport')}
               >
-                🛂
+                <AppIcon name="passport" />
               </button>
               {onShare && (
-                <button type="button" title="Copy share link" className={toolbarBtn} onClick={onShare}>
-                  ↗
+                <button type="button" title="Copy share link" aria-label="Copy share link" className={toolbarBtn} onClick={onShare}>
+                  <AppIcon name="share" />
                 </button>
               )}
               {onPhotoMode && (
-                <button type="button" title="Photo mode (H)" className={toolbarBtn} onClick={onPhotoMode}>
-                  📷
+                <button type="button" title="Photo mode (H)" aria-label="Photo mode" className={toolbarBtn} onClick={onPhotoMode}>
+                  <AppIcon name="camera" />
                 </button>
               )}
               <button
                 type="button"
                 title="Settings"
+                aria-label="Settings"
                 className={panel === 'settings' ? toolbarBtnActive : toolbarBtn}
                 onClick={() => setPanel(panel === 'settings' ? null : 'settings')}
               >
-                ⚙
+                <AppIcon name="settings" />
               </button>
             </div>
           </div>
@@ -177,23 +185,28 @@ export function GameShell({
           {/* Left icon rail */}
           <nav className={rail} aria-label="Main">
             <RailBtn title="Menu (P)" active={panel === 'pause'} onClick={() => setPanel(panel === 'pause' ? null : 'pause')}>
-              ☰
+              <AppIcon name="menu" />
             </RailBtn>
             <RailBtn title="Fast travel (M)" active={panel === 'travel'} onClick={openTravel}>
-              🗺
+              <AppIcon name="map" />
             </RailBtn>
             <RailBtn title="Expand map (Tab)" active={bigMap} onClick={() => setBigMap((b) => !b)}>
-              ◉
+              <AppIcon name="compass" />
             </RailBtn>
             <RailBtn title="Passport" active={panel === 'passport'} onClick={() => setPanel(panel === 'passport' ? null : 'passport')}>
-              🛂
+              <AppIcon name="passport" />
             </RailBtn>
             <RailBtn title="Globe view" onClick={onGoHome}>
-              🌐
+              <AppIcon name="globe" />
             </RailBtn>
             <RailBtn title="Settings" active={panel === 'settings'} onClick={() => setPanel(panel === 'settings' ? null : 'settings')}>
-              ⚙
+              <AppIcon name="settings" />
             </RailBtn>
+            {worldSummary && (
+              <RailBtn title="AI World Repair" active={panel === 'worldrepair'} onClick={() => setPanel(panel === 'worldrepair' ? null : 'worldrepair')}>
+                <AppIcon name="spark" />
+              </RailBtn>
+            )}
             {engine === 'cesium' && (
               <>
                 <RailBtn title="First/third person (V)" onClick={onToggleView}>
@@ -212,26 +225,31 @@ export function GameShell({
           </nav>
 
           {/* Mobile fallback toolbar (rail is sm+) */}
-          <div className="absolute left-3 top-[4.75rem] z-20 flex flex-col gap-2 sm:hidden">
+          <div className="absolute left-2 top-[4.25rem] z-20 flex flex-col gap-2 sm:hidden">
             <RailBtn title="Menu" active={panel === 'pause'} onClick={() => setPanel(panel === 'pause' ? null : 'pause')}>
-              ☰
+              <AppIcon name="menu" />
             </RailBtn>
             <RailBtn title="Travel" active={panel === 'travel'} onClick={openTravel}>
-              🗺
+              <AppIcon name="map" />
             </RailBtn>
-            <RailBtn title="Globe" onClick={onGoHome}>
-              🌐
-            </RailBtn>
-            <RailBtn title="Settings" active={panel === 'settings'} onClick={() => setPanel(panel === 'settings' ? null : 'settings')}>
-              ⚙
-            </RailBtn>
+          </div>
+
+          <div className="pointer-events-auto absolute right-2 top-2 z-30 flex gap-1.5 sm:hidden">
+            {worldSummary && (
+              <button type="button" aria-label="AI World Repair" className={panel === 'worldrepair' ? toolbarBtnActive : toolbarBtn} onClick={() => setPanel(panel === 'worldrepair' ? null : 'worldrepair')}>
+                <AppIcon name="spark" />
+              </button>
+            )}
+            <button type="button" aria-label="Settings" className={panel === 'settings' ? toolbarBtnActive : toolbarBtn} onClick={() => setPanel(panel === 'settings' ? null : 'settings')}>
+              <AppIcon name="settings" />
+            </button>
           </div>
 
           {/* Minimap + coords — compact, corner only */}
           <div className="pointer-events-auto absolute right-2 top-[4.25rem] z-20 flex flex-col items-end gap-1 sm:right-3 sm:top-[4.5rem]">
             <button
               type="button"
-              className="rounded-full border border-black/40 bg-[rgba(11,18,32,0.85)] p-0.5 shadow-[0_4px_16px_rgba(0,0,0,0.4)] transition-transform hover:scale-[1.02]"
+              className="hidden rounded-full border border-white/10 bg-[rgba(6,15,25,0.88)] p-0.5 shadow-[0_8px_28px_rgba(0,0,0,0.48)] transition-transform hover:scale-[1.02] sm:block"
               title="Expand map (Tab)"
               onClick={() => setBigMap(true)}
             >
@@ -246,25 +264,27 @@ export function GameShell({
                 size={128}
               />
             </button>
-            <div className={coordsPill}>
+            <button type="button" className="rounded-full border border-white/10 bg-[rgba(6,15,25,.9)] p-0.5 shadow-xl sm:hidden" aria-label="Open minimap" onClick={() => setBigMap(true)}>
+              <Minimap lat={lat} lon={lon} heading={status.heading} height={status.height} posRef={posRef} trailRef={trailRef} trail={passport?.trail} size={86} />
+            </button>
+            <div className={`${coordsPill} hidden sm:block`}>
               {formatCoord(lat, 'N', 'S')} · {formatCoord(lon, 'E', 'W')}
             </div>
           </div>
 
           {/* Bottom status — one compact strip, not five cards */}
-          <div ref={hudRef} className={statusStrip}>
-            <StatusItem label="Engine" value={modeLabel || '—'} />
-            <StatusItem
-              label="Alt"
-              value={formatElevation(status.elevation ?? (status.height ? Math.round(status.height) : null))}
-            />
-            <StatusItem
-              label="FPS"
-              value={status.fps > 0 ? String(status.fps) : '—'}
-              valueClass={fpsLow ? 'text-amber-300' : 'text-sky-300'}
-            />
-            <StatusItem label="Time" value={formatClock(settings?.hour)} />
-            <StatusItem label="Wx" value={formatWeatherLabel(settings?.weather, liveTemp)} />
+          <div className="hidden sm:block">
+            <div ref={hudRef} className={statusStrip}>
+              <StatusItem label="Mode" value={modeLabel || '—'} />
+              {developerMode && (
+                <>
+                  <StatusItem label="Alt" value={formatElevation(status.elevation ?? (status.height ? Math.round(status.height) : null))} />
+                  <StatusItem label="FPS" value={status.fps > 0 ? String(status.fps) : '—'} valueClass={fpsLow ? 'text-amber-300' : 'text-mint'} />
+                </>
+              )}
+              <StatusItem label="Local time" value={formatClock(settings?.hour)} />
+              <StatusItem label="Weather" value={formatWeatherLabel(settings?.weather, liveTemp)} />
+            </div>
           </div>
 
           <div className={hintBar} data-hud-hint>
@@ -370,6 +390,16 @@ export function GameShell({
           place={placeLabel}
           onClose={() => setPanel(null)}
           onExportCard={onExportWalkCard}
+        />
+      )}
+
+      {panel === 'worldrepair' && worldSummary && (
+        <WorldRepairPanel
+          onClose={() => setPanel(null)}
+          lat={lat}
+          lon={lon}
+          place={placeLabel}
+          summary={worldSummary}
         />
       )}
 

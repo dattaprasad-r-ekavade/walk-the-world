@@ -23,20 +23,25 @@ import {
   travelBtnWide,
   kbdStyle,
 } from '@/lib/ui';
+import { BrandMark } from '@/components/Brand';
+import { AppIcon } from '@/components/AppIcon';
 
-export function LoadingScreen({ logo = '🌍', title = 'WALK THE WORLD', pct, stage }) {
+export function LoadingScreen({ title = 'WALK THE WORLD', pct, stage }) {
   return (
     <div className={`${overlay} z-50`}>
-      <div className={menuCard}>
-        <div className={menuLogo}>{logo}</div>
+      <div className={`${menuCard} w-[min(460px,92vw)]`}>
+        <BrandMark className={menuLogo} />
         <h1 className={title.length > 14 ? menuTitle : menuTitleSm}>{title}</h1>
-        <div className="mx-auto mt-8 h-2 w-72 max-w-[85vw] overflow-hidden rounded-full border border-accent/30 bg-accent/10">
+        <p className="mx-auto mt-3 max-w-sm text-sm text-slate-400">Real streets are assembled in stages so exploration can begin before every detail arrives.</p>
+        <div className="mx-auto mt-7 h-1.5 w-72 max-w-[85vw] overflow-hidden rounded-full border border-mint/25 bg-white/5">
           <div
-            className="h-full rounded-full bg-gradient-to-r from-accent to-accent-bright transition-all duration-300"
+            className="h-full rounded-full bg-gradient-to-r from-mint to-trail transition-all duration-300"
             style={{ width: `${pct}%` }}
           />
         </div>
-        <p className="mt-3 text-xs uppercase tracking-[0.2em] text-slate-500">{stage}</p>
+        <div className="mt-4 flex items-center justify-center gap-2 text-[11px] uppercase tracking-[0.18em] text-slate-400" aria-live="polite">
+          <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-mint" /> {stage}
+        </div>
       </div>
     </div>
   );
@@ -217,6 +222,17 @@ export function SettingsPanel({ settings, onChange, onClose, children }) {
         <p className="mt-1.5 text-[11px] text-slate-500">
           High enables SSAO + bloom. Auto picks a tier from your GPU on first load.
         </p>
+      </div>
+      <div className="mt-4 border-t border-white/10 pt-4">
+        <label className={settingLabel}>
+          <span className="flex items-center gap-2"><AppIcon name="settings" className="h-4 w-4" /> Developer tools</span>
+          <span className="text-[10px] uppercase tracking-wider text-slate-500">portfolio-safe</span>
+        </label>
+        <div className="flex gap-2">
+          <button type="button" className={settings.developerMode ? qualityBtnActive : qualityBtn} onClick={() => onChange({ developerMode: true })}>Visible</button>
+          <button type="button" className={!settings.developerMode ? qualityBtnActive : qualityBtn} onClick={() => onChange({ developerMode: false })}>Hidden</button>
+        </div>
+        <p className="mt-1.5 text-[11px] text-slate-500">Shows FPS, altitude, editor, and map-data inspector controls.</p>
       </div>
     </div>
   );

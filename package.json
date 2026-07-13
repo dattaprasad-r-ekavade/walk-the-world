@@ -9,6 +9,7 @@
     "start": "next start",
     "lint": "next lint",
     "test": "vitest run",
+    "portfolio:check": "npm test && npm run build",
     "bench": "node scripts/bench-perf.mjs",
     "bench:street": "node scripts/validate-street.mjs",
     "overture-index": "node scripts/build-overture-index.mjs",
@@ -31,7 +32,6 @@
     "autoprefixer": "^10.5.2",
     "eslint": "^8",
     "eslint-config-next": "^14.2.33",
-    "playwright": "^1.61.1",
     "postcss": "^8.5.16",
     "tailwindcss": "^3.4.19",
     "vitest": "^4.1.9"
