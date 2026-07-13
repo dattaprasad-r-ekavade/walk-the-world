@@ -9,7 +9,7 @@ import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { createPopulation } from "@/lib/engine/population";
 import { createAmbience } from "@/lib/engine/ambience";
-import { groundTileUrl } from "@/lib/engine/ground-tiles";
+import { drawGroundTileImage, groundTileUrl } from "@/lib/engine/ground-tiles";
 import { whereAmIRound } from "@/lib/daily";
 import { createEnvController } from "@/lib/engine/env-map";
 import { runCityBuilder } from "@/lib/engine/city-builder";
@@ -901,7 +901,9 @@ export default function StreetEngine({ lat0, lon0 }) {
             for (let sx = 0; sx < 2; sx++)
               subs.push(
                 loadImage(groundTileUrl(src, Z + 1, tx * 2 + sx, ty * 2 + sy))
-                  .then((im) => tg.drawImage(im, sx * half, sy * half, half, half))
+                  .then((im) => drawGroundTileImage(
+                    tg, im, sx * half, sy * half, half, groundSource
+                  ))
                   .catch(() => {})
               );
           await Promise.all(subs);
