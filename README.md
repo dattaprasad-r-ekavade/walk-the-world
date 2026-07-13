@@ -84,6 +84,43 @@ Open <http://localhost:3000>. The base experience works without credentials.
 For the free-tier shared cache and Overture fallback, copy `.env.local.example`
 to `.env.local` and add your Cloudflare R2 credentials.
 
+## Budgeted map enrichment
+
+`npm run enrich` enriches selected R2 city cells without creating a second
+runtime object. It embeds a compact `enrichment` block into the existing gzipped
+city JSON, so the browser still performs one R2 read per cell. The command is a
+dry run unless `--upload` is explicitly supplied.
+
+```bash
+# Estimate one existing cell; no write
+npm run enrich -- --lat=18.9438 --lon=72.8231
+
+# Upload at most ten existing cells from a catalog group
+npm run enrich -- --group="Goa" --limit=10 --upload
+
+# Optional free-source lookups; Overture is used only for sparse cells
+npm run enrich -- --lat=18.9438 --lon=72.8231 --overture --wikidata
+```
+
+Safety defaults are 25 selected cells, 250 KB compressed per final object, and
+100 MB total per run. Override them with `--limit`, `--max-object-kb`, and
+`--max-total-mb`. `--all-cached` is refused unless an explicit `--limit=N` is
+also supplied. Add `--warm-missing` only when selected catalog cells are absent
+from R2; it fetches each missing base cell from Overpass once and uploads the
+enriched result in a single write.
+
+Natural Earth, ESA WorldCover, Copernicus DEM, and GHSL should be reduced to
+small per-cell extracts before upload; raw global datasets are intentionally not
+mirrored into R2. Put extracts in `data/enrichment/<city-key>.json` using
+[`data/enrichment/_example.json`](data/enrichment/_example.json), then add
+`--sources-dir=data/enrichment`. Supported features are `ocean`, `water`,
+`beach`, `forest`, `grass`, `meadow`, `building`, and point-based `place`.
+Generated per-cell extracts are Git-ignored; the schema example remains tracked.
+
+The runtime applies building and road detail patches, renders source polygons,
+adds places, exposes density metadata, and creates an OSM-coastline sea-side
+fallback. Missing enrichment is harmless: the original city cell is used.
+
 ## Verify
 
 ```bash

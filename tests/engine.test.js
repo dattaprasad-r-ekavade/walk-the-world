@@ -35,6 +35,42 @@ describe('engine/geo', () => {
   });
 });
 
+describe('cell enrichment', () => {
+  it('derives detail patches and applies source features without mutating input', async () => {
+    const { deriveCellEnrichment, applyCellEnrichment } = await import('../lib/engine/cell-enrichment.js');
+    const city = {
+      elements: [{
+        type: 'way', id: 12,
+        tags: { building: 'yes', 'roof:shape': 'gabled' },
+        geometry: [{ lat: 1, lon: 2 }, { lat: 1, lon: 2.001 }, { lat: 1.001, lon: 2 }],
+      }],
+    };
+    const enrichment = deriveCellEnrichment(city, {
+      sources: ['natural-earth'],
+      features: [{
+        kind: 'ocean', source: 'natural-earth',
+        geometry: [[2, 1], [2.01, 1], [2.01, 0.99], [2, 1]],
+      }],
+    });
+    const enriched = applyCellEnrichment({ ...city, enrichment });
+    expect(enrichment.patches['way/12']['roof:shape']).toBe('gabled');
+    expect(enriched.elements).toHaveLength(2);
+    expect(enriched.elements[1].tags.water).toBe('sea');
+    expect(city.elements).toHaveLength(1);
+  });
+
+  it('turns directed OSM coastline data into a compact ocean fallback', async () => {
+    const { deriveCellEnrichment } = await import('../lib/engine/cell-enrichment.js');
+    const enrichment = deriveCellEnrichment({ elements: [{
+      type: 'way', id: 9, tags: { natural: 'coastline' },
+      geometry: [{ lat: 18.94, lon: 72.82 }, { lat: 18.95, lon: 72.82 }],
+    }] });
+    expect(enrichment.counts.coastline).toBe(1);
+    expect(enrichment.features[0].kind).toBe('ocean');
+    expect(enrichment.features[0].geometry.length).toBeGreaterThanOrEqual(5);
+  });
+});
+
 describe('street/collision', () => {
   it('detects point inside footprint', async () => {
     const { createCollision } = await import('../lib/engine/street/collision.js');

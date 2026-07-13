@@ -1,0 +1,27 @@
+{
+  "sources": ["natural-earth", "esa-worldcover", "copernicus-dem", "ghsl"],
+  "density": {
+    "populationPerKm2": 4200,
+    "builtUpFraction": 0.64,
+    "meanElevationM": 18
+  },
+  "patches": {
+    "way/123456": {
+      "building:material": "brick",
+      "roof:shape": "gabled"
+    }
+  },
+  "landmarks": [],
+  "features": [
+    {
+      "kind": "ocean",
+      "source": "natural-earth",
+      "geometry": [[72.81, 18.94], [72.83, 18.94], [72.83, 18.92], [72.81, 18.92], [72.81, 18.94]]
+    },
+    {
+      "kind": "forest",
+      "source": "esa-worldcover",
+      "geometry": [[72.82, 18.95], [72.825, 18.95], [72.825, 18.945], [72.82, 18.945], [72.82, 18.95]]
+    }
+  ]
+}

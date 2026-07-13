@@ -13,6 +13,7 @@
     "bench": "node scripts/bench-perf.mjs",
     "bench:street": "node scripts/validate-street.mjs",
     "overture-index": "node scripts/build-overture-index.mjs",
+    "enrich": "node scripts/enrich-r2-cells.mjs",
     "seed": "node scripts/warm-cities.mjs https://walk-the-world-delta.vercel.app --state=warm-state.json --conc=2",
     "seed:list": "node scripts/warm-cities.mjs --list",
     "seed:local": "node scripts/warm-cities.mjs http://localhost:3000 --state=warm-state.json --conc=1"

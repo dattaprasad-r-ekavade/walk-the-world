@@ -1637,7 +1637,10 @@ export default function StreetEngine({ lat0, lon0 }) {
           insideBuilding,
         });
         console.log("[population]", population.counts);
-        ambience.set({ density: Math.min(1, population.counts.peds / 140) });
+        const enrichedDensity = Number(cityData?.enrichment?.density?.urban) || 0;
+        ambience.set({
+          density: Math.min(1, Math.max(population.counts.peds / 140, enrichedDensity * 0.65)),
+        });
         engineRef.current.population = population;
       } catch (err) {
         console.warn("[population]", err?.message);

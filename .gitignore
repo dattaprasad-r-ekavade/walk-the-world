@@ -16,6 +16,7 @@ pat.txt
 .vercel
 .env*.local
 /output
+/data/enrichment/wtw_city*.json
 
 
 warm-state.json
