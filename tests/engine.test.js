@@ -171,6 +171,7 @@ describe('ground tiles (17.4)', () => {
   it('distinguishes pale map water from land colours', async () => {
     const { isMapWaterRgb } = await import('../lib/engine/ground-tiles.js');
     expect(isMapWaterRgb(170, 211, 223)).toBe(true);
+    expect(isMapWaterRgb(213, 232, 235)).toBe(true); // Carto Voyager ocean at Goa
     expect(isMapWaterRgb(242, 239, 233)).toBe(false);
     expect(isMapWaterRgb(181, 216, 163)).toBe(false);
     expect(isMapWaterRgb(120, 120, 120)).toBe(false);
