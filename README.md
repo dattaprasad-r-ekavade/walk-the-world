@@ -107,7 +107,8 @@ Safety defaults are 25 selected cells, 250 KB compressed per final object, and
 `--max-total-mb`. `--all-cached` is refused unless an explicit `--limit=N` is
 also supplied. Add `--warm-missing` only when selected catalog cells are absent
 from R2; it fetches each missing base cell from Overpass once and uploads the
-enriched result in a single write.
+enriched result in a single write. Use `--refresh-base` for a selected stale
+cell when the source query has changed (for example, after adding coastlines).
 
 Natural Earth, ESA WorldCover, Copernicus DEM, and GHSL should be reduced to
 small per-cell extracts before upload; raw global datasets are intentionally not

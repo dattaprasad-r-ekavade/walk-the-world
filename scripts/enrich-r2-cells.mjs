@@ -42,6 +42,7 @@ const USE_WIKIDATA = has("--wikidata");
 const WIKIDATA_LIMIT = Math.min(40, Math.floor(number("wikidata-limit", 12)));
 const USE_OVERTURE = has("--overture");
 const WARM_MISSING = has("--warm-missing");
+const REFRESH_BASE = has("--refresh-base");
 const CACHE_VERSION = 6;
 const required = ["R2_ENDPOINT", "R2_ACCESS_KEY_ID", "R2_SECRET_ACCESS_KEY", "R2_BUCKET_NAME"];
 const missing = required.filter((k) => !process.env[k]?.trim());
@@ -191,8 +192,8 @@ for (const key of keys) {
   const coords = coordsFromKey(key);
   if (!coords) { console.warn(`skip ${key}: invalid city key`); continue; }
   let city = await getJson(key);
-  if (!city?.elements?.length && WARM_MISSING) {
-    console.log(`fetch ${key}: base cell missing, querying Overpass once`);
+  if (REFRESH_BASE || (!city?.elements?.length && WARM_MISSING)) {
+    console.log(`fetch ${key}: ${REFRESH_BASE ? "refreshing" : "base cell missing"}, querying Overpass once`);
     try {
       const { fetchOverpassCell } = await import("../lib/overpassServer.js");
       city = await fetchOverpassCell(coords.lat, coords.lon);
