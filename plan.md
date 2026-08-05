@@ -66,6 +66,31 @@ We already have: postFX bloom/SSAO, IBL, GPU tiering, worker streaming,
 lamp glows + light pools, emissive windows, drivable car, live clock.
 The plan closes the gap in order of visual leverage:
 
+- [x] **21.0 Diagnose why night lighting "isn't there" (done — measured).**
+      Findings, with screenshots taken at the same pose in the seeded London
+      cell (51.5101,-0.1344) at hour 22:
+      * The night layer DOES render: emissive windows, lamp bulbs, ground
+        light pools, trees, silhouetted skyline all appear. An earlier
+        "before" shot that showed an empty void was taken with
+        `benchmarks/fixtures/rome-minimal.json` — **8 elements, 1 lamp** —
+        i.e. a benchmark fixture, not a real cell. Never judge visuals on it.
+      * Real gap #1: **bloom never ran.** postFx gated `setEnabled` on
+        `quality === "high"`; GPU auto-detect (16.3) picks medium/low on most
+        machines, so lamp/window glow never bloomed for anyone below high.
+        Now: bloom enables at night for medium+ (SSAO stays high-only).
+      * Real gap #2: **lamp bulbs were clamped LDR** (0xffe9a8) — below any
+        sane bloom threshold, so even with bloom on they would not glow.
+        Now HDR: `setRGB(3.2, 2.7, 1.9)` at night.
+      * Real gap #3: night sky was 0x0c1428 (blue-grey wash) → now 0x05080f
+        near-black, plus extra night fog density, so unlit distance falls to
+        black and lamps carry the frame.
+      * NOT a bug: HUD clock reading "12:00 PM" in test shots — the debug
+        hook `__streetDebug.setTime()` drives the engine only; the settings
+        store (which the HUD reads) is updated on the real UI path.
+      * **Unverified here:** the bloom result itself. This sandbox renders
+        with SwiftShader, which auto-detects as tier "low" → postFX skipped
+        by design. Bloom must be eyeballed on a real GPU at medium/high.
+
 - [ ] **21.1 Lit PBR road corridor (the unlock).** Promote the decal road
       ribbons from painted-texture strips to MeshStandardMaterial with low
       roughness (~0.35), subtle normal detail and env reflections; markings

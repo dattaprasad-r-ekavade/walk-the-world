@@ -267,7 +267,8 @@ export default function StreetEngine({ lat0, lon0 }) {
       (patch) => useGameStore.getState().changeSetting(patch),
       renderer
     );
-    // 16.2: SSAO + bloom only on high (wired after lights exist)
+    // 16.2: SSAO high-only; bloom also at night on medium (21.0)
+    let qualityTier = "medium";
     let postFx = null;
     let applyQuality = () => {};
 
@@ -330,14 +331,16 @@ export default function StreetEngine({ lat0, lon0 }) {
       else sun.shadow.mapSize.set(2048, 2048);
       renderer.setSize(mount.clientWidth, mount.clientHeight);
       postFx.setSize(mount.clientWidth, mount.clientHeight);
-      postFx.setEnabled(quality === "high");
+      // remember the tier; applySky re-evaluates so night can turn bloom on
+      qualityTier = quality;
+      postFx.setEnabled(quality === "high", quality === "high");
     };
     applyQuality(bootQuality || useGameStore.getState().settings?.quality || "medium");
 
     // ---- settings hooks (time of day / weather / quality) ----
     const daySky = new THREE.Color(0x9cc4e8);
     const duskSky = new THREE.Color(0xd8926a);
-    const nightSky = new THREE.Color(0x0c1428);
+    const nightSky = new THREE.Color(0x05080f); // near-black: darkness sells lamps
     let weatherAmt = 0;
     const sunDir = new THREE.Vector3(300, 500, -200);
     const applySky = (hour) => {
@@ -366,12 +369,19 @@ export default function StreetEngine({ lat0, lon0 }) {
       scene.fog.color.copy(sky);
       // denser fog in weather + height-ish mood: dawn/dusk thicker, noon clearer
       const duskMood = 1 - Math.abs(elev); // 0 at noon, 1 at horizon
-      const baseDens = 0.00038 + duskMood * 0.00035 + weatherAmt * 0.0011;
+      // night: thicker fog so unlit distance falls to black instead of grey mush
+      const nightDens = winGlow * 0.00055;
+      const baseDens = 0.00038 + duskMood * 0.00035 + weatherAmt * 0.0011 + nightDens;
       scene.fog.density = baseDens;
       // exposure: warmer/brighter dusk, cooler night
       renderer.toneMappingExposure =
         elev > 0.2 ? 1.15 : elev > 0 ? 1.28 : 0.92 + winGlow * 0.25;
       postFx?.setNightBloom(winGlow);
+      // 21.0 night grade: commit to darkness. Bloom on at night for medium+,
+      // sky/fog go deep blue-black, non-emissive fill drops so lamps read.
+      if (postFx && qualityTier !== "low") {
+        postFx.setEnabled(qualityTier === "high" || winGlow > 0.15, qualityTier === "high");
+      }
       // sun + moon ride opposite ends of the same arc
       sunSprite.position.set(Math.cos(t) * 4200, elev * 4200, -1600);
       moonSprite.position.set(-Math.cos(t) * 4200, -elev * 4200, -1600);
@@ -380,7 +390,12 @@ export default function StreetEngine({ lat0, lon0 }) {
       // street lamps switch on after dusk
       const night = elev < 0.12;
       const glows = engineRef.current.lampGlows || [];
-      for (const m of glows) m.color.setHex(night ? 0xffe9a8 : 0x1a1c20);
+      // HDR values (>1) so UnrealBloom actually catches the bulbs at night —
+      // a clamped 0xffe9a8 sits under the threshold and never blooms (21.0)
+      for (const m of glows) {
+        if (night) m.color.setRGB(3.2, 2.7, 1.9);
+        else m.color.setHex(0x1a1c20);
+      }
     };
     engineRef.current.setTime = (hour) => applySky(hour);
     engineRef.current.setWeather = (w) => {
