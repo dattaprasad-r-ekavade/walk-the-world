@@ -259,6 +259,13 @@ export default function StreetEngine({ lat0, lon0 }) {
     renderer.toneMappingExposure = 1.12;
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    // PERF: three.js re-renders the whole shadow map EVERY frame by default.
+    // With a 2048 map over ~2000 buildings that is a second full scene pass
+    // per frame — the single biggest FPS cost. Drive it manually instead:
+    // refresh only when the sun moves (applySky) or the player leaves the
+    // area the current map covers.
+    renderer.shadowMap.autoUpdate = false;
+    renderer.shadowMap.needsUpdate = true;
     mount.appendChild(renderer.domElement);
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0x9cc4e8);
@@ -387,6 +394,7 @@ export default function StreetEngine({ lat0, lon0 }) {
       renderer.toneMappingExposure =
         elev > 0.2 ? 1.15 : elev > 0 ? 1.28 : 0.92 + winGlow * 0.25;
       postFx?.setNightBloom(winGlow);
+      renderer.shadowMap.needsUpdate = true; // sun moved → re-bake shadows
       // 21.0 night grade: commit to darkness. Bloom on at night for medium+,
       // sky/fog go deep blue-black, non-emissive fill drops so lamps read.
       if (postFx && qualityTier !== "low") {
@@ -1305,6 +1313,7 @@ export default function StreetEngine({ lat0, lon0 }) {
     window.addEventListener("resize", onResize);
 
     // ---- main loop ----
+    let lastShadowX = 1e9, lastShadowZ = 1e9; // force a first bake
     const clock = new THREE.Clock();
     let fpsCount = 0, fpsTime = performance.now(), fpsVal = 0, hudTick = 0, precipTick = 0, ambTick = 0;
     // Protect frame pacing on real devices: a complex cell can briefly exceed
@@ -1520,6 +1529,15 @@ export default function StreetEngine({ lat0, lon0 }) {
       // keep the shadow frustum centred on the player, offset toward the sun
       sun.target.position.set(player.x, gy, player.z);
       sun.position.set(player.x + sunDir.x, gy + sunDir.y, player.z + sunDir.z);
+      // re-bake shadows only after meaningful movement (frustum is +/-180 m)
+      if (
+        Math.abs(player.x - lastShadowX) > 25 ||
+        Math.abs(player.z - lastShadowZ) > 25
+      ) {
+        lastShadowX = player.x;
+        lastShadowZ = player.z;
+        renderer.shadowMap.needsUpdate = true;
+      }
       {
         const g = toGeo(player.x, player.z);
         posRef.current = { lat: g.lat, lon: g.lon, heading: player.heading, height: gy + 2 };
