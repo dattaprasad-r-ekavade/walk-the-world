@@ -38,6 +38,14 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en" className={`${outfit.variable} ${displayFont.variable}`}>
+      <head>
+        {/* warm DNS+TLS for the data hosts before the engine asks for bytes */}
+        <link rel="preconnect" href="https://myjyotishai.in" crossOrigin="anonymous" />
+        <link rel="preconnect" href="https://s3.amazonaws.com" crossOrigin="anonymous" />
+        <link rel="preconnect" href="https://a.basemaps.cartocdn.com" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://b.basemaps.cartocdn.com" />
+        <link rel="dns-prefetch" href="https://c.basemaps.cartocdn.com" />
+      </head>
       <body className="font-sans">
         <Providers>
           <Suspense fallback={null}>{children}</Suspense>

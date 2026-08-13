@@ -224,6 +224,11 @@ export default function StreetEngine({ lat0, lon0 }) {
       window.__streetTriangles = 0;
     }
 
+    // Kick the asset-library list off at t=0. Measured on prod: it used to
+    // start ~9.4s in (after the city build) and cost another 1.5s serially.
+    const assetListPromise = fetch("/api/assets")
+      .then((r) => (r.ok ? r.json() : []))
+      .catch(() => []);
     const cityDataPromise = fetchCityData(lat0, lon0).catch((e) => {
       console.warn("[street] city data:", e?.message);
       return null;
@@ -237,12 +242,17 @@ export default function StreetEngine({ lat0, lon0 }) {
     const { toLocal, toGeo } = makeLocalFrame(lat0, lon0);
 
     // ---- three basics ----
+    // MSAA is disproportionately expensive on mobile/high-DPR canvases. The
+    // post stack and facade geometry already provide a clean silhouette, so
+    // keep antialiasing for ordinary desktop displays only.
+    const isMobileViewport = window.matchMedia?.("(pointer: coarse)")?.matches || /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent || "");
+    const useMsaa = !isMobileViewport && (window.devicePixelRatio || 1) <= 1.25;
     const renderer = new THREE.WebGLRenderer({
-      antialias: true, // MSAA — the merged low-poly scene can afford it
+      antialias: useMsaa,
       powerPreference: "high-performance",
     });
     renderer.setSize(mount.clientWidth, mount.clientHeight);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, useMsaa ? 1.5 : 1.25));
     // filmic tone mapping: richer sky gradients, softer highlights, deeper
     // shadow color — the single cheapest whole-scene visual upgrade
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -322,7 +332,7 @@ export default function StreetEngine({ lat0, lon0 }) {
           ? 0.75
           : quality === "medium"
             ? Math.min(window.devicePixelRatio, 1.25)
-            : Math.min(window.devicePixelRatio, 2)
+            : Math.min(window.devicePixelRatio || 1, 1.5)
       );
       renderer.shadowMap.enabled = quality !== "low";
       sun.castShadow = quality !== "low";
@@ -806,18 +816,30 @@ export default function StreetEngine({ lat0, lon0 }) {
       setStage("Streaming terrain…"); setReadyPct(15);
       const ctx = Math.floor(lon2tx(lon0, Z));
       const cty = Math.floor(lat2ty(lat0, Z));
-      await loadTerrainTile(ctx, cty, true);
-      setReadyPct(40);
-      const jobs = [];
-      for (let dx = -1; dx <= 1; dx++)
-        for (let dy = -1; dy <= 1; dy++)
-          if (dx !== 0 || dy !== 0)
-            jobs.push(loadTerrainTile(ctx + dx, cty + dy, false));
-      await Promise.all(jobs);
+      // Only the center tile is on the critical path. The surrounding eight
+      // tiles are visual/terrain upgrades and can stream after the player is
+      // already walking; waiting for their 36 imagery requests made cold
+      // starts look like a frozen game on slower browsers.
+      // Elevation is also non-critical for first paint. Start the center
+      // request, but let the flat fallback carry the player until it arrives.
+      const centerJob = loadTerrainTile(ctx, cty, true);
+      // Give elevation a short head start for accurate building placement, but
+      // never let a slow tile CDN block the world indefinitely.
+      await Promise.race([centerJob, new Promise((resolve) => setTimeout(resolve, 2000))]);
       groundHeight = createGroundHeight(terrainTiles);
       ghRef.fn = groundHeight;
       patchTerrain = createTerrainPatcher(terrainTiles, tileMeshes);
       setReadyPct(55);
+      const jobs = [centerJob];
+      for (let dx = -1; dx <= 1; dx++)
+        for (let dy = -1; dy <= 1; dy++)
+          if (dx !== 0 || dy !== 0)
+            jobs.push(loadTerrainTile(ctx + dx, cty + dy, false));
+      Promise.all(jobs).then(() => {
+        if (disposed) return;
+        groundHeight = createGroundHeight(terrainTiles);
+        ghRef.fn = groundHeight;
+      });
     };
 
     const loadImage = (url) =>
@@ -843,7 +865,9 @@ export default function StreetEngine({ lat0, lon0 }) {
         const g = c.getContext("2d", { willReadFrequently: true });
         g.drawImage(img, 0, 0);
         const d = g.getImageData(0, 0, 256, 256).data;
-        // downsample to 65x65 grid
+        // Downsample the source tile to a stable terrain grid. Keeping one
+        // topology across tiers avoids seam/patch mismatches while pixel
+        // density is reduced through renderer quality and DPR caps.
         const N = 65;
         const heights = new Float32Array(N * N);
         for (let j = 0; j < N; j++)
@@ -937,11 +961,9 @@ export default function StreetEngine({ lat0, lon0 }) {
           w: W,
         };
         tileCanvases.push(entry);
-        if (isCenter) {
-          await paintImagery(groundSource);
-        } else {
-          paintImagery(groundSource).catch(() => {});
-        }
+        // Painting imagery is progressive too: the solid fallback texture is
+        // immediately renderable and the map tiles replace it when available.
+        paintImagery(groundSource).catch(() => {});
         const terrMat = new THREE.MeshStandardMaterial({
           map: texture,
           roughness: 0.95,
@@ -1285,6 +1307,13 @@ export default function StreetEngine({ lat0, lon0 }) {
     // ---- main loop ----
     const clock = new THREE.Clock();
     let fpsCount = 0, fpsTime = performance.now(), fpsVal = 0, hudTick = 0, precipTick = 0, ambTick = 0;
+    // Protect frame pacing on real devices: a complex cell can briefly exceed
+    // the budget even after the boot GPU probe. Auto quality may step down once
+    // sustained FPS is low; manual presets are never overridden.
+    let qualityGuardLow = 0;
+    let qualityGuardGood = 0;
+    let lastQualityGuard = performance.now();
+    let populationAccum = 0;
     let walkMetersAccum = 0;
     let lastElev = null;
     let elevClimbAccum = 0;
@@ -1467,7 +1496,16 @@ export default function StreetEngine({ lat0, lon0 }) {
       }
       // animate wind turbines + precipitation
       for (const r of engineRef.current.spinners || []) r.rotation.z += dt * 1.4;
-      population?.update(dt, player, engineRefHour, !!precip);
+      // Population motion does not need to run at display refresh rate. A
+      // 30 Hz simulation still reads as smooth because transforms are held
+      // between updates, while it removes dozens of terrain samples and
+      // matrix writes per second on mobile/medium tiers.
+      populationAccum += dt;
+      const populationStep = qualityTier === "high" ? 0 : qualityTier === "medium" ? 1 / 30 : 1 / 20;
+      if (population && (populationStep === 0 || populationAccum >= populationStep)) {
+        population.update(populationAccum, player, engineRefHour, !!precip);
+        populationAccum = 0;
+      }
       if (++ambTick % 120 === 0) ambience.set({ hour: engineRefHour, raining: !!precip });
       if (precip && ++precipTick % 2 === 0) {
         const a = precip.geo.attributes.position;
@@ -1509,6 +1547,34 @@ export default function StreetEngine({ lat0, lon0 }) {
       if (now - fpsTime >= 1000) {
         fpsVal = Math.round((fpsCount * 1000) / (now - fpsTime));
         fpsCount = 0; fpsTime = now;
+        // Require several consecutive samples before changing quality so a
+        // one-off streamed cell does not cause visible preset thrashing.
+        const currentSettings = useGameStore.getState().settings;
+        if (currentSettings.qualityMode !== "manual") {
+          if (fpsVal > 0 && fpsVal < 30) {
+            qualityGuardLow += 1;
+            qualityGuardGood = 0;
+          } else if (fpsVal >= 52) {
+            qualityGuardGood += 1;
+            qualityGuardLow = 0;
+          } else {
+            qualityGuardLow = 0;
+            qualityGuardGood = 0;
+          }
+          const nextQuality = qualityGuardLow >= 3
+            ? ({ high: "medium", medium: "low" }[qualityTier] || qualityTier)
+            : qualityGuardGood >= 12
+              ? ({ low: "medium", medium: "high" }[qualityTier] || qualityTier)
+              : qualityTier;
+          if (nextQuality !== qualityTier && now - lastQualityGuard > 2500) {
+            qualityGuardLow = 0;
+            qualityGuardGood = 0;
+            lastQualityGuard = now;
+            qualityTier = nextQuality;
+            applyQuality(nextQuality);
+            changeSettingStore({ quality: nextQuality, qualityMode: "auto" });
+          }
+        }
       }
       if (++hudTick % 20 === 0) {
         if (!hudDom && hudDomRef.current) {
@@ -1577,6 +1643,13 @@ export default function StreetEngine({ lat0, lon0 }) {
       if (disposed) return;
       for (const entry of edits.assets || []) placeAsset(entry, false);
 
+      // The street is already navigable once terrain and static city geometry
+      // exist. Do not make first interaction wait for optional GLB downloads
+      // and population setup; those are streamed into the scene below.
+      setCityStreaming(false);
+      if (!disposed) window.__engineReady = true;
+      setStage(cityData ? "Ready" : "Ready (terrain only)");
+
       // ---- populated world: pedestrians, traffic, birds, POI signs ----
       // Special asset names replace the built-in shapes: upload car.glb,
       // bird.glb or pedestrian.glb to the library and traffic/birds/people
@@ -1584,7 +1657,7 @@ export default function StreetEngine({ lat0, lon0 }) {
       const loadPopModels = async () => {
         const out = {};
         try {
-          const list = await fetch("/api/assets").then((r) => (r.ok ? r.json() : []));
+          const list = await assetListPromise;
           const names = new Set((Array.isArray(list) ? list : []).map((a) => a.name));
           const specs = [
             ["car", "car.glb", 4.4, "length"],
@@ -1652,6 +1725,9 @@ export default function StreetEngine({ lat0, lon0 }) {
           models: popModels,
           signals: (engineRef.current.propMarkers || []).filter((p) => p.kind === "signals"),
           insideBuilding,
+          maxPeds: qualityTier === "low" ? 52 : qualityTier === "medium" ? 96 : 140,
+          maxCars: qualityTier === "low" ? 24 : qualityTier === "medium" ? 48 : 70,
+          maxBirds: qualityTier === "low" ? 12 : qualityTier === "medium" ? 24 : 36,
         });
         console.log("[population]", population.counts);
         const enrichedDensity = Number(cityData?.enrichment?.density?.urban) || 0;
@@ -1663,8 +1739,6 @@ export default function StreetEngine({ lat0, lon0 }) {
         console.warn("[population]", err?.message);
       }
 
-      setCityStreaming(false);
-      if (!disposed) window.__engineReady = true;
       // Safe spawn: never inside a building — spiral to nearest open spot.
       if (insideBuilding(player.x, player.z)) {
         outer: for (const rad of [12, 25, 45, 70, 100, 140]) {
@@ -1680,8 +1754,6 @@ export default function StreetEngine({ lat0, lon0 }) {
           }
         }
       }
-      setStage(cityData ? "Ready" : "Ready (terrain only)");
-
       // ---- Walk-time cell streaming: assemble neighbor cells as the player
       // crosses ~650 m boundaries (R2 warm hits are ~1–2s; cold Overpass slower).
       const cellStreamer = createCellStreamer({
