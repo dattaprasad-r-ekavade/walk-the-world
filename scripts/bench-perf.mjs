@@ -89,10 +89,10 @@ async function benchStreet(page) {
 
 async function benchGlobe(page) {
   await page.goto(baseUrl, { waitUntil: 'domcontentloaded', timeout: 60_000 });
-  await page.waitForSelector('button.menu-btn.primary:not([disabled])', {
+  await page.waitForSelector('button[data-testid="guided-demo"]:not([disabled])', {
     timeout: 120_000,
   });
-  await page.click('button.menu-btn.primary');
+  await page.click('button[data-testid="guided-demo"]');
   await page.waitForTimeout(4000);
 
   await page.keyboard.down('w');
