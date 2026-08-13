@@ -106,9 +106,13 @@ export default function Home() {
     setScreen('play');
     setPanel(null);
     setPhotoMode(false);
-    // warm the city cell WHILE the fly-down animation plays — by the time the
-    // street engine boots, a cold Overpass fetch has had a 10-15s head start
-    fetch(`/api/city/${cityCacheKey(lat, lon)}`).catch(() => {});
+    // Warm the city cell during the fly-down, but start it ~1.2s in: firing it
+    // immediately made a multi-MB download compete with Cesium's tile requests
+    // at the exact moment the camera starts moving, which showed up as stutter.
+    const warmKey = cityCacheKey(lat, lon);
+    setTimeout(() => {
+      fetch(`/api/city/${warmKey}`).catch(() => {});
+    }, 1200);
     controllerRef.current?.flyToStreet(lat, lon);
   };
 

@@ -528,8 +528,23 @@ export default function Globe({ controllerRef, onReady, onStatus, onProgress, po
       // Walk engine: "street" hands off to the 7×-faster Three.js engine
       // after the cinematic fly-down; "classic" walks inside Cesium.
       let walkEngine = "street";
+      /**
+       * Cesium streams terrain + 3D building tiles hardest exactly while the
+       * camera is moving, and every decode/GPU-upload lands on the main thread
+       * — that is the fly-down stutter. Coarsen LOD for the duration of the
+       * flight, restore it on arrival (the user is moving too fast to notice
+       * the detail drop, but they do notice dropped frames).
+       */
+      const flightLod = (on) => {
+        try {
+          scene.globe.maximumScreenSpaceError = on ? 8 : 2.5;
+          if (osmBuildings) osmBuildings.maximumScreenSpaceError = on ? 64 : 28;
+        } catch { /* tileset not ready yet */ }
+      };
+
       const flyToStreet = async (lat, lon) => {
         exitWalk();
+        flightLod(true);
         const ground = await preciseGroundHeight(lon, lat);
         if (destroyed) return;
         viewer.camera.flyTo({
@@ -541,6 +556,7 @@ export default function Globe({ controllerRef, onReady, onStatus, onProgress, po
           },
           duration: 3,
           complete: () => {
+            flightLod(false);
             if (destroyed) return;
             if (walkEngine === "street") {
               window.location.href = `/street?lat=${lat.toFixed(5)}&lon=${lon.toFixed(5)}`;
@@ -553,6 +569,9 @@ export default function Globe({ controllerRef, onReady, onStatus, onProgress, po
 
       const homeView = () => {
         exitWalk();
+        // same tile-storm problem as flyToStreet: the opening globe move pulls
+        // a full pyramid of imagery/terrain while the camera is animating
+        flightLod(true);
         viewer.camera.flyTo({
           destination: Cesium.Cartesian3.fromDegrees(10, 25, 20000000),
           orientation: {
@@ -561,6 +580,8 @@ export default function Globe({ controllerRef, onReady, onStatus, onProgress, po
             roll: 0,
           },
           duration: 2,
+          complete: () => flightLod(false),
+          cancel: () => flightLod(false),
         });
       };
       homeView();
