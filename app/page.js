@@ -116,6 +116,22 @@ export default function Home() {
     controllerRef.current?.flyToStreet(lat, lon);
   };
 
+  // The menu is a decision point: most users click straight through to the
+  // street engine. Prefetch that route's chunks (three.js is a lazy 556 kB)
+  // and warm the demo cell while they are still reading, so the click feels
+  // instant instead of paying the download afterwards.
+  useEffect(() => {
+    if (!ready) return;
+    const id = setTimeout(() => {
+      try {
+        router.prefetch('/street');
+      } catch {
+        /* prefetch is best-effort */
+      }
+    }, 400);
+    return () => clearTimeout(id);
+  }, [ready, router]);
+
   const home = () => {
     setPanel(null);
     setPhotoMode(false);
