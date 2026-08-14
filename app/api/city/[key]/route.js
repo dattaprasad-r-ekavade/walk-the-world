@@ -2,31 +2,45 @@
 //   GET  /api/city/<key>  → R2 hit, or live Overpass fetch + R2 upload on miss
 //   PUT  /api/city/<key>  → upload rendered city JSON to the bucket
 import { NextResponse } from "next/server";
-import { isConfigured, downloadObject, uploadObject } from "@/lib/r2Server";
-import { fetchOverpassCell, parseCityKey } from "@/lib/overpassServer";
+import { isConfigured, downloadObject, uploadObject, checkEditorKey } from "@/lib/r2Server";
+import { fetchOverpassCell, parseCityKey, looksPartial } from "@/lib/overpassServer";
 
 export const runtime = "nodejs";
 export const maxDuration = 120;
 
 const KEY_RE = /^wtw_city\d+_-?\d+\.\d{3}_-?\d+\.\d{3}$/;
 
-export async function GET(_req, { params }) {
+export async function GET(req, { params }) {
   const { key } = params;
   if (!KEY_RE.test(key)) {
     return NextResponse.json({ error: "bad key" }, { status: 400 });
   }
+  // ?refresh=1 (editor key required) bypasses the R2 read so a cell cached
+  // before the partial-result guard existed can be re-fetched. R2 is
+  // authoritative, so without this a poisoned cell is permanent.
+  const refresh = new URL(req.url).searchParams.get("refresh") === "1" && checkEditorKey(req);
 
   try {
-    if (isConfigured()) {
+    if (isConfigured() && !refresh) {
       const text = await downloadObject(`${key}.json`);
       if (text !== null) {
-        return new NextResponse(text, {
-          status: 200,
-          headers: {
-            "Content-Type": "application/json",
-            "Cache-Control": "public, max-age=86400",
-          },
-        });
+        // Cells cached before the guard can still be building-less. Detect on
+        // read and fall through to a live re-fetch instead of serving a city
+        // with no buildings in it forever.
+        let stale = false;
+        try {
+          stale = looksPartial(JSON.parse(text).elements).partial;
+        } catch { /* unparseable — let the normal path re-fetch */ stale = true; }
+        if (!stale) {
+          return new NextResponse(text, {
+            status: 200,
+            headers: {
+              "Content-Type": "application/json",
+              "Cache-Control": "public, max-age=86400",
+            },
+          });
+        }
+        console.warn(`[city] ${key} cached with 0 buildings — re-fetching`);
       }
     }
 
@@ -36,14 +50,20 @@ export async function GET(_req, { params }) {
     }
 
     const data = await fetchOverpassCell(coords.lat, coords.lon);
+    const partial = !!data.partial;
+    delete data.partial; // internal flag, not part of the cell payload
     const body = JSON.stringify(data);
     // Await upload so seed/cold-miss responses only succeed after R2 has the cell.
-    if (isConfigured()) {
+    // Never persist a partial: the player gets it for this session, and the
+    // next request retries instead of inheriting a permanently broken cell.
+    if (isConfigured() && !partial) {
       try {
         await uploadObject(`${key}.json`, body);
       } catch (e) {
         console.warn("[r2] city upload failed:", e?.message);
       }
+    } else if (partial) {
+      console.warn(`[city] ${key} partial (0 buildings) — serving but NOT caching`);
     }
     return new NextResponse(body, {
       status: 200,

@@ -20,14 +20,19 @@ function StreetContent() {
   const bench = params.get("bench") === "1";
   if (!mounted) return null;
   // priority: explicit URL coords → where you last were → Rome
-  const lat = params.get("lat") ? parseFloat(params.get("lat")) : lastPosition?.lat ?? 41.8902;
+  const hasUrlCoords = !!params.get("lat");
+  const lat = hasUrlCoords ? parseFloat(params.get("lat")) : lastPosition?.lat ?? 41.8902;
   const lon = params.get("lon") ? parseFloat(params.get("lon")) : lastPosition?.lon ?? 12.4922;
+  // Resuming where you left off, rather than arriving somewhere new. Spawn
+  // framing must not relocate the player in this case or the saved position
+  // creeps a little further every session (lib/engine/street/spawn.js).
+  const resumedPosition = !hasUrlCoords && !!lastPosition;
 
   if (bench && typeof window !== "undefined") {
     window.__BENCH_MODE = true;
   }
 
-  return <StreetEngine lat0={lat} lon0={lon} />;
+  return <StreetEngine lat0={lat} lon0={lon} resumedPosition={resumedPosition} />;
 }
 
 export default function StreetPage() {

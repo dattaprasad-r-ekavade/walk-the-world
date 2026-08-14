@@ -57,9 +57,9 @@ The world is divided into cells keyed by rounded coordinates:
 
 | File | What it does |
 |---|---|
-| `lib/overpassServer.js` | Mirror list (overpass-api.de → kumi.systems → private.coffee), two-pass timeouts **[15 s, 40 s]** across all mirrors, two parallel queries per cell (buildings `out geom 2000`; infra roads/water/rail/nodes + relations), `Promise.allSettled` → partial results beat none. `parseCityKey` validates cell keys. |
+| `lib/overpassServer.js` | Mirror list (overpass-api.de → kumi.systems → private.coffee), two-pass timeouts **[15 s, 40 s]** across all mirrors, two parallel queries per cell (buildings `out geom 2000`; infra roads/water/rail/nodes + relations), `Promise.allSettled` → partial results beat none. `parseCityKey` validates cell keys. **`looksPartial`** guards the one case where partial does *not* beat none: 20+ roads and zero buildings means Overpass dropped the building statement, and caching that poisons the cell permanently. |
 | `lib/r2Server.js` | S3 client for R2 (`R2_ENDPOINT/ACCESS_KEY/SECRET/BUCKET`). Text objects are stored **gzipped** (`uploadObject`/`downloadObject`, ContentEncoding: gzip, 6-10× smaller). **Binary must use `uploadBinary`/`downloadBinary`** — the text path does a UTF-8 round-trip that corrupts GLBs (learned the hard way). `listObjects`, `checkEditorKey` (compares `x-editor-key` header to `EDITOR_SECRET`). |
-| `app/api/city/[key]/route.js` | GET: R2 hit → stream; miss → Overpass → respond + async upload. maxDuration 120. |
+| `app/api/city/[key]/route.js` | GET: R2 hit → stream; miss → Overpass → respond + async upload. maxDuration 120. Building-less cells are rejected on write **and on read** (older poisoned objects re-fetch themselves); `?refresh=1` + editor key forces a bypass of the R2 read. |
 | `app/api/edits/[key]/route.js` | GET returns edits JSON or `{}`; PUT saves (1 MB cap, editor key required). |
 | `app/api/assets/route.js` | GET lists `assets/` (returns same-origin `url` + `cdnUrl`); POST uploads raw GLB body (`?name=x.glb`, 30 MB cap, editor key). |
 | `app/api/assets/[name]/route.js` | Streams GLB bytes same-origin so GLTFLoader needs no bucket CORS. |
@@ -99,6 +99,18 @@ single `useEffect(lat0, lon0)`; extracted pure helpers live in
    waterways, bridges (walkable decks in `bridgeDecks`), rails, barriers,
    props (baked per-material in lib/engine/props.js), hipped roofs for small
    houses, rooftop tanks/AC, POI awnings, street furniture, lamp light pools.
+4b. **Spawn framing** (`lib/engine/street/spawn.js`) — chooses where the player
+   stands and which way they face. Ray-marches the camera's view cone against
+   building footprints and scores candidates on coverage × openness, so the
+   first frame is a street with buildings in it rather than open ground. Reuses
+   the collision system's `insideBuilding` as its hit test. `roadPoints` (from
+   city-builder-core) exist *only* to feed this, and are clipped to 150 m of
+   the cell origin before crossing the worker boundary. Streamed neighbour
+   cells pass `skipPlayerSpawn`; resume-from-saved-position uses `pickHeading`,
+   which fixes the heading but never moves the player (moving would make the
+   saved position drift a little further every session). Debug:
+   `__streetDebug.spawnFraming()`; measure across cities with
+   `node scripts/diag-spawn.mjs`.
 5. **Population** — `createPopulation` (lib/engine/population.js): one
    InstancedMesh each for pedestrians/cars/birds walking or driving the
    road graph parsed from `roadPaths`; density scales with POIs, hour,

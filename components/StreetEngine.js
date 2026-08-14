@@ -56,7 +56,7 @@ const { EYE, WALK_SPEED, RUN_MULT, TERRAIN_Z: Z, COLLISION_GRID: GRID } = STREET
 
 
 
-export default function StreetEngine({ lat0, lon0 }) {
+export default function StreetEngine({ lat0, lon0, resumedPosition = false }) {
   trackRender();
   const router = useRouter();
   const hudDomRef = useRef(null);
@@ -1041,6 +1041,7 @@ export default function StreetEngine({ lat0, lon0 }) {
           spinners,
           lampGlows,
           cellKey: cityCacheKey(lat0, lon0),
+          resumedPosition,
         });
       } catch (e) {
         console.warn("[street] city build failed:", e?.message || e);
@@ -1863,6 +1864,9 @@ export default function StreetEngine({ lat0, lon0 }) {
           };
         },
         nameplates: () => population?.getNameplateStats?.(player) || [],
+        // How the opening shot was framed (lib/engine/street/spawn.js): mode,
+        // metres moved from the requested point, and the view-cone score.
+        spawnFraming: () => engineRef.current.spawnFraming || null,
         vehicle,
         population: () => population,
         tickPopulation: () => population?.update?.(1 / 60, player, engineRefHour, false),

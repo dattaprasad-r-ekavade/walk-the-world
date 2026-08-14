@@ -32,6 +32,32 @@ Three rules that follow from that:
 ## Ordered roadmap (impact / effort)
 
 ### Tier 1 — Unlocks everything else
+- [x] **M0. The opening shot.** Not on the original roadmap, found by measuring
+      the deployed site: the spawn rule was "nearest walkable road vertex to
+      the cell origin, face along the segment". The direction it faced was the
+      order OSM happened to *digitise* the way — arbitrary — so the first frame
+      was a coin flip between "down a street" and "out at empty ground". Across
+      the 18 fast-travel cities, **5 opened on a frame with zero buildings in
+      the view cone** (Pune, Seoul, Istanbul, San Francisco, Sydney).
+      `lib/engine/street/spawn.js` now ray-marches the view cone against
+      building footprints and scores candidate poses on *coverage* (buildings
+      in frame) × *openness* (a clear line down the street), plus a road-class
+      bonus and a superlinear distance penalty so we don't drift far from the
+      requested point. Measured with `scripts/diag-spawn.mjs`:
+      **framing 42.3% → 89.7%, empty frames 5 → 1**, median drift 33 m.
+      Resume-from-saved-position fixes heading only — relocating there would
+      nudge the saved point further every session.
+      The one remaining empty frame is Sydney, which is a data bug, not a
+      framing one → see the partial-cell note below.
+- [x] **M0b. Poisoned cache cells.** Overpass can answer the later statements
+      of the combined query while dropping the first, returning a cell with
+      every road and no buildings; we only rejected a `remark` when elements
+      were *also* empty, so that got written to R2 — which is authoritative,
+      so it never healed. **3 of 89 seeded cells were affected** (Sydney had 0
+      buildings cached against 678 in OSM; also Nagpur, Panaji). Now detected
+      on both write and read (`looksPartial`), never cached, and re-fetchable
+      via `GET /api/city/<key>?refresh=1` with the editor key.
+      Scan with `scripts/scan-partial-cells.mjs [--all] [--fix --key=...]`.
 - [x] **M1. Roads that respond to light.** CORRECTION: the original premise
       here was wrong. Roads were already lit PBR meshes (road decal ribbons
       with MeshStandardMaterial + normal/roughness maps) *in addition to* the
