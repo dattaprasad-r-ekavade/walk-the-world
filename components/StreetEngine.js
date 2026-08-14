@@ -9,6 +9,7 @@ import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { createPopulation } from "@/lib/engine/population";
 import { createAmbience } from "@/lib/engine/ambience";
+import { createStreetLights } from "@/lib/engine/street-lights";
 import { drawGroundTileImage, groundTileUrl } from "@/lib/engine/ground-tiles";
 import { whereAmIRound } from "@/lib/daily";
 import { createEnvController } from "@/lib/engine/env-map";
@@ -373,6 +374,7 @@ export default function StreetEngine({ lat0, lon0 }) {
       // windows light up as the sun sets (elev < ~0.08 → fully lit)
       const winGlow = Math.max(0, Math.min(1, (0.08 - elev) * 9)) * 0.85;
       for (const bm of engineRef.current.buildingMats || []) bm.emissiveIntensity = winGlow;
+      streetLights?.setNight(winGlow);
       if (engineRef.current.lampPools) {
         // slight "bloom" via brighter additive pools at night
         engineRef.current.lampPools.opacity = winGlow * (1.05 + winGlow * 0.35);
@@ -480,6 +482,7 @@ export default function StreetEngine({ lat0, lon0 }) {
     scene.add(headL.target);
     scene.add(headR.target);
     let population = null;
+    let streetLights = null; // M5: pooled real lights, created after quality tier
     const ambience = createAmbience();
     const groundSource =
       useGameStore.getState().settings?.groundSource === "satellite" ? "satellite" : "osm";
@@ -1750,6 +1753,16 @@ export default function StreetEngine({ lat0, lon0 }) {
           maxBirds: qualityTier === "low" ? 12 : qualityTier === "medium" ? 24 : 36,
         });
         console.log("[population]", population.counts);
+        // M5: real street lighting, created here (not at boot) so it runs
+        // after every dependency is initialised and only when lamps exist.
+        // Each dynamic light costs shading on every lit fragment, so this is
+        // gated to the "high" tier until measured on real GPU hardware;
+        // medium/low keep the free fake lighting (glow sprites + ground pools).
+        if (!streetLights && qualityTier === "high") {
+          streetLights = createStreetLights(scene, { maxLights: 4 });
+          engineRef.current.streetLights = streetLights;
+        }
+        streetLights?.setLamps(engineRef.current.propMarkers || [], groundHeight);
         const enrichedDensity = Number(cityData?.enrichment?.density?.urban) || 0;
         ambience.set({
           density: Math.min(1, Math.max(population.counts.peds / 140, enrichedDensity * 0.65)),
@@ -1839,6 +1852,16 @@ export default function StreetEngine({ lat0, lon0 }) {
         insideBuilding,
         groundHeight,
         propMarkers: () => engineRef.current.propMarkers || [],
+        streetLightStats: () => {
+          const sl = engineRef.current.streetLights;
+          if (!sl) return { pool: 0, on: 0 };
+          const g = scene.getObjectByName("streetLights");
+          const lights = g ? g.children.filter((c) => c.isSpotLight) : [];
+          return {
+            pool: lights.length,
+            on: lights.filter((l) => l.visible && l.intensity > 0).length,
+          };
+        },
         nameplates: () => population?.getNameplateStats?.(player) || [],
         vehicle,
         population: () => population,
@@ -1903,6 +1926,7 @@ export default function StreetEngine({ lat0, lon0 }) {
       document.removeEventListener("pointerlockchange", onLock);
       window.removeEventListener("resize", onResize);
       population?.dispose();
+      streetLights?.dispose();
       postFx?.dispose();
       ambience.dispose();
       envCtrl.dispose();

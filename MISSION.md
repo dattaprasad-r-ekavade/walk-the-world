@@ -55,9 +55,17 @@ Three rules that follow from that:
 - [ ] **M4. Corridor furniture, instanced.** Traffic lights on real poles,
       signage, bollards, bins, benches, bus shelters, guardrails, utility
       poles + wires. All from tags we already parse.
-- [ ] **M5. Night lighting.** Real (pooled) streetlights on the M1 road mesh,
-      shopfront spill, vehicle headlights/taillights, bloom on emissives.
-      Night is where stylized worlds look best — darkness hides low-poly.
+- [~] **M5. Night lighting — pooled real streetlights shipped (high tier).**
+      `lib/engine/street-lights.js`: a pool of 4 SpotLights re-targeted to the
+      nearest lamp posts as the player moves (re-assign only after >12 m, so
+      it costs nothing per frame), intensity driven by the same night factor
+      as the emissive windows. This is what M1 unlocked — asphalt at 0.62
+      roughness can finally show a specular pool under each lamp.
+      **Gated to the "high" quality tier**: dynamic lights cost shading on
+      every lit fragment and the cost is not yet measured on real GPU
+      hardware. Medium/low keep the free fake lighting (glow sprites +
+      additive ground pools). Remaining in M5: shopfront light spill,
+      brighter vehicle head/taillights, bloom tuning.
 - [ ] **M6. Vegetation.** Instanced trees with 2–3 species per climate,
       wind in the vertex shader, hedges and planters. Current cone-trees are
       the most visible remaining "brick game" tell.
