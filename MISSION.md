@@ -32,12 +32,17 @@ Three rules that follow from that:
 ## Ordered roadmap (impact / effort)
 
 ### Tier 1 — Unlocks everything else
-- [ ] **M1. Roads as lit PBR meshes.** Roads are currently *painted pixels* in
-      the terrain canvas, so no light can ever touch them: no specular under
-      streetlights, no wet-road reflections, no headlight pools. This is the
-      single biggest ceiling on the look. Promote the road corridor (~300 m
-      around the player) to real geometry with roughness/normal maps; keep the
-      painted canvas for the far field. Everything in Tier 2 depends on it.
+- [x] **M1. Roads that respond to light.** CORRECTION: the original premise
+      here was wrong. Roads were already lit PBR meshes (road decal ribbons
+      with MeshStandardMaterial + normal/roughness maps) *in addition to* the
+      painted ground canvas. The real blocker was the tuning: the asphalt
+      roughness map was baked at 0.92 with `roughness: 1` on top, i.e. almost
+      perfectly matte, so no light could leave a specular streak — which is
+      why night roads read as flat paint. Fixed: asphalt roughness 0.92 ->
+      0.62, envMapIntensity 0.2 -> 0.55, and a `setRoadWetness(0..1)` driven
+      by the live weather value that takes roughness down to ~0.28 and pushes
+      env reflection to 1.4 for rain-slick mirror streaks (this also delivers
+      the road half of M7). Verify the specular on real hardware.
 - [ ] **M2. Frame budget headroom.** Confirm the shadow-map fix on real
       hardware, then LOD rings (full detail <150 m, merged silhouettes beyond)
       and frustum culling per merged batch. Target a stable 60 FPS on mid

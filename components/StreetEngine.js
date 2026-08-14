@@ -16,7 +16,7 @@ import { runCityBuilder } from "@/lib/engine/city-builder";
 import { assembleCityFromBuild } from "@/lib/engine/street/assemble-city";
 import { createCellStreamer } from "@/lib/engine/street/cell-stream";
 import { clipElementsToCell } from "@/lib/engine/cell-clip";
-import { getSimpleStandard } from "@/lib/engine/materials";
+import { getSimpleStandard, setRoadWetness } from "@/lib/engine/materials";
 import { createVehicleController } from "@/lib/engine/street/vehicle";
 import { createPostFx } from "@/lib/engine/post-fx";
 import { applyAutoQuality } from "@/lib/engine/gpu-tier";
@@ -418,6 +418,8 @@ export default function StreetEngine({ lat0, lon0 }) {
     engineRef.current.setTime = (hour) => applySky(hour);
     engineRef.current.setWeather = (w) => {
       weatherAmt = w / 100;
+      // M1/M7: rain makes asphalt reflective — mirror streaks under lamps
+      setRoadWetness(weatherAmt);
       applySky(engineRefHour);
     };
     let engineRefHour = 12;
