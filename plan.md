@@ -5,8 +5,12 @@ feature work is summarized in [`CHANGELOG.md`](CHANGELOG.md) and preserved in gi
 
 ## North star
 
-> Pick any place on Earth and explore a living 3D interpretation
-> of its real streets.
+> **Every real city on Earth, rebuilt as a living open world you can walk and
+> drive through.** — full mission and ordered roadmap in [`MISSION.md`](MISSION.md)
+
+Pick any place on Earth and explore a living 3D interpretation of its real
+streets: dense traffic, pedestrians with somewhere to be, a drivable car,
+day/night and weather, on real OpenStreetMap geography.
 
 ## Product pillars
 
