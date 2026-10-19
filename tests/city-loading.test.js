@@ -37,3 +37,19 @@ describe('city loading', () => {
     expect(netSignal.aborted).toBe(false); complete(); expect((await second).partial).toBe(false);
   });
 });
+describe('city retry', () => {
+  it('retries a 503 once, honoring Retry-After, and gives up after one retry', async () => {
+    const fetcher=vi.fn(async url=>String(url).startsWith('https:') ? new Response('',{status:404}) : fetcher.mock.calls.filter(([u])=>String(u).startsWith('/api/')).length===1 ? new Response('',{status:503,headers:{'Retry-After':'0.01'}}) : Response.json(city));
+    vi.stubGlobal('fetch',fetcher);
+    const {fetchCityData}=await import('@/lib/engine/cityData');
+    expect((await fetchCityData(1,2)).elements).toHaveLength(1);
+    expect(fetcher.mock.calls.filter(([u])=>String(u).startsWith('/api/'))).toHaveLength(2);
+  });
+  it('does not retry client errors', async () => {
+    const fetcher=vi.fn(async url=>new Response('',{status:String(url).startsWith('https:')?404:400}));
+    vi.stubGlobal('fetch',fetcher);
+    const {fetchCityData}=await import('@/lib/engine/cityData');
+    await expect(fetchCityData(1,2)).rejects.toBeDefined();
+    expect(fetcher.mock.calls.filter(([u])=>String(u).startsWith('/api/'))).toHaveLength(1);
+  });
+});

@@ -7,12 +7,12 @@
 // Safe to re-run: warm cells return in ~1s and cost nothing. Cold cells hit
 // Overpass once, then live in R2 forever (whatever renders once is cached).
 import { cityCacheKey as key, cellNeighborhood, isCompleteCity } from "../lib/city-contract.js";
-import { PLACES } from "../lib/geo.js";
+import { DEMO_PLACES, PLACES } from "../lib/geo.js";
 import { SEED_GROUPS } from "../lib/seedPlaces.js";
 
 //   node scripts/warm-cities.mjs [base-url] [--list] [--group="Goa"]
 //   --list          print the plan (groups, places, cells, estimates), no fetching
-//   --group="name"  seed one group only (matches SEED_GROUPS keys or "Fast travel")
+//   --group="name"  seed one group only (matches SEED_GROUPS keys, "Demo" or "Fast travel")
 const argsAll = process.argv.slice(2);
 const BASE = (argsAll.find((a) => !a.startsWith("--")) || "http://localhost:3000").replace(/\/$/, "");
 const LIST_ONLY = argsAll.includes("--list");
@@ -23,7 +23,7 @@ const GROUP = (argsAll.find((a) => a.startsWith("--group=")) || "").slice(8).rep
 const BUDGET = Number((argsAll.find((a) => a.startsWith("--budget=")) || "").slice(9)) || 0;
 const STATE_FILE = (argsAll.find((a) => a.startsWith("--state=")) || "").slice(8);
 const CONC = Number((argsAll.find((a) => a.startsWith("--conc=")) || "").slice(7)) || 2;
-const GROUPS = { "Fast travel": PLACES, ...SEED_GROUPS };
+const GROUPS = { Demo: DEMO_PLACES, "Fast travel": PLACES, ...SEED_GROUPS };
 const cells = new Map();
 let placeCount = 0;
 for (const [gname, list] of Object.entries(GROUPS)) {

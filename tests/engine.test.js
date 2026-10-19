@@ -143,7 +143,7 @@ describe('daily destination (15.4)', () => {
     expect(a.name).toBe(b.name);
     expect(a.lat).toBeTypeOf('number');
     expect(a.lon).toBeTypeOf('number');
-    expect(allDestinations().length).toBeGreaterThan(20);
+    expect(allDestinations().map((p) => p.name)).toEqual(['Pune', 'Edinburgh', 'Tokyo', 'New York']);
     expect(c).toBeTruthy();
   });
 });

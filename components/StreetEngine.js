@@ -266,7 +266,7 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false }) {
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.12;
     renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.shadowMap.type = THREE.PCFShadowMap; // cheaper than PCFSoft (fewer taps per fragment)
     // PERF: three.js re-renders the whole shadow map EVERY frame by default.
     // With a 2048 map over ~2000 buildings that is a second full scene pass
     // per frame — the single biggest FPS cost. Drive it manually instead:
@@ -484,7 +484,10 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false }) {
       insideBuilding,
       groundHeight: (x, z) => ghRef.fn(x, z),
     });
-    // headlights for night driving
+    // headlights for night driving. They stay in the scene permanently at
+    // intensity 0: three.js bakes the light COUNT into every lit material's
+    // shader, so adding/removing/hiding them when a drive starts would
+    // recompile the whole city mid-demo. Compile once, drive intensity only.
     const headL = new THREE.SpotLight(0xfff2dd, 0, 48, 0.42, 0.45, 1.2);
     const headR = new THREE.SpotLight(0xfff2dd, 0, 48, 0.42, 0.45, 1.2);
     scene.add(headL);
@@ -593,6 +596,7 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false }) {
           loadTerrainTile(tx, ty, false).catch(() => {});
         }
       }
+      terrain.evictFar(ctx, cty, 2); // unload tiles >2 rings away (canvas/texture/geometry)
     };
 
     // ---- avatar: simple static mannequin (no rig, no animation — clean) ----
@@ -862,6 +866,13 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false }) {
     let qualityGuardGood = 0;
     let lastQualityGuard = performance.now();
     let populationAccum = 0;
+    // per-frame scratch (avoid allocating objects/closures in the hot loop)
+    const nearRoadOpts = { nearRoad: true };
+    let nearRoadAcc = 1, nearRoadCached = true; // nearDrivable throttled to ~4 Hz
+    let padX = 0, padZ = 0;
+    const blocked = (x, z) => insideBuilding(x + padX, z + padZ) || insideBuilding(x, z);
+    const posObj = { lat: 0, lon: 0, heading: 0, height: 0 };
+    let liveHudAt = 0; // setLiveHud throttle (<=2 Hz)
     let walkMetersAccum = 0;
     let lastElev = null;
     let elevClimbAccum = 0;
@@ -920,11 +931,13 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false }) {
       }
       player.moving = editor.mode || fly.photo ? false : !!(f || r);
       if (vehicle.active && !editor.mode && !fly.photo) {
-        const pose = vehicle.update(
-          dt,
-          { f, r },
-          { nearRoad: population?.nearDrivable?.(vehicle.state.x, vehicle.state.z) !== false }
-        );
+        nearRoadAcc += dt;
+        if (nearRoadAcc >= 0.25) {
+          nearRoadAcc = 0;
+          nearRoadCached = population?.nearDrivable?.(vehicle.state.x, vehicle.state.z) !== false;
+        }
+        nearRoadOpts.nearRoad = nearRoadCached;
+        const pose = vehicle.update(dt, { f, r }, nearRoadOpts);
         if (pose) {
           player.x = pose.x;
           player.z = pose.z;
@@ -962,6 +975,7 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false }) {
         f = 0;
         r = 0;
       } else if (player.moving) {
+        nearRoadAcc = 1; // re-sample immediately when the next drive starts
         const run =
           keys.ShiftLeft || keys.ShiftRight || touch?.sprint ? RUN_MULT : 1;
         const d = WALK_SPEED * run * dt;
@@ -971,9 +985,8 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false }) {
         // pad the test point 0.45 m along the motion so the near plane
         // never pokes through a wall before collision triggers
         const len = Math.hypot(dx, dz) || 1;
-        const padX = (dx / len) * 0.45, padZ = (dz / len) * 0.45;
+        padX = (dx / len) * 0.45; padZ = (dz / len) * 0.45;
         const nx = player.x + dx, nz = player.z + dz;
-        const blocked = (x, z) => insideBuilding(x + padX, z + padZ) || insideBuilding(x, z);
         const ox = player.x, oz = player.z;
         if (!blocked(nx, nz)) { player.x = nx; player.z = nz; }
         else if (!blocked(player.x, nz)) player.z = nz;
@@ -989,6 +1002,18 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false }) {
       const decks = runtime.current.bridgeDecks;
       if (decks) {
         for (const dk of decks) {
+          // cheap reject: player outside the deck's padded bounding box
+          if (!dk.bb) {
+            let x0 = Infinity, x1 = -Infinity, z0 = Infinity, z1 = -Infinity;
+            for (const p of dk.pts) {
+              if (p.x < x0) x0 = p.x;
+              if (p.x > x1) x1 = p.x;
+              if (p.y < z0) z0 = p.y;
+              if (p.y > z1) z1 = p.y;
+            }
+            dk.bb = { x0: x0 - dk.halfW, x1: x1 + dk.halfW, z0: z0 - dk.halfW, z1: z1 + dk.halfW };
+          }
+          if (player.x < dk.bb.x0 || player.x > dk.bb.x1 || player.z < dk.bb.z0 || player.z > dk.bb.z1) continue;
           const P = dk.pts;
           for (let i = 1; i < P.length; i++) {
             const ax = P[i - 1].x, az = P[i - 1].y, bx = P[i].x, bz = P[i].y;
@@ -1011,11 +1036,10 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false }) {
         // Chase cam locked behind the car — lookAt so WASD turns the car, not the view
         const vh = vehicle.state.heading;
         let back = 11;
-        const boomX = () => player.x - Math.sin(vh) * back;
-        const boomZ = () => player.z - Math.cos(vh) * back;
-        for (let tries = 0; tries < 3 && insideBuilding(boomX(), boomZ()); tries++) back *= 0.55;
-        const cx = boomX();
-        const cz = boomZ();
+        const bsx = Math.sin(vh), bcz = Math.cos(vh);
+        for (let tries = 0; tries < 3 && insideBuilding(player.x - bsx * back, player.z - bcz * back); tries++) back *= 0.55;
+        const cx = player.x - bsx * back;
+        const cz = player.z - bcz * back;
         const camGround = groundHeight(cx, cz);
         const cy = Math.max(gy + 4.2, camGround + 0.6);
         camera.position.set(cx, cy, cz);
@@ -1028,10 +1052,9 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false }) {
         // chase camera: shorten the boom if it would sit inside a building,
         // and never let it dip below the terrain
         let back = 7;
-        const boomX = () => player.x - Math.sin(player.heading) * back;
-        const boomZ = () => player.z + Math.cos(player.heading) * back;
-        for (let tries = 0; tries < 3 && insideBuilding(boomX(), boomZ()); tries++) back *= 0.55;
-        const cx = boomX(), cz = boomZ();
+        const bsx = Math.sin(player.heading), bcz = Math.cos(player.heading);
+        for (let tries = 0; tries < 3 && insideBuilding(player.x - bsx * back, player.z + bcz * back); tries++) back *= 0.55;
+        const cx = player.x - bsx * back, cz = player.z + bcz * back;
         const camGround = groundHeight(cx, cz);
         const cy = Math.max(gy + 3, camGround + 0.6);
         camera.position.set(cx, cy, cz);
@@ -1079,7 +1102,8 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false }) {
       }
       {
         const g = toGeo(player.x, player.z);
-        posRef.current = { lat: g.lat, lon: g.lon, heading: player.heading, height: gy + 2 };
+        posObj.lat = g.lat; posObj.lon = g.lon; posObj.heading = player.heading; posObj.height = gy + 2;
+        posRef.current = posObj;
         // Stream neighbor city cells + terrain as the player walks (~every 0.5s).
         if (hudTick % 30 === 0) {
           runtime.current.cellStreamer?.tick(g.lat, g.lon);
@@ -1145,11 +1169,16 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false }) {
           third: player.third,
         });
         // GameShell reads React `status.fps` — keep it in sync (data-hud-fps is gone).
-        setLiveHud((prev) =>
-          prev.fps === fpsVal && prev.elev === Math.round(gy)
-            ? prev
-            : { fps: fpsVal, elev: Math.round(gy) }
-        );
+        // Each setLiveHud re-renders the React tree; elevation changes every
+        // metre while walking slopes, so cap at ~2 Hz.
+        if (now - liveHudAt >= 500) {
+          liveHudAt = now;
+          setLiveHud((prev) =>
+            prev.fps === fpsVal && prev.elev === Math.round(gy)
+              ? prev
+              : { fps: fpsVal, elev: Math.round(gy) }
+          );
+        }
       }
     };
 

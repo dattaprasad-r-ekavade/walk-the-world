@@ -1,6 +1,7 @@
 // Authorized writes; bounded, cancellation-aware read-through cache.
 import { NextResponse } from "next/server";
-import { isConfigured, downloadObject, uploadObject, checkEditorKey } from "@/lib/r2Server";
+import { gunzipSync } from "node:zlib";
+import { isConfigured, downloadObjectRaw, uploadObject, checkEditorKey } from "@/lib/r2Server";
 import { fetchOverpassCell } from "@/lib/overpassServer";
 import { parseCityKey, validCityData, isCompleteCity, MAX_CITY_BYTES } from "@/lib/city-contract";
 import { readBoundedJson } from "@/lib/read-bounded-json";
@@ -16,10 +17,21 @@ export async function GET(req, { params }) {
   const signal = AbortSignal.any([req.signal, AbortSignal.timeout(105000)]);
   try {
     if (isConfigured() && !refresh) {
-      const text = await downloadObject(`${key}.json`, { signal });
-      if (text) {
+      const stored = await downloadObjectRaw(`${key}.json`, { signal });
+      // Objects we wrote ourselves were validated complete: stream the gzip bytes through untouched.
+      if (stored?.trusted) return new Response(stored.bytes, {
+        headers: {
+          "Content-Type": "application/json",
+          "Content-Encoding": "gzip",
+          "Cache-Control": "public, max-age=86400",
+        },
+      });
+      if (stored) {
         let data;
-        try { data = JSON.parse(text); } catch { /* retry malformed legacy entry */ }
+        try {
+          const bytes = stored.gzip ? gunzipSync(stored.bytes) : stored.bytes;
+          data = JSON.parse(bytes.toString("utf8"));
+        } catch { /* retry malformed legacy entry */ }
         if (isCompleteCity(data)) return NextResponse.json(data, {
           headers: { "Cache-Control": "public, max-age=86400" },
         });
@@ -28,7 +40,9 @@ export async function GET(req, { params }) {
     const data = await fetchOverpassCell(coords.lat, coords.lon, { signal });
     data.partial = !isCompleteCity(data);
     if (isConfigured() && !data.partial) {
-      await uploadObject(`${key}.json`, JSON.stringify(data), { signal });
+      // Write-back is best effort: a storage failure must not discard a good Overpass result.
+      try { await uploadObject(`${key}.json`, JSON.stringify(data), { signal, complete: true }); }
+      catch (error) { console.warn(`[city] R2 write-back failed for ${key}:`, error?.message || error); }
     }
     return NextResponse.json(data, {
       headers: { "Cache-Control": data.partial ? "no-store" : "public, max-age=86400" },
@@ -51,7 +65,7 @@ export async function PUT(req, { params }) {
     if (!validCityData(data) || !isCompleteCity(data)) {
       return NextResponse.json({ error: "A complete city payload is required" }, { status: 400 });
     }
-    await uploadObject(`${params.key}.json`, JSON.stringify(data), { signal: req.signal });
+    await uploadObject(`${params.key}.json`, JSON.stringify(data), { signal: req.signal, complete: true });
     return NextResponse.json({ ok: true });
   } catch (error) {
     return NextResponse.json({ error: error.status ? error.message : "bucket error" }, { status: error.status || 502 });

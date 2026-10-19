@@ -38,3 +38,18 @@ describe('stream lifecycle',()=>{
     const rejection=expect(second).rejects.toBeDefined();pool.dispose();await rejection;expect(worker.terminate).toHaveBeenCalled();
   });
 });
+describe('stream eviction',()=>{
+  it('keeps the full ring plus the pinned spawn cell without re-request churn',async()=>{
+    vi.spyOn(console,'warn').mockImplementation(()=>{}); vi.spyOn(console,'info').mockImplementation(()=>{});
+    fetchCityDataForStream.mockImplementation(async(la,lo)=>({lat:la,lon:lo,cacheKey:'test',data:{elements:[{type:'way',id:Math.round(la*1e6)+Math.round(lo*1e3),tags:{building:'yes'},geometry:[{lat:la,lon:lo},{lat:la+0.0001,lon:lo},{lat:la,lon:lo+0.0001}]}]}}));
+    const streamer=createCellStreamer({scene:new THREE.Scene(),lat0:1,lon0:2,terrainTiles:new Map(),engineRef:{current:{}},buildCity:vi.fn(async()=>({}))});
+    streamer.markLoaded('wtw_city6_1.000_2.000',1,2);
+    streamer.tick(1.0055,2); // ring centered one cell north of spawn
+    await vi.waitFor(()=>expect(streamer.loadingCount()).toBe(0));
+    const calls=fetchCityDataForStream.mock.calls.length;
+    streamer.tick(1.0055,2.0001);
+    expect(fetchCityDataForStream.mock.calls.length).toBe(calls);
+    expect(calls).toBeGreaterThanOrEqual(8); // all ring cells requested (spawn is pinned, one is skipped)
+    streamer.dispose();
+  });
+});

@@ -58,7 +58,7 @@ The world is divided into cells keyed by rounded coordinates:
 
 | File | What it does |
 |---|---|
-| `lib/overpassServer.js` | Server owns Overpass retries: up to three sequential mirrors, a shared 85 s deadline, and at most 28 s per attempt. Caller cancellation propagates. Partial responses retain their status. |
+| `lib/overpassServer.js` | Server owns Overpass retries: mirrors race two at a time (second starts after 1.8 s or on failure), first complete answer wins and aborts the rest. If every mirror fails fast, it sweeps them again after a backoff (3 rounds). Shared 85 s deadline, at most 28 s per attempt. Caller cancellation propagates. Partial responses retain their status. |
 | `lib/r2Server.js` | S3-compatible storage adapter. Text is gzipped; GLBs use binary helpers. City reads/writes accept cancellation. `checkEditorKey` compares the request header to `EDITOR_SECRET`. |
 | `app/api/city/[key]/route.js` | GET validates cache entries before use, fetches within a 105 s total budget, and stores only complete results. PUT requires editor authorization before consuming the bounded body and validates the payload. Partial responses are `no-store`. |
 | `app/api/edits/[key]/route.js` | GET returns edits JSON or `{}`; PUT saves (1 MB cap, editor key required). |
@@ -172,6 +172,7 @@ Open-Meteo → `setTime/setWeather/setPrecip` (settings panel button).
 
 ## Operational scripts
 
+- `npm run seed:demo` — warms the 4 demo cities (`DEMO_PLACES` in lib/geo.js: Pune, Edinburgh, Tokyo, New York). Fast travel, Today's walk and Where-am-I only offer these.
 - `node scripts/warm-cities.mjs [base] [--list|--group="Goa"|--budget=N|
   --state=file|--conc=N]` — seeds R2 for lib/geo.js PLACES +
   lib/seedPlaces.js SEED_GROUPS (88 places/440 cells ≈ 19 MB). Resumable
