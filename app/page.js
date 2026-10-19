@@ -11,7 +11,7 @@ import { useGameKeyboard } from '@/hooks/use-game-keyboard';
 import { useReverseGeocode } from '@/hooks/use-reverse-geocode';
 import { useGameStore } from '@/stores/game-store';
 import { trackRender } from '@/lib/perf';
-import { cityCacheKey } from '@/lib/engine/cityData';
+import { fetchCityData } from '@/lib/engine/cityData';
 import { dailyDestination, whereAmIRound } from '@/lib/daily';
 import { copyText, streetShareUrl } from '@/lib/share';
 import { BrandMark } from '@/components/Brand';
@@ -59,6 +59,8 @@ export default function Home() {
   const clearWhereAmI = useGameStore((s) => s.clearWhereAmI);
 
   const [ready, setReady] = useState(false);
+  const [globeEnabled, setGlobeEnabled] = useState(false);
+  const [globeReady, setGlobeReady] = useState(false);
   const [progress, setProgress] = useState({ pct: 0, stage: 'Starting…' });
   const [bigMap, setBigMap] = useState(false);
   const [geoBusy, setGeoBusy] = useState(false);
@@ -70,17 +72,9 @@ export default function Home() {
   const { place, replayPlace } = useReverseGeocode(hudStatus.lat, hudStatus.lon, walking);
 
   useEffect(() => {
-    if (ready) return undefined;
-    const fallback = window.setTimeout(() => {
-      // The guided street route does not depend on the globe renderer. Keep the
-      // portfolio path usable on software WebGL or restricted browsers where
-      // Cesium never reports ready.
-      setReady(true);
-      const current = useGameStore.getState().screen;
-      if (current === 'loading') setScreen('menu');
-    }, 8000);
-    return () => window.clearTimeout(fallback);
-  }, [ready, setScreen]);
+    setReady(true);
+    setScreen('menu');
+  }, [setScreen]);
 
   useEffect(() => {
     if (hudStatus.lat !== undefined && hudStatus.lon !== undefined) {
@@ -106,20 +100,11 @@ export default function Home() {
     setScreen('play');
     setPanel(null);
     setPhotoMode(false);
-    // Warm the city cell during the fly-down, but start it ~1.2s in: firing it
-    // immediately made a multi-MB download compete with Cesium's tile requests
-    // at the exact moment the camera starts moving, which showed up as stutter.
-    const warmKey = cityCacheKey(lat, lon);
-    setTimeout(() => {
-      fetch(`/api/city/${warmKey}`).catch(() => {});
-    }, 1200);
-    controllerRef.current?.flyToStreet(lat, lon);
+    if (globeEnabled && globeReady) controllerRef.current?.flyToStreet(lat, lon);
+    else router.push(`/street?lat=${lat}&lon=${lon}`);
   };
 
-  // The menu is a decision point: most users click straight through to the
-  // street engine. Prefetch that route's chunks (three.js is a lazy 556 kB)
-  // and warm the demo cell while they are still reading, so the click feels
-  // instant instead of paying the download afterwards.
+  // Preload the street route while the visitor chooses a destination.
   useEffect(() => {
     if (!ready) return;
     const id = setTimeout(() => {
@@ -179,8 +164,8 @@ export default function Home() {
   const launchGuidedDemo = () => {
     setScreen('play');
     setPanel(null);
-    fetch(`/api/city/${cityCacheKey(35.6595, 139.7005)}`).catch(() => {});
-    router.push('/street?lat=35.6595&lon=139.7005&demo=1');
+    fetchCityData(35.6595, 139.7005).catch(() => {});
+    router.push('/street?lat=35.6595&lon=139.7005');
   };
 
   useGameKeyboard(
@@ -217,20 +202,20 @@ export default function Home() {
   return (
     <main>
       <EngineErrorBoundary label="Cesium globe crashed">
-        <Globe
+        {globeEnabled && <Globe
           controllerRef={controllerRef}
           onReady={() => {
-            setReady(true);
+            setGlobeReady(true);
             const cur = useGameStore.getState().screen;
             setScreen(cur === 'loading' ? 'menu' : cur);
           }}
           onStatus={publishStatus}
           onProgress={setProgress}
           posRef={posRef}
-        />
+        />}
       </EngineErrorBoundary>
 
-      {screen === 'loading' && <LoadingScreen pct={progress.pct} stage={progress.stage} />}
+      {(screen === 'loading' || (globeEnabled && !globeReady && screen === 'play')) && <LoadingScreen pct={progress.pct} stage={progress.stage} />}
 
       {screen === 'menu' && (
         <div className={overlay}>
@@ -266,18 +251,18 @@ export default function Home() {
                 <div className="mb-3 flex items-center justify-between px-1">
                   <div>
                     <div className="text-[10px] font-bold uppercase tracking-[0.16em] text-mint">Recommended</div>
-                    <div className="mt-1 text-lg font-bold text-white">The 60-second tour</div>
+                    <div className="mt-1 text-lg font-bold text-white">Start in Shibuya</div>
                   </div>
                   <span className="rounded-full border border-trail/30 bg-trail/10 px-2.5 py-1 text-[10px] font-bold text-trail">SHIBUYA</span>
                 </div>
                 <div className="flex flex-col gap-2.5">
                   <button type="button" className={menuBtnPrimary} onClick={launchGuidedDemo} disabled={!ready} data-testid="guided-demo">
-                    <span className="flex items-center justify-center gap-2"><AppIcon name="compass" /> {ready ? 'Experience the guided demo' : 'Preparing the world…'}</span>
+                    <span className="flex items-center justify-center gap-2"><AppIcon name="compass" /> {ready ? 'Explore Shibuya' : 'Preparing the world…'}</span>
                   </button>
                   <button
                     type="button"
                     className={menuBtn}
-                    onClick={() => setScreen('play')}
+                    onClick={() => { setGlobeEnabled(true); setScreen('play'); }}
                     disabled={!ready}
                   >
                     Free explore the globe
@@ -395,7 +380,8 @@ export default function Home() {
               setPanel(null);
               setPhotoMode(false);
               setScreen('menu');
-              home();
+              setGlobeEnabled(false);
+              setGlobeReady(false);
             },
           },
         ]}

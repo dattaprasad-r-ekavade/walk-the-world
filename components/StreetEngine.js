@@ -6,18 +6,18 @@ import { LoadingScreen } from "@/components/hud/Panels";
 import { lon2tx, lat2ty, tx2lon, ty2lat, makeLocalFrame } from "@/lib/engine/geo";
 import { fetchCityData, cityCacheKey } from "@/lib/engine/cityData";
 import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
-import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
+import { createStreetEditor } from "@/lib/engine/street/editor";
 import { createPopulation } from "@/lib/engine/population";
 import { createAmbience } from "@/lib/engine/ambience";
 import { createStreetLights } from "@/lib/engine/street-lights";
 import { drawGroundTileImage, groundTileUrl } from "@/lib/engine/ground-tiles";
 import { whereAmIRound } from "@/lib/daily";
 import { createEnvController } from "@/lib/engine/env-map";
-import { runCityBuilder } from "@/lib/engine/city-builder";
+import { createCityBuilderPool } from "@/lib/engine/city-builder";
 import { assembleCityFromBuild } from "@/lib/engine/street/assemble-city";
 import { createCellStreamer } from "@/lib/engine/street/cell-stream";
 import { clipElementsToCell } from "@/lib/engine/cell-clip";
-import { getSimpleStandard, setRoadWetness } from "@/lib/engine/materials";
+import { getSimpleStandard, setRoadWetness, sharedMaterialTextures, disposeMaterialCache } from "@/lib/engine/materials";
 import { createVehicleController } from "@/lib/engine/street/vehicle";
 import { createPostFx } from "@/lib/engine/post-fx";
 import { applyAutoQuality } from "@/lib/engine/gpu-tier";
@@ -28,7 +28,8 @@ const toolBtnPrimary = "rounded bg-emerald-500/80 px-2 py-1 font-semibold text-b
 import { trackRender, recordFpsSample } from "@/lib/perf";
 import { STREET } from "@/lib/engine/street/constants";
 import { createCollision } from "@/lib/engine/street/collision";
-import { createGroundHeight, createTerrainPatcher } from "@/lib/engine/street/ground-height";
+import { createTerrainSystem } from "@/lib/engine/street/terrain";
+import { disposeSceneGroup } from "@/lib/engine/street/resources";
 import { createHudRef } from "@/lib/engine/street/hud-ref";
 import { GameShell } from "@/components/game-shell/GameShell";
 import { useRouter } from "next/navigation";
@@ -81,6 +82,7 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false }) {
   const clearWhereAmI = useGameStore((s) => s.clearWhereAmI);
 
   const mountRef = useRef(null);
+  const [bootError, setBootError] = useState(null);
   const [stage, setStage] = useState("Preparing engine…");
   const [readyPct, setReadyPct] = useState(5);
   const [hudLocked, setHudLocked] = useState(false);
@@ -217,6 +219,11 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false }) {
 
   useEffect(() => {
     let disposed = false;
+    const runtime = { current: {} };
+    engineRef.current = runtime.current;
+    const lifetime = new AbortController();
+    const signal = lifetime.signal;
+    const cityBuilder = createCityBuilderPool();
     const mount = mountRef.current;
     if (!mount) return;
 
@@ -227,15 +234,15 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false }) {
 
     // Kick the asset-library list off at t=0. Measured on prod: it used to
     // start ~9.4s in (after the city build) and cost another 1.5s serially.
-    const assetListPromise = fetch("/api/assets")
+    const assetListPromise = fetch("/api/assets", { signal })
       .then((r) => (r.ok ? r.json() : []))
       .catch(() => []);
-    const cityDataPromise = fetchCityData(lat0, lon0).catch((e) => {
+    const cityDataPromise = fetchCityData(lat0, lon0, { signal }).catch((e) => {
       console.warn("[street] city data:", e?.message);
       return null;
     });
     const editsKey = cityCacheKey(lat0, lon0);
-    const editsPromise = fetch(`/api/edits/${editsKey}`)
+    const editsPromise = fetch(`/api/edits/${editsKey}`, { signal })
       .then((r) => (r.ok ? r.json() : {}))
       .catch(() => ({}));
 
@@ -373,11 +380,11 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false }) {
       envCtrl.apply(scene, hour, weatherAmt);
       // windows light up as the sun sets (elev < ~0.08 → fully lit)
       const winGlow = Math.max(0, Math.min(1, (0.08 - elev) * 9)) * 0.85;
-      for (const bm of engineRef.current.buildingMats || []) bm.emissiveIntensity = winGlow;
+      for (const bm of runtime.current.buildingMats || []) bm.emissiveIntensity = winGlow;
       streetLights?.setNight(winGlow);
-      if (engineRef.current.lampPools) {
+      for (const pool of runtime.current.lampPoolMaterials || []) {
         // slight "bloom" via brighter additive pools at night
-        engineRef.current.lampPools.opacity = winGlow * (1.05 + winGlow * 0.35);
+        pool.opacity = winGlow * (1.05 + winGlow * 0.35);
       }
       const sky = new THREE.Color();
       if (elev > 0.25) sky.copy(daySky);
@@ -409,7 +416,7 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false }) {
       moonSprite.material.opacity = Math.max(0, Math.min(1, (-elev + 0.08) * 5)) * (1 - weatherAmt * 0.8);
       // street lamps switch on after dusk
       const night = elev < 0.12;
-      const glows = engineRef.current.lampGlows || [];
+      const glows = runtime.current.lampGlows || [];
       // HDR values (>1) so UnrealBloom actually catches the bulbs at night —
       // a clamped 0xffe9a8 sits under the threshold and never blooms (21.0)
       for (const m of glows) {
@@ -417,22 +424,22 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false }) {
         else m.color.setHex(0x1a1c20);
       }
     };
-    engineRef.current.setTime = (hour) => applySky(hour);
-    engineRef.current.setWeather = (w) => {
+    runtime.current.setTime = (hour) => applySky(hour);
+    runtime.current.setWeather = (w) => {
       weatherAmt = w / 100;
       // M1/M7: rain makes asphalt reflective — mirror streaks under lamps
       setRoadWetness(weatherAmt);
-      applySky(engineRefHour);
+      applySky(runtimeHour);
     };
-    let engineRefHour = 12;
-    const origSetTime = engineRef.current.setTime;
-    engineRef.current.setTime = (h) => {
-      engineRefHour = h;
+    let runtimeHour = 12;
+    const origSetTime = runtime.current.setTime;
+    runtime.current.setTime = (h) => {
+      runtimeHour = h;
       origSetTime(h);
     };
     // ---- precipitation particles (rain/snow) ----
     let precip = null;
-    engineRef.current.setPrecip = (mode) => {
+    runtime.current.setPrecip = (mode) => {
       // mode: null | "rain" | "snow"
       if (precip) { scene.remove(precip.points); precip = null; }
       if (!mode) return;
@@ -458,16 +465,19 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false }) {
       precip = { points, speed: mode === "rain" ? 28 : 4, geo: g4 };
     };
 
-    engineRef.current.setQuality = (q) => {
+    runtime.current.setQuality = (q) => {
       applyQuality(q);
     };
 
     // ---- state ----
     const player = { x: 0, z: 0, heading: 0, pitch: 0, third: false, moving: false };
     const keys = {};
-    const terrainTiles = new Map();
-    const tileMeshes = []; // {key, mesh} — for live terrain patching
-    const tileCanvases = [];
+    const terrain = createTerrainSystem({
+      scene, lat0, lon0, toLocal, signal,
+      groundSource: settings.groundSource === "satellite" ? "satellite" : "osm",
+      onStage: setStage, onProgress: setReadyPct,
+    });
+    const { terrainTiles, tileCanvases } = terrain;
     const { addFootprint, insideBuilding, footprintAt, removeFootprintsByCell } = createCollision(GRID);
     const ghRef = { fn: () => 0 };
     const vehicle = createVehicleController({
@@ -486,299 +496,22 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false }) {
     const ambience = createAmbience();
     const groundSource =
       useGameStore.getState().settings?.groundSource === "satellite" ? "satellite" : "osm";
-    engineRef.current.setMusic = (on) => ambience.set({ music: on !== false });
+    runtime.current.setMusic = (on) => ambience.set({ music: on !== false });
     // hydrate music preference
     ambience.set({ music: useGameStore.getState().settings?.music !== false });
 
-    // ---- editor / debug ----
-    engineRef.current.edits = engineRef.current.edits || {};
-    const editor = { mode: null, tool: null, placed: [], selected: null, undo: [] };
-    // free-fly camera rig for editor/debug — Blender-style:
-    // scroll zoom, MMB orbit, Shift+MMB pan, RMB (or MMB) freelook fallback
-    const fly = {
-      x: 0, y: 0, z: 0, heading: 0, pitch: 0,
-      rmb: false, orbit: null, pan: false, grab: null, photo: false,
-    };
-    const flyForward = () => {
-      const cp = Math.cos(fly.pitch);
-      return new THREE.Vector3(Math.sin(fly.heading) * cp, Math.sin(fly.pitch), -Math.cos(fly.heading) * cp);
-    };
-    const lookAtPivot = () => {
-      const o = fly.orbit;
-      const d = flyForward();
-      fly.x = o.px - d.x * o.dist;
-      fly.y = o.py - d.y * o.dist;
-      fly.z = o.pz - d.z * o.dist;
-    };
-    const raycaster = new THREE.Raycaster();
-
-    // hover visuals: brush ring for terrain tools, outline for pickable features,
-    // box helper for placed-asset select/hover
-    const brushRing = new THREE.Mesh(
-      new THREE.RingGeometry(0.92, 1, 48).rotateX(-Math.PI / 2),
-      new THREE.MeshBasicMaterial({ color: 0xffd54a, transparent: true, opacity: 0.85, depthTest: false, side: THREE.DoubleSide })
-    );
-    brushRing.renderOrder = 999;
-    brushRing.visible = false;
-    scene.add(brushRing);
-    const outlineLine = new THREE.Line(
-      new THREE.BufferGeometry(),
-      new THREE.LineBasicMaterial({ color: 0x4ae3ff, depthTest: false, linewidth: 2 })
-    );
-    outlineLine.renderOrder = 999;
-    outlineLine.visible = false;
-    scene.add(outlineLine);
-    let selBox = null;
-    const clearSelBox = () => { if (selBox) { scene.remove(selBox); selBox = null; } };
-    const showSelBox = (obj, color = 0x4ae3ff) => {
-      clearSelBox();
-      selBox = new THREE.BoxHelper(obj, color);
-      selBox.material.depthTest = false;
-      selBox.renderOrder = 999;
-      scene.add(selBox);
-    };
-    const showOutline = (pts, closed) => {
-      if (!pts || pts.length < 2) { outlineLine.visible = false; return; }
-      const arr = closed ? [...pts, pts[0]] : pts;
-      const v = [];
-      for (const q of arr) {
-        const qx = q[0], qz = q[1];
-        v.push(qx, groundHeight(qx, qz) + 0.5, qz);
-      }
-      outlineLine.geometry.dispose();
-      outlineLine.geometry = new THREE.BufferGeometry();
-      outlineLine.geometry.setAttribute("position", new THREE.Float32BufferAttribute(v, 3));
-      outlineLine.visible = true;
-    };
-    const hideHover = () => { brushRing.visible = false; outlineLine.visible = false; };
-    let hoverT = 0;
-    const updateHover = (e) => {
-      if (!editor.mode) { hideHover(); return; }
-      const now = performance.now();
-      if (now - hoverT < 60) return;
-      hoverT = now;
-      const hit = pickPoint(e);
-      if (!hit) { hideHover(); return; }
-      const t = editor.tool;
-      const terrainTool = t && ["flatten", "raise", "lower"].includes(t.type);
-      if (editor.mode === "editor" && terrainTool) {
-        outlineLine.visible = false;
-        brushRing.visible = true;
-        brushRing.position.set(hit.point.x, groundHeight(hit.point.x, hit.point.z) + 0.4, hit.point.z);
-        brushRing.scale.setScalar(t.radius || 12);
-      } else if (editor.mode === "editor" && t?.type === "asset") {
-        outlineLine.visible = false;
-        brushRing.visible = true;
-        brushRing.position.set(hit.point.x, groundHeight(hit.point.x, hit.point.z) + 0.4, hit.point.z);
-        brushRing.scale.setScalar(1.5);
-      } else {
-        brushRing.visible = false;
-        const sel = resolveOsmAt(hit);
-        if (sel?.outline) showOutline(sel.outline, sel.closed);
-        else outlineLine.visible = false;
-      }
-    };
-    // GLBs with external resources (e.g. Kenney's Textures/colormap.png)
-    // resolve relative to the model URL — flatten every relative request to
-    // the asset library so textures load from /api/assets/<basename>
-    const gltfManager = new THREE.LoadingManager();
-    gltfManager.setURLModifier((url) => {
-      if (/^(https?:|data:|blob:)/.test(url)) return url;
-      if (url.startsWith("/") && !url.startsWith("/api/assets/")) return url;
-      const base = url.split(/[/?#]/).filter(Boolean).pop();
-      return `/api/assets/${base}`;
+    const groundHeight = terrain.height;
+    const patchTerrain = terrain.patch;
+    ghRef.fn = groundHeight;
+    const editorTools = createStreetEditor({
+      scene, renderer, camera, player, engineRef: runtime, ambience, editsKey,
+      toLocal, toGeo, groundHeight, patchTerrain, footprintAt, signal,
+      setUiMode, setDebugSel, setEditorMsg, setMutedUi,
     });
-    const gltfLoader = new GLTFLoader(gltfManager);
-    const loadGLB = (url) =>
-      new Promise((res, rej) => gltfLoader.load(url, (g) => res(g.scene), undefined, rej));
-    const placeAsset = async (entry, record) => {
-      try {
-        const obj = await loadGLB(entry.url);
-        obj.traverse((o) => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } });
-        const p = toLocal(entry.lat, entry.lon);
-        obj.position.set(p.x, groundHeight(p.x, p.z) + (entry.yOffset || 0), p.z);
-        obj.rotation.y = entry.rotY || 0;
-        obj.scale.setScalar(entry.scale || 1);
-        scene.add(obj);
-        editor.placed.push({ group: obj, entry });
-        if (record) ((engineRef.current.edits.assets ||= [])).push(entry);
-      } catch (err) {
-        console.warn("[editor] asset load failed:", err?.message);
-        setEditorMsg(`failed to load ${entry.name}`);
-      }
-    };
-    const saveEdits = async () => {
-      try {
-        const res = await fetch(`/api/edits/${editsKey}`, {
-          method: "PUT",
-          headers: {
-            "content-type": "application/json",
-            "x-editor-key": localStorage.getItem("wtw_editor_key") || "",
-          },
-          body: JSON.stringify(engineRef.current.edits || {}),
-        });
-        return res.ok;
-      } catch { return false; }
-    };
-    const pickPoint = (e) => {
-      const el = renderer.domElement;
-      const rect = el.getBoundingClientRect();
-      const ndc = new THREE.Vector2(
-        ((e.clientX - rect.left) / rect.width) * 2 - 1,
-        -((e.clientY - rect.top) / rect.height) * 2 + 1
-      );
-      raycaster.setFromCamera(ndc, camera);
-      const hits = raycaster.intersectObjects(scene.children, true);
-      return hits.find((h) => h.object.isMesh) || null;
-    };
-    const distToSeg = (x, z, a, b) => {
-      const dx = b.x - a.x, dz = b.z - a.z;
-      const L2 = dx * dx + dz * dz;
-      const t = L2 ? Math.max(0, Math.min(1, ((x - a.x) * dx + (z - a.z) * dz) / L2)) : 0;
-      return Math.hypot(x - (a.x + t * dx), z - (a.z + t * dz));
-    };
-    // Resolve the OSM feature at a raycast hit: building footprint first
-    // (nudged along the ray — wall hits land exactly ON the edge), then the
-    // nearest road centerline. Shared by debug mode and the hide tool.
-    const resolveOsmAt = (hit) => {
-      const { x, z } = hit.point;
-      // per-mesh identity (anything that sets userData.osm)
-      for (let o = hit.object; o; o = o.parent) {
-        if (o.userData?.osm) {
-          const u = o.userData.osm;
-          return { kind: u.kind || "feature", id: u.id, tags: { ...u.tags }, outline: u.outline };
-        }
-      }
-      // props (gates, trees, lamps… baked into merged meshes — match by position)
-      let bp = null;
-      for (const pr of engineRef.current.propMarkers || []) {
-        if (!pr.id) continue;
-        const d = Math.hypot(x - pr.x, z - pr.z);
-        if (d <= 3 && (!bp || d < bp.d)) bp = { d, pr };
-      }
-      if (bp) {
-        const { pr } = bp;
-        const R = 1.6, ring = [];
-        for (let i = 0; i < 12; i++)
-          ring.push([pr.x + Math.cos((i / 12) * Math.PI * 2) * R, pr.z + Math.sin((i / 12) * Math.PI * 2) * R]);
-        return { kind: `prop (${pr.kind})`, id: pr.id, tags: { ...pr.tags }, outline: ring, closed: true };
-      }
-      const dir = raycaster.ray.direction;
-      const fp = footprintAt(x, z) || footprintAt(x + dir.x * 0.4, z + dir.z * 0.4);
-      if (fp?.meta?.id)
-        return { kind: "building", id: fp.meta.id, tags: { ...fp.meta.tags }, outline: fp.poly, closed: true };
-      let best = null;
-      for (const rp of engineRef.current.roadPaths || []) {
-        if (!rp.id) continue;
-        for (let i = 0; i < rp.pts.length - 1; i++) {
-          // road pts are THREE.Vector2 in the XZ plane: .y holds z
-          const a = rp.pts[i], b2 = rp.pts[i + 1];
-          const d = distToSeg(x, z, { x: a.x, z: a.y }, { x: b2.x, z: b2.y });
-          if (d <= Math.max((rp.width || 6) * 0.75, 5) && (!best || d < best.d)) best = { d, rp };
-        }
-      }
-      return best
-        ? { kind: "road", id: best.rp.id, tags: { ...best.rp.tags }, outline: best.rp.pts.map((v) => [v.x, v.y]) }
-        : null;
-    };
-    const debugPick = (e) => {
-      const hit = pickPoint(e);
-      if (!hit) { setDebugSel(null); return; }
-      let sel = resolveOsmAt(hit);
-      if (sel) {
-        const ov = engineRef.current.edits?.tagOverrides?.[sel.id];
-        if (ov) sel.tags = { ...sel.tags, ...ov };
-      }
-      setDebugSel(sel || { kind: "none" });
-    };
-    const editorClick = async (e) => {
-      const hit = pickPoint(e);
-      if (!hit) return;
-      const { x, z } = hit.point;
-      const t = editor.tool;
-      if (!t) {
-        let idx = null;
-        outer: for (let i = 0; i < editor.placed.length; i++) {
-          for (let o = hit.object; o; o = o.parent)
-            if (o === editor.placed[i].group) { idx = i; break outer; }
-        }
-        if (idx === null) {
-          // small assets are easy to miss — select the nearest within 3m
-          let bd = 3;
-          for (let i = 0; i < editor.placed.length; i++) {
-            const gp = editor.placed[i].group.position;
-            const d = Math.hypot(x - gp.x, z - gp.z);
-            if (d < bd) { bd = d; idx = i; }
-          }
-        }
-        editor.selected = idx;
-        if (idx !== null) showSelBox(editor.placed[idx].group);
-        else clearSelBox();
-        setEditorMsg(
-          idx !== null
-            ? `selected ${editor.placed[idx].entry.name} — G move · R rotate · [ ] scale · X delete`
-            : "nothing selected — click a placed asset, or pick a tool"
-        );
-        return;
-      }
-      if (t.type === "asset") {
-        const g = toGeo(x, z);
-        await placeAsset({ name: t.name, url: t.url, lat: g.lat, lon: g.lon, rotY: 0, scale: 1 }, true);
-        editor.undo.push({ type: "asset" });
-        setEditorMsg(`placed ${t.name} — 💾 Save to persist`);
-      } else if (t.type === "flatten" || t.type === "raise" || t.type === "lower") {
-        const r = t.radius || 12;
-        // flatten targets the clicked height; raise/lower shift it (repeat
-        // clicks stack) — enough to close terrain gaps or bury seams by hand
-        const h =
-          groundHeight(x, z) + (t.type === "raise" ? 1.5 : t.type === "lower" ? -1.5 : 0);
-        patchTerrain(x, z, r, h);
-        const g = toGeo(x, z);
-        ((engineRef.current.edits.terrain ||= [])).push({ lat: g.lat, lon: g.lon, radius: r, height: h });
-        editor.undo.push({ type: "terrain", prevH: groundHeight(x, z), x, z, r });
-        setEditorMsg(`terrain ${t.type} applied (${r}m) — 💾 Save to persist`);
-      } else if (t.type === "hide") {
-        const sel = resolveOsmAt(hit);
-        if (!sel) { setEditorMsg("nothing with OSM data there"); return; }
-        const hidden = (engineRef.current.edits.hidden ||= []);
-        if (!hidden.includes(sel.id)) { hidden.push(sel.id); editor.undo.push({ type: "hide", id: sel.id }); }
-        setEditorMsg(`${sel.id} hidden on next load — 💾 Save to persist (${hidden.length} hidden)`);
-      }
-    };
-    const setMode = (m) => {
-      const was = editor.mode;
-      editor.mode = editor.mode === m ? null : m;
-      if (editor.mode && document.pointerLockElement) document.exitPointerLock();
-      if (editor.mode && !was) {
-        // enter fly where the player camera is, looking the same way
-        fly.x = camera.position.x;
-        fly.y = camera.position.y + 4;
-        fly.z = camera.position.z;
-        fly.heading = player.heading;
-        fly.pitch = Math.max(-1.2, player.pitch - 0.3);
-      }
-      if (!editor.mode) { hideHover(); clearSelBox(); }
-      setUiMode(editor.mode);
-      if (editor.mode !== "debug") setDebugSel(null);
-      if (editor.mode !== "editor") { editor.tool = null; editor.selected = null; setEditorMsg(null); }
-    };
-    engineRef.current.setMode = setMode;
-    engineRef.current.toggleMute = () => setMutedUi(ambience.toggleMute());
-    setMutedUi(ambience.muted);
-    engineRef.current.setPhotoFly = (on) => {
-      if (on) {
-        if (document.pointerLockElement) document.exitPointerLock();
-        fly.x = camera.position.x;
-        fly.y = camera.position.y + 2;
-        fly.z = camera.position.z;
-        fly.heading = player.heading;
-        fly.pitch = Math.max(-1.2, player.pitch - 0.15);
-        fly.photo = true;
-      } else {
-        fly.photo = false;
-      }
-    };
-    engineRef.current.captureScreenshot = (placeLabel) => {
+    const { editor, fly, flyForward, lookAtPivot, pickPoint, resolveOsmAt,
+      debugPick, editorClick, setMode, showSelBox, clearSelBox, hideHover,
+      updateHover, loadGLB, placeAsset } = editorTools;
+    runtime.current.captureScreenshot = (placeLabel) => {
       if (postFx) postFx.render();
       else renderer.render(scene, camera);
       const cur = posRef.current || { lat: lat0, lon: lon0 };
@@ -787,235 +520,28 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false }) {
         photoFilename(placeLabel, cur.lat, cur.lon)
       );
     };
-    engineRef.current.editorApi = {
-      setTool: (t) => {
-        editor.tool = t;
-        editor.selected = null;
-        setEditorMsg(
-          !t ? "select mode — click a placed asset"
-          : t.type === "hide" ? "hide armed — click a building/road to remove it"
-          : ["flatten", "raise", "lower"].includes(t.type) ? `${t.type} armed (${t.radius}m) — click ground`
-          : `${t.name} armed — click ground to place`
-        );
-      },
-      save: async () => {
-        const ok = await saveEdits();
-        setEditorMsg(ok ? "saved to R2 ✓" : "save failed — check editor key");
-        return ok;
-      },
-      setTagOverride: async (id, tags) => {
-        ((engineRef.current.edits.tagOverrides ||= {}))[id] = tags;
-        return saveEdits();
-      },
-      setEditorKey: (k) => localStorage.setItem("wtw_editor_key", k),
-      clearHidden: () => {
-        engineRef.current.edits.hidden = [];
-        setEditorMsg("hidden list cleared — 💾 Save, then reload to restore");
-      },
-      clearTerrain: () => {
-        engineRef.current.edits.terrain = [];
-        setEditorMsg("terrain edits cleared — 💾 Save, then reload to restore");
-      },
-    };
-    let groundHeight = () => 0;
-    let patchTerrain = () => {};
     const spinners = [];
     const lampGlows = [];
     let avatar = null;
     let running = true;
     let hudDom = null;
-    const terrainLoading = new Set();
-    const loadTerrain = async () => {
-      setStage("Streaming terrain…"); setReadyPct(15);
-      const ctx = Math.floor(lon2tx(lon0, Z));
-      const cty = Math.floor(lat2ty(lat0, Z));
-      // Only the center tile is on the critical path. The surrounding eight
-      // tiles are visual/terrain upgrades and can stream after the player is
-      // already walking; waiting for their 36 imagery requests made cold
-      // starts look like a frozen game on slower browsers.
-      // Elevation is also non-critical for first paint. Start the center
-      // request, but let the flat fallback carry the player until it arrives.
-      const centerJob = loadTerrainTile(ctx, cty, true);
-      // Give elevation a short head start for accurate building placement, but
-      // never let a slow tile CDN block the world indefinitely.
-      await Promise.race([centerJob, new Promise((resolve) => setTimeout(resolve, 2000))]);
-      groundHeight = createGroundHeight(terrainTiles);
-      ghRef.fn = groundHeight;
-      patchTerrain = createTerrainPatcher(terrainTiles, tileMeshes);
-      setReadyPct(55);
-      const jobs = [centerJob];
-      for (let dx = -1; dx <= 1; dx++)
-        for (let dy = -1; dy <= 1; dy++)
-          if (dx !== 0 || dy !== 0)
-            jobs.push(loadTerrainTile(ctx + dx, cty + dy, false));
-      Promise.all(jobs).then(() => {
-        if (disposed) return;
-        groundHeight = createGroundHeight(terrainTiles);
-        ghRef.fn = groundHeight;
-      });
-    };
-
-    const loadImage = (url) =>
-      new Promise((res, rej) => {
-        const img = new Image();
-        img.crossOrigin = "anonymous";
-        img.onload = () => res(img);
-        img.onerror = rej;
-        img.src = url;
-      });
-
-    const loadTerrainTile = async (tx, ty, isCenter) => {
-      const tKey = `${tx}/${ty}`;
-      if (terrainTiles.has(tKey) || terrainLoading.has(tKey)) return;
-      terrainLoading.add(tKey);
-      try {
-        const img = await loadImage(
-          `https://s3.amazonaws.com/elevation-tiles-prod/terrarium/${Z}/${tx}/${ty}.png`
-        );
-        if (disposed) return;
-        const c = document.createElement("canvas");
-        c.width = c.height = 256;
-        const g = c.getContext("2d", { willReadFrequently: true });
-        g.drawImage(img, 0, 0);
-        const d = g.getImageData(0, 0, 256, 256).data;
-        // Downsample the source tile to a stable terrain grid. Keeping one
-        // topology across tiers avoids seam/patch mismatches while pixel
-        // density is reduced through renderer quality and DPR caps.
-        const N = 65;
-        const heights = new Float32Array(N * N);
-        for (let j = 0; j < N; j++)
-          for (let i = 0; i < N; i++) {
-            const px = Math.min(255, Math.round((i / (N - 1)) * 255));
-            const py = Math.min(255, Math.round((j / (N - 1)) * 255));
-            const o = (py * 256 + px) * 4;
-            heights[j * N + i] = d[o] * 256 + d[o + 1] + d[o + 2] / 256 - 32768;
-          }
-        const latT = ty2lat(ty, Z), latB = ty2lat(ty + 1, Z);
-        const lonL = tx2lon(tx, Z), lonR = tx2lon(tx + 1, Z);
-        const tl = toLocal(latT, lonL), br = toLocal(latB, lonR);
-        const sizeX = br.x - tl.x, sizeZ = br.z - tl.z;
-        terrainTiles.set(tKey, { heights, n: N, x0: tl.x, z0: tl.z, sizeX, sizeZ });
-
-        // geometry
-        const geo = new THREE.PlaneGeometry(sizeX, sizeZ, N - 1, N - 1);
-        geo.rotateX(-Math.PI / 2);
-        const pos = geo.attributes.position;
-        for (let j = 0; j < N; j++)
-          for (let i = 0; i < N; i++) {
-            const v = j * N + i;
-            pos.setY(v, heights[j * N + i]);
-          }
-        geo.computeVertexNormals();
-
-        // Skirt: drop the perimeter down so seams between neighbouring
-        // tiles (each samples its own heightmap) never show as gaps.
-        {
-          const sp = geo.attributes.position;
-          const suv = geo.attributes.uv;
-          const per = [];
-          for (let i = 0; i < N; i++) per.push(i); // top row
-          for (let j = 1; j < N; j++) per.push(j * N + (N - 1)); // right col
-          for (let i = N - 2; i >= 0; i--) per.push((N - 1) * N + i); // bottom
-          for (let j = N - 2; j >= 1; j--) per.push(j * N); // left col
-          per.push(per[0]);
-          const v = [];
-          const uv = [];
-          const idx2 = [];
-          for (let k = 0; k < per.length; k++) {
-            const a = per[k];
-            v.push(sp.getX(a), sp.getY(a), sp.getZ(a));
-            v.push(sp.getX(a), sp.getY(a) - 30, sp.getZ(a));
-            uv.push(suv.getX(a), suv.getY(a), suv.getX(a), suv.getY(a));
-          }
-          for (let k = 0; k < per.length - 1; k++) {
-            const t = k * 2;
-            idx2.push(t, t + 1, t + 2, t + 1, t + 3, t + 2);
-          }
-          const skirt = new THREE.BufferGeometry();
-          skirt.setAttribute("position", new THREE.Float32BufferAttribute(v, 3));
-          skirt.setAttribute("uv", new THREE.Float32BufferAttribute(uv, 2));
-          skirt.setIndex(idx2);
-          skirt.computeVertexNormals();
-          geo.userData.skirt = skirt;
-        }
-
-        // Ground imagery (OSM map or Esri satellite) — 2x2 z15 subtiles
-        const W = isCenter ? 2048 : 1024; // sharp where the player walks
-        const half = W / 2;
-        const tex = document.createElement("canvas");
-        tex.width = tex.height = W;
-        const tg = tex.getContext("2d");
-        tg.fillStyle = groundSource === "satellite" ? "#3a4a3a" : "#b5c9a3";
-        tg.fillRect(0, 0, W, W);
-        const paintImagery = async (src) => {
-          const subs = [];
-          for (let sy = 0; sy < 2; sy++)
-            for (let sx = 0; sx < 2; sx++)
-              subs.push(
-                loadImage(groundTileUrl(src, Z + 1, tx * 2 + sx, ty * 2 + sy))
-                  .then((im) => drawGroundTileImage(
-                    tg, im, sx * half, sy * half, half, groundSource
-                  ))
-                  .catch(() => {})
-              );
-          await Promise.all(subs);
-          texture.needsUpdate = true;
-        };
-        const texture = new THREE.CanvasTexture(tex);
-        texture.colorSpace = THREE.SRGBColorSpace;
-        texture.anisotropy = isCenter ? 4 : 1;
-        const entry = {
-          g: tg,
-          texture,
-          x0: tl.x,
-          z0: tl.z,
-          sizeX,
-          sizeZ,
-          w: W,
-        };
-        tileCanvases.push(entry);
-        // Painting imagery is progressive too: the solid fallback texture is
-        // immediately renderable and the map tiles replace it when available.
-        paintImagery(groundSource).catch(() => {});
-        const terrMat = new THREE.MeshStandardMaterial({
-          map: texture,
-          roughness: 0.95,
-          metalness: 0,
-          envMapIntensity: 0.3,
-        });
-        const mesh = new THREE.Mesh(geo, terrMat);
-        mesh.receiveShadow = true;
-        tileMeshes.push({ key: tKey, mesh });
-        mesh.position.set(tl.x + sizeX / 2, 0, tl.z + sizeZ / 2);
-        scene.add(mesh);
-        if (geo.userData.skirt) {
-          // unlit + double-sided: seam walls can never shade to black
-          const skirtMesh = new THREE.Mesh(
-            geo.userData.skirt,
-            new THREE.MeshBasicMaterial({ color: 0x97927f, side: THREE.DoubleSide })
-          );
-          skirtMesh.position.copy(mesh.position);
-          scene.add(skirtMesh);
-        }
-      } catch {
-        /* tile failed; hole in the far terrain, fine */
-      } finally {
-        terrainLoading.delete(tKey);
-      }
-    };
-
+    const loadTerrain = terrain.load;
+    const loadTerrainTile = terrain.loadTile;
     // ---- buildings + roads (Worker geometry + main-thread assemble) ----
     const loadCity = async (data) => {
-      if (!data?.elements?.length) return;
+      if (!data?.elements?.length || data.partial) return false;
       // Ownership clip: keep all corridors from the fetch; buildings/props
       // only inside the spawn tile so neighbors can own the rest.
       const elements = clipElementsToCell(data.elements, lat0, lon0);
-      if (!elements.length) return;
+      if (!elements.length) return true;
       setStage(`Building city (${elements.length} features)…`);
       setReadyPct((p) => Math.max(p, 60));
+      const cityRoot = new THREE.Group();
+      scene.add(cityRoot);
       try {
-        if (disposed) return;
-        const built = await runCityBuilder({
+        if (disposed) return false;
+        const built = await cityBuilder.build({
+          signal,
           elements,
           lat0,
           lon0,
@@ -1028,13 +554,15 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false }) {
         if (disposed) return;
         setStage("Assembling city…");
         await assembleCityFromBuild(built, {
+          root: cityRoot,
+          signal,
           scene,
           groundHeight,
           toLocal,
           addFootprint,
           insideBuilding,
           tileCanvases,
-          engineRef,
+          engineRef: runtime,
           player,
           lat0,
           lon0,
@@ -1043,8 +571,13 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false }) {
           cellKey: cityCacheKey(lat0, lon0),
           resumedPosition,
         });
+        return true;
       } catch (e) {
-        console.warn("[street] city build failed:", e?.message || e);
+        disposeSceneGroup(cityRoot, scene, sharedMaterialTextures());
+        removeFootprintsByCell(cityCacheKey(lat0, lon0));
+        for (const key of ['buildingMats','roadPaths','propMarkers','pois','bridgeDecks','spinners','lampGlows','lampPoolMaterials']) runtime.current[key] = [];
+        if (!disposed) console.warn("[street] city build failed:", e?.message || e);
+        return false;
       }
     };
 
@@ -1144,7 +677,7 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false }) {
         if (e.code === "KeyB") setMode("debug");
         if (editor.mode === "editor") {
           // tool hotkeys, Blender/Minecraft style
-          const api = engineRef.current.editorApi;
+          const api = runtime.current.editorApi;
           if (e.code === "Digit1") api.setTool(null);
           if (e.code === "Digit2") api.setTool({ type: "flatten", radius: editor.tool?.radius || 12 });
           if (e.code === "Digit3") api.setTool({ type: "raise", radius: editor.tool?.radius || 12 });
@@ -1160,7 +693,7 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false }) {
             const { rec, orig } = fly.grab;
             const pl = toLocal(orig.lat, orig.lon);
             rec.group.position.set(pl.x, groundHeight(pl.x, pl.z) + (rec.entry.yOffset || 0), pl.z);
-            selBox?.update();
+            editorTools.selectionBox?.update();
             fly.grab = null;
             setEditorMsg("move cancelled");
           } else if (e.code === "Escape") { api.setTool(null); clearSelBox(); editor.selected = null; }
@@ -1172,7 +705,7 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false }) {
               const rec = editor.placed.pop();
               if (rec) {
                 scene.remove(rec.group);
-                const arr = engineRef.current.edits.assets || [];
+                const arr = runtime.current.edits.assets || [];
                 const ai = arr.indexOf(rec.entry);
                 if (ai >= 0) arr.splice(ai, 1);
               }
@@ -1180,7 +713,7 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false }) {
               clearSelBox();
               setEditorMsg("undid asset placement");
             } else if (u.type === "hide") {
-              const hidden = engineRef.current.edits.hidden || [];
+              const hidden = runtime.current.edits.hidden || [];
               const hi = hidden.indexOf(u.id);
               if (hi >= 0) hidden.splice(hi, 1);
               setEditorMsg(`undid hide of ${u.id}`);
@@ -1189,10 +722,10 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false }) {
               u.rec.entry.lat = u.orig.lat;
               u.rec.entry.lon = u.orig.lon;
               u.rec.group.position.set(pl.x, groundHeight(pl.x, pl.z) + (u.rec.entry.yOffset || 0), pl.z);
-              selBox?.update();
+              editorTools.selectionBox?.update();
               setEditorMsg("undid move");
             } else if (u.type === "terrain") {
-              (engineRef.current.edits.terrain || []).pop();
+              (runtime.current.edits.terrain || []).pop();
               patchTerrain(u.x, u.z, u.r, u.prevH);
               setEditorMsg("undid terrain edit");
             }
@@ -1201,13 +734,13 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false }) {
         if (editor.mode === "editor" && editor.selected !== null) {
           const rec = editor.placed[editor.selected];
           if (rec) {
-            if (e.code === "KeyR") { rec.entry.rotY = rec.group.rotation.y += Math.PI / 12; selBox?.update(); }
-            if (e.code === "BracketLeft") { rec.group.scale.setScalar((rec.entry.scale = Math.max(0.1, (rec.entry.scale || 1) * 0.9))); selBox?.update(); }
-            if (e.code === "BracketRight") { rec.group.scale.setScalar((rec.entry.scale = Math.min(50, (rec.entry.scale || 1) * 1.1))); selBox?.update(); }
+            if (e.code === "KeyR") { rec.entry.rotY = rec.group.rotation.y += Math.PI / 12; editorTools.selectionBox?.update(); }
+            if (e.code === "BracketLeft") { rec.group.scale.setScalar((rec.entry.scale = Math.max(0.1, (rec.entry.scale || 1) * 0.9))); editorTools.selectionBox?.update(); }
+            if (e.code === "BracketRight") { rec.group.scale.setScalar((rec.entry.scale = Math.min(50, (rec.entry.scale || 1) * 1.1))); editorTools.selectionBox?.update(); }
             if (e.code === "KeyX") {
               scene.remove(rec.group);
               editor.placed.splice(editor.selected, 1);
-              const arr = engineRef.current.edits.assets || [];
+              const arr = runtime.current.edits.assets || [];
               const ai = arr.indexOf(rec.entry);
               if (ai >= 0) arr.splice(ai, 1);
               editor.selected = null;
@@ -1241,7 +774,7 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false }) {
           if (hit) {
             const rec = fly.grab.rec;
             rec.group.position.set(hit.point.x, groundHeight(hit.point.x, hit.point.z) + (rec.entry.yOffset || 0), hit.point.z);
-            selBox?.update();
+            editorTools.selectionBox?.update();
           }
         } else {
           updateHover(e);
@@ -1400,7 +933,7 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false }) {
           player.heading = Math.PI - pose.heading;
           player.pitch = 0;
           population?.setDrivenPose?.(pose.carIndex, pose);
-          const night = (engineRefHour ?? 12) < 6.5 || (engineRefHour ?? 12) >= 19;
+          const night = (runtimeHour ?? 12) < 6.5 || (runtimeHour ?? 12) >= 19;
           const hl = night ? 2.4 : 0;
           headL.intensity = hl;
           headR.intensity = hl;
@@ -1453,7 +986,7 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false }) {
       }
       let gy = groundHeight(player.x, player.z);
       // stand on bridge decks when above them
-      const decks = engineRef.current.bridgeDecks;
+      const decks = runtime.current.bridgeDecks;
       if (decks) {
         for (const dk of decks) {
           const P = dk.pts;
@@ -1510,7 +1043,7 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false }) {
         camera.rotation.x = player.pitch;
       }
       // animate wind turbines + precipitation
-      for (const r of engineRef.current.spinners || []) r.rotation.z += dt * 1.4;
+      for (const r of runtime.current.spinners || []) r.rotation.z += dt * 1.4;
       // Population motion does not need to run at display refresh rate. A
       // 30 Hz simulation still reads as smooth because transforms are held
       // between updates, while it removes dozens of terrain samples and
@@ -1518,10 +1051,10 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false }) {
       populationAccum += dt;
       const populationStep = qualityTier === "high" ? 0 : qualityTier === "medium" ? 1 / 30 : 1 / 20;
       if (population && (populationStep === 0 || populationAccum >= populationStep)) {
-        population.update(populationAccum, player, engineRefHour, !!precip);
+        population.update(populationAccum, player, runtimeHour, !!precip);
         populationAccum = 0;
       }
-      if (++ambTick % 120 === 0) ambience.set({ hour: engineRefHour, raining: !!precip });
+      if (++ambTick % 120 === 0) ambience.set({ hour: runtimeHour, raining: !!precip });
       if (precip && ++precipTick % 2 === 0) {
         const a = precip.geo.attributes.position;
         for (let i = 0; i < a.count; i++) {
@@ -1549,7 +1082,7 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false }) {
         posRef.current = { lat: g.lat, lon: g.lon, heading: player.heading, height: gy + 2 };
         // Stream neighbor city cells + terrain as the player walks (~every 0.5s).
         if (hudTick % 30 === 0) {
-          engineRef.current.cellStreamer?.tick(g.lat, g.lon);
+          runtime.current.cellStreamer?.tick(g.lat, g.lon);
           ensureTerrainAround(g.lat, g.lon);
         }
         // 10.5: trail + elevation climbed (live buffer — no React churn)
@@ -1639,8 +1172,8 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false }) {
       const cityData = await cityDataPromise;
       if (!disposed) setWorldSummary(summarizeCityElements(cityData?.elements || []));
       const edits = (await editsPromise) || {};
-      engineRef.current.edits = edits;
-      engineRef.current.editsKey = editsKey;
+      runtime.current.edits = edits;
+      runtime.current.editsKey = editsKey;
       if (disposed) return;
 
       // terrain patches: flatten circles into the heightmap BEFORE city build
@@ -1663,7 +1196,7 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false }) {
         }
       }
 
-      await loadCity(cityData);
+      const cityBuilt = await loadCity(cityData);
       if (disposed) return;
       for (const entry of edits.assets || []) placeAsset(entry, false);
 
@@ -1671,8 +1204,46 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false }) {
       // exist. Do not make first interaction wait for optional GLB downloads
       // and population setup; those are streamed into the scene below.
       setCityStreaming(false);
-      if (!disposed) window.__engineReady = true;
-      setStage(cityData ? "Ready" : "Ready (terrain only)");
+      if (!disposed) window.__engineReady = cityBuilt;
+      setStage(cityBuilt ? "Ready" : "City unavailable · retrying nearby streets");
+
+      // ---- Walk-time cell streaming: assemble neighbor cells as the player
+      // crosses ~650 m boundaries (R2 warm hits are ~1–2s; cold Overpass slower).
+      const cellStreamer = createCellStreamer({
+        scene,
+        lat0,
+        lon0,
+        toLocal,
+        groundHeight,
+        addFootprint,
+        insideBuilding,
+        removeFootprintsByCell,
+        tileCanvases,
+        engineRef: runtime,
+        player,
+        terrainTiles,
+        isDisposed: () => disposed,
+        onLoading: (n) => {
+          if (disposed) return;
+          if (n > 0) {
+            setCityStreaming(true);
+            setStage("Streaming nearby streets · keep exploring");
+          } else {
+            setCityStreaming(!window.__engineReady);
+            setStage(window.__engineReady ? "Ready" : "City unavailable · retrying shortly");
+          }
+        },
+        onCellLoaded: () => { if (!disposed) window.__engineReady = true; },
+        maxCells: 9,
+        buildCity: cityBuilder.build,
+      });
+      if (cityBuilt) {
+        cellStreamer.markLoaded(cityCacheKey(lat0, lon0), lat0, lon0);
+        cellStreamer.noteSpawnElements?.(cityData?.elements);
+      }
+      runtime.current.cellStreamer = cellStreamer;
+      // Kick off the ring of neighbors immediately (don't wait 10s).
+      cellStreamer.tick(lat0, lon0);
 
       // ---- populated world: pedestrians, traffic, birds, POI signs ----
       // Special asset names replace the built-in shapes: upload car.glb,
@@ -1741,13 +1312,17 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false }) {
       };
       try {
         const popModels = await loadPopModels();
+        if (disposed) {
+          for (const model of Object.values(popModels)) { model.geometry?.dispose(); model.material?.dispose(); }
+          return;
+        }
         population = createPopulation({
           scene,
           groundHeight,
-          roadPaths: engineRef.current.roadPaths || [],
-          pois: engineRef.current.pois || [],
+          roadPaths: runtime.current.roadPaths || [],
+          pois: runtime.current.pois || [],
           models: popModels,
-          signals: (engineRef.current.propMarkers || []).filter((p) => p.kind === "signals"),
+          signals: (runtime.current.propMarkers || []).filter((p) => p.kind === "signals"),
           insideBuilding,
           maxPeds: qualityTier === "low" ? 52 : qualityTier === "medium" ? 96 : 140,
           maxCars: qualityTier === "low" ? 24 : qualityTier === "medium" ? 48 : 70,
@@ -1761,18 +1336,19 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false }) {
         // medium/low keep the free fake lighting (glow sprites + ground pools).
         if (!streetLights && qualityTier === "high") {
           streetLights = createStreetLights(scene, { maxLights: 4 });
-          engineRef.current.streetLights = streetLights;
+          runtime.current.streetLights = streetLights;
         }
-        streetLights?.setLamps(engineRef.current.propMarkers || [], groundHeight);
+        streetLights?.setLamps(runtime.current.propMarkers || [], groundHeight);
         const enrichedDensity = Number(cityData?.enrichment?.density?.urban) || 0;
         ambience.set({
           density: Math.min(1, Math.max(population.counts.peds / 140, enrichedDensity * 0.65)),
         });
-        engineRef.current.population = population;
+        runtime.current.population = population;
       } catch (err) {
         console.warn("[population]", err?.message);
       }
 
+      if (disposed) return;
       // Safe spawn: never inside a building — spiral to nearest open spot.
       if (insideBuilding(player.x, player.z)) {
         outer: for (const rad of [12, 25, 45, 70, 100, 140]) {
@@ -1788,61 +1364,28 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false }) {
           }
         }
       }
-      // ---- Walk-time cell streaming: assemble neighbor cells as the player
-      // crosses ~650 m boundaries (R2 warm hits are ~1–2s; cold Overpass slower).
-      const cellStreamer = createCellStreamer({
-        scene,
-        lat0,
-        lon0,
-        toLocal,
-        groundHeight,
-        addFootprint,
-        insideBuilding,
-        removeFootprintsByCell,
-        tileCanvases,
-        engineRef,
-        player,
-        terrainTiles,
-        isDisposed: () => disposed,
-        onLoading: (n) => {
-          if (disposed) return;
-          if (n > 0) {
-            setCityStreaming(true);
-            setStage("Streaming nearby streets · keep exploring");
-          } else {
-            setCityStreaming(false);
-            setStage("Ready");
-          }
-        },
-        maxCells: 9,
-      });
-      cellStreamer.markLoaded(cityCacheKey(lat0, lon0), lat0, lon0);
-      cellStreamer.noteSpawnElements?.(cityData?.elements);
-      engineRef.current.cellStreamer = cellStreamer;
-      // Kick off the ring of neighbors immediately (don't wait 10s).
-      cellStreamer.tick(lat0, lon0);
-
       // ---- live weather & time (Open-Meteo, keyless) ----
-      engineRef.current.applyRealWeather = async () => {
+      runtime.current.applyRealWeather = async () => {
         try {
           const r = await fetch(
-            `https://api.open-meteo.com/v1/forecast?latitude=${lat0}&longitude=${lon0}&current=temperature_2m,precipitation,cloud_cover,is_day,weather_code&timezone=auto`
+            `https://api.open-meteo.com/v1/forecast?latitude=${lat0}&longitude=${lon0}&current=temperature_2m,precipitation,cloud_cover,is_day,weather_code&timezone=auto`, { signal }
           );
           const d = await r.json();
+          if (disposed) return null;
           const c = d.current;
           const localHour = new Date(Date.now() + (d.utc_offset_seconds || 0) * 1000).getUTCHours() +
             new Date(Date.now() + (d.utc_offset_seconds || 0) * 1000).getUTCMinutes() / 60;
           const w = Math.min(100, (c.cloud_cover || 0) * 0.8 + (c.precipitation > 0 ? 30 : 0));
-          engineRef.current.setTime(localHour);
-          engineRef.current.setWeather(w);
-          engineRef.current.setPrecip(
+          runtime.current.setTime(localHour);
+          runtime.current.setWeather(w);
+          runtime.current.setPrecip(
             c.precipitation > 0.05 ? (c.temperature_2m <= 0.5 ? "snow" : "rain") : null
           );
           return { hour: Math.round(localHour * 2) / 2, weather: Math.round(w), temp: c.temperature_2m, rain: c.precipitation };
         } catch { return null; }
       };
       // soft-sync HUD status strip once (non-blocking)
-      engineRef.current.applyRealWeather?.().then((r) => {
+      runtime.current.applyRealWeather?.().then((r) => {
         if (!r || disposed) return;
         changeSettingStore({ hour: r.hour, weather: r.weather });
         setLiveTemp(r.temp);
@@ -1852,9 +1395,9 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false }) {
         player,
         insideBuilding,
         groundHeight,
-        propMarkers: () => engineRef.current.propMarkers || [],
+        propMarkers: () => runtime.current.propMarkers || [],
         streetLightStats: () => {
-          const sl = engineRef.current.streetLights;
+          const sl = runtime.current.streetLights;
           if (!sl) return { pool: 0, on: 0 };
           const g = scene.getObjectByName("streetLights");
           const lights = g ? g.children.filter((c) => c.isSpotLight) : [];
@@ -1866,12 +1409,12 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false }) {
         nameplates: () => population?.getNameplateStats?.(player) || [],
         // How the opening shot was framed (lib/engine/street/spawn.js): mode,
         // metres moved from the requested point, and the view-cone score.
-        spawnFraming: () => engineRef.current.spawnFraming || null,
+        spawnFraming: () => runtime.current.spawnFraming || null,
         vehicle,
         population: () => population,
-        tickPopulation: () => population?.update?.(1 / 60, player, engineRefHour, false),
+        tickPopulation: () => population?.update?.(1 / 60, player, runtimeHour, false),
         fly,
-        setTime: (h) => engineRef.current.setTime?.(h),
+        setTime: (h) => runtime.current.setTime?.(h),
         pickAt: (cx, cy) => {
           const h = pickPoint({ clientX: cx, clientY: cy });
           return h ? resolveOsmAt(h) : null;
@@ -1896,23 +1439,28 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false }) {
       // location title — skip during Where-am-I so the answer never leaks
       if (!useGameStore.getState().whereAmI) {
         fetch(
-          `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat0}&longitude=${lon0}&localityLanguage=en`
+          `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat0}&longitude=${lon0}&localityLanguage=en`, { signal }
         )
           .then((r) => r.json())
           .then((d) => {
-            if (useGameStore.getState().whereAmI) return;
+            if (disposed || useGameStore.getState().whereAmI) return;
             const line = [d.locality || d.city, d.countryName].filter(Boolean).join(", ");
             if (line) setPlace(line);
           })
           .catch(() => {});
       }
-    })();
+    })().catch(error => {
+      if (!disposed) { setStage(error.message || "Unable to load world"); setBootError(error); }
+    });
 
     return () => {
       disposed = true;
+      lifetime.abort();
+      cityBuilder.dispose();
       running = false;
       if (typeof window !== 'undefined') {
         window.__engineReady = false;
+        if (window.__streetDebug?.player === player) delete window.__streetDebug;
       }
       flushWalk();
       {
@@ -1932,14 +1480,21 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false }) {
       population?.dispose();
       streetLights?.dispose();
       postFx?.dispose();
+      editorTools.dispose();
       ambience.dispose();
       envCtrl.dispose();
-      engineRef.current.cellStreamer?.dispose?.();
+      runtime.current.cellStreamer?.dispose?.();
+      disposeSceneGroup(scene, scene, sharedMaterialTextures());
+      disposeMaterialCache();
+      terrain.dispose();
+      if (engineRef.current === runtime.current) engineRef.current = {};
       renderer.dispose();
       mount.removeChild(renderer.domElement);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lat0, lon0, settings.groundSource]);
+
+  if (bootError) throw bootError;
 
   const streetStatus = {
     mode: "walk",

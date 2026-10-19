@@ -23,7 +23,7 @@ export function MobileControls({ enabled = true }) {
   const lookId = useRef(null);
   const stickOrigin = useRef({ x: 0, y: 0 });
   const lookLast = useRef({ x: 0, y: 0 });
-  const [, tick] = useState(0);
+  const knobRef = useRef(null);
 
   useEffect(() => {
     touchInputRef.current = stateRef.current;
@@ -33,21 +33,18 @@ export function MobileControls({ enabled = true }) {
   }, []);
 
   useEffect(() => {
-    if (!show) return;
-    let raf;
-    const loop = () => {
-      tick((n) => n + 1);
-      raf = requestAnimationFrame(loop);
-    };
-    raf = requestAnimationFrame(loop);
-    return () => cancelAnimationFrame(raf);
-  }, [show]);
+    if (enabled && show) return;
+    Object.assign(stateRef.current, createTouchState());
+    stickId.current = lookId.current = null;
+    if (knobRef.current) knobRef.current.style.transform = 'translate(0px, 0px)';
+  }, [enabled, show]);
 
   if (!enabled || !show) return null;
-
   const maxStick = 38;
-  const knobX = stateRef.current.moveX * maxStick;
-  const knobY = -stateRef.current.moveY * maxStick;
+  const updateKnob = () => {
+    if (knobRef.current) knobRef.current.style.transform =
+      `translate(${stateRef.current.moveX * maxStick}px, ${-stateRef.current.moveY * maxStick}px)`;
+  };
 
   const onStickStart = (e) => {
     const t = e.changedTouches[0];
@@ -67,6 +64,7 @@ export function MobileControls({ enabled = true }) {
     const clamp = Math.min(len, maxStick) / len;
     stateRef.current.moveX = (dx * clamp) / maxStick;
     stateRef.current.moveY = -(dy * clamp) / maxStick;
+    updateKnob();
     e.preventDefault();
   };
 
@@ -75,7 +73,8 @@ export function MobileControls({ enabled = true }) {
     stickId.current = null;
     stateRef.current.moveX = 0;
     stateRef.current.moveY = 0;
-    if (!lookId.current) stateRef.current.active = false;
+    updateKnob();
+    if (lookId.current === null) stateRef.current.active = false;
     e.preventDefault();
   };
 
@@ -99,7 +98,7 @@ export function MobileControls({ enabled = true }) {
   const onLookEnd = (e) => {
     if (![...e.changedTouches].some((x) => x.identifier === lookId.current)) return;
     lookId.current = null;
-    if (!stickId.current) stateRef.current.active = false;
+    if (stickId.current === null) stateRef.current.active = false;
     e.preventDefault();
   };
 
@@ -114,8 +113,9 @@ export function MobileControls({ enabled = true }) {
         onTouchCancel={onStickEnd}
       >
         <div
+          ref={knobRef}
           className="h-10 w-10 rounded-full border border-white/25 bg-slate-200/85 shadow-lg transition-transform duration-75"
-          style={{ transform: `translate(${knobX}px, ${knobY}px)` }}
+          style={{ transform: "translate(0px, 0px)" }}
         />
       </div>
       <div
@@ -132,6 +132,7 @@ export function MobileControls({ enabled = true }) {
           stateRef.current.sprint = true;
           e.preventDefault();
         }}
+        onTouchCancel={() => { stateRef.current.sprint = false; }}
         onTouchEnd={(e) => {
           stateRef.current.sprint = false;
           e.preventDefault();
