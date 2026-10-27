@@ -73,9 +73,11 @@ choosing the next optimization.
   integrated-GPU thermal readings were unavailable. Treat CPU scheduling,
   renderer submission and GPU pacing as leads, not a proven single bottleneck.
 - These runs cover one warm synthetic night/rain route on one plugged-in laptop.
-  They do not cover day/clear-night/rain separately, cold starts, real-city
-  capacity, cell crossing, driving, mobile devices or the 15-minute thermal
-  walk. They do not close Stage 0 or release acceptance.
+  On their own, they do not cover cold starts, real-city capacity, cell crossing,
+  driving, mobile devices or the 15-minute thermal walk. A later matched
+  [four-condition summary](four-scenario-summary.json) adds five day/clear,
+  night/clear and day/rain runs alongside this night/rain set. Those short
+  synthetic runs still do not close Stage 0 or release acceptance.
 
 Earlier attempts remain diagnostic-only: the original `main-local-night-rain-
 chrome-12s.json` captured 51.98 seconds of frame history for a 12-second walk;

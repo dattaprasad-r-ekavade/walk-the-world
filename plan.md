@@ -6,20 +6,21 @@ implemented. A controlled five-run-per-build prop-batching A/B is complete; the
 candidate was rejected because GPU p95 and triangle submission increased while
 frame p95 did not improve. Deterministic time/weather scenarios, time-aligned
 Windows host telemetry and capture-validity checks are implemented. Five
-visible-Chrome Intel UHD night/rain repetitions and a telemetry-free control
-are recorded; the full cold/warm, day/night/rain, crossing, mobile, long-walk and
-release matrix remains open. Implementation continues on local `main`.
+visible-Chrome Intel UHD repetitions are now recorded for each of day/clear,
+night/clear, day/rain and night/rain. These short synthetic runs are diagnostic,
+not release acceptance; cold/warm starts, real-city stress, dynamic cell
+crossing, mobile, long-walk thermal and release gates remain open. Work is
+consolidated on `main`.
 
 ## 1. Verified baseline and scope
 
-Fetched origin on 27 October 2026; `origin/main` remains at
+Fetched origin on 27 October 2026; at that fetch, `origin/main` was
 `adf6d073a56f1dd8e2937aeb9147e4fc4645eca0`. Both the performance/setup branch
 and the Cursor setup branch are ancestors of local `main`. The redundant local
-performance branch was removed after verifying its tip is in `main`; remote
-branch refs remain unchanged. The fixture and profiling checkpoint is local
-commit `664b55f`; bounded cell streaming and boundary tests are local commit
-`3235dd9`. This plan and its benchmark evidence are maintained on local `main`;
-no changes have been pushed.
+performance branch was removed after verifying its tip is in `main`; the
+remote topic refs were retained. The fixture and profiling checkpoint is
+commit `664b55f`; bounded cell streaming and boundary tests are commit `3235dd9`.
+The consolidated implementation and evidence are maintained on `main`.
 
 This is the active implementation sequence for
 [PERFORMANCE-VISUALS-PLAN.md](PERFORMANCE-VISUALS-PLAN.md), which contains
@@ -161,14 +162,39 @@ scripts/bench-perf.mjs and benchmarks/fixtures/.
   - [x] Capture five valid 12-second warm, fixed-pose medium night/rain runs on
     Intel UHD 630 in visible Chrome. Median frame p95 was 33.5 ms (range
     17.1–34.3 ms); median GPU timer p95 was 10.55 ms. Four newer runs confirmed
-    focus and visibility; all five had at least 92% in-window host coverage.
+    focus and visibility; host-window coverage ranged from 83% to 92%, and all
+    five host windows passed the validator.
     A single telemetry-free control recorded 33.5 ms frame p95. See the
     [five-run decision](benchmarks/results/stage0/night-rain-five-run-decision.md)
     and [compact JSON summary](benchmarks/results/stage0/night-rain-five-run-summary.json).
+  - [x] Capture five matched 12-second visible-Chrome runs for all four
+    day/night and clear/rain combinations on the same Intel UHD system. All 20
+    frame windows and host windows passed validation; all pages stayed visible,
+    no focus/visibility losses were recorded where event monitoring was active,
+    and no browser/runtime/asset errors were reported. Medians are shown below;
+    retain each range because intermittent 33 ms frame tails remain:
+
+    | Condition | Frame p95 median (range) | GPU timer p95 median | Median FPS | Median host CPU | Median GPU 3D | Min free memory |
+    |---|---:|---:|---:|---:|---:|---:|
+    | Day / clear | 17.0 ms (16.8–33.4) | 8.98 ms | 58 | 44.12% | 69.29% | 1,805 MB |
+    | Night / clear | 17.1 ms (17.1–33.3) | 10.15 ms | 59 | 40.58% | 81.93% | 2,239 MB |
+    | Day / rain | 33.2 ms (16.9–33.8) | 8.14 ms | 56 | 48.37% | 67.86% | 2,758 MB |
+    | Night / rain | 33.5 ms (17.1–34.3) | 10.55 ms | 50 | 64.51% | 72.72% | 1,747 MB |
+
+    See the [four-condition summary](benchmarks/results/stage0/four-scenario-summary.json)
+    and the [day-rain scene capture](benchmarks/results/stage0/main-local-day-rain-chrome-12s-rep1.png).
+    Day-rain and night-rain show the weakest median frame p95 despite lower GPU
+    timer p95, so this evidence does not identify a GPU shader as the sole cause.
+    One laptop, synthetic content and 12-second windows do not establish a
+    production-device performance guarantee.
   - [ ] Repeat after checking Chromium foreground state, OS load and integrated-
-    GPU thermal/power conditions; alternate baseline/candidate runs for A/B.
-  - [ ] Complete cold/warm, day/night, rain and moving/cell-crossing scenarios;
-    include a mobile device before closing the hardware matrix.
+    GPU thermal/power conditions; control host load and alternate
+    baseline/candidate runs for A/B. Foreground visibility is now checked, but
+    host load still varied and Windows exposes no ACPI thermal reading.
+  - [ ] Compare explicit cold and warm starts; test dense real-city content and
+    walking/driving across cell boundaries with network and resource telemetry.
+  - [ ] Run the 15-minute thermal/resource soak and repeat on real mobile
+    hardware before closing the hardware matrix.
 
 ### Implementation checkpoint — Stage 0 instrumentation, fixtures and hardware repeatability
 
@@ -309,11 +335,11 @@ These used headless SwiftShader, so their frame timings are excluded from GPU
 performance comparisons. The earlier [failed report](benchmarks/results/stage0/main-664b55f-osm-rome-walk-cross-cell-swiftshader.json)
 is retained to show the regression that the new checks caught.
 
-Remaining Stage 0 gates: capture OS load and integrated-GPU power/thermal state,
-then repeat matched runs with those conditions controlled. Complete cold/warm,
-day/night, rain and cell-crossing comparisons and include real mobile hardware.
-The warm hardware runs and stationary repetitions are useful baselines, but
-must not be used as candidate pass/fail A/B results yet.
+Remaining Stage 0 gates: control OS load and integrated-GPU power/thermal state
+for candidate A/B runs; compare cold and warm starts; exercise dense real-city
+data and cell-crossing walk/drive paths; and include real mobile hardware. The
+four visual-condition medians are useful diagnostic baselines, but are not
+candidate pass/fail results or a substitute for a 15-minute thermal soak.
 No shader, texture or visual rendering behavior changed in this checkpoint.
 
 The earlier local integration check passed all 92 tests and the optimized
@@ -643,15 +669,16 @@ for Cesium, imagery and model resources. SSR, volumetrics, displacement, dense
 skeletal crowds and shadowed lamp arrays require separate high-tier budgets.
 None is a prerequisite for this sequence.
 
-**Next bounded task:** run five matched visible-Chrome repeats for daytime clear,
-clear night and daytime rain on this same Intel UHD device, then compare cold and
-warm starts and moving/cell-crossing paths. The night/rain checkpoint is
-diagnostic: median frame p95 was 33.5 ms, but one run was 17.1 ms and host CPU
-varied from 43% to 84%. Windows was on AC/High Performance but exposes no ACPI
-thermal readings. Mobile and 15-minute thermal checks remain open. Keep
-Rust/Wasm/SIMD deferred: worker compute was 25.9 ms median versus 729.4 ms
-roundtrip, so kernel acceleration is not yet the measured opportunity. Rank
-main-thread assembly/scheduling and GPU pacing on dense real-city traces before
-changing geometry backends. If Stage 2 resumes first, isolate material reuse
-from spatial batching and prove equal rendered content before accepting a
-performance claim.
+**Next bounded task:** compare explicit cold and warm startup on the same device
+with a fixed first-visit/revisit protocol and collect a visible-Chrome baseline
+for a dense real-city fixture. Then measure walking and driving across cell
+boundaries with CPU/GPU, network and resource counters. The four-condition
+summary reports median frame p95 values of 17.0–33.5 ms, with within-condition
+ranges reaching 33–34 ms; host CPU and available memory varied, and Windows
+exposes no ACPI thermal readings. Mobile and 15-minute thermal checks remain
+open. Keep Rust/Wasm/SIMD deferred: worker compute was 25.9 ms median versus
+729.4 ms roundtrip on the earlier synthetic trace, so kernel acceleration is
+not yet the measured opportunity. Rank main-thread assembly/scheduling and GPU
+pacing on dense real-city traces before changing geometry backends. If Stage 2
+resumes first, isolate material reuse from spatial batching and prove equal
+rendered content before accepting a performance claim.

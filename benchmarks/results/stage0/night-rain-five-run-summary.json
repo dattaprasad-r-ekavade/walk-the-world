@@ -508,7 +508,8 @@
     "Five-run frame p95 median 33.5 ms, range 17.1-34.3 ms.",
     "Five-run GPU timer p95 median 10.55 ms.",
     "Median worker compute 25.9 ms; median worker roundtrip 729.4 ms; Rust/Wasm/SIMD remain deferred.",
-    "Full day/night/rain, cold/warm, real-city, crossing, mobile and 15-minute gates remain open."
+    "The four day/night and clear/rain condition medians are now summarized in four-scenario-summary.json.",
+    "Cold/warm, dense real-city, crossing, mobile, controlled A/B and 15-minute thermal gates remain open."
   ],
   "rawReportsRetainedLocally": [
     "main-local-night-rain-chrome-12s-v5.json",
