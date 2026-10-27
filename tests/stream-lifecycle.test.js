@@ -3,6 +3,7 @@ import * as THREE from 'three';
 vi.mock('@/lib/engine/cityData',async()=>({ ...(await vi.importActual('@/lib/city-contract')), fetchCityDataForStream:vi.fn() }));
 vi.mock('@/lib/engine/street/assemble-city',()=>({assembleCityFromBuild:vi.fn(async()=>{})}));
 import {fetchCityDataForStream} from '@/lib/engine/cityData';
+import {CELL_STEP,cityCacheKey} from '@/lib/city-contract';
 import {assembleCityFromBuild} from '@/lib/engine/street/assemble-city';
 import {createCellStreamer} from '@/lib/engine/street/cell-stream';
 import {disposeSceneGroup} from '@/lib/engine/street/resources';
@@ -11,6 +12,7 @@ afterEach(()=>{
   vi.restoreAllMocks();
   assembleCityFromBuild.mockReset().mockImplementation(async()=>{});
 });
+function deferred(){let resolve,reject;const promise=new Promise((a,b)=>{resolve=a;reject=b;});return{promise,resolve,reject};}
 describe('stream lifecycle',()=>{
   it('releases reserved feature IDs after a failed build so retry can render them',async()=>{
     vi.spyOn(console,'warn').mockImplementation(()=>{}); vi.spyOn(console,'info').mockImplementation(()=>{});
@@ -59,6 +61,94 @@ describe('stream lifecycle',()=>{
     expect(maxAssembliesInFlight).toBe(1);
     streamer.dispose();
   });
+  it('bounds queued cells and cancels requests outside the latest neighborhood',async()=>{
+    vi.spyOn(console,'warn').mockImplementation(()=>{});
+    const requests=[];
+    fetchCityDataForStream.mockImplementation((la,lo,{signal})=>new Promise((resolve,reject)=>{
+      const request={lat:la,lon:lo,aborted:false};
+      requests.push(request);
+      signal.addEventListener('abort',()=>{request.aborted=true;reject(signal.reason);},{once:true});
+    }));
+    const buildCity=vi.fn(async()=>({}));
+    const streamer=createCellStreamer({scene:new THREE.Scene(),lat0:1,lon0:2,terrainTiles:new Map(),engineRef:{current:{}},buildCity});
+    streamer.markLoaded('wtw_city6_1.000_2.000',1,2);
+    streamer.tick(1,2);
+    expect(requests).toHaveLength(2);
+    expect(streamer.debugState().queueLimit).toBe(9);
+    expect(streamer.loadingCount()).toBeLessThanOrEqual(9);
+
+    const obsoleteRequests=requests.slice();
+    streamer.tick(1,2+CELL_STEP*6);
+    expect(obsoleteRequests.every((request)=>request.aborted)).toBe(true);
+    expect(streamer.debugState().queuedKeys.length).toBeLessThanOrEqual(9);
+    expect(streamer.loadingCount()).toBeLessThanOrEqual(11);
+    await vi.waitFor(()=>expect(requests.length).toBeGreaterThan(2));
+    expect(buildCity).not.toHaveBeenCalled();
+
+    streamer.dispose();
+    expect(streamer.debugState().pendingCount).toBe(0);
+    expect(streamer.debugState().activeJobKeys).toEqual([]);
+  });
+  it('rejects an obsolete assembly and rolls back scene, footprints, metadata, and IDs',async()=>{
+    vi.spyOn(console,'warn').mockImplementation(()=>{}); vi.spyOn(console,'info').mockImplementation(()=>{});
+    const targetLat=1+CELL_STEP,targetLon=2,targetKey=cityCacheKey(targetLat,targetLon);
+    const assemblyGate=deferred();
+    const requests=[];
+    fetchCityDataForStream.mockImplementation(async(la,lo)=>{
+      requests.push({lat:la,lon:lo});
+      const isTarget=cityCacheKey(la,lo)===targetKey;
+      return{
+        lat:la,lon:lo,cacheKey:cityCacheKey(la,lo),
+        data:{elements:isTarget?[{type:'way',id:42,tags:{building:'yes'},geometry:[
+          {lat:la,lon:lo},{lat:la+0.0001,lon:lo},{lat:la,lon:lo+0.0001},
+        ]}]:[]},
+      };
+    });
+    const buildCity=vi.fn(async({elements})=>({elements}));
+    const scene=new THREE.Scene();
+    const engineRef={current:{roadPaths:[],propMarkers:[],pois:[],bridgeDecks:[],spinners:[],lampGlows:[],buildingMats:[],lampPoolMaterials:[]}};
+    const footprints=new Map();
+    const removeFootprintsByCell=vi.fn((key)=>footprints.delete(key));
+    const loaded=[];
+    let firstSignal=null,assemblyCount=0;
+    assembleCityFromBuild.mockImplementation(async(_built,assemblyCtx)=>{
+      assemblyCount++;
+      assemblyCtx.root.add(new THREE.Mesh(new THREE.BoxGeometry(),new THREE.MeshBasicMaterial()));
+      assemblyCtx.addFootprint([], {id:42,cellKey:assemblyCtx.cellKey});
+      engineRef.current.roadPaths.push({cellKey:assemblyCtx.cellKey});
+      if(assemblyCount===1){firstSignal=assemblyCtx.signal;await assemblyGate.promise;}
+    });
+    const streamer=createCellStreamer({
+      scene,lat0:1,lon0:2,terrainTiles:new Map(),engineRef,buildCity,
+      addFootprint:(_ring,meta)=>footprints.set(meta.cellKey,true),
+      removeFootprintsByCell,
+      onCellLoaded:(key)=>loaded.push(key),
+    });
+    streamer.markLoaded('wtw_city6_1.000_2.000',1,2);
+    streamer.tick(1,2);
+    await vi.waitFor(()=>expect(assemblyCount).toBe(1));
+    expect(firstSignal.aborted).toBe(false);
+    expect(streamer.debugState().reservationCount).toBe(1);
+
+    streamer.tick(1,2+CELL_STEP*6);
+    expect(firstSignal.aborted).toBe(true);
+    assemblyGate.resolve();
+    await vi.waitFor(()=>expect(streamer.debugState().activeJobKeys).not.toContain(targetKey));
+    expect(streamer.debugState().reservationCount).toBe(0);
+    expect(streamer.debugState().loadedKeys).not.toContain(targetKey);
+    expect(scene.children.some((child)=>child.name===targetKey)).toBe(false);
+    expect(footprints.has(targetKey)).toBe(false);
+    expect(removeFootprintsByCell).toHaveBeenCalledWith(targetKey);
+    expect(engineRef.current.roadPaths.some((item)=>item.cellKey===targetKey)).toBe(false);
+    expect(loaded).not.toContain(targetKey);
+
+    streamer.tick(targetLat,targetLon);
+    await vi.waitFor(()=>expect(streamer.debugState().loadedKeys).toContain(targetKey));
+    expect(buildCity.mock.calls.filter((call)=>call[0].elements.some((element)=>element.id===42))).toHaveLength(2);
+    expect(loaded).toContain(targetKey);
+    expect(scene.children.some((child)=>child.name===targetKey)).toBe(true);
+    streamer.dispose();
+  });
   it('keeps a shared texture alive until its last scene owner is removed',()=>{
     const scene=new THREE.Scene(), texture=new THREE.Texture();const dispose=vi.spyOn(texture,'dispose');
     const a=new THREE.Mesh(new THREE.BoxGeometry(),new THREE.MeshBasicMaterial({map:texture}));
@@ -72,6 +162,41 @@ describe('stream lifecycle',()=>{
     const first=pool.build(args);worker.onmessage({data:{id:1,type:'done',result:{ok:true}}});await first;
     const second=pool.build(args);expect(factory).toHaveBeenCalledOnce();
     const rejection=expect(second).rejects.toBeDefined();pool.dispose();await rejection;expect(worker.terminate).toHaveBeenCalled();
+  });
+  it('bounds the geometry queue and removes an aborted queued job',async()=>{
+    const worker={postMessage:vi.fn(),terminate:vi.fn()};
+    const pool=createCityBuilderPool({size:1,maxQueueSize:1,workerFactory:()=>worker});
+    const first=pool.build({elements:[],terrainTiles:new Map(),lat0:0,lon0:0});
+    const queuedAbort=new AbortController();
+    const second=pool.build({elements:[],terrainTiles:new Map(),lat0:0,lon0:0,signal:queuedAbort.signal});
+    await expect(pool.build({elements:[],terrainTiles:new Map(),lat0:0,lon0:0})).rejects.toMatchObject({
+      code:'CITY_BUILDER_QUEUE_FULL',
+    });
+    expect(pool.debugState()).toMatchObject({activeCount:1,queuedCount:1,queueLimit:1,pendingCount:2});
+    queuedAbort.abort(new Error('no longer needed'));
+    await expect(second).rejects.toThrow('no longer needed');
+    expect(pool.debugState()).toMatchObject({activeCount:1,queuedCount:0,pendingCount:1});
+    worker.onmessage({data:{id:1,type:'done',result:{ok:true}}});
+    await expect(first).resolves.toEqual({ok:true});
+    pool.dispose();
+  });
+  it('ignores a late result from a worker terminated for an obsolete job',async()=>{
+    const workers=[];
+    const pool=createCityBuilderPool({size:1,workerFactory:()=>{
+      const worker={postMessage:vi.fn(),terminate:vi.fn()};workers.push(worker);return worker;
+    }});
+    const obsoleteAbort=new AbortController();
+    const obsolete=pool.build({elements:[],terrainTiles:new Map(),lat0:0,lon0:0,signal:obsoleteAbort.signal});
+    const obsoleteRejected=expect(obsolete).rejects.toThrow('obsolete');
+    obsoleteAbort.abort(new Error('obsolete'));
+    await obsoleteRejected;
+    const current=pool.build({elements:[],terrainTiles:new Map(),lat0:0,lon0:0});
+    expect(workers).toHaveLength(2);
+    workers[0].onmessage({data:{id:1,type:'done',result:{stale:true}}});
+    expect(pool.debugState()).toMatchObject({activeCount:1,queuedCount:0});
+    workers[1].onmessage({data:{id:2,type:'done',result:{fresh:true}}});
+    await expect(current).resolves.toEqual({fresh:true});
+    pool.dispose();
   });
 });
 describe('stream eviction',()=>{

@@ -437,8 +437,12 @@ street/cell-stream.js, street/terrain.js and street/resources.js.
   candidate's chunk p95 was 8.1 ms median and paired readiness delta was +3 ms;
   the earlier [recorded profile](benchmarks/results/stage1/assembly-profile-2026-10-28.md)
   remains the pre-change baseline context.
-- [ ] 1.2 Bound queues, cancel obsolete work and reject stale results. Preserve
-  transactional rollback of scene objects, footprints and reserved IDs.
+- [x] 1.2 Bound queues, cancel obsolete work and reject stale results. Preserve
+  transactional rollback of scene objects, footprints and reserved IDs. The
+  [lifecycle checkpoint](benchmarks/results/stage1/stream-lifecycle-checkpoint-2026-10-28.md)
+  records bounded geometry/cell queues, per-cell cancellation, stale-worker
+  fencing, rollback coverage, 112 passing tests, a production build, and a
+  recorded Rome boundary smoke. Long-walk resource stability remains open.
 - [ ] 1.3 Compare one/two geometry workers on low-core devices. Include KTX2
   decoder workers in contention/memory decisions; retain defaults unless measured.
 - [ ] 1.4 Reduce measured clones and temporary allocations. Index repeated road/
