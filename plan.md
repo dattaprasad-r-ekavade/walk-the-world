@@ -4,15 +4,18 @@ Updated: 28 October 2026. Status: Stage 0 instrumentation, synthetic fixtures,
 an attributed/sanitized real-city fixture, and bounded cell streaming are
 implemented. A controlled five-run-per-build prop-batching A/B is complete; the
 candidate was rejected because GPU p95 and triangle submission increased while
-frame p95 did not improve. The separate family-batching prototype passed a
-five-run-per-build synthetic A/B with 3.9% fewer mean draw calls and unchanged
-frame p95; real-city and mobile acceptance remain open. Deterministic
-time/weather scenarios, time-aligned Windows host telemetry and capture-validity
-checks are implemented. Five visible-Chrome Intel UHD repetitions are recorded
-for each of day/clear, night/clear, day/rain and night/rain. These short synthetic
-runs are diagnostic, not release acceptance; cold/warm starts, real-city stress,
-dynamic cell crossing, mobile, long-walk thermal and release gates remain open.
-Work is consolidated on `main`.
+frame p95 did not improve. Family batching reduced mean draws by 3.9% at
+unchanged frame p95 on the synthetic fixture. The separate five-run far-material
+comparison showed no frame/GPU benefit and its prototype was reverted. The
+pedestrian walk shader now deforms its color and shadow passes from shared
+uniforms; a production build and recorded-city browser smoke passed. Real-city
+and mobile acceptance remain open. Deterministic time/weather scenarios,
+time-aligned Windows host telemetry and capture-validity checks are implemented.
+Five visible-Chrome Intel UHD repetitions are recorded for each of day/clear,
+night/clear, day/rain and night/rain. These short synthetic runs are diagnostic,
+not release acceptance; cold/warm starts, real-city stress, dynamic cell
+crossing, mobile, long-walk thermal and release gates remain open. Work is
+consolidated on `main`.
 
 ## 1. Verified baseline and scope
 
@@ -24,7 +27,7 @@ remote topic refs were retained. The fixture and profiling checkpoint is
 commit `664b55f`; bounded cell streaming and boundary tests are commit `3235dd9`.
 The consolidated implementation and evidence are maintained on `main`.
 At the 28 October sync, `git pull --ff-only origin main` reported no incoming
-changes; local `main` is seven commits ahead of `origin/main`.
+changes; local `main` was eight commits ahead of `origin/main`.
 
 This is the active implementation sequence for
 [PERFORMANCE-VISUALS-PLAN.md](PERFORMANCE-VISUALS-PLAN.md), which contains
@@ -220,6 +223,11 @@ scripts/bench-perf.mjs and benchmarks/fixtures/.
   - [x] Raise renderer/GPU history capacity to 4,096 after a 12-second crossing
     reached 1,259 samples and hit the old 1,200-sample limit. Rebuilt and reran
     the crossing walk and drive successfully.
+  - [x] Retry a cold live boundary walk in Manhattan on 28 October. The runner
+    timed out after 180 seconds: the spawn cell had two `net::ERR_ABORTED`
+    requests and one HTTP 502, the east neighbor did not complete, and no valid
+    load/movement measurement was produced. This is an upstream/API failure,
+    not baseline evidence. See the [raw result](benchmarks/results/stage0/main-727d46e-live-manhattan-cold-walk-smoke.json).
   - A first live cold smoke timed out while the local city API returned an
     upstream error, so it is not baseline evidence. A second live boundary retry
     recorded one `/api/city` 502, two transport failures and no measured cell;
@@ -447,11 +455,16 @@ street/assemble-city.js, post-fx.js and StreetEngine.js.
   one final tone/output conversion in direct/post-processed rendering. The
   [audit](benchmarks/results/stage2/material-color-space-audit.md) records map
   roles, explicit sRGB fixes and direct/composer output paths.
-- [ ] 2.5 Compare simple low/far materials with near PBR using actual GPU timings.
-  Preserve important road, glass and metal response.
-- [ ] 2.6 Keep necessary shader patches version-matched, with stable cache keys
+- [x] 2.5 Compare simple low/far materials with near PBR using actual GPU timings.
+  Preserve important road, glass and metal response. The five-run Rome replay A/B
+  found unchanged frame p95, overlapping GPU p95, and no reduction in mean draws;
+  the prototype was reverted. See the [comparison and decision report](benchmarks/results/stage2/rendering-follow-up-2026-10-28.md).
+- [x] 2.6 Keep necessary shader patches version-matched, with stable cache keys
   and shared uniforms. Preserve fog/instancing/lighting/vertex colours/depth.
-  Time/weather changes must not trigger per-object shader recompilation.
+  Time/weather changes must not trigger per-object shader recompilation. The
+  walk-cycle patch now matches color, directional-shadow depth and point-light
+  distance deformation through shared uniforms and stable per-variant keys. The
+  build and recorded-city browser smoke passed; see the [shader audit](benchmarks/results/stage2/rendering-follow-up-2026-10-28.md).
 
 ### Controlled checkpoint — Prop material cache and spatial batching
 
@@ -496,6 +509,8 @@ unchanged, and showed a 0.09 ms higher GPU p95 with overlapping ranges. Stage
 2.3 is retained for this synthetic workload; real-city and mobile gates remain
 open. Stage 2.4's color-space audit is recorded in
 [its audit report](benchmarks/results/stage2/material-color-space-audit.md).
+The Stage 2.5 far-material A/B and Stage 2.6 walk/shadow shader audit are
+recorded in the [rendering follow-up](benchmarks/results/stage2/rendering-follow-up-2026-10-28.md).
 
 Exit: lower submission/program cost or approved visual gain at neutral cost;
 no hue, silhouette, placement or editor-selection regression.
@@ -748,17 +763,20 @@ for Cesium, imagery and model resources. SSR, volumetrics, displacement, dense
 skeletal crowds and shadowed lamp arrays require separate high-tier budgets.
 None is a prerequisite for this sequence.
 
-**Next bounded task:** retry the cold/warm and five-run walk/drive boundary
-matrix against the live city API with a dense real city. The local API returned
-an upstream error in the first live smoke; recorded OSM replay now provides a
-controlled client baseline while that service is unavailable. The four-condition
-summary reports median frame p95 values of 17.0–33.5 ms, with within-condition
-ranges reaching 33–34 ms; host CPU and available memory varied, and Windows
-exposes no ACPI thermal readings. Mobile and 15-minute thermal checks remain
-open. Keep Rust/Wasm/SIMD deferred: worker compute was 25.9 ms median versus
-729.4 ms roundtrip on the earlier synthetic trace, so kernel acceleration is
-not yet the measured opportunity. Rank main-thread assembly/scheduling and GPU
-pacing on dense real-city traces before changing geometry backends. The next
-rendering substage is 2.5: compare simple low/far materials with near PBR using
-actual GPU timings while preserving road, glass and metal response. Stage 2.6
-shader-patch work follows only where profiles show a need.
+**Next bounded task:** complete the cold/warm and five-run walk/drive boundary
+matrix against the live city API with a dense real city. The 28 October
+Manhattan retry failed before a valid measurement because the origin city API
+returned HTTP 502 and aborted requests; see the [captured result](benchmarks/results/stage0/main-727d46e-live-manhattan-cold-walk-smoke.json).
+Recorded OSM replay remains useful for client-side streaming evidence, but it is
+not a live Overpass measurement. The four-condition summary reports median frame
+p95 values of 17.0–33.5 ms, with within-condition ranges reaching 33–34 ms; host
+CPU and available memory varied, and Windows exposes no ACPI thermal readings.
+Mobile and 15-minute thermal checks remain open. Keep Rust/Wasm/SIMD deferred:
+worker compute was 25.9 ms median versus 729.4 ms roundtrip on the earlier
+synthetic trace, so kernel acceleration is not yet the measured opportunity.
+Rank main-thread assembly/scheduling and GPU pacing on dense real-city traces
+before selecting Stage 1.1/1.4 changes. The Stage 2.5 far-material experiment
+was completed and rejected; Stage 2.6 shader/shadow parity is complete. After
+Stage 0/1 profiling gates, the next visual content work is Stage 3.1: curate a
+small licensed plaster/brick/stone/concrete/asphalt/paving material set and prop
+kit, then record attribution and scale before building the conversion pipeline.
