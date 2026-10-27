@@ -3,10 +3,14 @@ import * as THREE from 'three';
 vi.mock('@/lib/engine/cityData',async()=>({ ...(await vi.importActual('@/lib/city-contract')), fetchCityDataForStream:vi.fn() }));
 vi.mock('@/lib/engine/street/assemble-city',()=>({assembleCityFromBuild:vi.fn(async()=>{})}));
 import {fetchCityDataForStream} from '@/lib/engine/cityData';
+import {assembleCityFromBuild} from '@/lib/engine/street/assemble-city';
 import {createCellStreamer} from '@/lib/engine/street/cell-stream';
 import {disposeSceneGroup} from '@/lib/engine/street/resources';
 import {createCityBuilderPool} from '@/lib/engine/city-builder';
-afterEach(()=>vi.restoreAllMocks());
+afterEach(()=>{
+  vi.restoreAllMocks();
+  assembleCityFromBuild.mockReset().mockImplementation(async()=>{});
+});
 describe('stream lifecycle',()=>{
   it('releases reserved feature IDs after a failed build so retry can render them',async()=>{
     vi.spyOn(console,'warn').mockImplementation(()=>{}); vi.spyOn(console,'info').mockImplementation(()=>{});
@@ -21,6 +25,38 @@ describe('stream lifecycle',()=>{
     now+=60000;streamer.tick(1,2);
     await vi.waitFor(()=>expect(streamer.loadingCount()).toBe(0));
     expect(build).toHaveBeenCalledTimes(2);expect(build.mock.calls[1][0].elements[0].id).toBe(42);
+    streamer.dispose();
+  });
+  it('keeps two geometry builds in flight but serializes neighbor assembly',async()=>{
+    vi.spyOn(console,'warn').mockImplementation(()=>{}); vi.spyOn(console,'info').mockImplementation(()=>{});
+    fetchCityDataForStream.mockImplementation(async(la,lo)=>({
+      lat:la,
+      lon:lo,
+      cacheKey:'test',
+      data:{elements:[{type:'way',id:Math.round(la*1e6)+Math.round(lo*1e3),tags:{building:'yes'},geometry:[{lat:la,lon:lo},{lat:la+0.0001,lon:lo},{lat:la,lon:lo+0.0001}]}]},
+    }));
+    let buildsInFlight=0, maxBuildsInFlight=0;
+    const buildCity=vi.fn(async()=>{
+      buildsInFlight++;
+      maxBuildsInFlight=Math.max(maxBuildsInFlight,buildsInFlight);
+      await new Promise(resolve=>setTimeout(resolve,5));
+      buildsInFlight--;
+      return {};
+    });
+    let assembliesInFlight=0, maxAssembliesInFlight=0;
+    assembleCityFromBuild.mockImplementation(async()=>{
+      assembliesInFlight++;
+      maxAssembliesInFlight=Math.max(maxAssembliesInFlight,assembliesInFlight);
+      await new Promise(resolve=>setTimeout(resolve,2));
+      assembliesInFlight--;
+    });
+    const streamer=createCellStreamer({scene:new THREE.Scene(),lat0:1,lon0:2,terrainTiles:new Map(),engineRef:{current:{}},buildCity});
+    streamer.markLoaded('wtw_city6_1.000_2.000',1,2);
+    streamer.tick(1,2);
+    await vi.waitFor(()=>expect(streamer.loadingCount()).toBe(0));
+    expect(maxBuildsInFlight).toBe(2);
+    expect(assembleCityFromBuild).toHaveBeenCalledTimes(8);
+    expect(maxAssembliesInFlight).toBe(1);
     streamer.dispose();
   });
   it('keeps a shared texture alive until its last scene owner is removed',()=>{

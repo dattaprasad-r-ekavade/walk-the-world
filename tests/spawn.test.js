@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { inRing, createHitTest, viewScore, pickSpawn, pickHeading } from '../lib/engine/street/spawn.js';
+import { inRing, createHitTest, viewScore, pickSpawn, pickSpawnAsync, pickHeading, pickHeadingAsync } from '../lib/engine/street/spawn.js';
 
 /** Axis-aligned box ring in the engine's `[[x, z], ...]` format. */
 const box = (cx, cz, w, d) => [
@@ -74,6 +74,20 @@ describe('engine/street/spawn', () => {
     expect(spawn.score).toBeGreaterThan(0.5);
   });
 
+  it('yields during spawn framing without changing the selected pose', async () => {
+    const geo = canyon();
+    const checkpoints = [];
+    const expected = pickSpawn(geo);
+    const actual = await pickSpawnAsync(geo, {
+      checkpoint: (stage) => {
+        checkpoints.push(stage);
+        return Promise.resolve();
+      },
+    });
+    expect(actual).toEqual(expected);
+    expect(checkpoints).toContain('spawn-view-rays');
+  });
+
   it('picks the same frame when the way is digitised backwards', () => {
     const geo = canyon();
     const reversed = {
@@ -113,6 +127,15 @@ describe('engine/street/spawn', () => {
     const off = Math.min(Math.abs(h.heading), Math.abs(h.heading - Math.PI * 2));
     expect(off).toBeLessThan(0.5);
     expect(h.score).toBeGreaterThan(0.5);
+  });
+
+  it('yields during heading selection and matches the synchronous result', async () => {
+    const hit = createHitTest(canyon().buildings);
+    const expected = pickHeading(0, 0, hit);
+    const actual = await pickHeadingAsync(0, 0, hit, {
+      checkpoint: () => Promise.resolve(),
+    });
+    expect(actual).toEqual(expected);
   });
 
   it('still returns a pose when the cell has no buildings at all', () => {

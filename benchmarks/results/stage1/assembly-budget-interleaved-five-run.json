@@ -1,0 +1,640 @@
+{
+  "schemaVersion": 1,
+  "capturedDate": "2026-10-28",
+  "baselineRevision": "0f10d3951cbd7752ba9a67ba567b9d1dd8969369",
+  "candidateBaseRevision": "0f10d3951cbd7752ba9a67ba567b9d1dd8969369",
+  "candidateTreeDirty": true,
+  "interleavedOrder": "baseline then candidate, five pairs",
+  "rawResultPattern": "%TEMP%\\wtw-stage1-interleaved-{baseline,candidate}-repN.json",
+  "scenario": {
+    "fixture": "benchmarks/fixtures/rome-showcase-osm.json",
+    "dataMode": "recorded",
+    "cacheMode": "cold",
+    "route": "/street",
+    "preset": "medium",
+    "durationMs": 12000,
+    "path": "walk east across one cell boundary",
+    "approximateDistanceMeters": 60,
+    "seed": 1337,
+    "hour": 12,
+    "weather": 0,
+    "browser": "Chromium",
+    "browserVersion": "156.0.8078.48",
+    "viewport": {
+      "width": 1280,
+      "height": 720,
+      "devicePixelRatio": 1.0000000149011612
+    }
+  },
+  "environment": {
+    "os": "Microsoft Windows 11 Pro",
+    "osVersion": "10.0.26300",
+    "osBuild": "26300",
+    "deviceModel": "83DV",
+    "cpu": [
+      "13th Gen Intel(R) Core(TM) i7-13650HX"
+    ],
+    "webglRenderer": "ANGLE (Intel, Intel(R) UHD Graphics (0x0000A78B) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+    "webglVendor": "Google Inc. (Intel)",
+    "hostTelemetryCoveragePct": {
+      "median": 92.0,
+      "min": 92.0,
+      "max": 92.0
+    }
+  },
+  "summaries": {
+    "baseline": {
+      "spawnReadyMs": {
+        "median": 5160.0,
+        "min": 5119.0,
+        "max": 5672.0
+      },
+      "spawnAssemblyMs": {
+        "median": 2552.0,
+        "min": 2522.9,
+        "max": 2685.1
+      },
+      "firstBuildingAtMs": {
+        "median": 2589.8,
+        "min": 2505.1,
+        "max": 3136.9
+      },
+      "frameP95Ms": {
+        "median": 14.0,
+        "min": 14.0,
+        "max": 14.1
+      },
+      "gpuP95Ms": {
+        "median": 7.62,
+        "min": 7.51,
+        "max": 7.74
+      }
+    },
+    "candidate": {
+      "spawnReadyMs": {
+        "median": 5177.0,
+        "min": 5163.0,
+        "max": 5305.0
+      },
+      "spawnAssemblyMs": {
+        "median": 2626.2,
+        "min": 2429.1,
+        "max": 2656.6
+      },
+      "firstBuildingAtMs": {
+        "median": 2608.1,
+        "min": 2515.9,
+        "max": 2743.5
+      },
+      "frameP95Ms": {
+        "median": 14.0,
+        "min": 14.0,
+        "max": 14.1
+      },
+      "gpuP95Ms": {
+        "median": 7.6,
+        "min": 7.53,
+        "max": 7.71
+      },
+      "spawnAssemblyChunkP95Ms": {
+        "median": 8.1,
+        "min": 6.8,
+        "max": 9.3
+      },
+      "spawnAssemblyChunkMaxMs": {
+        "median": 9.7,
+        "min": 9.1,
+        "max": 11.8
+      },
+      "neighborChunkP95Ms": {
+        "median": 6.2,
+        "min": 6.0,
+        "max": 6.4
+      },
+      "spawnAssemblyChunkCount": 129.0,
+      "spawnAssemblyChunksOver8Ms": 8.0,
+      "spawnAssemblyChunkCountUnderOrEqual8MsPct": 93.8
+    },
+    "pairedMedianDeltaMs": {
+      "spawnReady": {
+        "median": 3.0,
+        "min": -505.0,
+        "max": 163.0
+      },
+      "spawnAssembly": {
+        "median": 61.6,
+        "min": -142.4,
+        "max": 103.3
+      },
+      "firstBuilding": {
+        "median": -53.0,
+        "min": -609.7,
+        "max": 127.6
+      },
+      "frameP95": {
+        "median": 0.0,
+        "min": -0.1,
+        "max": 0.1
+      },
+      "gpuP95": {
+        "median": -0.02,
+        "min": -0.17,
+        "max": 0.09
+      }
+    }
+  },
+  "allCapturesValid": true,
+  "pairs": [
+    {
+      "pair": 1,
+      "baseline": {
+        "pair": 1,
+        "kind": "baseline",
+        "sourceRevision": "0f10d3951cbd7752ba9a67ba567b9d1dd8969369",
+        "sourceTreeDirty": true,
+        "spawnElements": 2278,
+        "spawnReadyMs": 5160.0,
+        "spawnAssemblyMs": 2552.0,
+        "firstBuildingAtMs": 2589.8,
+        "frameP95Ms": 14.1,
+        "gpuP95Ms": 7.698,
+        "spawnAssemblyChunks": {
+          "count": 0,
+          "p95Ms": null,
+          "maxMs": null,
+          "over8MsCount": 0
+        },
+        "neighborChunkP95Ms": null,
+        "host": {
+          "averageSystemCpuPct": 12.72,
+          "averageGpu3dPct": 90.96,
+          "minimumAvailableMemoryMb": 5811,
+          "coveragePct": 92.0
+        },
+        "cellStreaming": {
+          "crossed": true,
+          "settled": true,
+          "residentCells": 10,
+          "maxCells": 10
+        },
+        "capture": {
+          "frameWindowValid": true,
+          "hostWindowValid": true,
+          "timingHistoryWrapped": false,
+          "validationErrors": 0,
+          "consoleErrors": 0,
+          "pageErrors": 0,
+          "assetFailures": 0,
+          "failedRequests": 0,
+          "httpErrorResponses": 0,
+          "valid": true
+        },
+        "timingSamples": 2611
+      },
+      "candidate": {
+        "pair": 1,
+        "kind": "candidate",
+        "sourceRevision": "0f10d3951cbd7752ba9a67ba567b9d1dd8969369",
+        "sourceTreeDirty": true,
+        "spawnElements": 2278,
+        "spawnReadyMs": 5163.0,
+        "spawnAssemblyMs": 2429.1,
+        "firstBuildingAtMs": 2717.4,
+        "frameP95Ms": 14.0,
+        "gpuP95Ms": 7.53,
+        "spawnAssemblyChunks": {
+          "count": 24,
+          "p95Ms": 7.8,
+          "maxMs": 10.4,
+          "over8MsCount": 1
+        },
+        "neighborChunkP95Ms": 6.0,
+        "host": {
+          "averageSystemCpuPct": 10.43,
+          "averageGpu3dPct": 91.29,
+          "minimumAvailableMemoryMb": 5807,
+          "coveragePct": 92.0
+        },
+        "cellStreaming": {
+          "crossed": true,
+          "settled": true,
+          "residentCells": 10,
+          "maxCells": 10
+        },
+        "capture": {
+          "frameWindowValid": true,
+          "hostWindowValid": true,
+          "timingHistoryWrapped": false,
+          "validationErrors": 0,
+          "consoleErrors": 0,
+          "pageErrors": 0,
+          "assetFailures": 0,
+          "failedRequests": 0,
+          "httpErrorResponses": 0,
+          "valid": true
+        },
+        "timingSamples": 2669
+      },
+      "pairedDeltaMs": {
+        "spawnReady": 3.0,
+        "spawnAssembly": -122.9,
+        "firstBuilding": 127.6,
+        "frameP95": -0.1,
+        "gpuP95": -0.168
+      }
+    },
+    {
+      "pair": 2,
+      "baseline": {
+        "pair": 2,
+        "kind": "baseline",
+        "sourceRevision": "0f10d3951cbd7752ba9a67ba567b9d1dd8969369",
+        "sourceTreeDirty": true,
+        "spawnElements": 2278,
+        "spawnReadyMs": 5672.0,
+        "spawnAssemblyMs": 2522.9,
+        "firstBuildingAtMs": 3136.9,
+        "frameP95Ms": 14.0,
+        "gpuP95Ms": 7.623,
+        "spawnAssemblyChunks": {
+          "count": 0,
+          "p95Ms": null,
+          "maxMs": null,
+          "over8MsCount": 0
+        },
+        "neighborChunkP95Ms": null,
+        "host": {
+          "averageSystemCpuPct": 11.36,
+          "averageGpu3dPct": 91.48,
+          "minimumAvailableMemoryMb": 5848,
+          "coveragePct": 92.0
+        },
+        "cellStreaming": {
+          "crossed": true,
+          "settled": true,
+          "residentCells": 10,
+          "maxCells": 10
+        },
+        "capture": {
+          "frameWindowValid": true,
+          "hostWindowValid": true,
+          "timingHistoryWrapped": false,
+          "validationErrors": 0,
+          "consoleErrors": 0,
+          "pageErrors": 0,
+          "assetFailures": 0,
+          "failedRequests": 0,
+          "httpErrorResponses": 0,
+          "valid": true
+        },
+        "timingSamples": 2645
+      },
+      "candidate": {
+        "pair": 2,
+        "kind": "candidate",
+        "sourceRevision": "0f10d3951cbd7752ba9a67ba567b9d1dd8969369",
+        "sourceTreeDirty": true,
+        "spawnElements": 2278,
+        "spawnReadyMs": 5167.0,
+        "spawnAssemblyMs": 2626.2,
+        "firstBuildingAtMs": 2527.2,
+        "frameP95Ms": 14.0,
+        "gpuP95Ms": 7.598,
+        "spawnAssemblyChunks": {
+          "count": 26,
+          "p95Ms": 8.1,
+          "maxMs": 11.8,
+          "over8MsCount": 2
+        },
+        "neighborChunkP95Ms": 6.2,
+        "host": {
+          "averageSystemCpuPct": 20.94,
+          "averageGpu3dPct": 91.86,
+          "minimumAvailableMemoryMb": 5635,
+          "coveragePct": 92.0
+        },
+        "cellStreaming": {
+          "crossed": true,
+          "settled": true,
+          "residentCells": 10,
+          "maxCells": 10
+        },
+        "capture": {
+          "frameWindowValid": true,
+          "hostWindowValid": true,
+          "timingHistoryWrapped": false,
+          "validationErrors": 0,
+          "consoleErrors": 0,
+          "pageErrors": 0,
+          "assetFailures": 0,
+          "failedRequests": 0,
+          "httpErrorResponses": 0,
+          "valid": true
+        },
+        "timingSamples": 2701
+      },
+      "pairedDeltaMs": {
+        "spawnReady": -505.0,
+        "spawnAssembly": 103.3,
+        "firstBuilding": -609.7,
+        "frameP95": 0.0,
+        "gpuP95": -0.025
+      }
+    },
+    {
+      "pair": 3,
+      "baseline": {
+        "pair": 3,
+        "kind": "baseline",
+        "sourceRevision": "0f10d3951cbd7752ba9a67ba567b9d1dd8969369",
+        "sourceTreeDirty": true,
+        "spawnElements": 2278,
+        "spawnReadyMs": 5135.0,
+        "spawnAssemblyMs": 2546.5,
+        "firstBuildingAtMs": 2568.9,
+        "frameP95Ms": 14.0,
+        "gpuP95Ms": 7.743,
+        "spawnAssemblyChunks": {
+          "count": 0,
+          "p95Ms": null,
+          "maxMs": null,
+          "over8MsCount": 0
+        },
+        "neighborChunkP95Ms": null,
+        "host": {
+          "averageSystemCpuPct": 10.89,
+          "averageGpu3dPct": 91.19,
+          "minimumAvailableMemoryMb": 5725,
+          "coveragePct": 92.0
+        },
+        "cellStreaming": {
+          "crossed": true,
+          "settled": true,
+          "residentCells": 10,
+          "maxCells": 10
+        },
+        "capture": {
+          "frameWindowValid": true,
+          "hostWindowValid": true,
+          "timingHistoryWrapped": false,
+          "validationErrors": 0,
+          "consoleErrors": 0,
+          "pageErrors": 0,
+          "assetFailures": 0,
+          "failedRequests": 0,
+          "httpErrorResponses": 0,
+          "valid": true
+        },
+        "timingSamples": 2638
+      },
+      "candidate": {
+        "pair": 3,
+        "kind": "candidate",
+        "sourceRevision": "0f10d3951cbd7752ba9a67ba567b9d1dd8969369",
+        "sourceTreeDirty": true,
+        "spawnElements": 2278,
+        "spawnReadyMs": 5177.0,
+        "spawnAssemblyMs": 2643.0,
+        "firstBuildingAtMs": 2515.9,
+        "frameP95Ms": 14.1,
+        "gpuP95Ms": 7.708,
+        "spawnAssemblyChunks": {
+          "count": 27,
+          "p95Ms": 8.7,
+          "maxMs": 9.3,
+          "over8MsCount": 2
+        },
+        "neighborChunkP95Ms": 6.4,
+        "host": {
+          "averageSystemCpuPct": 12.19,
+          "averageGpu3dPct": 90.41,
+          "minimumAvailableMemoryMb": 5761,
+          "coveragePct": 92.0
+        },
+        "cellStreaming": {
+          "crossed": true,
+          "settled": true,
+          "residentCells": 10,
+          "maxCells": 10
+        },
+        "capture": {
+          "frameWindowValid": true,
+          "hostWindowValid": true,
+          "timingHistoryWrapped": false,
+          "validationErrors": 0,
+          "consoleErrors": 0,
+          "pageErrors": 0,
+          "assetFailures": 0,
+          "failedRequests": 0,
+          "httpErrorResponses": 0,
+          "valid": true
+        },
+        "timingSamples": 2681
+      },
+      "pairedDeltaMs": {
+        "spawnReady": 42.0,
+        "spawnAssembly": 96.5,
+        "firstBuilding": -53.0,
+        "frameP95": 0.1,
+        "gpuP95": -0.035
+      }
+    },
+    {
+      "pair": 4,
+      "baseline": {
+        "pair": 4,
+        "kind": "baseline",
+        "sourceRevision": "0f10d3951cbd7752ba9a67ba567b9d1dd8969369",
+        "sourceTreeDirty": true,
+        "spawnElements": 2278,
+        "spawnReadyMs": 5587.0,
+        "spawnAssemblyMs": 2685.1,
+        "firstBuildingAtMs": 2886.4,
+        "frameP95Ms": 14.0,
+        "gpuP95Ms": 7.51,
+        "spawnAssemblyChunks": {
+          "count": 0,
+          "p95Ms": null,
+          "maxMs": null,
+          "over8MsCount": 0
+        },
+        "neighborChunkP95Ms": null,
+        "host": {
+          "averageSystemCpuPct": 13.79,
+          "averageGpu3dPct": 91.77,
+          "minimumAvailableMemoryMb": 5611,
+          "coveragePct": 92.0
+        },
+        "cellStreaming": {
+          "crossed": true,
+          "settled": true,
+          "residentCells": 10,
+          "maxCells": 10
+        },
+        "capture": {
+          "frameWindowValid": true,
+          "hostWindowValid": true,
+          "timingHistoryWrapped": false,
+          "validationErrors": 0,
+          "consoleErrors": 0,
+          "pageErrors": 0,
+          "assetFailures": 0,
+          "failedRequests": 0,
+          "httpErrorResponses": 0,
+          "valid": true
+        },
+        "timingSamples": 2666
+      },
+      "candidate": {
+        "pair": 4,
+        "kind": "candidate",
+        "sourceRevision": "0f10d3951cbd7752ba9a67ba567b9d1dd8969369",
+        "sourceTreeDirty": true,
+        "spawnElements": 2278,
+        "spawnReadyMs": 5305.0,
+        "spawnAssemblyMs": 2542.7,
+        "firstBuildingAtMs": 2743.5,
+        "frameP95Ms": 14.1,
+        "gpuP95Ms": 7.603,
+        "spawnAssemblyChunks": {
+          "count": 26,
+          "p95Ms": 9.3,
+          "maxMs": 9.7,
+          "over8MsCount": 2
+        },
+        "neighborChunkP95Ms": 6.1,
+        "host": {
+          "averageSystemCpuPct": 12.04,
+          "averageGpu3dPct": 91.27,
+          "minimumAvailableMemoryMb": 5784,
+          "coveragePct": 92.0
+        },
+        "cellStreaming": {
+          "crossed": true,
+          "settled": true,
+          "residentCells": 10,
+          "maxCells": 10
+        },
+        "capture": {
+          "frameWindowValid": true,
+          "hostWindowValid": true,
+          "timingHistoryWrapped": false,
+          "validationErrors": 0,
+          "consoleErrors": 0,
+          "pageErrors": 0,
+          "assetFailures": 0,
+          "failedRequests": 0,
+          "httpErrorResponses": 0,
+          "valid": true
+        },
+        "timingSamples": 2884
+      },
+      "pairedDeltaMs": {
+        "spawnReady": -282.0,
+        "spawnAssembly": -142.4,
+        "firstBuilding": -142.9,
+        "frameP95": 0.1,
+        "gpuP95": 0.093
+      }
+    },
+    {
+      "pair": 5,
+      "baseline": {
+        "pair": 5,
+        "kind": "baseline",
+        "sourceRevision": "0f10d3951cbd7752ba9a67ba567b9d1dd8969369",
+        "sourceTreeDirty": true,
+        "spawnElements": 2278,
+        "spawnReadyMs": 5119.0,
+        "spawnAssemblyMs": 2595.0,
+        "firstBuildingAtMs": 2505.1,
+        "frameP95Ms": 14.0,
+        "gpuP95Ms": 7.562,
+        "spawnAssemblyChunks": {
+          "count": 0,
+          "p95Ms": null,
+          "maxMs": null,
+          "over8MsCount": 0
+        },
+        "neighborChunkP95Ms": null,
+        "host": {
+          "averageSystemCpuPct": 15.14,
+          "averageGpu3dPct": 91.25,
+          "minimumAvailableMemoryMb": 5563,
+          "coveragePct": 92.0
+        },
+        "cellStreaming": {
+          "crossed": true,
+          "settled": true,
+          "residentCells": 10,
+          "maxCells": 10
+        },
+        "capture": {
+          "frameWindowValid": true,
+          "hostWindowValid": true,
+          "timingHistoryWrapped": false,
+          "validationErrors": 0,
+          "consoleErrors": 0,
+          "pageErrors": 0,
+          "assetFailures": 0,
+          "failedRequests": 0,
+          "httpErrorResponses": 0,
+          "valid": true
+        },
+        "timingSamples": 2619
+      },
+      "candidate": {
+        "pair": 5,
+        "kind": "candidate",
+        "sourceRevision": "0f10d3951cbd7752ba9a67ba567b9d1dd8969369",
+        "sourceTreeDirty": true,
+        "spawnElements": 2278,
+        "spawnReadyMs": 5282.0,
+        "spawnAssemblyMs": 2656.6,
+        "firstBuildingAtMs": 2608.1,
+        "frameP95Ms": 14.0,
+        "gpuP95Ms": 7.618,
+        "spawnAssemblyChunks": {
+          "count": 26,
+          "p95Ms": 6.8,
+          "maxMs": 9.1,
+          "over8MsCount": 1
+        },
+        "neighborChunkP95Ms": 6.2,
+        "host": {
+          "averageSystemCpuPct": 10.2,
+          "averageGpu3dPct": 89.98,
+          "minimumAvailableMemoryMb": 5686,
+          "coveragePct": 92.0
+        },
+        "cellStreaming": {
+          "crossed": true,
+          "settled": true,
+          "residentCells": 10,
+          "maxCells": 10
+        },
+        "capture": {
+          "frameWindowValid": true,
+          "hostWindowValid": true,
+          "timingHistoryWrapped": false,
+          "validationErrors": 0,
+          "consoleErrors": 0,
+          "pageErrors": 0,
+          "assetFailures": 0,
+          "failedRequests": 0,
+          "httpErrorResponses": 0,
+          "valid": true
+        },
+        "timingSamples": 2668
+      },
+      "pairedDeltaMs": {
+        "spawnReady": 163.0,
+        "spawnAssembly": 61.6,
+        "firstBuilding": 103.0,
+        "frameP95": 0.0,
+        "gpuP95": 0.056
+      }
+    }
+  ],
+  "decision": "Keep the desktop time-budgeted assembly candidate. Paired startup and frame/GPU results are neutral while synchronous spawn chunks stay near the 8 ms target. Mobile and long-walk acceptance remain open."
+}

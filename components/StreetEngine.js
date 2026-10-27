@@ -14,7 +14,7 @@ import { drawGroundTileImage, groundTileUrl } from "@/lib/engine/ground-tiles";
 import { whereAmIRound } from "@/lib/daily";
 import { createEnvController } from "@/lib/engine/env-map";
 import { createCityBuilderPool } from "@/lib/engine/city-builder";
-import { assembleCityFromBuild } from "@/lib/engine/street/assemble-city";
+import { assembleCityFromBuild, primeStationLabelMetrics } from "@/lib/engine/street/assemble-city";
 import { createCellStreamer } from "@/lib/engine/street/cell-stream";
 import { clipElementsToCell } from "@/lib/engine/cell-clip";
 import { getSimpleStandard, setRoadWetness, sharedMaterialTextures, materialFactoryInventory, disposeMaterialCache } from "@/lib/engine/materials";
@@ -607,7 +607,7 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false }) {
       scene.add(cityRoot);
       try {
         if (disposed) return false;
-        const built = await measurePerfAsync("city.spawn-geometry-total", () => cityBuilder.build({
+        const geometryPromise = measurePerfAsync("city.spawn-geometry-total", () => cityBuilder.build({
           signal,
           elements,
           lat0,
@@ -618,6 +618,10 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false }) {
             setReadyPct((p) => Math.max(p, 60 + Math.floor((done / Math.max(1, total)) * 25)));
           },
         }), { elements: elements.length });
+        if (elements.some((element) =>
+          element.type === "node" && element.tags?.railway === "station"
+        )) primeStationLabelMetrics();
+        const built = await geometryPromise;
         if (disposed) return;
         setStage("Assembling city…");
         await measurePerfAsync("city.spawn-assembly-total", () => assembleCityFromBuild(built, {

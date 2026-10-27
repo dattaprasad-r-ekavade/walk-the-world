@@ -10,9 +10,11 @@ comparison showed no frame/GPU benefit and its prototype was reverted. The
 pedestrian walk shader now deforms its color and shadow passes from shared
 uniforms; a production build and recorded-city browser smoke passed. Real-city
 and mobile acceptance remain open. The performance timeline now uses schema v3,
-retains 4,096 bounded events and reports wrap state. Five recorded Rome profile
-runs repeatedly found spawn assembly at about 2.61 s; this supports a Stage 1.1
-client-side candidate but does not close the live-city gate. Deterministic
+retains 4,096 bounded events and reports wrap state. A same-device interleaved
+five-pair Rome A/B completed Stage 1.1's desktop implementation: spawn chunk
+p95 was 8.1 ms median and paired spawn readiness differed by 3 ms. Mobile,
+15-minute resource stability, input latency during assembly, and live-city
+acceptance remain open. Deterministic
 time/weather scenarios,
 time-aligned Windows host telemetry and capture-validity checks are implemented.
 Five visible-Chrome Intel UHD repetitions are recorded for each of day/clear,
@@ -427,12 +429,14 @@ work forward only if complete measured geometry-stage time dominates.
 Files: city-builder.js, city-builder-core.js, street/assemble-city.js,
 street/cell-stream.js, street/terrain.js and street/resources.js.
 
-- [ ] 1.1 Split measured assembly/paint/upload hotspots into time-budgeted work.
+- [x] 1.1 Split measured assembly/paint/upload hotspots into time-budgeted work.
   Start individual chunk goals at 8 ms desktop / 12 ms mobile, then calibrate.
   Prioritise centre/visible data and stagger finished neighbour uploads. The
-  [five-run recorded profile](benchmarks/results/stage1/assembly-profile-2026-10-28.md)
-  identifies spawn assembly as the first candidate; its wall timing includes
-  current async checkpoint delays and needs chunk-level measurements.
+  [interleaved desktop decision](benchmarks/results/stage1/assembly-budget-decision-2026-10-28.md)
+  records the five-pair result and remaining mobile/long-walk gates. The
+  candidate's chunk p95 was 8.1 ms median and paired readiness delta was +3 ms;
+  the earlier [recorded profile](benchmarks/results/stage1/assembly-profile-2026-10-28.md)
+  remains the pre-change baseline context.
 - [ ] 1.2 Bound queues, cancel obsolete work and reject stale results. Preserve
   transactional rollback of scene objects, footprints and reserved IDs.
 - [ ] 1.3 Compare one/two geometry workers on low-core devices. Include KTX2
@@ -444,6 +448,9 @@ street/cell-stream.js, street/terrain.js and street/resources.js.
 
 Exit: reduced measured spikes, lifecycle regression checks pass, and resident
 resources stabilise in a 15-minute walk. Keep geometry semantics unchanged.
+The Stage 1.1 desktop candidate passed its matched recorded-city comparison;
+mobile assembly, input latency during assembly, and 15-minute resource
+stability remain open for the broader Stage 1 exit.
 
 ## 6. Stage 2 — Material families, batching and shader discipline
 
@@ -780,14 +787,15 @@ for Cesium, imagery and model resources. SSR, volumetrics, displacement, dense
 skeletal crowds and shadowed lamp arrays require separate high-tier budgets.
 None is a prerequisite for this sequence.
 
-**Next bounded implementation:** Stage 1.1, time-budgeted city assembly. Five
-current-main recorded Rome runs retained complete startup timings and measured
-spawn assembly at 2,612.7 ms median (2,450.3–2,630.3 ms) for 4,524 elements.
-Measure uninterrupted chunk lengths, replace per-object yields with 8 ms desktop
-/ 12 ms mobile batches, and keep the spawn cell ahead of streamed neighbors.
-Compare startup readiness, longest chunk, total assembly time, frame/GPU p95 and
-streaming behavior over repeated baseline/candidate runs. This replay profile is
-client-side evidence, not a live Overpass measurement.
+**Next bounded implementation:** Stage 1.2, bounded queues and stale-work
+cancellation, with transactional scene rollback. Stage 1.1's desktop candidate
+uses 8 ms / 12 ms slice goals with a 75% yield trigger and keeps the spawn cell
+ahead of neighbors. Five interleaved same-device baseline/candidate pairs found
+near-neutral readiness and frame/GPU p95, with spawn chunk p95 at 8.1 ms median;
+see the [decision report](benchmarks/results/stage1/assembly-budget-decision-2026-10-28.md)
+and [compact summary](benchmarks/results/stage1/assembly-budget-interleaved-five-run.json).
+Mobile, direct input-latency, 15-minute resource, and live-city checks remain
+open; recorded Rome replay is client-side evidence, not live Overpass evidence.
 
 **Open acceptance gate:** Stage 0.8 still needs matched dense live-city cold/
 warm and walk/drive boundary measurements. The 28 October Manhattan retry

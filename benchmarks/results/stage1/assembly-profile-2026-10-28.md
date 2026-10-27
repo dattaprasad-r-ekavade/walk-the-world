@@ -45,12 +45,14 @@ their scheduling delay. The recorded fixture replays the same Rome snapshot for
 each city key, so these results do not replace the live-city matrix or establish
 live Overpass latency.
 
-Next, measure individual uninterrupted assembly slices and replace per-object
-yields with time-budgeted batches, beginning at 8 ms desktop / 12 ms mobile.
-Prioritize the spawn cell before neighbors; preserve scene rollback and compare
-startup readiness, longest slice, full assembly wall time, frame/GPU p95 and
-streaming behavior in repeated baseline/candidate runs. Keep the live Stage 0.8
-matrix open until the city API returns complete cells.
+The Stage 1.1 candidate was subsequently implemented and measured in five
+interleaved same-device baseline/candidate pairs. It uses 8 ms desktop / 12 ms
+mobile slice goals, yields at 75% of the target, and serializes neighbor
+assembly behind the spawn cell. The [decision report](assembly-budget-decision-2026-10-28.md)
+records chunk lengths, startup and frame/GPU comparisons, capture integrity, and
+remaining mobile/long-walk gates. Continue with Stage 1.2 queue bounds and stale
+work cancellation after the desktop result; keep the live Stage 0.8 matrix open
+until the city API returns complete cells.
 
 Rollback for the recorder change is to restore `PERF_TIMING_LIMIT` and
 `PERF_SCHEMA_VERSION`, remove the `timingHistory` result field, and retain this
