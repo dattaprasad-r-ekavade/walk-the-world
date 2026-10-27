@@ -5,8 +5,10 @@
  */
 import { chromium } from 'playwright';
 import { writeFileSync, mkdirSync, readFileSync } from 'fs';
+import { execFileSync } from 'child_process';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
+import { orderedFrameIntervals, orderedPerfTimeline, PERF_SCHEMA_VERSION, summarizeFrameIntervals } from '../lib/perf-summary.mjs';
 
 const __dir = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dir, '..');
@@ -55,6 +57,13 @@ async function benchStreet(page) {
 
   await page.click('.cesium-container', { timeout: 5000 }).catch(() => {});
   await page.keyboard.down('w');
+  await page.evaluate(() => {
+    const counters = window.__perfCounters;
+    if (!counters) return;
+    counters.frameIntervalsMs.length = 0;
+    counters.frameIntervalCursor = 0;
+    counters.fpsSamples.length = 0;
+  });
   await page.waitForTimeout(WALK_MS);
   await page.keyboard.up('w');
   await page.waitForTimeout(500);
@@ -71,6 +80,7 @@ async function benchStreet(page) {
   });
 
   const samples = metrics.perf?.fpsSamples ?? [];
+  const frameIntervalsMs = orderedFrameIntervals(metrics.perf);
   const avgFps =
     samples.length > 0
       ? Math.round(samples.reduce((a, b) => a + b, 0) / samples.length)
@@ -80,6 +90,23 @@ async function benchStreet(page) {
     loadMs,
     avgFps,
     fpsSamples: samples,
+    frameSummary: summarizeFrameIntervals(frameIntervalsMs),
+    frameIntervalsMs,
+    marks: metrics.perf?.marks || {},
+    timings: orderedPerfTimeline(metrics.perf),
+    metadata: metrics.perf?.metadata || {},
+    settings: metrics.perf?.settings || {},
+    resourceCounts: metrics.perf?.resourceCounts || {},
+    unavailableMeasurements: metrics.perf?.unavailableMeasurements || [],
+    validationErrors: metrics.perf?.validationErrors || [],
+    environment: await page.evaluate(() => {
+      const counters = window.__perfCounters;
+      return {
+        ...(counters?.environment || {}),
+        visibilityState: document.visibilityState,
+        viewport: { width: innerWidth, height: innerHeight, devicePixelRatio },
+      };
+    }),
     triangles: metrics.triangles,
     reactRenders: metrics.perf?.reactRenders ?? null,
     minimapDraws: metrics.perf?.minimapDraws ?? null,
@@ -121,22 +148,41 @@ async function main() {
     args: ['--use-gl=angle', '--use-angle=swiftshader'],
   });
   const context = await browser.newContext();
-  await context.addInitScript((fixture) => {
+  await context.addInitScript(({ fixture, schemaVersion }) => {
     window.__BENCH_MODE = true;
     window.__BENCH_FIXTURE = fixture;
     window.__perfCounters = {
+      schemaVersion,
+      startedAt: performance.now(),
+      diagnosticsEnabled: true,
       reactRenders: 0,
       minimapDraws: 0,
       statusUpdates: 0,
       hudUpdates: 0,
       fpsSamples: [],
+      frameIntervalsMs: [],
+      frameIntervalCursor: 0,
+      timeline: [],
+      marks: {},
+      metadata: {},
+      validationErrors: [],
     };
-  }, BENCH_FIXTURE);
+  }, { fixture: BENCH_FIXTURE, schemaVersion: PERF_SCHEMA_VERSION });
   const page = await context.newPage();
 
   const result = {
+    schemaVersion: PERF_SCHEMA_VERSION,
     timestamp: new Date().toISOString(),
+    sourceRevision: (() => {
+      try { return execFileSync('git', ['rev-parse', 'HEAD'], { cwd: ROOT, encoding: 'utf8' }).trim(); }
+      catch { return null; }
+    })(),
+    sourceTreeDirty: (() => {
+      try { return execFileSync('git', ['status', '--porcelain'], { cwd: ROOT, encoding: 'utf8' }).trim().length > 0; }
+      catch { return null; }
+    })(),
     baseUrl,
+    browser: { name: 'Chromium', version: browser.version(), rendererMode: 'SwiftShader (software)' },
     walkDurationMs: WALK_MS,
     cityCacheWarm: cache,
     street: null,

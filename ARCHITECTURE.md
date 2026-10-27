@@ -15,7 +15,7 @@ this covers how it actually works.
                                       │ fetchCityData(lat, lon)
                              ┌────────▼─────────┐
                              │ 3-tier cache      │
-                             │ 1 localStorage    │  7-day TTL, same machine
+                             │ 1 memory/IndexedDB    │  7-day TTL, 12 complete cells
                              │ 2 R2 public domain│  https://myjyotishai.in/<key>.json
                              │ 3 /api/city/<key> │  R2 hit, else Overpass + write-back
                              └────────┬─────────┘
@@ -40,15 +40,16 @@ raster tiles) stream from free public hosts and are never stored by us.
 The world is divided into cells keyed by rounded coordinates:
 
 - `cityCacheKey(lat, lon)` → `wtw_city6_<lat.toFixed(3)>_<lon.toFixed(3)>`
-  (lib/engine/cityData.js). The `6` is `CACHE_VERSION` — bump it to
-  invalidate every cache tier at once (localStorage keys, R2 objects, edits).
-  **It is duplicated in scripts/warm-cities.mjs — keep in sync.**
+  (lib/city-contract.js). The `6` is `CACHE_VERSION` — bump it to
+  invalidate every cache tier at once (browser cache keys, R2 objects, edits).
+  **The key and neighbor-grid contract is shared from `lib/city-contract.js`, including seed scripts.**
 - A cell's data = one Overpass fetch of radius 650 m around the cell origin
   (`fetchOverpassCell`), stored as `{ elements: [...] }` in raw OSM JSON
   shape (ways with `geometry`, nodes, relations with `members`).
-- Neighbor prefetch: the engine warms the 4 adjacent cells (±0.0055°)
-  10 s after load, concurrency 2, via the same `fetchCityData` path so the
-  shared cache always holds full-fidelity cells.
+- Neighbor streaming uses an arrival-anchored grid (±0.0055°), concurrency 2.
+  The center stays stable until the player crosses a tile boundary. Seed scripts
+  use the same grid, including diagonals. Exact-cell requests replace the old
+  sequential nearby-key probing. Existing public cache and edit addresses remain valid.
 - Per-cell edits (map editor) live in R2 at `edits/<cellkey>.json`:
   `{ assets: [{name,url,lat,lon,rotY,scale}], terrain: [{lat,lon,radius,height}],
   tagOverrides: {"way/123": {k:v}}, hidden: ["node/456", ...] }`.
@@ -57,9 +58,9 @@ The world is divided into cells keyed by rounded coordinates:
 
 | File | What it does |
 |---|---|
-| `lib/overpassServer.js` | Mirror list (overpass-api.de → kumi.systems → private.coffee), two-pass timeouts **[15 s, 40 s]** across all mirrors, two parallel queries per cell (buildings `out geom 2000`; infra roads/water/rail/nodes + relations), `Promise.allSettled` → partial results beat none. `parseCityKey` validates cell keys. **`looksPartial`** guards the one case where partial does *not* beat none: 20+ roads and zero buildings means Overpass dropped the building statement, and caching that poisons the cell permanently. |
-| `lib/r2Server.js` | S3 client for R2 (`R2_ENDPOINT/ACCESS_KEY/SECRET/BUCKET`). Text objects are stored **gzipped** (`uploadObject`/`downloadObject`, ContentEncoding: gzip, 6-10× smaller). **Binary must use `uploadBinary`/`downloadBinary`** — the text path does a UTF-8 round-trip that corrupts GLBs (learned the hard way). `listObjects`, `checkEditorKey` (compares `x-editor-key` header to `EDITOR_SECRET`). |
-| `app/api/city/[key]/route.js` | GET: R2 hit → stream; miss → Overpass → respond + async upload. maxDuration 120. Building-less cells are rejected on write **and on read** (older poisoned objects re-fetch themselves); `?refresh=1` + editor key forces a bypass of the R2 read. |
+| `lib/overpassServer.js` | Server owns Overpass retries: mirrors race two at a time (second starts after 1.8 s or on failure), first complete answer wins and aborts the rest. If every mirror fails fast, it sweeps them again after a backoff (3 rounds). Shared 85 s deadline, at most 28 s per attempt. Caller cancellation propagates. Partial responses retain their status. |
+| `lib/r2Server.js` | S3-compatible storage adapter. Text is gzipped; GLBs use binary helpers. City reads/writes accept cancellation. `checkEditorKey` compares the request header to `EDITOR_SECRET`. |
+| `app/api/city/[key]/route.js` | GET validates cache entries before use, fetches within a 105 s total budget, and stores only complete results. PUT requires editor authorization before consuming the bounded body and validates the payload. Partial responses are `no-store`. |
 | `app/api/edits/[key]/route.js` | GET returns edits JSON or `{}`; PUT saves (1 MB cap, editor key required). |
 | `app/api/assets/route.js` | GET lists `assets/` (returns same-origin `url` + `cdnUrl`); POST uploads raw GLB body (`?name=x.glb`, 30 MB cap, editor key). |
 | `app/api/assets/[name]/route.js` | Streams GLB bytes same-origin so GLTFLoader needs no bucket CORS. |
@@ -72,9 +73,11 @@ build time.
 
 ## Street engine (components/StreetEngine.js)
 
-One big client component (~2000 lines), deliberately monolithic around a
-single `useEffect(lat0, lon0)`; extracted pure helpers live in
-`lib/engine/street/*` and `lib/engine/*`. Boot sequence:
+The React component owns one effect lifetime. Terrain (`street/terrain.js`),
+editor tools (`street/editor.js`), worker pooling (`city-builder.js`), cell streaming,
+and resource disposal (`street/resources.js`) have explicit interfaces. The effect
+aborts its outstanding work, disposes the worker pool and scene resources, and
+releases shared material atlases on exit. Boot sequence:
 
 1. **Local frame** — `makeLocalFrame(lat0, lon0)` (lib/engine/geo.js) gives
    `toLocal(lat,lon) → {x,z}` meters (ENU) and `toGeo(x,z)` back. +x east,
@@ -88,8 +91,8 @@ single `useEffect(lat0, lon0)`; extracted pure helpers live in
 3. **PROGRESSIVE FIRST PAINT** — loading screen drops here (readyPct 100),
    player can walk on terrain; the city streams behind a toast. Do not gate
    anything new on city data being present.
-4. **City build (`loadCity`)** — iterates `data.elements`, yields to rAF
-   every 120 features. Buildings: footprint ring → ExtrudeGeometry →
+4. **City build (`loadCity`)** — builds geometry in a reusable two-worker pool; main-thread
+   assembly yields between geometry batches and heavy sections. Buildings: footprint ring → ExtrudeGeometry →
    **caps split from walls via material groups** (walls get facade texture +
    emissive night windows; caps render as plain concrete) → walls get
    vertex-color AO (darken toward street) × per-building tint jitter →
@@ -169,6 +172,7 @@ Open-Meteo → `setTime/setWeather/setPrecip` (settings panel button).
 
 ## Operational scripts
 
+- `npm run seed:demo` — warms the 4 demo cities (`DEMO_PLACES` in lib/geo.js: Pune, Edinburgh, Tokyo, New York). Fast travel, Today's walk and Where-am-I only offer these.
 - `node scripts/warm-cities.mjs [base] [--list|--group="Goa"|--budget=N|
   --state=file|--conc=N]` — seeds R2 for lib/geo.js PLACES +
   lib/seedPlaces.js SEED_GROUPS (88 places/440 cells ≈ 19 MB). Resumable
@@ -186,10 +190,10 @@ Open-Meteo → `setTime/setWeather/setPrecip` (settings panel button).
    4.4 m, ped 1.75 m) and floors at y=0. Rigged GLBs merge into bind pose
    (T-pose) — only static-posed models work as `pedestrian.glb` until VAT
    (plan 15.1).
-4. **CACHE_VERSION** lives in two files (cityData.js, warm-cities.mjs).
-5. **Overpass etiquette**: ≤2 concurrent from one IP; mirrors rate-limit
-   silently (queries hang, then time out). The two-pass budget must stay
-   under Vercel's `maxDuration 120`.
+4. **CACHE_VERSION and CELL_STEP** are shared in lib/city-contract.js.
+5. **Overpass etiquette**: the browser does not contact Overpass directly.
+   Each engine streams at concurrency 2; mirror attempts share the API deadline.
+   This is not a distributed rate limiter across Vercel instances.
 6. **Line endings**: repo has no `.gitattributes`; Windows checkouts rely on
    `core.autocrlf true` (set locally). Without it every file diffs.
 7. **Editor writes need `EDITOR_SECRET`** set on the deployment; the UI
@@ -203,9 +207,8 @@ Open-Meteo → `setTime/setWeather/setPrecip` (settings panel button).
 
 ## Where to add things (quick map)
 
-- New OSM feature rendering → the parse loop in `loadCity`
-  (StreetEngine.js), collect into arrays near `roadPaths`/`pois`, build
-  merged meshes after the loop. Always merge/instance; never one mesh per
+- New OSM feature rendering → `city-builder-core.js` for parsing/geometry,
+  then `street/assemble-city.js` for scene assembly. Always merge/instance; never one mesh per
   feature.
 - New agent type in the world → lib/engine/population.js (follow the
   peds/cars pattern: list + InstancedMesh + update()).
@@ -216,3 +219,19 @@ Open-Meteo → `setTime/setWeather/setPrecip` (settings panel button).
 - New tool/mode in the editor → extend `editor.tool` union in editorClick +
   panel buttons + hotkey in onKey + (if undoable) `editor.undo` entry.
 - Roadmap → plan.md (phases; tick items with notes when done).
+
+## Loading and validation changes (September 2026)
+
+- The homepage menu is usable without WebGL. Cesium loads only when globe
+  exploration is selected; Explore Shibuya goes straight to the street renderer.
+- Complete cells use a bounded in-memory cache and IndexedDB. Old localStorage
+  city entries are not trusted or migrated. Partial results never enter either
+  cache; editor mutations receive a separate copy of fetched data.
+- Browser subscribers share in-flight requests. Leaving the world cancels the
+  fetch when its last subscriber leaves. A short negative CDN cache prevents
+  repeated miss probes. Cold work remains bounded inside the API; no durable
+  background queue or new cloud infrastructure is provisioned.
+- Failed cell assembly rolls back reserved IDs, collision data and scene objects.
+  Expired failures retry even when the player stands still.
+- Regression coverage: `tests/city-route.test.js`, `city-loading.test.js`,
+  `stream-lifecycle.test.js`, and `overpass-deadline.test.js`.

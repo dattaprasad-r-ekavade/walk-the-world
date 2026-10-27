@@ -1,6 +1,6 @@
 'use client';
 
-import { PLACES } from '@/lib/geo';
+import { DEMO_PLACES } from '@/lib/geo';
 import {
   glassPanel,
   menuBtn,
@@ -92,7 +92,7 @@ export function TravelPanel({
             )}
           </div>
         ))}
-        {PLACES.map((p) => (
+        {DEMO_PLACES.map((p) => (
           <button key={p.name} type="button" className={travelBtn} onClick={() => onTravel(p.lat, p.lon)}>
             <span className="mr-1">📍</span>
             {p.name}

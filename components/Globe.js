@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { getCesiumIonToken } from "@/lib/env";
 import { loadCesium } from "@/lib/loadCesium";
 import { MONUMENTS } from "@/lib/monuments";
@@ -24,6 +24,7 @@ const AVATAR_URL =
 const AVATAR_HEADING_OFFSET = Math.PI / 2; // glTF forward-axis correction
 
 export default function Globe({ controllerRef, onReady, onStatus, onProgress, posRef }) {
+  const [error, setError] = useState(null);
   const containerRef = useRef(null);
   const statusRef = useRef(onStatus);
   statusRef.current = onStatus;
@@ -851,10 +852,11 @@ export default function Globe({ controllerRef, onReady, onStatus, onProgress, po
       if (onReady)
         onReady({ hasTiles: !!osmBuildings, hasBuildings: !!osmBuildings, hasTerrain });
       emitStatus();
-    })();
+    })().catch(e => { if (!destroyed) setError(e); });
 
     return () => {
       destroyed = true;
+      if (controllerRef) controllerRef.current = null;
       if (onKeyDown) window.removeEventListener("keydown", onKeyDown);
       if (onKeyUp) window.removeEventListener("keyup", onKeyUp);
       if (onMouseMove) document.removeEventListener("mousemove", onMouseMove);
@@ -871,5 +873,6 @@ export default function Globe({ controllerRef, onReady, onStatus, onProgress, po
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  if (error) throw error;
   return <div ref={containerRef} className="cesium-container" />;
 }
