@@ -21,6 +21,7 @@ import {
   summarizeDurationSamples,
   summarizeFrameIntervals,
   summarizeRendererFrames,
+  validateBenchmarkMeasurement,
 } from '../lib/perf-summary.mjs';
 
 const __dir = dirname(fileURLToPath(import.meta.url));
@@ -87,6 +88,39 @@ if (!route.startsWith('/')) throw new Error('--route must be an absolute path su
 const READY_TIMEOUT = 180_000;
 
 const BENCH_FIXTURE = JSON.parse(readFileSync(fixturePath, 'utf8'));
+
+function summarizeHostTelemetryWindow(telemetry, startedAt, endedAt) {
+  if (!telemetry?.available || !Array.isArray(telemetry.samples)) {
+    return { available: false, reason: telemetry?.reason || 'Host telemetry samples are unavailable' };
+  }
+
+  const startMs = Date.parse(startedAt);
+  const endMs = Date.parse(endedAt);
+  const samples = telemetry.samples.filter((sample) => {
+    const sampledAtMs = Date.parse(sample.sampledAt);
+    return Number.isFinite(sampledAtMs) && sampledAtMs >= startMs && sampledAtMs <= endMs;
+  });
+  const cpuValues = samples.map((sample) => sample.systemCpuPct).filter(Number.isFinite);
+  const memoryValues = samples.map((sample) => sample.availableMemoryMb).filter(Number.isFinite);
+  const gpu3dValues = samples.map((sample) => sample.gpu3dEnginePeakPct).filter(Number.isFinite);
+  const expectedSampleCount = Number.isFinite(telemetry.actualSampleIntervalSeconds) && telemetry.actualSampleIntervalSeconds > 0
+    ? Math.floor((endMs - startMs) / (telemetry.actualSampleIntervalSeconds * 1000)) + 1
+    : null;
+  const firstSampleAtMs = samples.length ? Date.parse(samples[0].sampledAt) : null;
+  const lastSampleAtMs = samples.length ? Date.parse(samples[samples.length - 1].sampledAt) : null;
+
+  return {
+    available: true,
+    sampleCount: samples.length,
+    expectedSampleCount,
+    coveragePct: expectedSampleCount ? Math.round((samples.length / expectedSampleCount) * 100) : null,
+    firstSampleOffsetMs: firstSampleAtMs === null ? null : Math.round(firstSampleAtMs - startMs),
+    lastSampleGapMs: lastSampleAtMs === null ? null : Math.round(endMs - lastSampleAtMs),
+    averageSystemCpuPct: cpuValues.length ? Number((cpuValues.reduce((sum, value) => sum + value, 0) / cpuValues.length).toFixed(2)) : null,
+    minimumAvailableMemoryMb: memoryValues.length ? Math.min(...memoryValues) : null,
+    averagePerEngine3dPeakPct: gpu3dValues.length ? Number((gpu3dValues.reduce((sum, value) => sum + value, 0) / gpu3dValues.length).toFixed(2)) : null,
+  };
+}
 
 function startHostTelemetry(sampleSeconds) {
   if (process.platform !== 'win32') {
@@ -240,7 +274,9 @@ async function benchStreet(page) {
     }, { lat: location.lat, lon: location.lon, step: CELL_STEP, earthRadius: EARTH_R, useDriving: driving });
     playerStart = { x: crossingSetup.x, z: crossingSetup.z };
   }
-  // Let startup GPU queries finish before the measured movement window begins.
+  // Start host collection before the measured window so its setup time does not
+  // extend browser sampling after the walk has ended.
+  const hostTelemetryMonitor = startHostTelemetry(Math.min(600, Math.max(1, Math.ceil(walkDurationMs / 1000) + 3)));
   await page.waitForTimeout(500);
   await page.evaluate(() => {
     const counters = window.__perfCounters;
@@ -255,12 +291,41 @@ async function benchStreet(page) {
     }
     window.__BENCH_FREEZE_POPULATION = false;
   });
-  const hostTelemetryMonitor = startHostTelemetry(Math.max(1, Math.ceil(walkDurationMs / 1000)));
+  const measurementStartedAt = new Date().toISOString();
+  const measurementStartedMonotonicMs = performance.now();
   await page.keyboard.down('w');
   await page.waitForTimeout(walkDurationMs);
   await page.keyboard.up('w');
-  const hostTelemetry = await hostTelemetryMonitor.finish();
-  await page.waitForTimeout(500);
+  const measurementEndedAt = new Date().toISOString();
+  const wallElapsedMs = performance.now() - measurementStartedMonotonicMs;
+  const metricsCapturedAt = new Date().toISOString();
+
+  // Snapshot the browser counters immediately after movement. Host telemetry
+  // cleanup and cell-stream settling can take seconds and must not extend this
+  // frame history.
+  const metrics = await page.evaluate(() => {
+    const fpsChip = document.querySelector('.chip.fps');
+    const fpsText = fpsChip?.textContent || '0 FPS';
+    const fps = parseInt(fpsText, 10) || 0;
+    const counters = window.__perfCounters ?? null;
+    return {
+      fps,
+      triangles: window.__streetTriangles ?? null,
+      perf: counters,
+      player: window.__streetDebug?.player ? {
+        x: window.__streetDebug.player.x,
+        z: window.__streetDebug.player.z,
+      } : null,
+      vehicleActive: window.__streetDebug?.vehicle?.active === true,
+      environment: {
+        ...(counters?.environment || {}),
+        visibilityState: document.visibilityState,
+        viewport: { width: innerWidth, height: innerHeight, devicePixelRatio },
+      },
+      capturedAtBrowserMs: performance.now(),
+    };
+  });
+  const hostTelemetryPromise = hostTelemetryMonitor.finish();
 
   let cellStreaming = null;
   if (crossCell) {
@@ -296,21 +361,7 @@ async function benchStreet(page) {
     }, { startKey: cellStreamStart, expectedKey: expectedCellKey });
   }
 
-  const metrics = await page.evaluate(() => {
-    const fpsChip = document.querySelector('.chip.fps');
-    const fpsText = fpsChip?.textContent || '0 FPS';
-    const fps = parseInt(fpsText, 10) || 0;
-    return {
-      fps,
-      triangles: window.__streetTriangles ?? null,
-      perf: window.__perfCounters ?? null,
-      player: window.__streetDebug?.player ? {
-        x: window.__streetDebug.player.x,
-        z: window.__streetDebug.player.z,
-      } : null,
-      vehicleActive: window.__streetDebug?.vehicle?.active === true,
-    };
-  });
+  const hostTelemetry = await hostTelemetryPromise;
   const displacementMeters = metrics.player
     ? Math.hypot(metrics.player.x - playerStart.x, metrics.player.z - playerStart.z)
     : null;
@@ -320,6 +371,19 @@ async function benchStreet(page) {
   const frameSummary = summarizeFrameIntervals(frameIntervalsMs);
   const rendererFrames = orderedRendererFrames(metrics.perf);
   const gpuFrameTimesMs = orderedGpuFrameTimes(metrics.perf);
+  const measurementWindow = validateBenchmarkMeasurement({
+    requestedWalkMs: walkDurationMs,
+    wallElapsedMs,
+    frameDurationMs: frameSummary.durationMs,
+    frameSampleCount: frameIntervalsMs.length,
+    rendererSampleCount: rendererFrames.length,
+    gpuSampleCount: gpuFrameTimesMs.length,
+  });
+  measurementWindow.startedAt = measurementStartedAt;
+  measurementWindow.endedAt = measurementEndedAt;
+  measurementWindow.browserMetricsCapturedAt = metricsCapturedAt;
+  measurementWindow.capturedAtBrowserMs = metrics.capturedAtBrowserMs;
+  measurementWindow.hostTelemetry = summarizeHostTelemetryWindow(hostTelemetry, measurementStartedAt, measurementEndedAt);
   const avgFps = frameSummary.meanFrameTimeMs
     ? Math.round(1000 / frameSummary.meanFrameTimeMs)
     : samples.length > 0
@@ -340,6 +404,7 @@ async function benchStreet(page) {
     preset: qualityPreset,
     fpsSamples: samples,
     frameSummary,
+    measurementWindow,
     frameIntervalsMs,
     rendererFrameSummary: summarizeRendererFrames(rendererFrames),
     rendererFrames,
@@ -354,14 +419,7 @@ async function benchStreet(page) {
     unavailableMeasurements: metrics.perf?.unavailableMeasurements || [],
     validationErrors: metrics.perf?.validationErrors || [],
     hostTelemetry,
-    environment: await page.evaluate(() => {
-      const counters = window.__perfCounters;
-      return {
-        ...(counters?.environment || {}),
-        visibilityState: document.visibilityState,
-        viewport: { width: innerWidth, height: innerHeight, devicePixelRatio },
-      };
-    }),
+    environment: metrics.environment,
     triangles: metrics.triangles,
     reactRenders: metrics.perf?.reactRenders ?? null,
     minimapDraws: metrics.perf?.minimapDraws ?? null,
@@ -535,6 +593,9 @@ async function main() {
       mkdirSync(dirname(screenshotPath), { recursive: true });
       await page.screenshot({ path: screenshotPath, animations: 'disabled' });
       console.log(`    screenshot: ${screenshotPath}`);
+    }
+    if (!result.street.measurementWindow?.valid) {
+      throw new Error(`Measurement window is invalid: ${result.street.measurementWindow?.reasons?.join('; ') || 'missing window diagnostics'}`);
     }
     console.log(
       `    load: ${result.street.loadMs}ms, avg FPS: ${result.street.avgFps}, movement: ${result.street.movement.displacementMeters?.toFixed(2) ?? 'n/a'}m`

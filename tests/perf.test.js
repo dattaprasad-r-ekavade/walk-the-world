@@ -20,8 +20,34 @@ import {
   PERF_TIMING_LIMIT,
 } from "@/lib/perf";
 import { createGpuFrameTimer } from "@/lib/engine/gpu-frame-timer";
+import { validateBenchmarkMeasurement } from "@/lib/perf-summary.mjs";
 
 describe("performance diagnostics", () => {
+  it("accepts a complete frame window that matches the requested walk", () => {
+    expect(validateBenchmarkMeasurement({
+      requestedWalkMs: 12_000,
+      wallElapsedMs: 12_030,
+      frameDurationMs: 11_980,
+      frameSampleCount: 720,
+      rendererSampleCount: 720,
+      gpuSampleCount: 650,
+    })).toMatchObject({ valid: true, frameCoverageRatio: 0.996, reasons: [] });
+  });
+
+  it("rejects incomplete or saturated benchmark windows", () => {
+    const result = validateBenchmarkMeasurement({
+      requestedWalkMs: 12_000,
+      wallElapsedMs: 12_030,
+      frameDurationMs: 51_977,
+      frameSampleCount: 3000,
+      rendererSampleCount: 1200,
+      gpuSampleCount: 1200,
+    });
+
+    expect(result.valid).toBe(false);
+    expect(result.reasons).toHaveLength(4);
+  });
+
   it("creates and upgrades a versioned report without clearing existing counters", () => {
     const counters = ensurePerfCounters({ schemaVersion: 0, reactRenders: 4 });
     expect(counters.schemaVersion).toBe(2);

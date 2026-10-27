@@ -48,23 +48,26 @@ try {
 
 $samples = [System.Collections.Generic.List[object]]::new()
 $counterFailures = 0
-for ($index = 0; $index -lt $SampleSeconds; $index++) {
-  $sampledAt = (Get-Date).ToString('o')
-  $counterSamples = @()
-  try {
-    $counterSamples = @(Get-Counter -Counter $counterPaths -MaxSamples 1 -ErrorAction Stop | ForEach-Object { $_.CounterSamples })
-  } catch {
-    $counterFailures++
-    if ($gpuCountersAvailable) {
-      try {
-        $counterSamples = @(Get-Counter -Counter '\Processor(_Total)\% Processor Time', '\Memory\Available MBytes' -MaxSamples 1 -ErrorAction Stop | ForEach-Object { $_.CounterSamples })
-      } catch { $unavailable.Add("CPU/memory counters: $($_.Exception.Message)") }
-      $unavailable.Add("Combined CPU/GPU sample: $($_.Exception.Message)")
-    } else {
-      $unavailable.Add("CPU/memory counters: $($_.Exception.Message)")
-    }
+$counterSets = @()
+$counterCollectionClock = [System.Diagnostics.Stopwatch]::StartNew()
+try {
+  $counterSets = @(Get-Counter -Counter $counterPaths -SampleInterval 1 -MaxSamples $SampleSeconds -ErrorAction Stop)
+} catch {
+  $counterFailures++
+  if ($gpuCountersAvailable) {
+    $unavailable.Add("Combined CPU/GPU sampling: $($_.Exception.Message)")
+    $gpuCountersAvailable = $false
+    try {
+      $counterSets = @(Get-Counter -Counter '\Processor(_Total)\% Processor Time', '\Memory\Available MBytes' -SampleInterval 1 -MaxSamples $SampleSeconds -ErrorAction Stop)
+    } catch { $unavailable.Add("CPU/memory counters: $($_.Exception.Message)") }
+  } else {
+    $unavailable.Add("CPU/memory counters: $($_.Exception.Message)")
   }
+}
+$counterCollectionClock.Stop()
 
+foreach ($counterSet in $counterSets) {
+  $counterSamples = @($counterSet.CounterSamples)
   $cpuSample = $counterSamples | Where-Object { $_.Path -match '\\processor\(_total\)\\% processor time$' } | Select-Object -First 1
   $memorySample = $counterSamples | Where-Object { $_.Path -match '\\memory\\available mbytes$' } | Select-Object -First 1
   $gpuSamples = @($counterSamples | Where-Object { $_.Path -match '\\gpu engine\(' })
@@ -83,13 +86,36 @@ for ($index = 0; $index -lt $SampleSeconds; $index++) {
   })
 
   [void]$samples.Add([pscustomobject]@{
-    sampledAt = $sampledAt
+    sampledAt = $counterSet.Timestamp.ToString('o')
     systemCpuPct = if ($cpuSample) { [Math]::Round([double]$cpuSample.CookedValue, 2) } else { $null }
     availableMemoryMb = if ($memorySample) { [Math]::Round([double]$memorySample.CookedValue, 0) } else { $null }
     gpuEnginePeakPct = $gpuPeakPct
     gpu3dEnginePeakPct = $gpu3dPeakPct
     topGpuEngines = $topGpuEngines
   })
+}
+
+$sampleIntervals = @()
+for ($index = 1; $index -lt $samples.Count; $index++) {
+  $previous = [DateTimeOffset]::Parse($samples[$index - 1].sampledAt)
+  $current = [DateTimeOffset]::Parse($samples[$index].sampledAt)
+  $sampleIntervals += ($current - $previous).TotalSeconds
+}
+$sortedIntervals = @($sampleIntervals | Sort-Object)
+$actualSampleIntervalSeconds = $null
+if ($sortedIntervals.Count -gt 0) {
+  $middle = [int][Math]::Floor($sortedIntervals.Count / 2)
+  if ($sortedIntervals.Count % 2 -eq 0) {
+    $actualSampleIntervalSeconds = [Math]::Round(($sortedIntervals[$middle - 1] + $sortedIntervals[$middle]) / 2, 3)
+  } else {
+    $actualSampleIntervalSeconds = [Math]::Round($sortedIntervals[$middle], 3)
+  }
+}
+$sampleWindowDurationSeconds = $null
+if ($samples.Count -gt 1) {
+  $firstSampleAt = [DateTimeOffset]::Parse($samples[0].sampledAt)
+  $lastSampleAt = [DateTimeOffset]::Parse($samples[$samples.Count - 1].sampledAt)
+  $sampleWindowDurationSeconds = [Math]::Round(($lastSampleAt - $firstSampleAt).TotalSeconds, 3)
 }
 
 $cpuValues = @($samples | ForEach-Object { $_.systemCpuPct } | Where-Object { $null -ne $_ })
@@ -105,8 +131,11 @@ if ($gpu3dValues.Count -gt 0) { $gpu3dAveragePeak = [Math]::Round([double](($gpu
 $result = [pscustomobject]@{
   schemaVersion = 1
   available = $true
-  scope = 'One-second Windows samples started with the measured walking interval; includes process startup and sampling jitter.'
-  sampleIntervalSeconds = 1
+  scope = 'One continuous Windows counter query; sample timestamps and observed intervals are retained. Collector startup and query overhead can offset the sampled window.'
+  requestedSampleIntervalSeconds = 1
+  actualSampleIntervalSeconds = $actualSampleIntervalSeconds
+  sampleWindowDurationSeconds = $sampleWindowDurationSeconds
+  counterCollectionDurationSeconds = [Math]::Round($counterCollectionClock.Elapsed.TotalSeconds, 3)
   startedAt = if ($samples.Count -gt 0) { $samples[0].sampledAt } else { $null }
   endedAt = if ($samples.Count -gt 0) { $samples[$samples.Count - 1].sampledAt } else { $null }
   host = [pscustomobject]@{
@@ -141,8 +170,12 @@ $result = [pscustomobject]@{
   }
   summary = [pscustomobject]@{
     sampleCount = $samples.Count
+    requestedSampleCount = $SampleSeconds
     counterFailures = $counterFailures
     gpuCountersAvailable = $gpuCountersAvailable
+    actualSampleIntervalSeconds = $actualSampleIntervalSeconds
+    sampleWindowDurationSeconds = $sampleWindowDurationSeconds
+    counterCollectionDurationSeconds = [Math]::Round($counterCollectionClock.Elapsed.TotalSeconds, 3)
     averageSystemCpuPct = $cpuAverage
     minimumAvailableMemoryMb = $memoryMinimum
     averagePerEngine3dPeakPct = $gpu3dAveragePeak
