@@ -1,15 +1,18 @@
 # Walk the World — Performance and Visuals Implementation Plan
 
-Updated: 27 October 2026. Status: Stage 0.1–0.3 and 0.6 implemented; local
-software-renderer smoke tests recorded; hardware baseline and release acceptance
-remain open.
+Updated: 27 October 2026. Status: Stage 0 instrumentation, synthetic fixtures,
+and an attributed/sanitized real-city fixture are implemented. Five same-
+condition integrated-GPU repetitions are recorded as provisional because frame
+pacing drifted. Deterministic multi-cell movement, a stable matched matrix, and
+release acceptance remain open. Implementation continues.
 
 ## 1. Verified baseline and scope
 
-Fetched origin and ran git pull --ff-only on perf/demo-optimizations.
-The branch is current at 39459c3, tracking origin/perf/demo-optimizations.
-It includes origin/main at f83d99b. No branch switch or merge was needed.
-Recheck these revisions before implementation; this is a dated snapshot.
+Fetched origin on 27 October 2026 and verified that local `main` and
+`origin/main` both point to `adf6d073a56f1dd8e2937aeb9147e4fc4645eca0` before
+this implementation checkpoint. Earlier performance and setup branch work is
+already merged into `main`. Stage 0.4/0.5 changes are local and uncommitted;
+recheck the remote before the next checkpoint.
 
 This is the active implementation sequence for
 [PERFORMANCE-VISUALS-PLAN.md](PERFORMANCE-VISUALS-PLAN.md), which contains
@@ -97,55 +100,147 @@ scripts/bench-perf.mjs and benchmarks/fixtures/.
 - [x] 0.3 Derive p50/p95/p99 frame time, frames over 50/100 ms and 1% low FPS
   (1000 divided by mean of slowest 1% frame intervals). Record duration/sample
   count and exclude background-tab throttling explicitly.
-- [ ] 0.4 Aggregate renderer counters across all passes. Use asynchronous GPU
+- [x] 0.4 Aggregate renderer counters across all passes. Use asynchronous GPU
   timers where available; discard disjoint samples and never block for results.
   Time around render is CPU submission time; counters are not a VRAM-byte meter.
-- [ ] 0.5 Add recorded showcase-city, dense, sparse and difficult-polygon fixtures
-  with provenance/licensing. Seed population in benchmark mode. Keep minimal Rome
-  as a smoke test, not visual/capacity evidence.
-- [x] 0.6 Extend and validate the benchmark CLI for fixture, route, preset,
-  renderer mode and output. Fail nonzero on failed checks/console/asset errors.
-  Document new switches only after they exist.
+- [x] 0.5 Add recorded showcase-city, dense, sparse and difficult-polygon fixtures
+  with provenance/licensing. Keep minimal Rome as a smoke test, not
+  visual/capacity evidence.
+  - [x] Generate repeatable synthetic showcase, dense, sparse and complex-polygon
+    fixtures; identify them as synthetic CC0 data.
+  - [x] Seed population placement in benchmark mode (`--seed`, default 1337).
+  - [x] Add a real-world showcase-city extract with OSM attribution, ODbL
+    provenance and a sanitized source archive; synthetic fixtures remain the
+    repeatable density/geometry controls.
+- [x] 0.6 Extend and validate the benchmark CLI for fixture, route, coordinates,
+  preset, renderer mode, duration, seed and output. Fail nonzero on failed
+  checks/console/asset errors. Document switches only after they exist.
 - [ ] 0.7 Prove street movement via player displacement. The runner focuses the
-  Street page and requires measurable displacement. Add deterministic
-  multi-cell walking and driving scenarios.
+  Street page and requires measurable displacement.
+  - [x] Require displacement for walking and add a seeded driving run that
+    enters a nearby traffic car through the normal control handler.
+  - [ ] Add deterministic walk and drive routes that cross a cell boundary and
+    validate neighbor streaming and resource limits.
 - [ ] 0.8 Capture matched production warm/cold/day/night/rain/crossing baselines
   and rank CPU, GPU, network and memory bottlenecks.
+  - [x] Collect five 12-second warm, stationary, fixed-medium samples on Intel
+    UHD 630; retain as a provisional repeatability check, not a release baseline.
+  - [ ] Repeat after checking Chromium foreground state, OS load and integrated-
+    GPU thermal/power conditions; alternate baseline/candidate runs for A/B.
+  - [ ] Complete cold/warm, day/night, rain and moving/cell-crossing scenarios;
+    include a mobile device before closing the hardware matrix.
 
-### Implementation checkpoint — Stage 0.1–0.3
+### Implementation checkpoint — Stage 0 instrumentation, fixtures and hardware repeatability
 
-Completed locally on 27 October 2026. Reports use schema version 1 and include
-browser/device/WebGL identity, active quality settings, bounded event timings,
-lifecycle marks, frame intervals and percentiles, renderer geometry/texture/
-program counts, validation errors and named unavailable measurements. Detailed
-timings are opt-in; normal play keeps bounded frame samples and lifecycle marks.
-The benchmark accepts fixture, route, coordinate, quality preset, renderer,
-duration and output options. It captures browser errors, resource counts and
-player displacement, and fails when movement is not validated. Renderer timings
-are labeled CPU submission; worker compute is separate from roundtrip and output
-bytes.
+Local checkpoint on 27 October 2026, based on `adf6d07` plus the working-tree
+changes. The benchmark schema is version 2. Diagnostics capture frame intervals,
+CPU render submission, all-pass Three.js counters, asynchronous WebGL2 GPU timer
+results, resource counts and lifecycle timings. Renderer counters aggregate the
+full logical frame, including shadow/post-processing passes. GPU query results
+are read only after availability, disjoint results are dropped, outstanding
+queries are bounded, and cleanup disposes pending queries. These counters do not
+claim VRAM bytes. Diagnostics remain opt-in.
 
-Validation: `npm test` passed (9 files, 79 tests); `npm run build` passed.
-Two single-run reports used the local production build, Rome smoke fixture,
-medium preset and 12-second walk on revision `52873ca`:
+The seeded synthetic showcase/dense/sparse/complex-polygon fixtures and benchmark
+seed are in place. Walking requires displacement. The driving scenario uses the
+normal vehicle-entry input and records displacement. Neither scenario yet proves
+deterministic cell-boundary streaming. The fixture README distinguishes synthetic
+CC0 data from the old Rome smoke fixture, whose provenance is unverified.
 
-- [Forced SwiftShader](benchmarks/results/stage0/main-52873ca-swiftshader-medium.json):
-  26.3 s to ready, 1 FPS average, p95 2433 ms, 12 frame samples, 5.04 m moved.
-- [Browser-default renderer](benchmarks/results/stage0/main-52873ca-browser-default.json):
-  40.9 s to ready, 1 FPS average, p95 1100 ms, 14 frame samples, 7.00 m moved.
+Validation on this checkpoint: `npm test -- --reporter=dot` passed (10 files,
+90 tests); `npm run build` passed. The app was run locally from the production
+build. A separate visible Chromium run confirmed WebGL2 on Intel UHD 630
+(ANGLE/D3D11) with the GPU timer-query extension supported. The fixed-medium run
+was a warm, live-data 12-second walk at 1046x654 CSS pixels and DPR 1.25:
 
-Both selected SwiftShader in the actual WebGL renderer report, so these are local
-software smoke results, not comparable repetitions or hardware/production
-baselines. Both recorded 39 geometries, 23 textures and 19 programs, with zero
-validation, browser-console, runtime or local-asset errors. Terrain used the flat
-fallback (zero loaded tiles). A headed Chromium launch failed with `spawn UNKNOWN`,
-so the actual hardware GPU remains unmeasured. Stage 0.4–0.5 and 0.7–0.8 remain
-open. GPU frame time and estimated VRAM bytes are explicitly unavailable.
+- [Fixed-medium hardware report](benchmarks/results/stage0/main-adf6d07-local-intel-uhd-medium-live-api-fixed-12s.json)
+- [Captured scene](benchmarks/results/stage0/intel-uhd-medium-live-api-2026-10-27.png)
+- 539 frame samples: 22.85 ms mean, 16.7 ms p50, 33.5 ms p95, 49.8 ms p99;
+  two frames exceeded 50 ms and none exceeded 100 ms. The measured 1% low was
+  18.96 FPS.
+- CPU render submission: 14.34 ms mean and 19.30 ms p95. GPU timer: 536 samples,
+  11.94 ms mean, 15.77 ms p95 and 18.61 ms p99; no disjoint samples were dropped.
+- 576 average draw calls and 359,625 average triangles per frame; maximum 631
+  calls and 506,916 triangles. Resources at capture: 590 geometries, 30 textures
+  and 28 programs. Reliable VRAM byte counts remain unavailable.
+- Player displacement was 49.91 m. The spawn cell was warm from IndexedDB and
+  loaded 3,489 city elements plus one terrain tile. Adjacent-cell R2 requests
+  were CORS-blocked and two local API neighbor requests returned 502. No
+  benchmark validation errors were recorded, but the route’s streaming failures
+  limit any scene-capacity conclusion.
 
-Exit: repeatable JSON/captures and a bottleneck report, without architecture changes.
-Choose rendering/scheduling stages next if those dominate; bring Stage 6 forward
-after Stage 1 if geometry dominates. Historical mixed-build SwiftShader numbers
-are not the new baseline.
+This one run indicates that both CPU render submission and GPU execution consume
+a substantial fraction of the frame budget; the draw-call count also merits an
+audit. It is only a diagnostic sample, not a stable bottleneck ranking or an A/B
+result. The browser’s quality tier, DPR, shadow setting and post-FX setting
+stayed fixed for this run.
+
+Five additional 12-second stationary repetitions were collected without moving
+the player, on the same warm spawn cell and fixed-medium preset. The individual
+reports and [five-run summary](benchmarks/results/stage0/main-adf6d07-local-intel-medium-idle-five-run-summary.json)
+are saved in `benchmarks/results/stage0/`:
+
+- Median frame p95 was 50.0 ms (range 33.5–50.7 ms); median p99 was 66.0 ms.
+  The 1% low ranged from 10.9–18.9 FPS. Frames over 50 ms rose from 5 in the
+  first repetition to 46 in the fifth; the last repetition included one frame
+  over 100 ms.
+- Median CPU render-submission p95 was 32.5 ms (range 23.1–43.2 ms). Median GPU
+  p95 was 21.65 ms (range 18.07–24.26 ms). The timer extension returned samples
+  in all five repetitions, with no disjoint samples.
+- All runs held 611 draw calls and 362,800 triangles per sampled frame, with
+  579 geometries, 30 textures and 28 programs. All were visible-tab samples and
+  recorded zero player displacement, as intended for the stationary scenario.
+
+The changing frame times and rising late-run stall count mean these repetitions
+do not establish a stable release baseline. The cause is not isolated: check
+browser focus, background machine activity, integrated-GPU power/thermal state,
+and remote streaming before using this set for A/B decisions. The CPU and GPU
+measurements are both material, so optimize only after a stable comparison.
+
+Earlier base-commit `52873ca` and SwiftShader reports are historical smoke tests;
+the browser-default and synthetic headless runs on `adf6d07` also selected
+SwiftShader. They validate runner paths only and are not hardware performance
+comparisons. The [synthetic dense report](benchmarks/results/stage0/main-adf6d07-stage0-5-synthetic-dense-seed1337.json)
+recorded 48 geometries/25 textures/19 programs; the [seeded drive report](benchmarks/results/stage0/main-adf6d07-stage0-7-synthetic-drive-seed1337.json)
+recorded 8.32 m of movement with a vehicle active.
+
+The first Overpass capture was not saved; the follow-up request to an alternate
+public instance timed out after 90 seconds. A custom BBBike extract was then
+requested for the Rome Colosseum area and downloaded from the provider's ready
+queue. The retained fixture contains 326 building-tagged ways (319 unique
+footprints after production deduplication), 1,122 highway ways and 1,176 tagged
+nodes in a 12.48799,41.88676–12.49701,41.89424 bbox. Rebuild it with
+`npm run fixtures:build:rome`. The source XML included contributor account
+attributes despite the provider help page's general statement that extracts
+omit author metadata; the committed archive and JSON have those attributes
+removed. The provenance sidecar records both the original download hash and the
+sanitized archive hash. The JSON records its provider file date, extraction
+area, attribution and ODbL 1.0 terms. See [fixture details](benchmarks/fixtures/README.md),
+[BBBike extract service guidance](https://extract.bbbike.org/extract.html), and
+[OSM copyright and license guidance](https://www.openstreetmap.org/copyright).
+
+The real-world fixture completed two browser benchmark smokes on 27 October.
+Both used headless Chromium with SwiftShader, no GPU timer-query support and no
+movement-window FPS samples; these are fixture/renderer integration checks, not
+performance evidence. The [six-second smoke report](benchmarks/results/stage0/main-adf6d07-osm-rome-swiftshader-6s.json)
+records 4,524 fixture elements, no browser or asset errors, 49.2 seconds to
+stream the spawn city and 3.5 m of movement. The [capture-run report](benchmarks/results/stage0/main-adf6d07-osm-rome-swiftshader-capture.json)
+records 54.7 seconds to stream the same fixture and 0.5 m movement. Its rendered
+scene capture is saved at
+`benchmarks/results/stage0/rome-osm-showcase-swiftshader.png`.
+
+Remaining Stage 0 gates: make deterministic walk and drive paths cross cell
+boundaries; and
+stabilise the five-run baseline before alternating matched candidate runs across
+warm/cold, day/night/rain and crossing scenarios. Include real mobile hardware.
+The current stationary repetition set is useful for repeatability diagnostics
+but must not be used as a pass/fail A/B baseline. No shader, texture or visual
+rendering behavior changed in this checkpoint.
+
+Exit: repeated JSON/captures and a measured bottleneck report, without
+architecture changes. Once noise and network variability are understood, choose
+the next rendering or streaming stage based on those results. Bring geometry
+work forward only if complete measured geometry-stage time dominates.
 
 ## 5. Stage 1 — Scheduling, allocation and streaming stability
 

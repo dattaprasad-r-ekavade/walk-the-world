@@ -1,5 +1,10 @@
 # Refactor Performance Benchmark
 
+> The `Before` / `After` table below is a historical comparison from the earlier
+> refactor. It is not a current production baseline. Use the versioned local
+> runner below for new comparisons, and do not compare runs with different GPU
+> renderers or cache/fixture conditions.
+
 Comparing metrics **before** the React/architecture refactor (`benchmarks/before.json`)
 vs **after** (`benchmarks/after.json`).
 
@@ -52,3 +57,25 @@ vs **after** (`benchmarks/after.json`).
 npm run build && PORT=3456 npm run start
 npm run bench -- --out benchmarks/after.json
 ```
+
+## Current local runner
+
+Run against a built app with the same fixture, browser renderer mode, viewport,
+quality preset and cache state for each candidate. The population placement uses
+the same seeded random stream on each run; the default seed is `1337`.
+
+```bash
+npm run bench -- --base-url http://127.0.0.1:3456 --fixture benchmarks/fixtures/rome-showcase-osm.json --lat 41.8902 --lon 12.4922 --preset medium --renderer-mode browser-default --walk-ms 12000 --seed 1337 --skip-globe --out benchmarks/results/stage0/local.json
+```
+
+Supported options are `--base-url`, `--fixture`, `--route`, `--lat`, `--lon`,
+`--preset` (`low|medium|high`), `--renderer-mode` (`software|browser-default`),
+`--walk-ms` (minimum 1000), `--seed` (0 through 4294967295), `--out`,
+`--screenshot` (optional rendered street capture), `--headed`
+`--drive` and `--skip-globe`. `--drive` waits for seeded traffic, approaches a
+nearby car, enters through the normal `C` control handler and drives with `W`.
+Reports contain the selected WebGL renderer, per-frame
+renderer counters, asynchronous GPU timing when the extension is available,
+frame-time percentiles, movement displacement, resources and browser errors.
+Missing GPU timing support is recorded as unavailable; renderer submission time
+is CPU time and must not be interpreted as GPU time.

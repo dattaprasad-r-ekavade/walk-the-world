@@ -22,10 +22,12 @@ import { createVehicleController } from "@/lib/engine/street/vehicle";
 import { createPostFx } from "@/lib/engine/post-fx";
 import { applyAutoQuality } from "@/lib/engine/gpu-tier";
 import { createTrailBuffer } from "@/lib/engine/trail-buffer";
+import { createGpuFrameTimer } from "@/lib/engine/gpu-frame-timer";
+import { createSeededRandom } from "@/lib/engine/seeded-random";
 
 const toolBtn = "rounded bg-white/10 px-2 py-1 hover:bg-white/20";
 const toolBtnPrimary = "rounded bg-emerald-500/80 px-2 py-1 font-semibold text-black hover:bg-emerald-400";
-import { markPerf, markPerfMeasurementUnavailable, measurePerf, measurePerfAsync, recordFrameInterval, recordFpsSample, setPerfEnvironment, setPerfMetadata, setPerfResourceCounts, trackRender } from "@/lib/perf";
+import { appendGpuFrameTime, appendRendererFrame, getPerfCounters, markPerf, markPerfMeasurementUnavailable, measurePerf, measurePerfAsync, recordFrameInterval, recordFpsSample, setPerfEnvironment, setPerfMetadata, setPerfResourceCounts, trackRender } from "@/lib/perf";
 import { STREET } from "@/lib/engine/street/constants";
 import { createCollision } from "@/lib/engine/street/collision";
 import { createTerrainSystem } from "@/lib/engine/street/terrain";
@@ -259,7 +261,13 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false }) {
       antialias: useMsaa,
       powerPreference: "high-performance",
     });
+    // Keep renderer counters cumulative across the app's complete logical
+    // frame, including composer passes. The counters are reset after each draw.
+    renderer.info.autoReset = false;
     const gl = renderer.getContext();
+    const gpuTimer = createGpuFrameTimer(gl, {
+      onSample: (durationMs) => appendGpuFrameTime(getPerfCounters(), durationMs),
+    });
     const rendererInfo = gl.getExtension("WEBGL_debug_renderer_info");
     setPerfEnvironment({
       webgl: {
@@ -270,7 +278,10 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false }) {
         debugRendererInfoAvailable: !!rendererInfo,
       },
     });
-    markPerfMeasurementUnavailable("gpuFrameTimeMs", "GPU timer queries are not instrumented in this profiling checkpoint.");
+    const initialGpuTimerState = gpuTimer.snapshot();
+    const initialPerfCounters = getPerfCounters();
+    if (initialPerfCounters) initialPerfCounters.gpuTimer = initialGpuTimerState;
+    if (!gpuTimer.supported) markPerfMeasurementUnavailable("gpuFrameTimeMs", initialGpuTimerState.reason || "GPU timer queries are unavailable.");
     markPerfMeasurementUnavailable("estimatedGpuMemoryBytes", "WebGL does not expose reliable allocated VRAM bytes; geometry and texture object counts are reported instead.");
     renderer.setSize(mount.clientWidth, mount.clientHeight);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, useMsaa ? 1.5 : 1.25));
@@ -309,6 +320,37 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false }) {
     let qualityTier = "medium";
     let postFx = null;
     let applyQuality = () => {};
+
+    const renderMeasuredFrame = () => {
+      const diagnosticsEnabled = window.__perfCounters?.diagnosticsEnabled === true;
+      if (diagnosticsEnabled && renderer.info.autoReset) renderer.info.autoReset = false;
+      const timerStarted = diagnosticsEnabled && gpuTimer.beginFrame();
+      try {
+        const name = postFx ? "renderer.postfx-cpu-submit" : "renderer.direct-cpu-submit";
+        measurePerf(name, () => {
+          if (postFx) postFx.render();
+          else renderer.render(scene, camera);
+        }, { qualityTier });
+      } finally {
+        if (timerStarted) gpuTimer.endFrame();
+        if (diagnosticsEnabled) {
+          const counters = getPerfCounters();
+          const render = renderer.info.render;
+          appendRendererFrame(counters, {
+            calls: render.calls,
+            triangles: render.triangles,
+            lines: render.lines,
+            points: render.points,
+          });
+          const timerState = gpuTimer.snapshot();
+          if (counters) counters.gpuTimer = timerState;
+          if (!timerState.supported) {
+            markPerfMeasurementUnavailable("gpuFrameTimeMs", timerState.reason || "GPU timer queries became unavailable.");
+          }
+        }
+        renderer.info.reset();
+      }
+    };
 
     const makeGlow = (inner, outer, size) => {
       const c = document.createElement("canvas");
@@ -534,8 +576,7 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false }) {
       debugPick, editorClick, setMode, showSelBox, clearSelBox, hideHover,
       updateHover, loadGLB, placeAsset } = editorTools;
     runtime.current.captureScreenshot = (placeLabel) => {
-      if (postFx) measurePerf("renderer.postfx-cpu-submit", () => postFx.render(), { qualityTier });
-      else measurePerf("renderer.direct-cpu-submit", () => renderer.render(scene, camera), { qualityTier });
+      renderMeasuredFrame();
       const cur = posRef.current || { lat: lat0, lon: lon0 };
       return downloadCanvasPng(
         renderer.domElement,
@@ -1156,8 +1197,7 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false }) {
         if (lastElev != null && gy > lastElev + 0.15) elevClimbAccum += gy - lastElev;
         lastElev = gy;
       }
-      if (postFx) measurePerf("renderer.postfx-cpu-submit", () => postFx.render(), { qualityTier });
-      else measurePerf("renderer.direct-cpu-submit", () => renderer.render(scene, camera), { qualityTier });
+      renderMeasuredFrame();
 
       fpsCount++;
       const now = performance.now();
@@ -1396,6 +1436,9 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false }) {
           maxPeds: qualityTier === "low" ? 52 : qualityTier === "medium" ? 96 : 140,
           maxCars: qualityTier === "low" ? 24 : qualityTier === "medium" ? 48 : 70,
           maxBirds: qualityTier === "low" ? 12 : qualityTier === "medium" ? 24 : 36,
+          random: window.__BENCH_MODE === true
+            ? createSeededRandom(Number.isInteger(window.__BENCH_SEED) ? window.__BENCH_SEED : 1337)
+            : Math.random,
         });
         console.log("[population]", population.counts);
         // M5: real street lighting, created here (not at boot) so it runs
@@ -1557,6 +1600,7 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false }) {
       disposeMaterialCache();
       terrain.dispose();
       if (engineRef.current === runtime.current) engineRef.current = {};
+      gpuTimer.dispose();
       renderer.dispose();
       mount.removeChild(renderer.domElement);
     };

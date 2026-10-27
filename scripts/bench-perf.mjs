@@ -8,7 +8,16 @@ import { writeFileSync, mkdirSync, readFileSync } from 'fs';
 import { execFileSync } from 'child_process';
 import { dirname, isAbsolute, join, resolve } from 'path';
 import { fileURLToPath } from 'url';
-import { orderedFrameIntervals, orderedPerfTimeline, PERF_SCHEMA_VERSION, summarizeFrameIntervals } from '../lib/perf-summary.mjs';
+import {
+  orderedFrameIntervals,
+  orderedGpuFrameTimes,
+  orderedPerfTimeline,
+  orderedRendererFrames,
+  PERF_SCHEMA_VERSION,
+  summarizeDurationSamples,
+  summarizeFrameIntervals,
+  summarizeRendererFrames,
+} from '../lib/perf-summary.mjs';
 
 const __dir = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dir, '..');
@@ -25,21 +34,28 @@ function option(name, fallback) {
 const baseUrl = option('--base-url', 'http://127.0.0.1:3456');
 const outputOption = option('--out', join('benchmarks', 'results.json'));
 const outPath = isAbsolute(outputOption) ? outputOption : resolve(ROOT, outputOption);
+const screenshotOption = option('--screenshot', null);
+const screenshotPath = screenshotOption
+  ? (isAbsolute(screenshotOption) ? screenshotOption : resolve(ROOT, screenshotOption))
+  : null;
 const fixtureOption = option('--fixture', join('benchmarks', 'fixtures', 'rome-minimal.json'));
 const fixturePath = isAbsolute(fixtureOption) ? fixtureOption : resolve(ROOT, fixtureOption);
 const route = option('--route', '/street');
 const qualityPreset = option('--preset', 'medium');
 const rendererMode = option('--renderer-mode', 'software');
 const walkDurationMs = Number(option('--walk-ms', '12000'));
+const seed = Number(option('--seed', '1337'));
 const location = {
   lat: Number(option('--lat', '41.8902')),
   lon: Number(option('--lon', '12.4922')),
 };
 const headed = args.includes('--headed');
 const skipGlobe = args.includes('--skip-globe');
+const driving = args.includes('--drive');
 if (!['low', 'medium', 'high'].includes(qualityPreset)) throw new Error('--preset must be low, medium, or high');
 if (!['software', 'browser-default'].includes(rendererMode)) throw new Error('--renderer-mode must be software or browser-default');
 if (!Number.isFinite(walkDurationMs) || walkDurationMs < 1000) throw new Error('--walk-ms must be at least 1000');
+if (!Number.isInteger(seed) || seed < 0 || seed > 0xffffffff) throw new Error('--seed must be an integer from 0 to 4294967295');
 if (!Number.isFinite(location.lat) || Math.abs(location.lat) > 90 || !Number.isFinite(location.lon) || Math.abs(location.lon) > 180) {
   throw new Error('Benchmark latitude/longitude are invalid');
 }
@@ -63,21 +79,45 @@ async function benchStreet(page) {
   });
   const loadMs = Date.now() - t0;
 
-  const playerStart = await page.evaluate(() => {
+  if (driving) {
+    await page.waitForFunction(() => window.__streetDebug?.population?.()?.counts?.cars > 0, null, {
+      timeout: READY_TIMEOUT,
+    });
+  }
+  const playerStart = await page.evaluate((useDriving) => {
     const player = window.__streetDebug?.player;
-    return player ? { x: player.x, z: player.z } : null;
-  });
+    if (!player) return null;
+    if (useDriving) {
+      const population = window.__streetDebug?.population?.();
+      const near = population?.getNearestCar?.(player.x, player.z, Number.POSITIVE_INFINITY);
+      if (!near) return null;
+      player.x = near.x;
+      player.z = near.z;
+      player.heading = Math.PI - near.heading;
+    }
+    return { x: player.x, z: player.z };
+  }, driving);
   if (!playerStart) throw new Error('Street player debug state is unavailable');
   await page.bringToFront();
   await page.evaluate(() => window.focus());
-  await page.keyboard.down('w');
+  if (driving) {
+    await page.keyboard.press('c');
+    await page.waitForFunction(() => window.__streetDebug?.vehicle?.active === true, null, { timeout: 5000 });
+  }
+  // Let startup GPU queries finish before the measured movement window begins.
+  await page.waitForTimeout(500);
   await page.evaluate(() => {
     const counters = window.__perfCounters;
     if (!counters) return;
     counters.frameIntervalsMs.length = 0;
     counters.frameIntervalCursor = 0;
+    counters.rendererFrames.length = 0;
+    counters.rendererFrameCursor = 0;
+    counters.gpuFrameTimesMs.length = 0;
+    counters.gpuFrameTimeCursor = 0;
     counters.fpsSamples.length = 0;
   });
+  await page.keyboard.down('w');
   await page.waitForTimeout(walkDurationMs);
   await page.keyboard.up('w');
   await page.waitForTimeout(500);
@@ -94,6 +134,7 @@ async function benchStreet(page) {
         x: window.__streetDebug.player.x,
         z: window.__streetDebug.player.z,
       } : null,
+      vehicleActive: window.__streetDebug?.vehicle?.active === true,
     };
   });
   const displacementMeters = metrics.player
@@ -102,8 +143,12 @@ async function benchStreet(page) {
 
   const samples = metrics.perf?.fpsSamples ?? [];
   const frameIntervalsMs = orderedFrameIntervals(metrics.perf);
-  const avgFps =
-    samples.length > 0
+  const frameSummary = summarizeFrameIntervals(frameIntervalsMs);
+  const rendererFrames = orderedRendererFrames(metrics.perf);
+  const gpuFrameTimesMs = orderedGpuFrameTimes(metrics.perf);
+  const avgFps = frameSummary.meanFrameTimeMs
+    ? Math.round(1000 / frameSummary.meanFrameTimeMs)
+    : samples.length > 0
       ? Math.round(samples.reduce((a, b) => a + b, 0) / samples.length)
       : metrics.fps;
 
@@ -116,10 +161,16 @@ async function benchStreet(page) {
       displacementMeters,
       validated: displacementMeters !== null && displacementMeters > 0.25,
     },
+    driving: metrics.vehicleActive,
     preset: qualityPreset,
     fpsSamples: samples,
-    frameSummary: summarizeFrameIntervals(frameIntervalsMs),
+    frameSummary,
     frameIntervalsMs,
+    rendererFrameSummary: summarizeRendererFrames(rendererFrames),
+    rendererFrames,
+    gpuFrameSummary: summarizeDurationSamples(gpuFrameTimesMs),
+    gpuFrameTimesMs,
+    gpuTimer: metrics.perf?.gpuTimer || null,
     marks: metrics.perf?.marks || {},
     timings: orderedPerfTimeline(metrics.perf),
     metadata: metrics.perf?.metadata || {},
@@ -178,7 +229,7 @@ async function main() {
     args: rendererMode === 'software' ? ['--use-gl=angle', '--use-angle=swiftshader'] : [],
   });
   const context = await browser.newContext();
-  await context.addInitScript(({ fixture, schemaVersion, preset }) => {
+  await context.addInitScript(({ fixture, schemaVersion, preset, seed }) => {
     if (location.origin !== 'null') {
       try {
         const saved = JSON.parse(localStorage.getItem('wtw-game') || '{}');
@@ -194,6 +245,7 @@ async function main() {
       } catch { /* the benchmark still records the active runtime preset */ }
     }
     window.__BENCH_MODE = true;
+    window.__BENCH_SEED = seed;
     window.__BENCH_FIXTURE = fixture;
     window.__perfCounters = {
       schemaVersion,
@@ -212,7 +264,7 @@ async function main() {
       metadata: {},
       validationErrors: [],
     };
-  }, { fixture: BENCH_FIXTURE, schemaVersion: PERF_SCHEMA_VERSION, preset: qualityPreset });
+  }, { fixture: BENCH_FIXTURE, schemaVersion: PERF_SCHEMA_VERSION, preset: qualityPreset, seed });
   const page = await context.newPage();
   const browserDiagnostics = { consoleErrors: [], pageErrors: [], assetFailures: [] };
   const baseOrigin = new URL(baseUrl).origin;
@@ -265,6 +317,8 @@ async function main() {
       longitude: location.lon,
       qualityPreset,
       walkDurationMs,
+      seed,
+      driving,
     },
     cityCacheWarm: cache,
     street: null,
@@ -275,6 +329,11 @@ async function main() {
   try {
     console.log('  Street engine…');
     result.street = await benchStreet(page);
+    if (screenshotPath) {
+      mkdirSync(dirname(screenshotPath), { recursive: true });
+      await page.screenshot({ path: screenshotPath, animations: 'disabled' });
+      console.log(`    screenshot: ${screenshotPath}`);
+    }
     console.log(
       `    load: ${result.street.loadMs}ms, avg FPS: ${result.street.avgFps}, movement: ${result.street.movement.displacementMeters?.toFixed(2) ?? 'n/a'}m`
     );

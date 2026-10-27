@@ -1,0 +1,28 @@
+{
+  "provider": "BBBike custom OSM extract service",
+  "providerJobName": "WalkTheWorldRomeShowcase",
+  "downloadUrl": "https://download2.bbbike.org/osm/extract/planet_12.48799,41.88676_12.49701,41.89424.osm.gz",
+  "downloadedAt": "2026-10-27T09:38:24.154Z",
+  "providerFileLastModified": "2026-10-27T09:22:43Z",
+  "format": "OSM XML gzip",
+  "bbox": [
+    12.48799,
+    41.88676,
+    12.49701,
+    41.89424
+  ],
+  "bboxOrder": "west, south, east, north",
+  "attribution": "© OpenStreetMap contributors",
+  "license": "ODbL-1.0",
+  "licenseUrl": "https://www.openstreetmap.org/copyright",
+  "originalDownloadSha256": "362ad693463a5aadde9eeb87435ddecc748ca67b34bd9b90031f050b5cde73a1",
+  "contributorMetadataRemoved": [
+    "version",
+    "timestamp",
+    "uid",
+    "user",
+    "changeset"
+  ],
+  "sanitizedArchiveSha256": "ad1bbf36b6a058ba201ce850cff75228650700d3ec24c731a702bf055598a0b2",
+  "sanitizedAt": "2026-10-27T09:38:24.889Z"
+}

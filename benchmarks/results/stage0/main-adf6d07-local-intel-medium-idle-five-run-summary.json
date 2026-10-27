@@ -1,0 +1,185 @@
+{
+  "schemaVersion": 2,
+  "createdAt": "2026-10-27",
+  "sourceRevision": "adf6d073a56f1dd8e2937aeb9147e4fc4645eca0",
+  "sourceTreeDirty": true,
+  "scenario": {
+    "title": "Intel UHD 630 medium warm-scene stationary repeatability",
+    "route": "/street?lat=41.8902&lon=12.4922",
+    "preset": "medium",
+    "qualityMode": "manual",
+    "viewport": "1046x654 CSS, DPR 1.25",
+    "cache": "warm IndexedDB spawn cell; adjacent live cell fetches failed via CORS/502",
+    "browser": "visible Chromium 155, WebGL2 ANGLE Intel UHD 630/D3D11",
+    "repetitions": 5,
+    "durationPerRunMs": 12000,
+    "movement": "stationary (0 m; no keyboard input)"
+  },
+  "summary": {
+    "frameP95Ms": {
+      "median": 50,
+      "min": 33.5,
+      "max": 50.69999999999709
+    },
+    "frameMeanMs": {
+      "median": 26.58163716814161,
+      "min": 21.766485507246376,
+      "max": 36.520060790273575
+    },
+    "frameP99Ms": {
+      "median": 66,
+      "min": 50,
+      "max": 67.89999999999418
+    },
+    "onePercentLowFps": {
+      "median": 14.289797084881037,
+      "min": 10.878433505575284,
+      "max": 18.91551071879045
+    },
+    "cpuSubmitP95Ms": {
+      "median": 32.5,
+      "min": 23.100000023841858,
+      "max": 43.200000047683716
+    },
+    "gpuP95Ms": {
+      "median": 21.645676,
+      "min": 18.065781,
+      "max": 24.263228
+    },
+    "gpuMeanMs": {
+      "median": 13.999798331858418,
+      "min": 11.636336792349727,
+      "max": 18.535598300911854
+    },
+    "drawCalls": {
+      "median": 611,
+      "min": 611,
+      "max": 611
+    },
+    "triangles": {
+      "median": 362800,
+      "min": 362800,
+      "max": 362800
+    },
+    "framesOver50Ms": {
+      "total": 103.0,
+      "min": 5.0,
+      "max": 46.0
+    },
+    "framesOver100Ms": {
+      "total": 1.0,
+      "min": 0.0,
+      "max": 1.0
+    }
+  },
+  "runs": [
+    {
+      "file": "main-adf6d07-local-intel-medium-idle-repeat-1.json",
+      "durationMs": 12008.100000023842,
+      "frameCount": 552,
+      "frameMeanMs": 21.766485507246376,
+      "frameP95Ms": 33.5,
+      "frameP99Ms": 50,
+      "low1Fps": 17.118402282453992,
+      "framesOver50Ms": 5,
+      "framesOver100Ms": 0,
+      "cpuSubmitMeanMs": 14.676086962223053,
+      "cpuSubmitP95Ms": 24.300000071525574,
+      "gpuMeanMs": 11.636336792349727,
+      "gpuP95Ms": 19.272499,
+      "averageCalls": 611,
+      "averageTriangles": 362800,
+      "movementMeters": 0,
+      "gpuSamples": 549
+    },
+    {
+      "file": "main-adf6d07-local-intel-medium-idle-repeat-2.json",
+      "durationMs": 12005.5,
+      "frameCount": 452,
+      "frameMeanMs": 26.58163716814161,
+      "frameP95Ms": 50,
+      "frameP99Ms": 66,
+      "low1Fps": 14.289797084881037,
+      "framesOver50Ms": 12,
+      "framesOver100Ms": 0,
+      "cpuSubmitMeanMs": 18.275663718976805,
+      "cpuSubmitP95Ms": 32.5,
+      "gpuMeanMs": 13.999798331858418,
+      "gpuP95Ms": 21.645676,
+      "averageCalls": 611,
+      "averageTriangles": 362800,
+      "movementMeters": 0,
+      "gpuSamples": 452
+    },
+    {
+      "file": "main-adf6d07-local-intel-medium-idle-repeat-3.json",
+      "durationMs": 12004.799999952316,
+      "frameCount": 538,
+      "frameMeanMs": 22.36375464684017,
+      "frameP95Ms": 33.5,
+      "frameP99Ms": 50,
+      "low1Fps": 18.91551071879045,
+      "framesOver50Ms": 5,
+      "framesOver100Ms": 0,
+      "cpuSubmitMeanMs": 14.972676580723334,
+      "cpuSubmitP95Ms": 23.100000023841858,
+      "gpuMeanMs": 11.987512131970265,
+      "gpuP95Ms": 18.065781,
+      "averageCalls": 611,
+      "averageTriangles": 362800,
+      "movementMeters": 0,
+      "gpuSamples": 538
+    },
+    {
+      "file": "main-adf6d07-local-intel-medium-idle-repeat-4.json",
+      "durationMs": 12005.700000047684,
+      "frameCount": 329,
+      "frameMeanMs": 36.520060790273575,
+      "frameP95Ms": 50.19999999999709,
+      "frameP99Ms": 67.89999999999418,
+      "low1Fps": 12.57466205595759,
+      "framesOver50Ms": 35,
+      "framesOver100Ms": 0,
+      "cpuSubmitMeanMs": 24.87659574931878,
+      "cpuSubmitP95Ms": 37.699999928474426,
+      "gpuMeanMs": 18.535598300911854,
+      "gpuP95Ms": 23.684947,
+      "averageCalls": 611,
+      "averageTriangles": 362800,
+      "movementMeters": 0,
+      "gpuSamples": 329
+    },
+    {
+      "file": "main-adf6d07-local-intel-medium-idle-repeat-5.json",
+      "durationMs": 12005.899999976158,
+      "frameCount": 344,
+      "frameMeanMs": 35.02441860465119,
+      "frameP95Ms": 50.69999999999709,
+      "frameP99Ms": 67.59999999999127,
+      "low1Fps": 10.878433505575284,
+      "framesOver50Ms": 46,
+      "framesOver100Ms": 1,
+      "cpuSubmitMeanMs": 25.007848838734073,
+      "cpuSubmitP95Ms": 43.200000047683716,
+      "gpuMeanMs": 17.656844128279886,
+      "gpuP95Ms": 24.263228,
+      "averageCalls": 611,
+      "averageTriangles": 362800,
+      "movementMeters": 0,
+      "gpuSamples": 343
+    }
+  ],
+  "interpretation": "Provisional repeatability check only: p95 frame intervals range from 33.5 to 50.7 ms and late-run stall counts rise. The five-run set is too variable to establish a release baseline or rank optimizations; repeat after checking browser foreground/focus and machine load. CPU submission and GPU timings are both material, but this is not an A/B comparison.",
+  "limitations": [
+    "A single warm live spawn cell, stationary camera and medium manual preset; no cold-start, day/night/rain, crossing, or mobile runs.",
+    "Remote adjacent-cell R2 CORS and local API 502 failures occurred in this browser session.",
+    "WebGL does not provide reliable allocated VRAM bytes."
+  ],
+  "reports": [
+    "main-adf6d07-local-intel-medium-idle-repeat-1.json",
+    "main-adf6d07-local-intel-medium-idle-repeat-2.json",
+    "main-adf6d07-local-intel-medium-idle-repeat-3.json",
+    "main-adf6d07-local-intel-medium-idle-repeat-4.json",
+    "main-adf6d07-local-intel-medium-idle-repeat-5.json"
+  ]
+}

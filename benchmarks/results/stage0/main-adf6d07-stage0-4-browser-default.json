@@ -1,0 +1,1093 @@
+{
+  "schemaVersion": 2,
+  "timestamp": "2026-10-27T08:39:10.880Z",
+  "sourceRevision": "adf6d073a56f1dd8e2937aeb9147e4fc4645eca0",
+  "sourceTreeDirty": true,
+  "baseUrl": "http://127.0.0.1:3456",
+  "browser": {
+    "name": "Chromium",
+    "version": "136.0.7103.25",
+    "rendererMode": "browser-default",
+    "headless": true
+  },
+  "scenario": {
+    "fixture": "benchmarks\\fixtures\\rome-minimal.json",
+    "route": "/street",
+    "latitude": 41.8902,
+    "longitude": 12.4922,
+    "qualityPreset": "medium",
+    "walkDurationMs": 12000
+  },
+  "cityCacheWarm": {
+    "ok": true,
+    "ms": 0,
+    "skipped": true
+  },
+  "street": {
+    "loadMs": 41093,
+    "avgFps": 1,
+    "movement": {
+      "start": {
+        "x": -10.206001517552492,
+        "z": 21.915754604831264
+      },
+      "end": {
+        "x": -6.324627179530147,
+        "z": 16.701837339651323
+      },
+      "displacementMeters": 6.499999999999989,
+      "validated": true
+    },
+    "preset": "medium",
+    "fpsSamples": [
+      1
+    ],
+    "frameSummary": {
+      "sampleCount": 15,
+      "durationMs": 14733,
+      "meanFrameTimeMs": 982.1800000000003,
+      "p50FrameTimeMs": 966.5999999999985,
+      "p95FrameTimeMs": 1133.300000000003,
+      "p99FrameTimeMs": 1133.300000000003,
+      "onePercentLowFps": 0.8823788934968653,
+      "framesOver50Ms": 15,
+      "framesOver100Ms": 15
+    },
+    "frameIntervalsMs": [
+      950,
+      1133.300000000003,
+      966.5999999999985,
+      1016.5999999999985,
+      950,
+      933.2000000000044,
+      933.2999999999956,
+      1016.5999999999985,
+      1016.7000000000044,
+      933.2999999999956,
+      916.6000000000058,
+      950,
+      1033.2999999999956,
+      983.3000000000029,
+      999.9000000000015
+    ],
+    "rendererFrameSummary": {
+      "sampleCount": 15,
+      "calls": {
+        "total": 421,
+        "meanPerFrame": 28.066666666666666,
+        "maxPerFrame": 57
+      },
+      "triangles": {
+        "total": 1570912,
+        "meanPerFrame": 104727.46666666666,
+        "maxPerFrame": 117488
+      },
+      "lines": {
+        "total": 0,
+        "meanPerFrame": 0,
+        "maxPerFrame": 0
+      },
+      "points": {
+        "total": 0,
+        "meanPerFrame": 0,
+        "maxPerFrame": 0
+      }
+    },
+    "rendererFrames": [
+      {
+        "atMs": 45206.200000047684,
+        "calls": 57,
+        "triangles": 117488,
+        "lines": 0,
+        "points": 0
+      },
+      {
+        "atMs": 46274.300000071526,
+        "calls": 26,
+        "triangles": 103816,
+        "lines": 0,
+        "points": 0
+      },
+      {
+        "atMs": 47237,
+        "calls": 26,
+        "triangles": 103816,
+        "lines": 0,
+        "points": 0
+      },
+      {
+        "atMs": 48259.800000071526,
+        "calls": 26,
+        "triangles": 103816,
+        "lines": 0,
+        "points": 0
+      },
+      {
+        "atMs": 49206.39999997616,
+        "calls": 26,
+        "triangles": 103816,
+        "lines": 0,
+        "points": 0
+      },
+      {
+        "atMs": 50141.39999997616,
+        "calls": 26,
+        "triangles": 103816,
+        "lines": 0,
+        "points": 0
+      },
+      {
+        "atMs": 51072.300000071526,
+        "calls": 26,
+        "triangles": 103816,
+        "lines": 0,
+        "points": 0
+      },
+      {
+        "atMs": 52080.800000071526,
+        "calls": 26,
+        "triangles": 103816,
+        "lines": 0,
+        "points": 0
+      },
+      {
+        "atMs": 53113.89999997616,
+        "calls": 26,
+        "triangles": 103816,
+        "lines": 0,
+        "points": 0
+      },
+      {
+        "atMs": 54042,
+        "calls": 26,
+        "triangles": 103816,
+        "lines": 0,
+        "points": 0
+      },
+      {
+        "atMs": 54950.60000002384,
+        "calls": 26,
+        "triangles": 103816,
+        "lines": 0,
+        "points": 0
+      },
+      {
+        "atMs": 55912.89999997616,
+        "calls": 26,
+        "triangles": 103816,
+        "lines": 0,
+        "points": 0
+      },
+      {
+        "atMs": 56931.700000047684,
+        "calls": 26,
+        "triangles": 103816,
+        "lines": 0,
+        "points": 0
+      },
+      {
+        "atMs": 57916.700000047684,
+        "calls": 26,
+        "triangles": 103816,
+        "lines": 0,
+        "points": 0
+      },
+      {
+        "atMs": 58920.200000047684,
+        "calls": 26,
+        "triangles": 103816,
+        "lines": 0,
+        "points": 0
+      }
+    ],
+    "gpuFrameSummary": {
+      "sampleCount": 0,
+      "meanMs": null,
+      "p50Ms": null,
+      "p95Ms": null,
+      "p99Ms": null
+    },
+    "gpuFrameTimesMs": [],
+    "gpuTimer": {
+      "supported": false,
+      "reason": "EXT_disjoint_timer_query_webgl2 is unavailable.",
+      "pendingQueries": 0,
+      "disjointSamples": 0,
+      "skippedForCapacity": 0
+    },
+    "marks": {
+      "terrain-ready": {
+        "atMs": 1975.5,
+        "details": {
+          "loadedTiles": 1,
+          "flatFallback": false
+        }
+      },
+      "input-ready": {
+        "atMs": 2412,
+        "details": {
+          "terrainTiles": 1
+        }
+      },
+      "city-data-ready": {
+        "atMs": 2412.100000023842,
+        "details": {
+          "elements": 8,
+          "partial": false
+        }
+      },
+      "first-building": {
+        "atMs": 9963.300000071526,
+        "details": {
+          "cellKey": "wtw_city6_41.890_12.492",
+          "triangles": 8
+        }
+      },
+      "streaming-complete": {
+        "atMs": 29733.800000071526,
+        "details": {
+          "scope": "spawn-cell",
+          "cityBuilt": true
+        }
+      }
+    },
+    "timings": [
+      {
+        "type": "timing",
+        "name": "city.initial-data-consumer",
+        "durationMs": 70.39999997615814,
+        "atMs": 541.3999999761581,
+        "details": {}
+      },
+      {
+        "type": "timing",
+        "name": "terrain.initial-load",
+        "durationMs": 1434.2999999523163,
+        "atMs": 1975.2000000476837,
+        "details": {}
+      },
+      {
+        "type": "mark",
+        "name": "terrain-ready",
+        "atMs": 1975.5,
+        "details": {
+          "loadedTiles": 1,
+          "flatFallback": false
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 348.40000009536743,
+        "atMs": 2410.899999976158,
+        "details": {
+          "qualityTier": "medium"
+        }
+      },
+      {
+        "type": "mark",
+        "name": "input-ready",
+        "atMs": 2412,
+        "details": {
+          "terrainTiles": 1
+        }
+      },
+      {
+        "type": "mark",
+        "name": "city-data-ready",
+        "atMs": 2412.100000023842,
+        "details": {
+          "elements": 8,
+          "partial": false
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.spawn-clip",
+        "durationMs": 0.3999999761581421,
+        "atMs": 2413.2000000476837,
+        "details": {
+          "inputElements": 8
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.worker-queue",
+        "durationMs": 1.3000000715255737,
+        "atMs": 2415.5,
+        "details": {
+          "elements": 8
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.worker-input-pack",
+        "durationMs": 0.30000007152557373,
+        "atMs": 2416,
+        "details": {
+          "elements": 8,
+          "terrainTiles": 1,
+          "copiedHeightBytes": 16900
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.worker-post-message",
+        "durationMs": 0.20000004768371582,
+        "atMs": 2416.2000000476837,
+        "details": {
+          "elements": 8,
+          "terrainTiles": 1
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 1.5,
+        "atMs": 2429,
+        "details": {
+          "qualityTier": "medium"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 69.39999997615814,
+        "atMs": 4211.600000023842,
+        "details": {
+          "qualityTier": "medium"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 88.29999995231628,
+        "atMs": 5328.100000023842,
+        "details": {
+          "qualityTier": "medium"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 370,
+        "atMs": 6841,
+        "details": {
+          "qualityTier": "medium"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 33,
+        "atMs": 7337.600000023842,
+        "details": {
+          "qualityTier": "medium"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 51.5,
+        "atMs": 8371.899999976158,
+        "details": {
+          "qualityTier": "medium"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.worker-roundtrip",
+        "durationMs": 6906.299999952316,
+        "atMs": 9322.5,
+        "details": {
+          "elements": 8,
+          "outputBufferBytes": 40836
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.worker-compute",
+        "durationMs": 36.299999952316284,
+        "atMs": 9322.5,
+        "details": {
+          "elements": 8
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.spawn-geometry-total",
+        "durationMs": 6909.300000071526,
+        "atMs": 9322.700000047684,
+        "details": {
+          "elements": 8
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 2.200000047683716,
+        "atMs": 9331.800000071526,
+        "details": {
+          "qualityTier": "medium"
+        }
+      },
+      {
+        "type": "mark",
+        "name": "first-building",
+        "atMs": 9963.300000071526,
+        "details": {
+          "cellKey": "wtw_city6_41.890_12.492",
+          "triangles": 8
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 70.20000004768372,
+        "atMs": 10056.300000071526,
+        "details": {
+          "qualityTier": "medium"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 5.399999976158142,
+        "atMs": 11270.899999976158,
+        "details": {
+          "qualityTier": "medium"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 1.7000000476837158,
+        "atMs": 11993.700000047684,
+        "details": {
+          "qualityTier": "medium"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 530,
+        "atMs": 13192.899999976158,
+        "details": {
+          "qualityTier": "medium"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 47,
+        "atMs": 14355.700000047684,
+        "details": {
+          "qualityTier": "medium"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 6.400000095367432,
+        "atMs": 15506.300000071526,
+        "details": {
+          "qualityTier": "medium"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 2.799999952316284,
+        "atMs": 16213,
+        "details": {
+          "qualityTier": "medium"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 2.5,
+        "atMs": 16944.300000071526,
+        "details": {
+          "qualityTier": "medium"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.road-canvas-paint",
+        "durationMs": 0.7999999523162842,
+        "atMs": 17641.5,
+        "details": {
+          "tiles": 9,
+          "roads": 2,
+          "buildings": 3,
+          "crossings": 0
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 63.89999997615814,
+        "atMs": 17707.200000047684,
+        "details": {
+          "qualityTier": "medium"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 2.899999976158142,
+        "atMs": 18689.100000023842,
+        "details": {
+          "qualityTier": "medium"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 5.800000071525574,
+        "atMs": 19387.200000047684,
+        "details": {
+          "qualityTier": "medium"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 1.6999999284744263,
+        "atMs": 20064.899999976158,
+        "details": {
+          "qualityTier": "medium"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 1.2999999523162842,
+        "atMs": 20756.399999976158,
+        "details": {
+          "qualityTier": "medium"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 1.5,
+        "atMs": 21413.200000047684,
+        "details": {
+          "qualityTier": "medium"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 2.100000023841858,
+        "atMs": 22115.5,
+        "details": {
+          "qualityTier": "medium"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 1.2000000476837158,
+        "atMs": 22775.800000071526,
+        "details": {
+          "qualityTier": "medium"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 1.2000000476837158,
+        "atMs": 23446.100000023842,
+        "details": {
+          "qualityTier": "medium"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 6.100000023841858,
+        "atMs": 24136.800000071526,
+        "details": {
+          "qualityTier": "medium"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 2.1999999284744263,
+        "atMs": 24826.899999976158,
+        "details": {
+          "qualityTier": "medium"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 1.2000000476837158,
+        "atMs": 25495.600000023842,
+        "details": {
+          "qualityTier": "medium"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 1.100000023841858,
+        "atMs": 26161.200000047684,
+        "details": {
+          "qualityTier": "medium"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 3.600000023841858,
+        "atMs": 26885.700000047684,
+        "details": {
+          "qualityTier": "medium"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 99.10000002384186,
+        "atMs": 27875.200000047684,
+        "details": {
+          "qualityTier": "medium"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 4.200000047683716,
+        "atMs": 28952.300000071526,
+        "details": {
+          "qualityTier": "medium"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.spawn-assembly-total",
+        "durationMs": 20410.700000047684,
+        "atMs": 29733.700000047684,
+        "details": {
+          "elements": 8
+        }
+      },
+      {
+        "type": "mark",
+        "name": "streaming-complete",
+        "atMs": 29733.800000071526,
+        "details": {
+          "scope": "spawn-cell",
+          "cityBuilt": true
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.neighbor-clip",
+        "durationMs": 0.20000004768371582,
+        "atMs": 29743.200000047684,
+        "details": {
+          "inputElements": 8
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.neighbor-clip",
+        "durationMs": 0.20000004768371582,
+        "atMs": 29744.300000071526,
+        "details": {
+          "inputElements": 8
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.neighbor-clip",
+        "durationMs": 0,
+        "atMs": 29745,
+        "details": {
+          "inputElements": 8
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.neighbor-clip",
+        "durationMs": 0,
+        "atMs": 29745.100000023842,
+        "details": {
+          "inputElements": 8
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.neighbor-clip",
+        "durationMs": 0.10000002384185791,
+        "atMs": 29746,
+        "details": {
+          "inputElements": 8
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.neighbor-clip",
+        "durationMs": 0.10000002384185791,
+        "atMs": 29746.200000047684,
+        "details": {
+          "inputElements": 8
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.neighbor-clip",
+        "durationMs": 0.10000002384185791,
+        "atMs": 29746.600000023842,
+        "details": {
+          "inputElements": 8
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.neighbor-clip",
+        "durationMs": 0.10000002384185791,
+        "atMs": 29746.700000047684,
+        "details": {
+          "inputElements": 8
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 7.399999976158142,
+        "atMs": 29755.100000023842,
+        "details": {
+          "qualityTier": "medium"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 1.899999976158142,
+        "atMs": 30704.700000047684,
+        "details": {
+          "qualityTier": "medium"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 2.100000023841858,
+        "atMs": 31707,
+        "details": {
+          "qualityTier": "medium"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 2.700000047683716,
+        "atMs": 32674.700000047684,
+        "details": {
+          "qualityTier": "medium"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 4.299999952316284,
+        "atMs": 33586,
+        "details": {
+          "qualityTier": "medium"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 1,
+        "atMs": 34476,
+        "details": {
+          "qualityTier": "medium"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 3.100000023841858,
+        "atMs": 35362.60000002384,
+        "details": {
+          "qualityTier": "medium"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 2.399999976158142,
+        "atMs": 36280.39999997616,
+        "details": {
+          "qualityTier": "medium"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 1.7999999523162842,
+        "atMs": 37246.10000002384,
+        "details": {
+          "qualityTier": "medium"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 3.3000000715255737,
+        "atMs": 38216.300000071526,
+        "details": {
+          "qualityTier": "medium"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 2,
+        "atMs": 39136.5,
+        "details": {
+          "qualityTier": "medium"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 3.8000000715255737,
+        "atMs": 40087.300000071526,
+        "details": {
+          "qualityTier": "medium"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 330.2000000476837,
+        "atMs": 41419.300000071526,
+        "details": {
+          "qualityTier": "medium"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 4.5,
+        "atMs": 43197.39999997616,
+        "details": {
+          "qualityTier": "medium"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 1.600000023841858,
+        "atMs": 44203.200000047684,
+        "details": {
+          "qualityTier": "medium"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 53.700000047683716,
+        "atMs": 45206.200000047684,
+        "details": {
+          "qualityTier": "medium"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 1.7000000476837158,
+        "atMs": 46274.300000071526,
+        "details": {
+          "qualityTier": "medium"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 3,
+        "atMs": 47237,
+        "details": {
+          "qualityTier": "medium"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 1.7000000476837158,
+        "atMs": 48259.800000071526,
+        "details": {
+          "qualityTier": "medium"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 2.8000000715255737,
+        "atMs": 49206.300000071526,
+        "details": {
+          "qualityTier": "medium"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 1.2999999523162842,
+        "atMs": 50141.39999997616,
+        "details": {
+          "qualityTier": "medium"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 3.399999976158142,
+        "atMs": 51072.200000047684,
+        "details": {
+          "qualityTier": "medium"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 2.600000023841858,
+        "atMs": 52080.800000071526,
+        "details": {
+          "qualityTier": "medium"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 4.199999928474426,
+        "atMs": 53113.89999997616,
+        "details": {
+          "qualityTier": "medium"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 1.2999999523162842,
+        "atMs": 54042,
+        "details": {
+          "qualityTier": "medium"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 2.100000023841858,
+        "atMs": 54950.60000002384,
+        "details": {
+          "qualityTier": "medium"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 4.300000071525574,
+        "atMs": 55912.89999997616,
+        "details": {
+          "qualityTier": "medium"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 2.899999976158142,
+        "atMs": 56931.700000047684,
+        "details": {
+          "qualityTier": "medium"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 2,
+        "atMs": 57916.60000002384,
+        "details": {
+          "qualityTier": "medium"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 1.3000000715255737,
+        "atMs": 58920.200000047684,
+        "details": {
+          "qualityTier": "medium"
+        }
+      }
+    ],
+    "metadata": {
+      "qualityTier": "medium",
+      "pixelRatio": 1,
+      "shadowMapEnabled": true,
+      "postFxActive": false
+    },
+    "settings": {
+      "qualityTier": "medium",
+      "pixelRatio": 1,
+      "shadowMapEnabled": true,
+      "postFxActive": false
+    },
+    "resourceCounts": {
+      "geometries": 39,
+      "textures": 23,
+      "programs": 19
+    },
+    "unavailableMeasurements": [
+      {
+        "name": "gpuFrameTimeMs",
+        "reason": "EXT_disjoint_timer_query_webgl2 is unavailable."
+      },
+      {
+        "name": "estimatedGpuMemoryBytes",
+        "reason": "WebGL does not expose reliable allocated VRAM bytes; geometry and texture object counts are reported instead."
+      }
+    ],
+    "validationErrors": [],
+    "environment": {
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/136.0.7103.25 Safari/537.36",
+      "platform": "Win32",
+      "hardwareConcurrency": 8,
+      "deviceMemoryGb": 8,
+      "visibilityState": "visible",
+      "viewport": {
+        "width": 1280,
+        "height": 720,
+        "devicePixelRatio": 1
+      },
+      "webgl": {
+        "version": "WebGL 2.0 (OpenGL ES 3.0 Chromium)",
+        "vendor": "Google Inc. (Google)",
+        "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+        "webgl2": true,
+        "debugRendererInfoAvailable": true
+      }
+    },
+    "triangles": 24,
+    "reactRenders": 9,
+    "minimapDraws": 82,
+    "hudUpdates": 0
+  },
+  "globe": {
+    "skipped": true
+  },
+  "error": null,
+  "diagnostics": {
+    "consoleErrors": [],
+    "pageErrors": [],
+    "assetFailures": []
+  }
+}

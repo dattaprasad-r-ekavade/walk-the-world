@@ -1,21 +1,30 @@
 import { describe, expect, it } from "vitest";
 import {
   appendFrameInterval,
+  appendGpuFrameTime,
   appendPerfMark,
   appendPerfTiming,
+  appendRendererFrame,
   createPerfCounters,
   ensurePerfCounters,
   orderedFrameIntervals,
+  orderedGpuFrameTimes,
   orderedPerfTimeline,
+  orderedRendererFrames,
   summarizeFrameIntervals,
+  summarizeDurationSamples,
+  summarizeRendererFrames,
   PERF_FRAME_LIMIT,
+  PERF_GPU_TIME_LIMIT,
+  PERF_RENDERER_LIMIT,
   PERF_TIMING_LIMIT,
 } from "@/lib/perf";
+import { createGpuFrameTimer } from "@/lib/engine/gpu-frame-timer";
 
 describe("performance diagnostics", () => {
   it("creates and upgrades a versioned report without clearing existing counters", () => {
     const counters = ensurePerfCounters({ schemaVersion: 0, reactRenders: 4 });
-    expect(counters.schemaVersion).toBe(1);
+    expect(counters.schemaVersion).toBe(2);
     expect(counters.reactRenders).toBe(4);
     expect(counters.frameIntervalsMs).toEqual([]);
     expect(counters).toMatchObject({
@@ -24,6 +33,9 @@ describe("performance diagnostics", () => {
       settings: {},
       resourceCounts: {},
       unavailableMeasurements: [],
+      rendererFrames: [],
+      gpuFrameTimesMs: [],
+      gpuTimer: { supported: false },
     });
     expect(createPerfCounters().timeline).toEqual([]);
   });
@@ -56,5 +68,110 @@ describe("performance diagnostics", () => {
       framesOver100Ms: 1,
     });
     expect(summarizeFrameIntervals([]).sampleCount).toBe(0);
+  });
+
+  it("keeps renderer and GPU histories bounded and summarizes them", () => {
+    const counters = createPerfCounters();
+    for (let i = 0; i <= PERF_RENDERER_LIMIT; i++) {
+      appendRendererFrame(counters, { calls: i, triangles: i * 3, lines: i * 2, points: i });
+    }
+    for (let i = 0; i <= PERF_GPU_TIME_LIMIT; i++) appendGpuFrameTime(counters, i / 10);
+
+    expect(counters.rendererFrames).toHaveLength(PERF_RENDERER_LIMIT);
+    expect(orderedRendererFrames(counters)[0].calls).toBe(1);
+    expect(counters.gpuFrameTimesMs).toHaveLength(PERF_GPU_TIME_LIMIT);
+    expect(orderedGpuFrameTimes(counters)[0]).toBe(0.1);
+    expect(summarizeRendererFrames(orderedRendererFrames(counters))).toMatchObject({
+      sampleCount: PERF_RENDERER_LIMIT,
+      calls: { total: (PERF_RENDERER_LIMIT * (PERF_RENDERER_LIMIT + 1)) / 2 },
+    });
+    expect(summarizeDurationSamples([1, 2, 4])).toMatchObject({ sampleCount: 3, meanMs: 7 / 3, p95Ms: 4 });
+  });
+});
+
+function makeFakeWebGl({ extension = true } = {}) {
+  let active = null;
+  let disjoint = false;
+  let nextId = 1;
+  const queries = [];
+  const deleted = [];
+  const ext = { TIME_ELAPSED_EXT: 0x88bf, GPU_DISJOINT_EXT: 0x8fbb };
+  const gl = {
+    QUERY_RESULT: 0x8866,
+    QUERY_RESULT_AVAILABLE: 0x8867,
+    createQuery() {
+      const query = { id: nextId++, available: false, result: 0 };
+      queries.push(query);
+      return query;
+    },
+    beginQuery(_target, query) { active = query; },
+    endQuery() { active = null; },
+    getExtension(name) { return name === "EXT_disjoint_timer_query_webgl2" && extension ? ext : null; },
+    getParameter(name) { return name === ext.GPU_DISJOINT_EXT && disjoint; },
+    getQueryParameter(query, name) {
+      if (name === this.QUERY_RESULT_AVAILABLE) return query.available;
+      if (name === this.QUERY_RESULT) {
+        if (!query.available) throw new Error("GPU result read before availability");
+        return query.result;
+      }
+      throw new Error(`Unexpected query parameter ${name}`);
+    },
+    deleteQuery(query) { deleted.push(query); },
+    setDisjoint(value) { disjoint = value; },
+    get queries() { return queries; },
+    get deleted() { return deleted; },
+    get active() { return active; },
+  };
+  return gl;
+}
+
+describe("asynchronous WebGL GPU frame timer", () => {
+  it("reads results only after a later availability poll and converts nanoseconds to milliseconds", () => {
+    const gl = makeFakeWebGl();
+    const samples = [];
+    const timer = createGpuFrameTimer(gl, { onSample: (sample) => samples.push(sample) });
+    expect(timer.supported).toBe(true);
+    expect(timer.beginFrame()).toBe(true);
+    expect(gl.active).toBe(gl.queries[0]);
+    timer.endFrame();
+    expect(samples).toEqual([]);
+
+    gl.queries[0].available = true;
+    gl.queries[0].result = 2_500_000;
+    timer.beginFrame();
+    expect(samples).toEqual([2.5]);
+    timer.endFrame();
+    timer.dispose();
+    expect(gl.deleted).toContain(gl.queries[0]);
+  });
+
+  it("drops and deletes pending queries when the GPU reports disjoint timing", () => {
+    const gl = makeFakeWebGl();
+    const samples = [];
+    const timer = createGpuFrameTimer(gl, { onSample: (sample) => samples.push(sample) });
+    timer.beginFrame();
+    timer.endFrame();
+    gl.setDisjoint(true);
+    timer.poll();
+    expect(samples).toEqual([]);
+    expect(gl.deleted).toContain(gl.queries[0]);
+    expect(timer.snapshot().disjointSamples).toBe(1);
+    timer.dispose();
+  });
+
+  it("reports unsupported extensions and bounds outstanding query count", () => {
+    const unsupported = createGpuFrameTimer(makeFakeWebGl({ extension: false }));
+    expect(unsupported.supported).toBe(false);
+    expect(unsupported.snapshot().reason).toContain("unavailable");
+    expect(unsupported.beginFrame()).toBe(false);
+
+    const gl = makeFakeWebGl();
+    const timer = createGpuFrameTimer(gl, { maxPendingQueries: 1 });
+    timer.beginFrame();
+    timer.endFrame();
+    expect(timer.beginFrame()).toBe(false);
+    expect(timer.snapshot().skippedForCapacity).toBe(1);
+    timer.dispose();
+    expect(gl.deleted).toContain(gl.queries[0]);
   });
 });

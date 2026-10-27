@@ -295,6 +295,23 @@ describe('tier-0 traffic heuristics', () => {
     expect(picks.primary).toBeGreaterThan(picks.residential);
   });
 
+  it('accepts a deterministic random source for repeatable traffic placement', async () => {
+    const { pickWeightedRoad } = await import('../lib/engine/population.js');
+    const { createSeededRandom } = await import('../lib/engine/seeded-random.js');
+    const roads = [
+      { hw: 'residential', width: 6, oneway: false },
+      { hw: 'primary', width: 13, oneway: false },
+    ];
+    expect(pickWeightedRoad(roads, () => 0)).toBe(roads[0]);
+    expect(pickWeightedRoad(roads, () => 0.999999)).toBe(roads[1]);
+    const a = createSeededRandom(1337);
+    const b = createSeededRandom(1337);
+    const valuesA = Array.from({ length: 16 }, a);
+    expect(valuesA).toEqual(Array.from({ length: 16 }, b));
+    expect(valuesA.every((value) => value >= 0 && value < 1)).toBe(true);
+    expect(Array.from({ length: 16 }, createSeededRandom(1338))).not.toEqual(valuesA);
+  });
+
   it('cycles traffic signals red → amber → green (18.6)', async () => {
     const { signalPhase, SIGNAL_CYCLE } = await import('../lib/engine/population.js');
     expect(signalPhase(0)).toBe('red');
