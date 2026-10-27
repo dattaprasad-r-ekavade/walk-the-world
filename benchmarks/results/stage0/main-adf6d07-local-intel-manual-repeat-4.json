@@ -1,0 +1,64 @@
+{
+  "timestamp": "2026-10-27T10:05:31.504Z",
+  "sourceRevision": "adf6d073a56f1dd8e2937aeb9147e4fc4645eca0",
+  "scenario": {
+    "durationMs": 12000,
+    "route": "warm live-city walk",
+    "quality": "medium",
+    "viewport": {
+      "width": 1046,
+      "height": 654,
+      "devicePixelRatio": 1.25
+    },
+    "visibility": "visible",
+    "renderer": "ANGLE (Intel, Intel(R) UHD Graphics (0x00008A56) Direct3D11 vs_5_0 ps_5_0, D3D11)"
+  },
+  "movementMeters": 49.897329536326374,
+  "frames": {
+    "sampleCount": 652,
+    "meanMs": 19.679907975459837,
+    "p50Ms": 16.699999999720603,
+    "p95Ms": 33.39999999990687,
+    "p99Ms": 33.59999999962747,
+    "over50": 0,
+    "over100": 0,
+    "onePercentLowFps": 27.833001988123108
+  },
+  "cpuSubmission": {
+    "sampleCount": 629,
+    "meanMs": 12.548489670306207,
+    "p95Ms": 18.300000071525574
+  },
+  "gpu": {
+    "sampleCount": 652,
+    "meanMs": 10.479916687116566,
+    "p95Ms": 14.755102,
+    "p99Ms": 17.137031,
+    "timer": {
+      "supported": true,
+      "reason": null,
+      "pendingQueries": 3,
+      "disjointSamples": 0,
+      "skippedForCapacity": 0
+    }
+  },
+  "renderer": {
+    "sampleCount": 652,
+    "meanCalls": 576.6656441717791,
+    "meanTriangles": 359845.3435582822,
+    "resourceCounts": {
+      "geometries": 590,
+      "textures": 30,
+      "programs": 28
+    },
+    "settings": {
+      "qualityTier": "medium",
+      "pixelRatio": 1.25,
+      "shadowMapEnabled": true,
+      "postFxActive": false
+    }
+  },
+  "diagnostics": {
+    "validationErrors": []
+  }
+}

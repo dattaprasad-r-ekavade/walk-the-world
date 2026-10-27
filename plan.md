@@ -1,19 +1,22 @@
 # Walk the World — Performance and Visuals Implementation Plan
 
 Updated: 27 October 2026. Status: Stage 0 instrumentation, synthetic fixtures,
-and an attributed/sanitized real-city fixture are implemented. Five same-
-condition integrated-GPU repetitions are recorded as provisional because frame
-pacing drifted. Deterministic walk/drive cell-boundary checks and the resident-
-cell cap regression are implemented. A stable matched matrix and release
-acceptance remain open. Implementation continues.
+an attributed/sanitized real-city fixture, and bounded cell streaming are
+implemented. A controlled five-run-per-build prop-batching A/B is complete; the
+candidate was rejected because GPU p95 and triangle submission increased while
+frame p95 did not improve. The full cold/warm, weather, mobile and release matrix
+remains open. Implementation continues on local `main`.
 
 ## 1. Verified baseline and scope
 
-Fetched origin on 27 October 2026. The performance and setup branches are already
-contained in `main`; before implementation, local `main` matched
-`origin/main` at `adf6d073a56f1dd8e2937aeb9147e4fc4645eca0`. The fixture and
-profiling checkpoint is saved in local commit `664b55f`. The cross-cell changes
-below are the current uncommitted work. No changes have been pushed.
+Fetched origin on 27 October 2026; `origin/main` remains at
+`adf6d073a56f1dd8e2937aeb9147e4fc4645eca0`. Both the performance/setup branch
+and the Cursor setup branch are ancestors of local `main`. The redundant local
+performance branch was removed after verifying its tip is in `main`; remote
+branch refs remain unchanged. The fixture and profiling checkpoint is local
+commit `664b55f`; bounded cell streaming and boundary tests are local commit
+`3235dd9`. This plan and its benchmark evidence are maintained on local `main`;
+no changes have been pushed.
 
 This is the active implementation sequence for
 [PERFORMANCE-VISUALS-PLAN.md](PERFORMANCE-VISUALS-PLAN.md), which contains
@@ -116,6 +119,11 @@ scripts/bench-perf.mjs and benchmarks/fixtures/.
 - [x] 0.6 Extend and validate the benchmark CLI for fixture, route, coordinates,
   preset, renderer mode, duration, seed and output. Fail nonzero on failed
   checks/console/asset errors. Document switches only after they exist.
+  - [x] Add explicit `--pose-x`, `--pose-z` and `--heading` overrides so A/B
+    runs can use the same local position and view direction.
+  - [x] Wait for population initialization, hold population motion until the
+    measured interval, and skip optional local Overture enrichment in synthetic
+    fixture mode so build-only data cannot change the compared scene.
 - [x] 0.7 Prove street movement via player displacement. The runner focuses the
   Street page and requires measurable displacement.
   - [x] Require displacement for walking and add a seeded driving run that
@@ -126,6 +134,8 @@ scripts/bench-perf.mjs and benchmarks/fixtures/.
   and rank CPU, GPU, network and memory bottlenecks.
   - [x] Collect five 12-second warm, stationary, fixed-medium samples on Intel
     UHD 630; retain as a provisional repeatability check, not a release baseline.
+  - [x] Collect five 12-second fixed-path moving samples in visible Chrome on
+    Intel UHD 630 at medium/DPR 1.25; p95 repeats, but tail outliers remain.
   - [ ] Repeat after checking Chromium foreground state, OS load and integrated-
     GPU thermal/power conditions; alternate baseline/candidate runs for A/B.
   - [ ] Complete cold/warm, day/night, rain and moving/cell-crossing scenarios;
@@ -143,14 +153,16 @@ queries are bounded, and cleanup disposes pending queries. These counters do not
 claim VRAM bytes. Diagnostics remain opt-in.
 
 The seeded synthetic showcase/dense/sparse/complex-polygon fixtures and benchmark
-seed are in place. Walking requires displacement. The driving scenario uses the
-normal vehicle-entry input and records displacement. Neither scenario yet proves
-deterministic cell-boundary streaming. The fixture README distinguishes synthetic
-CC0 data from the old Rome smoke fixture, whose provenance is unverified.
+seed are in place. Walking and driving require displacement, use the normal
+controls, and now verify a real cell-boundary crossing and settled neighbor
+stream. The fixture README distinguishes synthetic CC0 data from the old Rome
+smoke fixture, whose provenance is unverified.
 
 Validation on this checkpoint: `npm test -- --reporter=dot` passed (10 files,
-91 tests); `npm run build` passed after the cell-cap fix. The app was run locally from the production
-build. A separate visible Chromium run confirmed WebGL2 on Intel UHD 630
+91 tests); the current consolidated tree passes all 92 tests. `npm run build`
+passed after the cell-cap fix and again on the consolidated tree. The app was
+run locally from the production build. A separate visible Chromium run
+confirmed WebGL2 on Intel UHD 630
 (ANGLE/D3D11) with the GPU timer-query extension supported. The fixed-medium run
 was a warm, live-data 12-second walk at 1046x654 CSS pixels and DPR 1.25:
 
@@ -198,6 +210,29 @@ browser focus, background machine activity, integrated-GPU power/thermal state,
 and remote streaming before using this set for A/B decisions. The CPU and GPU
 measurements are both material, so optimize only after a stable comparison.
 
+Five fixed-path, 12-second warm live-city walk repetitions were then captured in
+the visible local Chrome session on Intel UHD 630 at 1046x654 CSS pixels, DPR
+1.25, fixed medium quality, shadows on and post-FX off. The [five-run summary](benchmarks/results/stage0/main-adf6d07-local-intel-walk-five-run-summary.json)
+and individual reports are saved in `benchmarks/results/stage0/`. Each run moved
+about 49.9 m through the warm spawn area:
+
+- Frame p95 median was 33.4 ms (range 33.3–33.6 ms), which misses the 16.7 ms
+  desktop p95 budget. Frame p99 median was 33.6 ms (range 33.4–66.9 ms).
+- The 1% low median was 27.8 FPS (range 8.3–29.8). One repetition had 12 frames
+  above 50 ms and two above 100 ms; the other four had at most one above 50 ms
+  and none above 100 ms. p95 repeatability is good, but the long tail is not.
+- CPU render-submission p95 median was 15.0 ms (range 13.9–24.4); GPU timer p95
+  median was 13.01 ms (range 11.96–19.62). These overlap within the frame and
+  must be analysed separately rather than summed. The scene averaged about 578
+  draw calls and 360,000 triangles, with 590 geometries, 30 textures and 28
+  shader programs.
+
+This is a warm live-data baseline, not a candidate comparison. Chrome was
+visible and GPU timing was available, but OS load and integrated-GPU thermal/power
+state were not recorded; one repetition had a substantial tail spike. The
+desktop p95 budget miss and high submission/draw-call load justify a render-cost
+audit next, while the noisy tails still block a pass/fail visual A/B.
+
 Earlier base-commit `52873ca` and SwiftShader reports are historical smoke tests;
 the browser-default and synthetic headless runs on `adf6d07` also selected
 SwiftShader. They validate runner paths only and are not hardware performance
@@ -243,11 +278,18 @@ These used headless SwiftShader, so their frame timings are excluded from GPU
 performance comparisons. The earlier [failed report](benchmarks/results/stage0/main-664b55f-osm-rome-walk-cross-cell-swiftshader.json)
 is retained to show the regression that the new checks caught.
 
-Remaining Stage 0 gates: stabilise the five-run baseline before alternating
-matched candidate runs across warm/cold, day/night/rain and crossing scenarios.
-Include real mobile hardware. The current stationary repetition set is useful
-for repeatability diagnostics but must not be used as a pass/fail A/B baseline.
+Remaining Stage 0 gates: capture OS load and integrated-GPU power/thermal state,
+then repeat matched runs with those conditions controlled. Complete cold/warm,
+day/night, rain and cell-crossing comparisons and include real mobile hardware.
+The warm hardware runs and stationary repetitions are useful baselines, but
+must not be used as candidate pass/fail A/B results yet.
 No shader, texture or visual rendering behavior changed in this checkpoint.
+
+The final local integration check on 27 October passed all 92 tests and the
+optimized production build. The production server returned HTTP 200 for `/`,
+`/street` and `/manifest.webmanifest`. A visible browser loaded the street view
+with a 1046x654 WebGL canvas and no console errors or warnings. This confirms
+local build and startup only; it does not close the performance or device matrix.
 
 Exit: repeated JSON/captures and a measured bottleneck report, without
 architecture changes. Once noise and network variability are understood, choose
@@ -293,6 +335,40 @@ street/assemble-city.js, post-fx.js and StreetEngine.js.
 - [ ] 2.6 Keep necessary shader patches version-matched, with stable cache keys
   and shared uniforms. Preserve fog/instancing/lighting/vertex colours/depth.
   Time/weather changes must not trigger per-object shader recompilation.
+
+### Controlled checkpoint — Prop material cache and spatial batching
+
+The combined experiment was tested on 27 October in production builds of the
+same local revision. Both builds used the same synthetic fixture, fixed pose,
+population seed, medium quality, visible Chrome session and 12-second walk.
+Five runs per build alternated in the order baseline/candidate/candidate/
+baseline/baseline/candidate/candidate/baseline/baseline/candidate. Population
+and optional Overture data were held constant; the same 256 props, 96
+pedestrians, 31 cars, 24 birds and nine settled cells were present in every run.
+Each run moved about 60 m and recorded zero benchmark validation errors.
+
+The [A/B result](benchmarks/results/stage2/prop-material-cache-ab.json) and
+[matched baseline capture](benchmarks/results/stage2/matched-baseline-initial.png)
+and [candidate capture](benchmarks/results/stage2/matched-candidate-initial.png)
+are retained. On visible Chrome 155 with Intel UHD 630, the median frame p95
+was 16.8 ms for both builds. The candidate cut mean draw calls from 47.2 to
+26.9 (-43%), but increased median GPU p95 from 5.73 ms to 7.58 ms (+32%) and
+mean submitted triangles from 65.1k to 97.6k (+50%). Median frame time changed
+by less than 1%. One baseline run had a 53.2 ms frame p95 outlier; OS load and
+GPU thermal/power state were not recorded, so the 1% low remains noisy.
+
+**Decision: revert the combined material-cache/spatial-batch experiment.** The
+lower draw-call count did not improve frame p95 on this workload and the GPU
+cost rose consistently in all five candidate runs. The experiment does not
+separate shared-material reuse from spatial batching. A later test may evaluate
+each independently, but only with equal visible geometry and the same GPU/frame
+no-regression gate. This synthetic result does not close the real-city, mobile,
+weather or long-walk gates.
+
+For Stage 2.1, the current medium-tier material/resource census and diagnostic
+hook are useful starting evidence; low/high-tier inventories and a full material
+family audit remain open. Continue with actual shader/material-family analysis
+before adding heavier texture or shader effects.
 
 Exit: lower submission/program cost or approved visual gain at neutral cost;
 no hue, silhouette, placement or editor-selection regression.
@@ -513,6 +589,9 @@ for Cesium, imagery and model resources. SSR, volumetrics, displacement, dense
 skeletal crowds and shadowed lamp arrays require separate high-tier budgets.
 None is a prerequisite for this sequence.
 
-**Next implementation task: Stage 0 only — trustworthy measurements,
-representative fixtures and a bottleneck report.** Choose the following checkpoint
-from its evidence while retaining the complete sequence above.
+**Next bounded task:** finish Stage 0's controlled warm/cold, day/night, rain and
+cell-crossing matrix, including OS/GPU load capture and an available mobile
+device. Keep Rust/Wasm/SIMD deferred until full geometry-stage timings show that
+geometry, rather than submission, streaming or GPU shading, is the limiting
+cost. If Stage 2 resumes first, isolate material reuse from spatial batching and
+prove equal rendered content before accepting a performance claim.

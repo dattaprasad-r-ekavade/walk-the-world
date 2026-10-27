@@ -74,6 +74,9 @@ bloom: current code and fresh captures take precedence over those descriptions.
   separate scenarios; never let variable Overpass responses decide a CPU result.
 - For each candidate run at least five measured repetitions after a warm-up;
   alternate baseline/candidate order. Report median and spread, not the best run.
+- Use the same explicit local player position, heading and pitch for visual and
+  render-cost A/Bs. Record the chosen pose; automatic arrival framing can select
+  opposite views in different builds and invalidate draw-call/triangle samples.
 - Cover warm walking, cold entry, neighbour crossings, driving, day, night,
   rain, editor changes and a 15-minute walk. Repeat a mobile thermal run after
   sustained use. Test an integrated GPU, a mid-tier desktop GPU and real mobile

@@ -2,6 +2,7 @@
 /**
  * Performance benchmark for Walk the World refactor.
  * Usage: node scripts/bench-perf.mjs [--base-url http://127.0.0.1:3456] [--out benchmarks/before.json]
+ * Optional fixed walking pose: --pose-x <meters> --pose-z <meters> --heading <radians>.
  */
 import { chromium } from 'playwright';
 import { writeFileSync, mkdirSync, readFileSync } from 'fs';
@@ -55,6 +56,21 @@ const headed = args.includes('--headed');
 const skipGlobe = args.includes('--skip-globe');
 const driving = args.includes('--drive');
 const crossCell = args.includes('--cross-cell');
+const poseOptionNames = ['--pose-x', '--pose-z', '--heading'];
+const suppliedPoseOptions = poseOptionNames.filter((name) => args.includes(name));
+let fixedPose = null;
+if (suppliedPoseOptions.length > 0) {
+  if (suppliedPoseOptions.length !== poseOptionNames.length) {
+    throw new Error('Provide all three fixed-pose options: --pose-x, --pose-z and --heading');
+  }
+  fixedPose = {
+    x: Number(option('--pose-x', '')),
+    z: Number(option('--pose-z', '')),
+    heading: Number(option('--heading', '')),
+  };
+  if (!Object.values(fixedPose).every(Number.isFinite)) throw new Error('Fixed-pose values must be finite numbers');
+  if (driving || crossCell) throw new Error('Fixed-pose options cannot be combined with --drive or --cross-cell');
+}
 if (!['low', 'medium', 'high'].includes(qualityPreset)) throw new Error('--preset must be low, medium, or high');
 if (!['software', 'browser-default'].includes(rendererMode)) throw new Error('--renderer-mode must be software or browser-default');
 if (!Number.isFinite(walkDurationMs) || walkDurationMs < 1000) throw new Error('--walk-ms must be at least 1000');
@@ -77,7 +93,11 @@ async function benchStreet(page) {
     waitUntil: 'domcontentloaded',
     timeout: 60_000,
   });
-  await page.waitForFunction(() => window.__engineReady === true && !!window.__streetDebug?.player, null, {
+  await page.waitForFunction(() =>
+    window.__engineReady === true &&
+    !!window.__streetDebug?.player &&
+    !!window.__streetDebug?.population?.() &&
+    (!window.__BENCH_START_POSE || window.__BENCH_POSE_APPLIED === true), null, {
     timeout: READY_TIMEOUT,
   });
   const loadMs = Date.now() - t0;
@@ -87,7 +107,7 @@ async function benchStreet(page) {
       timeout: READY_TIMEOUT,
     });
   }
-  let playerStart = await page.evaluate((useDriving) => {
+  let playerStart = await page.evaluate(({ useDriving, pose }) => {
     const player = window.__streetDebug?.player;
     if (!player) return null;
     if (useDriving) {
@@ -98,8 +118,15 @@ async function benchStreet(page) {
       player.z = near.z;
       player.heading = Math.PI - near.heading;
     }
-    return { x: player.x, z: player.z };
-  }, driving);
+    if (pose) {
+      player.x = pose.x;
+      player.z = pose.z;
+      player.heading = pose.heading;
+      player.pitch = 0;
+      player.moving = false;
+    }
+    return { x: player.x, z: player.z, heading: player.heading, pitch: player.pitch };
+  }, { useDriving: driving, pose: fixedPose });
   if (!playerStart) throw new Error('Street player debug state is unavailable');
   await page.bringToFront();
   await page.evaluate(() => window.focus());
@@ -160,14 +187,16 @@ async function benchStreet(page) {
   await page.waitForTimeout(500);
   await page.evaluate(() => {
     const counters = window.__perfCounters;
-    if (!counters) return;
-    counters.frameIntervalsMs.length = 0;
-    counters.frameIntervalCursor = 0;
-    counters.rendererFrames.length = 0;
-    counters.rendererFrameCursor = 0;
-    counters.gpuFrameTimesMs.length = 0;
-    counters.gpuFrameTimeCursor = 0;
-    counters.fpsSamples.length = 0;
+    if (counters) {
+      counters.frameIntervalsMs.length = 0;
+      counters.frameIntervalCursor = 0;
+      counters.rendererFrames.length = 0;
+      counters.rendererFrameCursor = 0;
+      counters.gpuFrameTimesMs.length = 0;
+      counters.gpuFrameTimeCursor = 0;
+      counters.fpsSamples.length = 0;
+    }
+    window.__BENCH_FREEZE_POPULATION = false;
   });
   await page.keyboard.down('w');
   await page.waitForTimeout(walkDurationMs);
@@ -316,7 +345,7 @@ async function main() {
     args: rendererMode === 'software' ? ['--use-gl=angle', '--use-angle=swiftshader'] : [],
   });
   const context = await browser.newContext();
-  await context.addInitScript(({ fixture, schemaVersion, preset, seed }) => {
+  await context.addInitScript(({ fixture, schemaVersion, preset, seed, pose }) => {
     if (location.origin !== 'null') {
       try {
         const saved = JSON.parse(localStorage.getItem('wtw-game') || '{}');
@@ -334,6 +363,9 @@ async function main() {
     window.__BENCH_MODE = true;
     window.__BENCH_SEED = seed;
     window.__BENCH_FIXTURE = fixture;
+    window.__BENCH_START_POSE = pose;
+    window.__BENCH_POSE_APPLIED = false;
+    window.__BENCH_FREEZE_POPULATION = true;
     window.__perfCounters = {
       schemaVersion,
       startedAt: performance.now(),
@@ -351,7 +383,7 @@ async function main() {
       metadata: {},
       validationErrors: [],
     };
-  }, { fixture: BENCH_FIXTURE, schemaVersion: PERF_SCHEMA_VERSION, preset: qualityPreset, seed });
+  }, { fixture: BENCH_FIXTURE, schemaVersion: PERF_SCHEMA_VERSION, preset: qualityPreset, seed, pose: fixedPose });
   const page = await context.newPage();
   const browserDiagnostics = { consoleErrors: [], pageErrors: [], assetFailures: [] };
   const baseOrigin = new URL(baseUrl).origin;
@@ -407,6 +439,8 @@ async function main() {
       seed,
       driving,
       crossCell,
+      fixedPose,
+      populationFrozenUntilMeasurement: true,
     },
     cityCacheWarm: cache,
     street: null,

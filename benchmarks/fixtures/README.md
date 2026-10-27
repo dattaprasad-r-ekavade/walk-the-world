@@ -1,6 +1,6 @@
 # Benchmark fixtures
 
-The four `synthetic-*.json` files are deterministic, city-shaped test data. They
+The five `synthetic-*.json` files are deterministic test data. They
 are generated locally by `npm run fixtures:build`; they do not contain real
 street or building locations and are released as data under CC0 1.0. They are
 useful for repeatable geometry, density and load tests, but they do not establish
@@ -12,6 +12,7 @@ visual fidelity against a real city.
 | `synthetic-dense.json` | High building and road count in a compact area |
 | `synthetic-sparse.json` | Few buildings with longer connected streets |
 | `synthetic-difficult-polygons.json` | Concave outlines and a 96-vertex footprint |
+| `synthetic-prop-heavy.json` | 256 repeated static street props for material and draw-call comparisons |
 | `rome-showcase-osm.json` | Real OpenStreetMap features near the Colosseum; ODbL 1.0 |
 | `rome-minimal.json` | Existing small smoke-test fixture; not capacity evidence |
 

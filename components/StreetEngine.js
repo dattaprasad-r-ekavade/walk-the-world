@@ -635,6 +635,7 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false }) {
           lampGlows,
           cellKey: cityCacheKey(lat0, lon0),
           resumedPosition,
+          skipOverture: window.__BENCH_MODE === true,
         }), { elements: elements.length });
         return true;
       } catch (e) {
@@ -1148,11 +1149,16 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false }) {
       // 30 Hz simulation still reads as smooth because transforms are held
       // between updates, while it removes dozens of terrain samples and
       // matrix writes per second on mobile/medium tiers.
-      populationAccum += dt;
-      const populationStep = qualityTier === "high" ? 0 : qualityTier === "medium" ? 1 / 30 : 1 / 20;
-      if (population && (populationStep === 0 || populationAccum >= populationStep)) {
-        population.update(populationAccum, player, runtimeHour, !!precip);
+      const benchmarkPopulationFrozen = window.__BENCH_MODE === true && window.__BENCH_FREEZE_POPULATION === true;
+      if (benchmarkPopulationFrozen) {
         populationAccum = 0;
+      } else {
+        populationAccum += dt;
+        const populationStep = qualityTier === "high" ? 0 : qualityTier === "medium" ? 1 / 30 : 1 / 20;
+        if (population && (populationStep === 0 || populationAccum >= populationStep)) {
+          population.update(populationAccum, player, runtimeHour, !!precip);
+          populationAccum = 0;
+        }
       }
       if (++ambTick % 120 === 0) ambience.set({ hour: runtimeHour, raining: !!precip });
       if (precip && ++precipTick % 2 === 0) {
@@ -1306,6 +1312,19 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false }) {
 
       const cityBuilt = await loadCity(cityData);
       if (disposed) return;
+      const benchmarkStartPose = window.__BENCH_MODE === true ? window.__BENCH_START_POSE : null;
+      if (benchmarkStartPose) {
+        const { x, z, heading } = benchmarkStartPose;
+        if (![x, z, heading].every(Number.isFinite) || insideBuilding(x, z)) {
+          throw new Error("Benchmark start pose must be finite and outside buildings");
+        }
+        player.x = x;
+        player.z = z;
+        player.heading = heading;
+        player.pitch = 0;
+        player.moving = false;
+        window.__BENCH_POSE_APPLIED = true;
+      }
       markPerf("streaming-complete", { scope: "spawn-cell", cityBuilt });
       for (const entry of edits.assets || []) placeAsset(entry, false);
 
@@ -1547,6 +1566,92 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false }) {
             }
           });
           return out;
+        },
+        materialInventory: () => {
+          const materials = new Map();
+          const textures = new Map();
+          const geometries = new Set();
+          let meshCount = 0;
+          let instancedMeshCount = 0;
+          let instanceCount = 0;
+          const textureRoles = ["map", "normalMap", "roughnessMap", "metalnessMap", "emissiveMap", "aoMap"];
+          scene.traverse((o) => {
+            if (!o.isMesh) return;
+            meshCount++;
+            if (o.geometry?.uuid) geometries.add(o.geometry.uuid);
+            if (o.isInstancedMesh) {
+              instancedMeshCount++;
+              instanceCount += o.count || 0;
+            }
+            for (const material of Array.isArray(o.material) ? o.material : [o.material]) {
+              if (!material) continue;
+              let entry = materials.get(material.uuid);
+              if (!entry) {
+                entry = {
+                  uuid: material.uuid,
+                  name: material.name || "",
+                  type: material.type,
+                  color: material.color?.getHexString?.() || null,
+                  vertexColors: !!material.vertexColors,
+                  transparent: !!material.transparent,
+                  side: material.side,
+                  roughness: Number.isFinite(material.roughness) ? material.roughness : null,
+                  metalness: Number.isFinite(material.metalness) ? material.metalness : null,
+                  shared: !!material.userData?.shared,
+                  roles: [],
+                  meshUses: 0,
+                };
+                materials.set(material.uuid, entry);
+              }
+              entry.meshUses++;
+              for (const role of textureRoles) {
+                const texture = material[role];
+                if (!texture) continue;
+                if (!entry.roles.includes(role)) entry.roles.push(role);
+                let tex = textures.get(texture.uuid);
+                if (!tex) {
+                  const image = texture.image || {};
+                  tex = {
+                    uuid: texture.uuid,
+                    width: image.width || image.videoWidth || null,
+                    height: image.height || image.videoHeight || null,
+                    colorSpace: texture.colorSpace,
+                    roles: [],
+                  };
+                  textures.set(texture.uuid, tex);
+                }
+                if (!tex.roles.includes(role)) tex.roles.push(role);
+              }
+            }
+          });
+          const materialFamilies = new Map();
+          for (const material of materials.values()) {
+            const family = [
+              material.type,
+              material.roles.join("+") || "unmapped",
+              material.vertexColors ? "vertex-color" : "no-vertex-color",
+              material.transparent ? "transparent" : "opaque",
+              `side-${material.side}`,
+            ].join("|");
+            const entry = materialFamilies.get(family) || { family, materialCount: 0, meshUses: 0, colorVariants: new Set() };
+            entry.materialCount++;
+            entry.meshUses += material.meshUses;
+            entry.colorVariants.add(material.color);
+            materialFamilies.set(family, entry);
+          }
+          return {
+            meshCount,
+            uniqueGeometryCount: geometries.size,
+            instancedMeshCount,
+            instanceCount,
+            uniqueMaterialCount: materials.size,
+            uniqueTextureCount: textures.size,
+            materialFamilies: [...materialFamilies.values()]
+              .map(({ colorVariants, ...entry }) => ({ ...entry, colorVariantCount: colorVariants.size }))
+              .sort((a, b) => b.meshUses - a.meshUses),
+            materials: [...materials.values()],
+            textures: [...textures.values()],
+          };
         },
       };
       // location title — skip during Where-am-I so the answer never leaks

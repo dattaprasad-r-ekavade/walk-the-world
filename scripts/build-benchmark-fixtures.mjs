@@ -131,11 +131,56 @@ function makeDifficultPolygons() {
   };
 }
 
+function makePropHeavyFixture() {
+  const propTags = [
+    { highway: 'traffic_signals' },
+    { highway: 'bus_stop' },
+    { amenity: 'fountain' },
+    { amenity: 'vending_machine' },
+    { man_made: 'chimney' },
+    { man_made: 'lighthouse' },
+    { man_made: 'crane' },
+    { railway: 'subway_entrance' },
+  ];
+  const elements = [];
+  let nextId = 100_000;
+  for (let row = 0; row < 16; row++) {
+    for (let column = 0; column < 16; column++) {
+      const east = (column - 7.5) * 13;
+      const north = (row - 7.5) * 13;
+      elements.push({
+        type: 'node',
+        id: nextId,
+        ...toGeo(east, north),
+        tags: propTags[(row * 16 + column) % propTags.length],
+      });
+      nextId++;
+    }
+  }
+  elements.push(way(nextId++, { highway: 'residential', name: 'Synthetic prop test road' }, [
+    [-130, -112],
+    [130, -112],
+  ]));
+  return {
+    benchmarkFixture: {
+      id: 'synthetic-prop-heavy',
+      title: 'Repeated static props for material-batching comparison',
+      dataKind: 'synthetic prop-focused benchmark data; not a real-world map extract',
+      provenance: 'Generated deterministically by scripts/build-benchmark-fixtures.mjs',
+      license: 'CC0-1.0',
+      center: CENTER,
+      featureCounts: { staticProps: 256, roads: 1, propKinds: propTags.length },
+    },
+    elements,
+  };
+}
+
 const fixtures = [
   ['synthetic-showcase.json', makeCityFixture({ id: 'synthetic-showcase', title: 'Feature-rich synthetic downtown', columns: 8, rows: 7, pitch: 42, start: -126, buildingSize: [14, 28], roadEvery: 3 })],
   ['synthetic-dense.json', makeCityFixture({ id: 'synthetic-dense', title: 'High building and road density', columns: 12, rows: 10, pitch: 22, start: -121, buildingSize: [9, 17], roadEvery: 2 })],
   ['synthetic-sparse.json', makeCityFixture({ id: 'synthetic-sparse', title: 'Low building density with long streets', columns: 4, rows: 3, pitch: 78, start: -117, buildingSize: [16, 30], roadEvery: 1 })],
   ['synthetic-difficult-polygons.json', makeDifficultPolygons()],
+  ['synthetic-prop-heavy.json', makePropHeavyFixture()],
 ];
 
 mkdirSync(FIXTURES, { recursive: true });

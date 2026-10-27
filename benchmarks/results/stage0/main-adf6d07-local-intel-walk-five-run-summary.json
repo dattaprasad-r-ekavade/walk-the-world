@@ -1,0 +1,302 @@
+{
+  "schemaVersion": 1,
+  "timestamp": "2026-10-27",
+  "sourceRevision": "adf6d073a56f1dd8e2937aeb9147e4fc4645eca0",
+  "scenario": {
+    "route": "Warm live-city walk",
+    "durationMs": 12000,
+    "quality": "medium",
+    "viewport": "1046x654 CSS px",
+    "devicePixelRatio": 1.25,
+    "renderer": "Intel UHD Graphics 630 via ANGLE/D3D11",
+    "tabVisibility": "visible",
+    "spawnCell": "warm from IndexedDB",
+    "repeatCount": 5
+  },
+  "metrics": {
+    "frameP95MedianMs": 33.39999999990687,
+    "frameP95RangeMs": [
+      33.299999999813735,
+      33.60000000009313
+    ],
+    "frameP99MedianMs": 33.59999999962747,
+    "frameP99RangeMs": [
+      33.40000000037253,
+      66.90000000037253
+    ],
+    "onePercentLowMedianFps": 27.833001988123108,
+    "onePercentLowRangeFps": [
+      8.326394671100953,
+      29.839612084928874
+    ],
+    "framesOver50Median": 0.0,
+    "framesOver50Maximum": 12.0,
+    "framesOver100Median": 0.0,
+    "framesOver100Maximum": 2.0,
+    "cpuSubmissionP95MedianMs": 15.0,
+    "cpuSubmissionP95RangeMs": [
+      13.900000095367432,
+      24.40000009536743
+    ],
+    "gpuP95MedianMs": 13.012447,
+    "gpuP95RangeMs": [
+      11.961353,
+      19.624739
+    ],
+    "gpuP99MedianMs": 17.137031,
+    "drawCallsMedian": 578.1071932299012,
+    "trianglesMedian": 359940.3568406206,
+    "p95DesktopBudgetMs": 16.7,
+    "p95BudgetPass": false
+  },
+  "decision": "Warm moving baseline only. Frame p95 was tight, but the one-percent-low and late-frame tails contain an outlier; do not use this as an A/B pass/fail baseline yet.",
+  "limitations": [
+    "No OS-load or GPU thermal/power sample was recorded during the repetitions.",
+    "Live city data and asynchronous external services were warm and may vary.",
+    "No cold, day/night/rain, sustained 15-minute or mobile scenario is represented.",
+    "No candidate comparison was run.",
+    "The local browser contained many accumulated console warnings/errors from external requests; performance-counter validationErrors were empty."
+  ],
+  "runs": [
+    {
+      "file": "benchmarks/results/stage0/main-adf6d07-local-intel-manual-repeat-1.json",
+      "frames": {
+        "sampleCount": 714,
+        "meanMs": 17.972268907562633,
+        "p50Ms": 16.699999999720603,
+        "p95Ms": 33.299999999813735,
+        "p99Ms": 33.40000000037253,
+        "over50": 0,
+        "over100": 0,
+        "onePercentLowFps": 29.772981019703963
+      },
+      "cpuSubmission": {
+        "sampleCount": 690,
+        "meanMs": 11.3320289855418,
+        "p95Ms": 13.900000095367432
+      },
+      "gpu": {
+        "sampleCount": 715,
+        "meanMs": 9.48845042097902,
+        "p95Ms": 11.961353,
+        "p99Ms": 14.425155,
+        "timer": {
+          "supported": true,
+          "reason": null,
+          "pendingQueries": 3,
+          "disjointSamples": 0,
+          "skippedForCapacity": 0
+        }
+      },
+      "movementMeters": 49.89942043417999,
+      "renderer": {
+        "sampleCount": 714,
+        "meanCalls": 578.2619047619048,
+        "meanTriangles": 359734.0462184874,
+        "resourceCounts": {
+          "geometries": 589,
+          "textures": 30,
+          "programs": 28
+        },
+        "settings": {
+          "qualityTier": "medium",
+          "pixelRatio": 1.25,
+          "shadowMapEnabled": true,
+          "postFxActive": false
+        }
+      }
+    },
+    {
+      "file": "benchmarks/results/stage0/main-adf6d07-local-intel-manual-repeat-2.json",
+      "frames": {
+        "sampleCount": 590,
+        "meanMs": 21.720169491525265,
+        "p50Ms": 16.700000000186265,
+        "p95Ms": 33.60000000009313,
+        "p99Ms": 66.90000000037253,
+        "over50": 12,
+        "over100": 2,
+        "onePercentLowFps": 8.326394671100953
+      },
+      "cpuSubmission": {
+        "sampleCount": 567,
+        "meanMs": 14.046737211932161,
+        "p95Ms": 24.40000009536743
+      },
+      "gpu": {
+        "sampleCount": 590,
+        "meanMs": 11.265636857627117,
+        "p95Ms": 19.624739,
+        "p99Ms": 24.611354,
+        "timer": {
+          "supported": true,
+          "reason": null,
+          "pendingQueries": 3,
+          "disjointSamples": 0,
+          "skippedForCapacity": 0
+        }
+      },
+      "movementMeters": 49.91157628549114,
+      "renderer": {
+        "sampleCount": 590,
+        "meanCalls": 583.5,
+        "meanTriangles": 360284.6881355932,
+        "resourceCounts": {
+          "geometries": 590,
+          "textures": 30,
+          "programs": 28
+        },
+        "settings": {
+          "qualityTier": "medium",
+          "pixelRatio": 1.25,
+          "shadowMapEnabled": true,
+          "postFxActive": false
+        }
+      }
+    },
+    {
+      "file": "benchmarks/results/stage0/main-adf6d07-local-intel-manual-repeat-3.json",
+      "frames": {
+        "sampleCount": 685,
+        "meanMs": 18.756496350365236,
+        "p50Ms": 16.699999999720603,
+        "p95Ms": 33.39999999990687,
+        "p99Ms": 33.60000000009313,
+        "over50": 1,
+        "over100": 0,
+        "onePercentLowFps": 23.27127659568704
+      },
+      "cpuSubmission": {
+        "sampleCount": 660,
+        "meanMs": 11.996666664246357,
+        "p95Ms": 15
+      },
+      "gpu": {
+        "sampleCount": 685,
+        "meanMs": 9.949053808759118,
+        "p95Ms": 13.012447,
+        "p99Ms": 19.37427,
+        "timer": {
+          "supported": true,
+          "reason": null,
+          "pendingQueries": 3,
+          "disjointSamples": 0,
+          "skippedForCapacity": 0
+        }
+      },
+      "movementMeters": 49.909909483764466,
+      "renderer": {
+        "sampleCount": 685,
+        "meanCalls": 578,
+        "meanTriangles": 359988.66569343064,
+        "resourceCounts": {
+          "geometries": 590,
+          "textures": 30,
+          "programs": 28
+        },
+        "settings": {
+          "qualityTier": "medium",
+          "pixelRatio": 1.25,
+          "shadowMapEnabled": true,
+          "postFxActive": false
+        }
+      }
+    },
+    {
+      "file": "benchmarks/results/stage0/main-adf6d07-local-intel-manual-repeat-4.json",
+      "frames": {
+        "sampleCount": 652,
+        "meanMs": 19.679907975459837,
+        "p50Ms": 16.699999999720603,
+        "p95Ms": 33.39999999990687,
+        "p99Ms": 33.59999999962747,
+        "over50": 0,
+        "over100": 0,
+        "onePercentLowFps": 27.833001988123108
+      },
+      "cpuSubmission": {
+        "sampleCount": 629,
+        "meanMs": 12.548489670306207,
+        "p95Ms": 18.300000071525574
+      },
+      "gpu": {
+        "sampleCount": 652,
+        "meanMs": 10.479916687116566,
+        "p95Ms": 14.755102,
+        "p99Ms": 17.137031,
+        "timer": {
+          "supported": true,
+          "reason": null,
+          "pendingQueries": 3,
+          "disjointSamples": 0,
+          "skippedForCapacity": 0
+        }
+      },
+      "movementMeters": 49.897329536326374,
+      "renderer": {
+        "sampleCount": 652,
+        "meanCalls": 576.6656441717791,
+        "meanTriangles": 359845.3435582822,
+        "resourceCounts": {
+          "geometries": 590,
+          "textures": 30,
+          "programs": 28
+        },
+        "settings": {
+          "qualityTier": "medium",
+          "pixelRatio": 1.25,
+          "shadowMapEnabled": true,
+          "postFxActive": false
+        }
+      }
+    },
+    {
+      "file": "benchmarks/results/stage0/main-adf6d07-local-intel-manual-repeat-5.json",
+      "frames": {
+        "sampleCount": 709,
+        "meanMs": 18.098307475316954,
+        "p50Ms": 16.699999999720603,
+        "p95Ms": 33.299999999813735,
+        "p99Ms": 33.40000000037253,
+        "over50": 0,
+        "over100": 0,
+        "onePercentLowFps": 29.839612084928874
+      },
+      "cpuSubmission": {
+        "sampleCount": 685,
+        "meanMs": 11.449343066145904,
+        "p95Ms": 14.100000023841858
+      },
+      "gpu": {
+        "sampleCount": 709,
+        "meanMs": 9.585341004231308,
+        "p95Ms": 12.291197,
+        "p99Ms": 14.062447,
+        "timer": {
+          "supported": true,
+          "reason": null,
+          "pendingQueries": 3,
+          "disjointSamples": 0,
+          "skippedForCapacity": 0
+        }
+      },
+      "movementMeters": 49.93156839420089,
+      "renderer": {
+        "sampleCount": 709,
+        "meanCalls": 578.1071932299012,
+        "meanTriangles": 359940.3568406206,
+        "resourceCounts": {
+          "geometries": 590,
+          "textures": 30,
+          "programs": 28
+        },
+        "settings": {
+          "qualityTier": "medium",
+          "pixelRatio": 1.25,
+          "shadowMapEnabled": true,
+          "postFxActive": false
+        }
+      }
+    }
+  ]
+}

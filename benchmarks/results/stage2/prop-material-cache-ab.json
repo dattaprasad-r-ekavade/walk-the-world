@@ -1,0 +1,369 @@
+{
+  "schemaVersion": 2,
+  "timestamp": "2026-10-27T11:30:40Z",
+  "title": "Prop material sharing and spatial batching, matched visible-GPU A/B",
+  "decision": "revert",
+  "reason": "The combined candidate reduced draw calls by 43.0%, but did not improve median frame p95 and raised median GPU p95 by 32.4% while submitting 49.9% more triangles. It fails the no-regression gate on this Intel GPU workload; the experiment is removed from the default path.",
+  "source": {
+    "baselineRevision": "3235dd9",
+    "candidateRevision": "3235dd9 plus uncommitted material-cache and 128 m spatial-batch experiment",
+    "build": "Next.js production builds on both checkouts; baseline used a detached checkout and received only the same benchmark-control hooks",
+    "localMainAheadOfOrigin": 2,
+    "pushed": false
+  },
+  "scenario": {
+    "route": "/street?lat=41.8902&lon=12.4922&bench=1",
+    "fixture": "benchmarks/fixtures/synthetic-prop-heavy.json",
+    "fixtureDescription": "256 repeated static props across eight kinds, one residential road; synthetic CC0 data",
+    "repetitionsPerVariant": 5,
+    "measuredDurationMs": 12000,
+    "order": "baseline, candidate, candidate, baseline, baseline, candidate, candidate, baseline, baseline, candidate",
+    "warmupAfterReadyMs": 500,
+    "seed": 1337,
+    "fixedPose": {
+      "x": -7.647023843889386,
+      "z": 112,
+      "headingRadians": 1.5707963267948966,
+      "pitchRadians": 0
+    },
+    "quality": "medium, manual/locked",
+    "weather": "20 C, clear; local noon setting",
+    "shadows": true,
+    "postFx": false,
+    "viewportCssPx": [
+      1046,
+      654
+    ],
+    "devicePixelRatio": 1,
+    "browser": "Chrome 155, visible",
+    "gpu": "Intel UHD Graphics 630 via ANGLE/D3D11",
+    "population": {
+      "pedestrians": 96,
+      "cars": 31,
+      "birds": 24
+    },
+    "residentCells": 9,
+    "residentCellLimit": 10,
+    "cellRequestsPending": 0,
+    "failedCells": 0,
+    "movementMedianMeters": 60.075,
+    "matchedVisualCheck": "Initial screenshots at the fixed pose were visually equivalent; local Overture fallback was skipped in benchmark mode on both builds so environment-specific buildings could not contaminate the comparison."
+  },
+  "summary": {
+    "baseline": {
+      "meanFrameMs": 16.709,
+      "frameP50Ms": 16.7,
+      "frameP95Ms": 16.8,
+      "frameP99Ms": 16.9,
+      "onePercentLowFps": 47.478,
+      "gpuMeanMs": 3.716,
+      "gpuP50Ms": 3.499,
+      "gpuP95Ms": 5.727,
+      "gpuP99Ms": 6.677,
+      "meanDrawCalls": 47.194,
+      "meanTriangles": 65111.21,
+      "movementMeters": 60.068
+    },
+    "candidate": {
+      "meanFrameMs": 16.665,
+      "frameP50Ms": 16.7,
+      "frameP95Ms": 16.8,
+      "frameP99Ms": 16.8,
+      "onePercentLowFps": 59.259,
+      "gpuMeanMs": 4.827,
+      "gpuP50Ms": 4.618,
+      "gpuP95Ms": 7.584,
+      "gpuP99Ms": 8.472,
+      "meanDrawCalls": 26.912,
+      "meanTriangles": 97633.397,
+      "movementMeters": 60.075
+    },
+    "changePercent": {
+      "meanFrameMs": -0.3,
+      "frameP95Ms": 0,
+      "frameP99Ms": -0.6,
+      "gpuP95Ms": 32.4,
+      "meanDrawCalls": -43,
+      "meanTriangles": 49.9,
+      "onePercentLowFps": 24.8
+    }
+  },
+  "variants": {
+    "baseline": {
+      "repetitions": 5,
+      "medianOfRunSummaries": {
+        "meanFrameMs": 16.709,
+        "frameP50Ms": 16.7,
+        "frameP95Ms": 16.8,
+        "frameP99Ms": 16.9,
+        "onePercentLowFps": 47.478,
+        "gpuMeanMs": 3.716,
+        "gpuP50Ms": 3.499,
+        "gpuP95Ms": 5.727,
+        "gpuP99Ms": 6.677,
+        "meanDrawCalls": 47.194,
+        "meanTriangles": 65111.21,
+        "movementMeters": 60.068
+      },
+      "runs": [
+        {
+          "repetition": 1,
+          "frameSamples": 750,
+          "meanFrameMs": 16.709,
+          "frameP95Ms": 16.8,
+          "frameP99Ms": 16.9,
+          "onePercentLowFps": 47.48,
+          "framesOver50Ms": 0,
+          "gpuSamples": 752,
+          "gpuP95Ms": 5.352,
+          "gpuP99Ms": 6.4,
+          "meanDrawCalls": 47.14,
+          "meanTriangles": 65107.1,
+          "movementMeters": 60.068,
+          "validationErrors": 0,
+          "stream": {
+            "resident": 9,
+            "pending": 0,
+            "failed": 0,
+            "max": 10
+          }
+        },
+        {
+          "repetition": 2,
+          "frameSamples": 744,
+          "meanFrameMs": 16.844,
+          "frameP95Ms": 16.8,
+          "frameP99Ms": 33.2,
+          "onePercentLowFps": 29.99,
+          "framesOver50Ms": 0,
+          "gpuSamples": 743,
+          "gpuP95Ms": 5.427,
+          "gpuP99Ms": 6.677,
+          "meanDrawCalls": 47.16,
+          "meanTriangles": 65101.4,
+          "movementMeters": 60.075,
+          "validationErrors": 0,
+          "stream": {
+            "resident": 9,
+            "pending": 0,
+            "failed": 0,
+            "max": 10
+          }
+        },
+        {
+          "repetition": 3,
+          "frameSamples": 752,
+          "meanFrameMs": 16.665,
+          "frameP95Ms": 16.8,
+          "frameP99Ms": 16.9,
+          "onePercentLowFps": 58.87,
+          "framesOver50Ms": 0,
+          "gpuSamples": 752,
+          "gpuP95Ms": 5.82,
+          "gpuP99Ms": 7.168,
+          "meanDrawCalls": 47.19,
+          "meanTriangles": 65111.2,
+          "movementMeters": 60.076,
+          "validationErrors": 0,
+          "stream": {
+            "resident": 9,
+            "pending": 0,
+            "failed": 0,
+            "max": 10
+          }
+        },
+        {
+          "repetition": 4,
+          "frameSamples": 752,
+          "meanFrameMs": 16.665,
+          "frameP95Ms": 16.8,
+          "frameP99Ms": 16.9,
+          "onePercentLowFps": 58.74,
+          "framesOver50Ms": 0,
+          "gpuSamples": 752,
+          "gpuP95Ms": 5.867,
+          "gpuP99Ms": 6.589,
+          "meanDrawCalls": 47.25,
+          "meanTriangles": 65115.2,
+          "movementMeters": 60.023,
+          "validationErrors": 0,
+          "stream": {
+            "resident": 9,
+            "pending": 0,
+            "failed": 0,
+            "max": 10
+          }
+        },
+        {
+          "repetition": 5,
+          "frameSamples": 473,
+          "meanFrameMs": 26.6,
+          "frameP95Ms": 53.2,
+          "frameP99Ms": 99.9,
+          "onePercentLowFps": 7.55,
+          "framesOver50Ms": 32,
+          "gpuSamples": 473,
+          "gpuP95Ms": 5.727,
+          "gpuP99Ms": 8.415,
+          "meanDrawCalls": 49.08,
+          "meanTriangles": 65315.9,
+          "movementMeters": 59.568,
+          "validationErrors": 0,
+          "stream": {
+            "resident": 9,
+            "pending": 0,
+            "failed": 0,
+            "max": 10
+          }
+        }
+      ]
+    },
+    "candidate": {
+      "repetitions": 5,
+      "medianOfRunSummaries": {
+        "meanFrameMs": 16.665,
+        "frameP50Ms": 16.7,
+        "frameP95Ms": 16.8,
+        "frameP99Ms": 16.8,
+        "onePercentLowFps": 59.259,
+        "gpuMeanMs": 4.827,
+        "gpuP50Ms": 4.618,
+        "gpuP95Ms": 7.584,
+        "gpuP99Ms": 8.472,
+        "meanDrawCalls": 26.912,
+        "meanTriangles": 97633.397,
+        "movementMeters": 60.075
+      },
+      "runs": [
+        {
+          "repetition": 1,
+          "frameSamples": 753,
+          "meanFrameMs": 16.665,
+          "frameP95Ms": 16.8,
+          "frameP99Ms": 16.8,
+          "onePercentLowFps": 59.3,
+          "framesOver50Ms": 0,
+          "gpuSamples": 753,
+          "gpuP95Ms": 7.584,
+          "gpuP99Ms": 8.472,
+          "meanDrawCalls": 26.92,
+          "meanTriangles": 97637.4,
+          "movementMeters": 60.076,
+          "validationErrors": 0,
+          "stream": {
+            "resident": 9,
+            "pending": 0,
+            "failed": 0,
+            "max": 10
+          }
+        },
+        {
+          "repetition": 2,
+          "frameSamples": 750,
+          "meanFrameMs": 16.687,
+          "frameP95Ms": 16.8,
+          "frameP99Ms": 16.9,
+          "onePercentLowFps": 52.39,
+          "framesOver50Ms": 0,
+          "gpuSamples": 750,
+          "gpuP95Ms": 7.727,
+          "gpuP99Ms": 8.743,
+          "meanDrawCalls": 26.9,
+          "meanTriangles": 97633.4,
+          "movementMeters": 60.078,
+          "validationErrors": 0,
+          "stream": {
+            "resident": 9,
+            "pending": 0,
+            "failed": 0,
+            "max": 10
+          }
+        },
+        {
+          "repetition": 3,
+          "frameSamples": 751,
+          "meanFrameMs": 16.664,
+          "frameP95Ms": 16.8,
+          "frameP99Ms": 16.8,
+          "onePercentLowFps": 59.3,
+          "framesOver50Ms": 0,
+          "gpuSamples": 751,
+          "gpuP95Ms": 7.038,
+          "gpuP99Ms": 8.34,
+          "meanDrawCalls": 26.91,
+          "meanTriangles": 97636.1,
+          "movementMeters": 60.075,
+          "validationErrors": 0,
+          "stream": {
+            "resident": 9,
+            "pending": 0,
+            "failed": 0,
+            "max": 10
+          }
+        },
+        {
+          "repetition": 4,
+          "frameSamples": 753,
+          "meanFrameMs": 16.665,
+          "frameP95Ms": 16.8,
+          "frameP99Ms": 16.8,
+          "onePercentLowFps": 59.26,
+          "framesOver50Ms": 0,
+          "gpuSamples": 753,
+          "gpuP95Ms": 7.649,
+          "gpuP99Ms": 8.551,
+          "meanDrawCalls": 26.92,
+          "meanTriangles": 97616,
+          "movementMeters": 60.074,
+          "validationErrors": 0,
+          "stream": {
+            "resident": 9,
+            "pending": 0,
+            "failed": 0,
+            "max": 10
+          }
+        },
+        {
+          "repetition": 5,
+          "frameSamples": 740,
+          "meanFrameMs": 16.935,
+          "frameP95Ms": 16.8,
+          "frameP99Ms": 33.2,
+          "onePercentLowFps": 29.65,
+          "framesOver50Ms": 0,
+          "gpuSamples": 742,
+          "gpuP95Ms": 6.542,
+          "gpuP99Ms": 7.446,
+          "meanDrawCalls": 26.9,
+          "meanTriangles": 97613.1,
+          "movementMeters": 60.032,
+          "validationErrors": 0,
+          "stream": {
+            "resident": 9,
+            "pending": 0,
+            "failed": 0,
+            "max": 10
+          }
+        }
+      ]
+    }
+  },
+  "validation": {
+    "allRunsMovementValidated": true,
+    "allRunsPopulationMatched": true,
+    "allRunsResidentCellsBounded": true,
+    "validationErrors": 0,
+    "gpuTimerSupported": true,
+    "disjointGpuSamples": 0
+  },
+  "limitations": [
+    "This is a warm synthetic prop-focused scene, not a full real-city, cold-start, day/night/rain, mobile or 15-minute soak matrix.",
+    "Operating-system load and integrated-GPU power/thermal state were not captured. Four baseline frame-p95 runs were 16.8 ms; one baseline run had a 53.2 ms p95 outlier. GPU p95 was consistently higher for the candidate across all five runs.",
+    "The combined experiment does not isolate material reuse from spatial batching. A later experiment must measure each separately and retain identical visible geometry.",
+    "The Node Playwright CLI could not spawn its bundled headed Chromium (spawn UNKNOWN); the same production builds were measured in the connected visible Chrome session."
+  ],
+  "artifacts": {
+    "baselineScreenshot": "benchmarks/results/stage2/matched-baseline-initial.png",
+    "candidateScreenshot": "benchmarks/results/stage2/matched-candidate-initial.png"
+  }
+}

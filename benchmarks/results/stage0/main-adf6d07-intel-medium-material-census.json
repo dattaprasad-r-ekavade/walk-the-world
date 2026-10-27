@@ -1,0 +1,270 @@
+{
+  "timestamp": "2026-10-27T10:08:26.551Z",
+  "sourceRevision": "adf6d073a56f1dd8e2937aeb9147e4fc4645eca0",
+  "scenario": {
+    "quality": "medium",
+    "viewport": {
+      "width": 1046,
+      "height": 654,
+      "devicePixelRatio": 1.25
+    },
+    "renderer": "ANGLE (Intel, Intel(R) UHD Graphics (0x00008A56) Direct3D11 vs_5_0 ps_5_0, D3D11)"
+  },
+  "meshCount": 1098,
+  "triangleCount": 295947,
+  "distinctColorMapGroups": 50,
+  "meshMappedCount": 93,
+  "meshUnmappedCount": 1005,
+  "groups": [
+    {
+      "key": "b0a894|unmapped",
+      "meshCount": 153,
+      "triangles": 952
+    },
+    {
+      "key": "8a7f6e|unmapped",
+      "meshCount": 143,
+      "triangles": 1580
+    },
+    {
+      "key": "93bd7f|unmapped",
+      "meshCount": 121,
+      "triangles": 2151
+    },
+    {
+      "key": "8fb2c9|unmapped",
+      "meshCount": 99,
+      "triangles": 1188
+    },
+    {
+      "key": "d94040|unmapped",
+      "meshCount": 75,
+      "triangles": 3600
+    },
+    {
+      "key": "e8c33a|unmapped",
+      "meshCount": 75,
+      "triangles": 3600
+    },
+    {
+      "key": "43b05c|unmapped",
+      "meshCount": 75,
+      "triangles": 3600
+    },
+    {
+      "key": "4b7a45|unmapped",
+      "meshCount": 64,
+      "triangles": 838
+    },
+    {
+      "key": "9aa0a8|unmapped",
+      "meshCount": 29,
+      "triangles": 928
+    },
+    {
+      "key": "4b9fd1|unmapped",
+      "meshCount": 25,
+      "triangles": 442
+    },
+    {
+      "key": "b3b5b8|mapped",
+      "meshCount": 22,
+      "triangles": 15340
+    },
+    {
+      "key": "ffffff|mapped",
+      "meshCount": 20,
+      "triangles": 77536
+    },
+    {
+      "key": "555b64|unmapped",
+      "meshCount": 17,
+      "triangles": 12648
+    },
+    {
+      "key": "8b939e|unmapped",
+      "meshCount": 14,
+      "triangles": 352
+    },
+    {
+      "key": "4a5058|unmapped",
+      "meshCount": 14,
+      "triangles": 352
+    },
+    {
+      "key": "ffffff|unmapped",
+      "meshCount": 12,
+      "triangles": 23242
+    },
+    {
+      "key": "5fb3e8|unmapped",
+      "meshCount": 11,
+      "triangles": 154
+    },
+    {
+      "key": "97927f|unmapped",
+      "meshCount": 9,
+      "triangles": 4608
+    },
+    {
+      "key": "a89a72|mapped",
+      "meshCount": 9,
+      "triangles": 29366
+    },
+    {
+      "key": "2255cc|unmapped",
+      "meshCount": 9,
+      "triangles": 108
+    },
+    {
+      "key": "8a9098|unmapped",
+      "meshCount": 8,
+      "triangles": 68
+    },
+    {
+      "key": "4f9e5d|unmapped",
+      "meshCount": 6,
+      "triangles": 16
+    },
+    {
+      "key": "e3ddd2|mapped",
+      "meshCount": 5,
+      "triangles": 24334
+    },
+    {
+      "key": "8f8d86|unmapped",
+      "meshCount": 5,
+      "triangles": 21288
+    },
+    {
+      "key": "b8bcc2|unmapped",
+      "meshCount": 5,
+      "triangles": 10388
+    },
+    {
+      "key": "b8babd|mapped",
+      "meshCount": 5,
+      "triangles": 12852
+    },
+    {
+      "key": "9a9484|mapped",
+      "meshCount": 5,
+      "triangles": 6030
+    },
+    {
+      "key": "aeafb2|mapped",
+      "meshCount": 5,
+      "triangles": 6670
+    },
+    {
+      "key": "b0b2b5|mapped",
+      "meshCount": 5,
+      "triangles": 3930
+    },
+    {
+      "key": "3a3f47|unmapped",
+      "meshCount": 5,
+      "triangles": 9248
+    },
+    {
+      "key": "7a5c3e|unmapped",
+      "meshCount": 5,
+      "triangles": 2472
+    },
+    {
+      "key": "e8d8c3|mapped",
+      "meshCount": 4,
+      "triangles": 2294
+    },
+    {
+      "key": "e8e6e0|unmapped",
+      "meshCount": 4,
+      "triangles": 1136
+    },
+    {
+      "key": "6d84a8|unmapped",
+      "meshCount": 3,
+      "triangles": 756
+    },
+    {
+      "key": "d8cbb3|mapped",
+      "meshCount": 3,
+      "triangles": 276
+    },
+    {
+      "key": "9a5340|unmapped",
+      "meshCount": 3,
+      "triangles": 45
+    },
+    {
+      "key": "8a7a58|mapped",
+      "meshCount": 3,
+      "triangles": 758
+    },
+    {
+      "key": "b9b2a4|unmapped",
+      "meshCount": 3,
+      "triangles": 36
+    },
+    {
+      "key": "7c4a3a|unmapped",
+      "meshCount": 3,
+      "triangles": 36
+    },
+    {
+      "key": "1a1c20|unmapped",
+      "meshCount": 3,
+      "triangles": 7920
+    },
+    {
+      "key": "abadaf|mapped",
+      "meshCount": 3,
+      "triangles": 990
+    },
+    {
+      "key": "3f4a5c|unmapped",
+      "meshCount": 2,
+      "triangles": 64
+    },
+    {
+      "key": "aeb9c6|mapped",
+      "meshCount": 2,
+      "triangles": 1328
+    },
+    {
+      "key": "ffd54a|unmapped",
+      "meshCount": 1,
+      "triangles": 96
+    },
+    {
+      "key": "d9c2a8|unmapped",
+      "meshCount": 1,
+      "triangles": 252
+    },
+    {
+      "key": "b8c9dd|mapped",
+      "meshCount": 1,
+      "triangles": 48
+    },
+    {
+      "key": "b3402f|unmapped",
+      "meshCount": 1,
+      "triangles": 12
+    },
+    {
+      "key": "39a0e0|unmapped",
+      "meshCount": 1,
+      "triangles": 2
+    },
+    {
+      "key": "dec3c3|mapped",
+      "meshCount": 1,
+      "triangles": 8
+    },
+    {
+      "key": "d9b98a|unmapped",
+      "meshCount": 1,
+      "triangles": 9
+    }
+  ]
+}

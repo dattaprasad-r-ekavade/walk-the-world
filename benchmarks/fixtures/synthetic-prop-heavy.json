@@ -1,0 +1,2342 @@
+{
+  "benchmarkFixture": {
+    "id": "synthetic-prop-heavy",
+    "title": "Repeated static props for material-batching comparison",
+    "dataKind": "synthetic prop-focused benchmark data; not a real-world map extract",
+    "provenance": "Generated deterministically by scripts/build-benchmark-fixtures.mjs",
+    "license": "CC0-1.0",
+    "center": {
+      "lat": 41.8902,
+      "lon": 12.4922
+    },
+    "featureCounts": {
+      "staticProps": 256,
+      "roads": 1,
+      "propKinds": 8
+    }
+  },
+  "elements": [
+    {
+      "type": "node",
+      "id": 100000,
+      "lat": 41.88932414660438,
+      "lon": 12.491023450988369,
+      "tags": {
+        "highway": "traffic_signals"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100001,
+      "lat": 41.88932414660438,
+      "lon": 12.491180324189921,
+      "tags": {
+        "highway": "bus_stop"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100002,
+      "lat": 41.88932414660438,
+      "lon": 12.491337197391472,
+      "tags": {
+        "amenity": "fountain"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100003,
+      "lat": 41.88932414660438,
+      "lon": 12.491494070593022,
+      "tags": {
+        "amenity": "vending_machine"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100004,
+      "lat": 41.88932414660438,
+      "lon": 12.491650943794573,
+      "tags": {
+        "man_made": "chimney"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100005,
+      "lat": 41.88932414660438,
+      "lon": 12.491807816996124,
+      "tags": {
+        "man_made": "lighthouse"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100006,
+      "lat": 41.88932414660438,
+      "lon": 12.491964690197674,
+      "tags": {
+        "man_made": "crane"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100007,
+      "lat": 41.88932414660438,
+      "lon": 12.492121563399225,
+      "tags": {
+        "railway": "subway_entrance"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100008,
+      "lat": 41.88932414660438,
+      "lon": 12.492278436600776,
+      "tags": {
+        "highway": "traffic_signals"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100009,
+      "lat": 41.88932414660438,
+      "lon": 12.492435309802326,
+      "tags": {
+        "highway": "bus_stop"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100010,
+      "lat": 41.88932414660438,
+      "lon": 12.492592183003877,
+      "tags": {
+        "amenity": "fountain"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100011,
+      "lat": 41.88932414660438,
+      "lon": 12.492749056205428,
+      "tags": {
+        "amenity": "vending_machine"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100012,
+      "lat": 41.88932414660438,
+      "lon": 12.492905929406978,
+      "tags": {
+        "man_made": "chimney"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100013,
+      "lat": 41.88932414660438,
+      "lon": 12.493062802608529,
+      "tags": {
+        "man_made": "lighthouse"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100014,
+      "lat": 41.88932414660438,
+      "lon": 12.49321967581008,
+      "tags": {
+        "man_made": "crane"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100015,
+      "lat": 41.88932414660438,
+      "lon": 12.493376549011632,
+      "tags": {
+        "railway": "subway_entrance"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100016,
+      "lat": 41.88944092705713,
+      "lon": 12.491023450988369,
+      "tags": {
+        "highway": "traffic_signals"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100017,
+      "lat": 41.88944092705713,
+      "lon": 12.491180324189921,
+      "tags": {
+        "highway": "bus_stop"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100018,
+      "lat": 41.88944092705713,
+      "lon": 12.491337197391472,
+      "tags": {
+        "amenity": "fountain"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100019,
+      "lat": 41.88944092705713,
+      "lon": 12.491494070593022,
+      "tags": {
+        "amenity": "vending_machine"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100020,
+      "lat": 41.88944092705713,
+      "lon": 12.491650943794573,
+      "tags": {
+        "man_made": "chimney"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100021,
+      "lat": 41.88944092705713,
+      "lon": 12.491807816996124,
+      "tags": {
+        "man_made": "lighthouse"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100022,
+      "lat": 41.88944092705713,
+      "lon": 12.491964690197674,
+      "tags": {
+        "man_made": "crane"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100023,
+      "lat": 41.88944092705713,
+      "lon": 12.492121563399225,
+      "tags": {
+        "railway": "subway_entrance"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100024,
+      "lat": 41.88944092705713,
+      "lon": 12.492278436600776,
+      "tags": {
+        "highway": "traffic_signals"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100025,
+      "lat": 41.88944092705713,
+      "lon": 12.492435309802326,
+      "tags": {
+        "highway": "bus_stop"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100026,
+      "lat": 41.88944092705713,
+      "lon": 12.492592183003877,
+      "tags": {
+        "amenity": "fountain"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100027,
+      "lat": 41.88944092705713,
+      "lon": 12.492749056205428,
+      "tags": {
+        "amenity": "vending_machine"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100028,
+      "lat": 41.88944092705713,
+      "lon": 12.492905929406978,
+      "tags": {
+        "man_made": "chimney"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100029,
+      "lat": 41.88944092705713,
+      "lon": 12.493062802608529,
+      "tags": {
+        "man_made": "lighthouse"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100030,
+      "lat": 41.88944092705713,
+      "lon": 12.49321967581008,
+      "tags": {
+        "man_made": "crane"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100031,
+      "lat": 41.88944092705713,
+      "lon": 12.493376549011632,
+      "tags": {
+        "railway": "subway_entrance"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100032,
+      "lat": 41.88955770750988,
+      "lon": 12.491023450988369,
+      "tags": {
+        "highway": "traffic_signals"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100033,
+      "lat": 41.88955770750988,
+      "lon": 12.491180324189921,
+      "tags": {
+        "highway": "bus_stop"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100034,
+      "lat": 41.88955770750988,
+      "lon": 12.491337197391472,
+      "tags": {
+        "amenity": "fountain"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100035,
+      "lat": 41.88955770750988,
+      "lon": 12.491494070593022,
+      "tags": {
+        "amenity": "vending_machine"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100036,
+      "lat": 41.88955770750988,
+      "lon": 12.491650943794573,
+      "tags": {
+        "man_made": "chimney"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100037,
+      "lat": 41.88955770750988,
+      "lon": 12.491807816996124,
+      "tags": {
+        "man_made": "lighthouse"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100038,
+      "lat": 41.88955770750988,
+      "lon": 12.491964690197674,
+      "tags": {
+        "man_made": "crane"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100039,
+      "lat": 41.88955770750988,
+      "lon": 12.492121563399225,
+      "tags": {
+        "railway": "subway_entrance"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100040,
+      "lat": 41.88955770750988,
+      "lon": 12.492278436600776,
+      "tags": {
+        "highway": "traffic_signals"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100041,
+      "lat": 41.88955770750988,
+      "lon": 12.492435309802326,
+      "tags": {
+        "highway": "bus_stop"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100042,
+      "lat": 41.88955770750988,
+      "lon": 12.492592183003877,
+      "tags": {
+        "amenity": "fountain"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100043,
+      "lat": 41.88955770750988,
+      "lon": 12.492749056205428,
+      "tags": {
+        "amenity": "vending_machine"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100044,
+      "lat": 41.88955770750988,
+      "lon": 12.492905929406978,
+      "tags": {
+        "man_made": "chimney"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100045,
+      "lat": 41.88955770750988,
+      "lon": 12.493062802608529,
+      "tags": {
+        "man_made": "lighthouse"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100046,
+      "lat": 41.88955770750988,
+      "lon": 12.49321967581008,
+      "tags": {
+        "man_made": "crane"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100047,
+      "lat": 41.88955770750988,
+      "lon": 12.493376549011632,
+      "tags": {
+        "railway": "subway_entrance"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100048,
+      "lat": 41.88967448796263,
+      "lon": 12.491023450988369,
+      "tags": {
+        "highway": "traffic_signals"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100049,
+      "lat": 41.88967448796263,
+      "lon": 12.491180324189921,
+      "tags": {
+        "highway": "bus_stop"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100050,
+      "lat": 41.88967448796263,
+      "lon": 12.491337197391472,
+      "tags": {
+        "amenity": "fountain"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100051,
+      "lat": 41.88967448796263,
+      "lon": 12.491494070593022,
+      "tags": {
+        "amenity": "vending_machine"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100052,
+      "lat": 41.88967448796263,
+      "lon": 12.491650943794573,
+      "tags": {
+        "man_made": "chimney"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100053,
+      "lat": 41.88967448796263,
+      "lon": 12.491807816996124,
+      "tags": {
+        "man_made": "lighthouse"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100054,
+      "lat": 41.88967448796263,
+      "lon": 12.491964690197674,
+      "tags": {
+        "man_made": "crane"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100055,
+      "lat": 41.88967448796263,
+      "lon": 12.492121563399225,
+      "tags": {
+        "railway": "subway_entrance"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100056,
+      "lat": 41.88967448796263,
+      "lon": 12.492278436600776,
+      "tags": {
+        "highway": "traffic_signals"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100057,
+      "lat": 41.88967448796263,
+      "lon": 12.492435309802326,
+      "tags": {
+        "highway": "bus_stop"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100058,
+      "lat": 41.88967448796263,
+      "lon": 12.492592183003877,
+      "tags": {
+        "amenity": "fountain"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100059,
+      "lat": 41.88967448796263,
+      "lon": 12.492749056205428,
+      "tags": {
+        "amenity": "vending_machine"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100060,
+      "lat": 41.88967448796263,
+      "lon": 12.492905929406978,
+      "tags": {
+        "man_made": "chimney"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100061,
+      "lat": 41.88967448796263,
+      "lon": 12.493062802608529,
+      "tags": {
+        "man_made": "lighthouse"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100062,
+      "lat": 41.88967448796263,
+      "lon": 12.49321967581008,
+      "tags": {
+        "man_made": "crane"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100063,
+      "lat": 41.88967448796263,
+      "lon": 12.493376549011632,
+      "tags": {
+        "railway": "subway_entrance"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100064,
+      "lat": 41.88979126841538,
+      "lon": 12.491023450988369,
+      "tags": {
+        "highway": "traffic_signals"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100065,
+      "lat": 41.88979126841538,
+      "lon": 12.491180324189921,
+      "tags": {
+        "highway": "bus_stop"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100066,
+      "lat": 41.88979126841538,
+      "lon": 12.491337197391472,
+      "tags": {
+        "amenity": "fountain"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100067,
+      "lat": 41.88979126841538,
+      "lon": 12.491494070593022,
+      "tags": {
+        "amenity": "vending_machine"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100068,
+      "lat": 41.88979126841538,
+      "lon": 12.491650943794573,
+      "tags": {
+        "man_made": "chimney"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100069,
+      "lat": 41.88979126841538,
+      "lon": 12.491807816996124,
+      "tags": {
+        "man_made": "lighthouse"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100070,
+      "lat": 41.88979126841538,
+      "lon": 12.491964690197674,
+      "tags": {
+        "man_made": "crane"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100071,
+      "lat": 41.88979126841538,
+      "lon": 12.492121563399225,
+      "tags": {
+        "railway": "subway_entrance"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100072,
+      "lat": 41.88979126841538,
+      "lon": 12.492278436600776,
+      "tags": {
+        "highway": "traffic_signals"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100073,
+      "lat": 41.88979126841538,
+      "lon": 12.492435309802326,
+      "tags": {
+        "highway": "bus_stop"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100074,
+      "lat": 41.88979126841538,
+      "lon": 12.492592183003877,
+      "tags": {
+        "amenity": "fountain"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100075,
+      "lat": 41.88979126841538,
+      "lon": 12.492749056205428,
+      "tags": {
+        "amenity": "vending_machine"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100076,
+      "lat": 41.88979126841538,
+      "lon": 12.492905929406978,
+      "tags": {
+        "man_made": "chimney"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100077,
+      "lat": 41.88979126841538,
+      "lon": 12.493062802608529,
+      "tags": {
+        "man_made": "lighthouse"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100078,
+      "lat": 41.88979126841538,
+      "lon": 12.49321967581008,
+      "tags": {
+        "man_made": "crane"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100079,
+      "lat": 41.88979126841538,
+      "lon": 12.493376549011632,
+      "tags": {
+        "railway": "subway_entrance"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100080,
+      "lat": 41.88990804886813,
+      "lon": 12.491023450988369,
+      "tags": {
+        "highway": "traffic_signals"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100081,
+      "lat": 41.88990804886813,
+      "lon": 12.491180324189921,
+      "tags": {
+        "highway": "bus_stop"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100082,
+      "lat": 41.88990804886813,
+      "lon": 12.491337197391472,
+      "tags": {
+        "amenity": "fountain"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100083,
+      "lat": 41.88990804886813,
+      "lon": 12.491494070593022,
+      "tags": {
+        "amenity": "vending_machine"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100084,
+      "lat": 41.88990804886813,
+      "lon": 12.491650943794573,
+      "tags": {
+        "man_made": "chimney"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100085,
+      "lat": 41.88990804886813,
+      "lon": 12.491807816996124,
+      "tags": {
+        "man_made": "lighthouse"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100086,
+      "lat": 41.88990804886813,
+      "lon": 12.491964690197674,
+      "tags": {
+        "man_made": "crane"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100087,
+      "lat": 41.88990804886813,
+      "lon": 12.492121563399225,
+      "tags": {
+        "railway": "subway_entrance"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100088,
+      "lat": 41.88990804886813,
+      "lon": 12.492278436600776,
+      "tags": {
+        "highway": "traffic_signals"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100089,
+      "lat": 41.88990804886813,
+      "lon": 12.492435309802326,
+      "tags": {
+        "highway": "bus_stop"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100090,
+      "lat": 41.88990804886813,
+      "lon": 12.492592183003877,
+      "tags": {
+        "amenity": "fountain"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100091,
+      "lat": 41.88990804886813,
+      "lon": 12.492749056205428,
+      "tags": {
+        "amenity": "vending_machine"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100092,
+      "lat": 41.88990804886813,
+      "lon": 12.492905929406978,
+      "tags": {
+        "man_made": "chimney"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100093,
+      "lat": 41.88990804886813,
+      "lon": 12.493062802608529,
+      "tags": {
+        "man_made": "lighthouse"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100094,
+      "lat": 41.88990804886813,
+      "lon": 12.49321967581008,
+      "tags": {
+        "man_made": "crane"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100095,
+      "lat": 41.88990804886813,
+      "lon": 12.493376549011632,
+      "tags": {
+        "railway": "subway_entrance"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100096,
+      "lat": 41.89002482932088,
+      "lon": 12.491023450988369,
+      "tags": {
+        "highway": "traffic_signals"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100097,
+      "lat": 41.89002482932088,
+      "lon": 12.491180324189921,
+      "tags": {
+        "highway": "bus_stop"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100098,
+      "lat": 41.89002482932088,
+      "lon": 12.491337197391472,
+      "tags": {
+        "amenity": "fountain"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100099,
+      "lat": 41.89002482932088,
+      "lon": 12.491494070593022,
+      "tags": {
+        "amenity": "vending_machine"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100100,
+      "lat": 41.89002482932088,
+      "lon": 12.491650943794573,
+      "tags": {
+        "man_made": "chimney"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100101,
+      "lat": 41.89002482932088,
+      "lon": 12.491807816996124,
+      "tags": {
+        "man_made": "lighthouse"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100102,
+      "lat": 41.89002482932088,
+      "lon": 12.491964690197674,
+      "tags": {
+        "man_made": "crane"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100103,
+      "lat": 41.89002482932088,
+      "lon": 12.492121563399225,
+      "tags": {
+        "railway": "subway_entrance"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100104,
+      "lat": 41.89002482932088,
+      "lon": 12.492278436600776,
+      "tags": {
+        "highway": "traffic_signals"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100105,
+      "lat": 41.89002482932088,
+      "lon": 12.492435309802326,
+      "tags": {
+        "highway": "bus_stop"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100106,
+      "lat": 41.89002482932088,
+      "lon": 12.492592183003877,
+      "tags": {
+        "amenity": "fountain"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100107,
+      "lat": 41.89002482932088,
+      "lon": 12.492749056205428,
+      "tags": {
+        "amenity": "vending_machine"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100108,
+      "lat": 41.89002482932088,
+      "lon": 12.492905929406978,
+      "tags": {
+        "man_made": "chimney"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100109,
+      "lat": 41.89002482932088,
+      "lon": 12.493062802608529,
+      "tags": {
+        "man_made": "lighthouse"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100110,
+      "lat": 41.89002482932088,
+      "lon": 12.49321967581008,
+      "tags": {
+        "man_made": "crane"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100111,
+      "lat": 41.89002482932088,
+      "lon": 12.493376549011632,
+      "tags": {
+        "railway": "subway_entrance"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100112,
+      "lat": 41.89014160977363,
+      "lon": 12.491023450988369,
+      "tags": {
+        "highway": "traffic_signals"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100113,
+      "lat": 41.89014160977363,
+      "lon": 12.491180324189921,
+      "tags": {
+        "highway": "bus_stop"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100114,
+      "lat": 41.89014160977363,
+      "lon": 12.491337197391472,
+      "tags": {
+        "amenity": "fountain"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100115,
+      "lat": 41.89014160977363,
+      "lon": 12.491494070593022,
+      "tags": {
+        "amenity": "vending_machine"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100116,
+      "lat": 41.89014160977363,
+      "lon": 12.491650943794573,
+      "tags": {
+        "man_made": "chimney"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100117,
+      "lat": 41.89014160977363,
+      "lon": 12.491807816996124,
+      "tags": {
+        "man_made": "lighthouse"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100118,
+      "lat": 41.89014160977363,
+      "lon": 12.491964690197674,
+      "tags": {
+        "man_made": "crane"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100119,
+      "lat": 41.89014160977363,
+      "lon": 12.492121563399225,
+      "tags": {
+        "railway": "subway_entrance"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100120,
+      "lat": 41.89014160977363,
+      "lon": 12.492278436600776,
+      "tags": {
+        "highway": "traffic_signals"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100121,
+      "lat": 41.89014160977363,
+      "lon": 12.492435309802326,
+      "tags": {
+        "highway": "bus_stop"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100122,
+      "lat": 41.89014160977363,
+      "lon": 12.492592183003877,
+      "tags": {
+        "amenity": "fountain"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100123,
+      "lat": 41.89014160977363,
+      "lon": 12.492749056205428,
+      "tags": {
+        "amenity": "vending_machine"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100124,
+      "lat": 41.89014160977363,
+      "lon": 12.492905929406978,
+      "tags": {
+        "man_made": "chimney"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100125,
+      "lat": 41.89014160977363,
+      "lon": 12.493062802608529,
+      "tags": {
+        "man_made": "lighthouse"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100126,
+      "lat": 41.89014160977363,
+      "lon": 12.49321967581008,
+      "tags": {
+        "man_made": "crane"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100127,
+      "lat": 41.89014160977363,
+      "lon": 12.493376549011632,
+      "tags": {
+        "railway": "subway_entrance"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100128,
+      "lat": 41.89025839022637,
+      "lon": 12.491023450988369,
+      "tags": {
+        "highway": "traffic_signals"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100129,
+      "lat": 41.89025839022637,
+      "lon": 12.491180324189921,
+      "tags": {
+        "highway": "bus_stop"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100130,
+      "lat": 41.89025839022637,
+      "lon": 12.491337197391472,
+      "tags": {
+        "amenity": "fountain"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100131,
+      "lat": 41.89025839022637,
+      "lon": 12.491494070593022,
+      "tags": {
+        "amenity": "vending_machine"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100132,
+      "lat": 41.89025839022637,
+      "lon": 12.491650943794573,
+      "tags": {
+        "man_made": "chimney"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100133,
+      "lat": 41.89025839022637,
+      "lon": 12.491807816996124,
+      "tags": {
+        "man_made": "lighthouse"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100134,
+      "lat": 41.89025839022637,
+      "lon": 12.491964690197674,
+      "tags": {
+        "man_made": "crane"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100135,
+      "lat": 41.89025839022637,
+      "lon": 12.492121563399225,
+      "tags": {
+        "railway": "subway_entrance"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100136,
+      "lat": 41.89025839022637,
+      "lon": 12.492278436600776,
+      "tags": {
+        "highway": "traffic_signals"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100137,
+      "lat": 41.89025839022637,
+      "lon": 12.492435309802326,
+      "tags": {
+        "highway": "bus_stop"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100138,
+      "lat": 41.89025839022637,
+      "lon": 12.492592183003877,
+      "tags": {
+        "amenity": "fountain"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100139,
+      "lat": 41.89025839022637,
+      "lon": 12.492749056205428,
+      "tags": {
+        "amenity": "vending_machine"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100140,
+      "lat": 41.89025839022637,
+      "lon": 12.492905929406978,
+      "tags": {
+        "man_made": "chimney"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100141,
+      "lat": 41.89025839022637,
+      "lon": 12.493062802608529,
+      "tags": {
+        "man_made": "lighthouse"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100142,
+      "lat": 41.89025839022637,
+      "lon": 12.49321967581008,
+      "tags": {
+        "man_made": "crane"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100143,
+      "lat": 41.89025839022637,
+      "lon": 12.493376549011632,
+      "tags": {
+        "railway": "subway_entrance"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100144,
+      "lat": 41.89037517067912,
+      "lon": 12.491023450988369,
+      "tags": {
+        "highway": "traffic_signals"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100145,
+      "lat": 41.89037517067912,
+      "lon": 12.491180324189921,
+      "tags": {
+        "highway": "bus_stop"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100146,
+      "lat": 41.89037517067912,
+      "lon": 12.491337197391472,
+      "tags": {
+        "amenity": "fountain"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100147,
+      "lat": 41.89037517067912,
+      "lon": 12.491494070593022,
+      "tags": {
+        "amenity": "vending_machine"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100148,
+      "lat": 41.89037517067912,
+      "lon": 12.491650943794573,
+      "tags": {
+        "man_made": "chimney"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100149,
+      "lat": 41.89037517067912,
+      "lon": 12.491807816996124,
+      "tags": {
+        "man_made": "lighthouse"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100150,
+      "lat": 41.89037517067912,
+      "lon": 12.491964690197674,
+      "tags": {
+        "man_made": "crane"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100151,
+      "lat": 41.89037517067912,
+      "lon": 12.492121563399225,
+      "tags": {
+        "railway": "subway_entrance"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100152,
+      "lat": 41.89037517067912,
+      "lon": 12.492278436600776,
+      "tags": {
+        "highway": "traffic_signals"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100153,
+      "lat": 41.89037517067912,
+      "lon": 12.492435309802326,
+      "tags": {
+        "highway": "bus_stop"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100154,
+      "lat": 41.89037517067912,
+      "lon": 12.492592183003877,
+      "tags": {
+        "amenity": "fountain"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100155,
+      "lat": 41.89037517067912,
+      "lon": 12.492749056205428,
+      "tags": {
+        "amenity": "vending_machine"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100156,
+      "lat": 41.89037517067912,
+      "lon": 12.492905929406978,
+      "tags": {
+        "man_made": "chimney"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100157,
+      "lat": 41.89037517067912,
+      "lon": 12.493062802608529,
+      "tags": {
+        "man_made": "lighthouse"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100158,
+      "lat": 41.89037517067912,
+      "lon": 12.49321967581008,
+      "tags": {
+        "man_made": "crane"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100159,
+      "lat": 41.89037517067912,
+      "lon": 12.493376549011632,
+      "tags": {
+        "railway": "subway_entrance"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100160,
+      "lat": 41.89049195113187,
+      "lon": 12.491023450988369,
+      "tags": {
+        "highway": "traffic_signals"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100161,
+      "lat": 41.89049195113187,
+      "lon": 12.491180324189921,
+      "tags": {
+        "highway": "bus_stop"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100162,
+      "lat": 41.89049195113187,
+      "lon": 12.491337197391472,
+      "tags": {
+        "amenity": "fountain"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100163,
+      "lat": 41.89049195113187,
+      "lon": 12.491494070593022,
+      "tags": {
+        "amenity": "vending_machine"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100164,
+      "lat": 41.89049195113187,
+      "lon": 12.491650943794573,
+      "tags": {
+        "man_made": "chimney"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100165,
+      "lat": 41.89049195113187,
+      "lon": 12.491807816996124,
+      "tags": {
+        "man_made": "lighthouse"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100166,
+      "lat": 41.89049195113187,
+      "lon": 12.491964690197674,
+      "tags": {
+        "man_made": "crane"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100167,
+      "lat": 41.89049195113187,
+      "lon": 12.492121563399225,
+      "tags": {
+        "railway": "subway_entrance"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100168,
+      "lat": 41.89049195113187,
+      "lon": 12.492278436600776,
+      "tags": {
+        "highway": "traffic_signals"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100169,
+      "lat": 41.89049195113187,
+      "lon": 12.492435309802326,
+      "tags": {
+        "highway": "bus_stop"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100170,
+      "lat": 41.89049195113187,
+      "lon": 12.492592183003877,
+      "tags": {
+        "amenity": "fountain"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100171,
+      "lat": 41.89049195113187,
+      "lon": 12.492749056205428,
+      "tags": {
+        "amenity": "vending_machine"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100172,
+      "lat": 41.89049195113187,
+      "lon": 12.492905929406978,
+      "tags": {
+        "man_made": "chimney"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100173,
+      "lat": 41.89049195113187,
+      "lon": 12.493062802608529,
+      "tags": {
+        "man_made": "lighthouse"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100174,
+      "lat": 41.89049195113187,
+      "lon": 12.49321967581008,
+      "tags": {
+        "man_made": "crane"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100175,
+      "lat": 41.89049195113187,
+      "lon": 12.493376549011632,
+      "tags": {
+        "railway": "subway_entrance"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100176,
+      "lat": 41.89060873158462,
+      "lon": 12.491023450988369,
+      "tags": {
+        "highway": "traffic_signals"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100177,
+      "lat": 41.89060873158462,
+      "lon": 12.491180324189921,
+      "tags": {
+        "highway": "bus_stop"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100178,
+      "lat": 41.89060873158462,
+      "lon": 12.491337197391472,
+      "tags": {
+        "amenity": "fountain"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100179,
+      "lat": 41.89060873158462,
+      "lon": 12.491494070593022,
+      "tags": {
+        "amenity": "vending_machine"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100180,
+      "lat": 41.89060873158462,
+      "lon": 12.491650943794573,
+      "tags": {
+        "man_made": "chimney"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100181,
+      "lat": 41.89060873158462,
+      "lon": 12.491807816996124,
+      "tags": {
+        "man_made": "lighthouse"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100182,
+      "lat": 41.89060873158462,
+      "lon": 12.491964690197674,
+      "tags": {
+        "man_made": "crane"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100183,
+      "lat": 41.89060873158462,
+      "lon": 12.492121563399225,
+      "tags": {
+        "railway": "subway_entrance"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100184,
+      "lat": 41.89060873158462,
+      "lon": 12.492278436600776,
+      "tags": {
+        "highway": "traffic_signals"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100185,
+      "lat": 41.89060873158462,
+      "lon": 12.492435309802326,
+      "tags": {
+        "highway": "bus_stop"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100186,
+      "lat": 41.89060873158462,
+      "lon": 12.492592183003877,
+      "tags": {
+        "amenity": "fountain"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100187,
+      "lat": 41.89060873158462,
+      "lon": 12.492749056205428,
+      "tags": {
+        "amenity": "vending_machine"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100188,
+      "lat": 41.89060873158462,
+      "lon": 12.492905929406978,
+      "tags": {
+        "man_made": "chimney"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100189,
+      "lat": 41.89060873158462,
+      "lon": 12.493062802608529,
+      "tags": {
+        "man_made": "lighthouse"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100190,
+      "lat": 41.89060873158462,
+      "lon": 12.49321967581008,
+      "tags": {
+        "man_made": "crane"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100191,
+      "lat": 41.89060873158462,
+      "lon": 12.493376549011632,
+      "tags": {
+        "railway": "subway_entrance"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100192,
+      "lat": 41.89072551203737,
+      "lon": 12.491023450988369,
+      "tags": {
+        "highway": "traffic_signals"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100193,
+      "lat": 41.89072551203737,
+      "lon": 12.491180324189921,
+      "tags": {
+        "highway": "bus_stop"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100194,
+      "lat": 41.89072551203737,
+      "lon": 12.491337197391472,
+      "tags": {
+        "amenity": "fountain"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100195,
+      "lat": 41.89072551203737,
+      "lon": 12.491494070593022,
+      "tags": {
+        "amenity": "vending_machine"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100196,
+      "lat": 41.89072551203737,
+      "lon": 12.491650943794573,
+      "tags": {
+        "man_made": "chimney"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100197,
+      "lat": 41.89072551203737,
+      "lon": 12.491807816996124,
+      "tags": {
+        "man_made": "lighthouse"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100198,
+      "lat": 41.89072551203737,
+      "lon": 12.491964690197674,
+      "tags": {
+        "man_made": "crane"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100199,
+      "lat": 41.89072551203737,
+      "lon": 12.492121563399225,
+      "tags": {
+        "railway": "subway_entrance"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100200,
+      "lat": 41.89072551203737,
+      "lon": 12.492278436600776,
+      "tags": {
+        "highway": "traffic_signals"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100201,
+      "lat": 41.89072551203737,
+      "lon": 12.492435309802326,
+      "tags": {
+        "highway": "bus_stop"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100202,
+      "lat": 41.89072551203737,
+      "lon": 12.492592183003877,
+      "tags": {
+        "amenity": "fountain"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100203,
+      "lat": 41.89072551203737,
+      "lon": 12.492749056205428,
+      "tags": {
+        "amenity": "vending_machine"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100204,
+      "lat": 41.89072551203737,
+      "lon": 12.492905929406978,
+      "tags": {
+        "man_made": "chimney"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100205,
+      "lat": 41.89072551203737,
+      "lon": 12.493062802608529,
+      "tags": {
+        "man_made": "lighthouse"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100206,
+      "lat": 41.89072551203737,
+      "lon": 12.49321967581008,
+      "tags": {
+        "man_made": "crane"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100207,
+      "lat": 41.89072551203737,
+      "lon": 12.493376549011632,
+      "tags": {
+        "railway": "subway_entrance"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100208,
+      "lat": 41.89084229249012,
+      "lon": 12.491023450988369,
+      "tags": {
+        "highway": "traffic_signals"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100209,
+      "lat": 41.89084229249012,
+      "lon": 12.491180324189921,
+      "tags": {
+        "highway": "bus_stop"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100210,
+      "lat": 41.89084229249012,
+      "lon": 12.491337197391472,
+      "tags": {
+        "amenity": "fountain"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100211,
+      "lat": 41.89084229249012,
+      "lon": 12.491494070593022,
+      "tags": {
+        "amenity": "vending_machine"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100212,
+      "lat": 41.89084229249012,
+      "lon": 12.491650943794573,
+      "tags": {
+        "man_made": "chimney"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100213,
+      "lat": 41.89084229249012,
+      "lon": 12.491807816996124,
+      "tags": {
+        "man_made": "lighthouse"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100214,
+      "lat": 41.89084229249012,
+      "lon": 12.491964690197674,
+      "tags": {
+        "man_made": "crane"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100215,
+      "lat": 41.89084229249012,
+      "lon": 12.492121563399225,
+      "tags": {
+        "railway": "subway_entrance"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100216,
+      "lat": 41.89084229249012,
+      "lon": 12.492278436600776,
+      "tags": {
+        "highway": "traffic_signals"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100217,
+      "lat": 41.89084229249012,
+      "lon": 12.492435309802326,
+      "tags": {
+        "highway": "bus_stop"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100218,
+      "lat": 41.89084229249012,
+      "lon": 12.492592183003877,
+      "tags": {
+        "amenity": "fountain"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100219,
+      "lat": 41.89084229249012,
+      "lon": 12.492749056205428,
+      "tags": {
+        "amenity": "vending_machine"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100220,
+      "lat": 41.89084229249012,
+      "lon": 12.492905929406978,
+      "tags": {
+        "man_made": "chimney"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100221,
+      "lat": 41.89084229249012,
+      "lon": 12.493062802608529,
+      "tags": {
+        "man_made": "lighthouse"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100222,
+      "lat": 41.89084229249012,
+      "lon": 12.49321967581008,
+      "tags": {
+        "man_made": "crane"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100223,
+      "lat": 41.89084229249012,
+      "lon": 12.493376549011632,
+      "tags": {
+        "railway": "subway_entrance"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100224,
+      "lat": 41.89095907294287,
+      "lon": 12.491023450988369,
+      "tags": {
+        "highway": "traffic_signals"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100225,
+      "lat": 41.89095907294287,
+      "lon": 12.491180324189921,
+      "tags": {
+        "highway": "bus_stop"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100226,
+      "lat": 41.89095907294287,
+      "lon": 12.491337197391472,
+      "tags": {
+        "amenity": "fountain"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100227,
+      "lat": 41.89095907294287,
+      "lon": 12.491494070593022,
+      "tags": {
+        "amenity": "vending_machine"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100228,
+      "lat": 41.89095907294287,
+      "lon": 12.491650943794573,
+      "tags": {
+        "man_made": "chimney"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100229,
+      "lat": 41.89095907294287,
+      "lon": 12.491807816996124,
+      "tags": {
+        "man_made": "lighthouse"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100230,
+      "lat": 41.89095907294287,
+      "lon": 12.491964690197674,
+      "tags": {
+        "man_made": "crane"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100231,
+      "lat": 41.89095907294287,
+      "lon": 12.492121563399225,
+      "tags": {
+        "railway": "subway_entrance"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100232,
+      "lat": 41.89095907294287,
+      "lon": 12.492278436600776,
+      "tags": {
+        "highway": "traffic_signals"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100233,
+      "lat": 41.89095907294287,
+      "lon": 12.492435309802326,
+      "tags": {
+        "highway": "bus_stop"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100234,
+      "lat": 41.89095907294287,
+      "lon": 12.492592183003877,
+      "tags": {
+        "amenity": "fountain"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100235,
+      "lat": 41.89095907294287,
+      "lon": 12.492749056205428,
+      "tags": {
+        "amenity": "vending_machine"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100236,
+      "lat": 41.89095907294287,
+      "lon": 12.492905929406978,
+      "tags": {
+        "man_made": "chimney"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100237,
+      "lat": 41.89095907294287,
+      "lon": 12.493062802608529,
+      "tags": {
+        "man_made": "lighthouse"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100238,
+      "lat": 41.89095907294287,
+      "lon": 12.49321967581008,
+      "tags": {
+        "man_made": "crane"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100239,
+      "lat": 41.89095907294287,
+      "lon": 12.493376549011632,
+      "tags": {
+        "railway": "subway_entrance"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100240,
+      "lat": 41.89107585339562,
+      "lon": 12.491023450988369,
+      "tags": {
+        "highway": "traffic_signals"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100241,
+      "lat": 41.89107585339562,
+      "lon": 12.491180324189921,
+      "tags": {
+        "highway": "bus_stop"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100242,
+      "lat": 41.89107585339562,
+      "lon": 12.491337197391472,
+      "tags": {
+        "amenity": "fountain"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100243,
+      "lat": 41.89107585339562,
+      "lon": 12.491494070593022,
+      "tags": {
+        "amenity": "vending_machine"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100244,
+      "lat": 41.89107585339562,
+      "lon": 12.491650943794573,
+      "tags": {
+        "man_made": "chimney"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100245,
+      "lat": 41.89107585339562,
+      "lon": 12.491807816996124,
+      "tags": {
+        "man_made": "lighthouse"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100246,
+      "lat": 41.89107585339562,
+      "lon": 12.491964690197674,
+      "tags": {
+        "man_made": "crane"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100247,
+      "lat": 41.89107585339562,
+      "lon": 12.492121563399225,
+      "tags": {
+        "railway": "subway_entrance"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100248,
+      "lat": 41.89107585339562,
+      "lon": 12.492278436600776,
+      "tags": {
+        "highway": "traffic_signals"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100249,
+      "lat": 41.89107585339562,
+      "lon": 12.492435309802326,
+      "tags": {
+        "highway": "bus_stop"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100250,
+      "lat": 41.89107585339562,
+      "lon": 12.492592183003877,
+      "tags": {
+        "amenity": "fountain"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100251,
+      "lat": 41.89107585339562,
+      "lon": 12.492749056205428,
+      "tags": {
+        "amenity": "vending_machine"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100252,
+      "lat": 41.89107585339562,
+      "lon": 12.492905929406978,
+      "tags": {
+        "man_made": "chimney"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100253,
+      "lat": 41.89107585339562,
+      "lon": 12.493062802608529,
+      "tags": {
+        "man_made": "lighthouse"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100254,
+      "lat": 41.89107585339562,
+      "lon": 12.49321967581008,
+      "tags": {
+        "man_made": "crane"
+      }
+    },
+    {
+      "type": "node",
+      "id": 100255,
+      "lat": 41.89107585339562,
+      "lon": 12.493376549011632,
+      "tags": {
+        "railway": "subway_entrance"
+      }
+    },
+    {
+      "type": "way",
+      "id": 100256,
+      "tags": {
+        "highway": "residential",
+        "name": "Synthetic prop test road"
+      },
+      "geometry": [
+        {
+          "lat": 41.88919389148401,
+          "lon": 12.490631267984492
+        },
+        {
+          "lat": 41.88919389148401,
+          "lon": 12.493768732015509
+        }
+      ]
+    }
+  ]
+}

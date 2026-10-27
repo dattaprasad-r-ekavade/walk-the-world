@@ -11,10 +11,11 @@ describe('synthetic benchmark fixtures', () => {
   const dense = readFixture('synthetic-dense.json');
   const sparse = readFixture('synthetic-sparse.json');
   const difficult = readFixture('synthetic-difficult-polygons.json');
+  const propHeavy = readFixture('synthetic-prop-heavy.json');
   const rome = readFixture('rome-showcase-osm.json');
 
   it('records reproducible provenance and a data license for every generated fixture', () => {
-    for (const fixture of [showcase, dense, sparse, difficult]) {
+    for (const fixture of [showcase, dense, sparse, difficult, propHeavy]) {
       expect(fixture.benchmarkFixture).toMatchObject({
         dataKind: expect.stringContaining('synthetic'),
         provenance: 'Generated deterministically by scripts/build-benchmark-fixtures.mjs',
@@ -43,6 +44,21 @@ describe('synthetic benchmark fixtures', () => {
         }
       }
     }
+  });
+
+  it('contains 256 deterministic prop markers for material-batching benchmarks', async () => {
+    expect(propHeavy.benchmarkFixture.featureCounts).toEqual({ staticProps: 256, roads: 1, propKinds: 8 });
+    expect(propHeavy.elements.filter((element) => element.type === 'node' && element.tags).length).toBe(256);
+
+    const { buildCityGeometry } = await import('../lib/engine/city-builder-core.js');
+    const { result, transfers } = buildCityGeometry({
+      elements: propHeavy.elements,
+      lat0: propHeavy.benchmarkFixture.center.lat,
+      lon0: propHeavy.benchmarkFixture.center.lon,
+    });
+    expect(result.meta.props).toHaveLength(256);
+    expect(result.meta.roadPaths).toHaveLength(1);
+    expect(transfers.length).toBeGreaterThan(0);
   });
 
   it('builds every synthetic workload through the production geometry path', async () => {
