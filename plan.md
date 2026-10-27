@@ -460,8 +460,11 @@ street/cell-stream.js, street/terrain.js and street/resources.js.
   median 9 ms, with identical output-buffer size. Collision and height caches
   were left intact. The [checkpoint report](benchmarks/results/stage1/city-data-and-road-query-checkpoint-2026-10-28.md)
   records the five-pair results and limits.
-- [ ] 1.5 Verify terrain eviction/revisit, road repaint, shared material ownership,
-  late imagery callbacks and stationary retries.
+- [x] 1.5 Verify terrain eviction/revisit, road repaint, shared material ownership,
+  late imagery callbacks and stationary retries. The [lifecycle verification
+  report](benchmarks/results/stage1/stage1-lifecycle-verification-2026-10-28.md)
+  records the targeted regression coverage and full 116-test pass. The 15-minute
+  resource soak remains an open Stage 1 exit gate.
 
 Exit: reduced measured spikes, lifecycle regression checks pass, and resident
 resources stabilise in a 15-minute walk. Keep geometry semantics unchanged.

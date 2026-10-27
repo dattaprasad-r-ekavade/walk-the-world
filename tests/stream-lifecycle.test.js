@@ -24,7 +24,9 @@ describe('stream lifecycle',()=>{
     streamer.markLoaded('wtw_city6_1.000_2.000',1,2); streamer.tick(1,2);
     await vi.waitFor(()=>expect(streamer.loadingCount()).toBe(0));
     expect(build).toHaveBeenCalledTimes(1);
-    now+=60000;streamer.tick(1,2);
+    now+=29999;streamer.tick(1,2);
+    expect(build).toHaveBeenCalledTimes(1); // the failed cell remains held during backoff
+    now+=1;streamer.tick(1,2); // no player movement: retry as soon as the cooldown expires
     await vi.waitFor(()=>expect(streamer.loadingCount()).toBe(0));
     expect(build).toHaveBeenCalledTimes(2);expect(build.mock.calls[1][0].elements[0].id).toBe(42);
     streamer.dispose();
@@ -155,6 +157,19 @@ describe('stream lifecycle',()=>{
     const b=new THREE.Mesh(new THREE.BoxGeometry(),new THREE.MeshBasicMaterial({map:texture}));scene.add(a,b);
     disposeSceneGroup(a,scene);expect(dispose).not.toHaveBeenCalled();disposeSceneGroup(b,scene);expect(dispose).toHaveBeenCalledOnce();
   });
+  it('preserves cached shared materials and their textures when a cell is evicted',()=>{
+    const scene=new THREE.Scene(),texture=new THREE.Texture();
+    const material=new THREE.MeshBasicMaterial({map:texture});material.userData.shared=true;
+    const geometry=new THREE.BoxGeometry();
+    const disposeMaterial=vi.spyOn(material,'dispose');
+    const disposeTexture=vi.spyOn(texture,'dispose');
+    const disposeGeometry=vi.spyOn(geometry,'dispose');
+    const group=new THREE.Group();group.add(new THREE.Mesh(geometry,material));scene.add(group);
+    disposeSceneGroup(group,scene);
+    expect(disposeMaterial).not.toHaveBeenCalled();
+    expect(disposeTexture).not.toHaveBeenCalled();
+    expect(disposeGeometry).toHaveBeenCalledOnce();
+  });
   it('reuses a worker and rejects pending work on disposal',async()=>{
     const worker={postMessage:vi.fn(),terminate:vi.fn()};const factory=vi.fn(()=>worker);
     const pool=createCityBuilderPool({size:1,workerFactory:factory});
@@ -215,6 +230,37 @@ describe('stream eviction',()=>{
     streamer.tick(1.0055,2.0001);
     expect(fetchCityDataForStream.mock.calls.length).toBe(calls);
     expect(calls).toBeGreaterThanOrEqual(8); // all ring cells requested (spawn is pinned, one is skipped)
+    streamer.dispose();
+  });
+  it('rebuilds an evicted road cell when the player revisits it',async()=>{
+    vi.spyOn(console,'warn').mockImplementation(()=>{}); vi.spyOn(console,'info').mockImplementation(()=>{});
+    const targetLat=1+CELL_STEP,targetKey=cityCacheKey(targetLat,2);
+    fetchCityDataForStream.mockImplementation(async(la,lo)=>({
+      lat:la,lon:lo,cacheKey:cityCacheKey(la,lo),
+      data:{elements:cityCacheKey(la,lo)===targetKey?[{type:'way',id:84,tags:{highway:'residential'},geometry:[
+        {lat:la,lon:lo},{lat:la+0.0001,lon:lo},{lat:la+0.0001,lon:lo+0.0001},
+      ]}]:[]},
+    }));
+    const buildCity=vi.fn(async({elements})=>({meta:{roadPaths:elements.map((el)=>({id:el.id,pts:el.geometry}))}}));
+    const streamer=createCellStreamer({
+      scene:new THREE.Scene(),lat0:1,lon0:2,terrainTiles:new Map(),engineRef:{current:{}},
+      buildCity,maxCells:1,
+    });
+    streamer.markLoaded('wtw_city6_1.000_2.000',1,2);
+    streamer.tick(1,2);
+    await vi.waitFor(()=>expect(assembleCityFromBuild).toHaveBeenCalledTimes(1));
+    expect(streamer.debugState().loadedKeys).toContain(targetKey);
+
+    streamer.tick(1+CELL_STEP*6,2);
+    await vi.waitFor(()=>expect(streamer.loadingCount()).toBe(0));
+    expect(streamer.debugState().loadedKeys).not.toContain(targetKey);
+
+    streamer.tick(targetLat,2);
+    await vi.waitFor(()=>expect(assembleCityFromBuild).toHaveBeenCalledTimes(2));
+    expect(assembleCityFromBuild.mock.calls[1][0].meta.roadPaths).toEqual([
+      expect.objectContaining({id:84}),
+    ]);
+    expect(streamer.debugState().loadedKeys).toContain(targetKey);
     streamer.dispose();
   });
   it('evicts empty cells as the loaded ring advances and preserves its capacity bound',async()=>{
