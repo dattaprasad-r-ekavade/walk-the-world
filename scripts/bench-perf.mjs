@@ -167,7 +167,10 @@ function createNetworkRecorder(page, baseOrigin) {
   });
   page.on('requestfailed', (request) => {
     const record = records.get(request);
-    if (record) record.failed = true;
+    if (record) {
+      record.failed = true;
+      record.failureText = request.failure()?.errorText || 'request failed';
+    }
   });
   page.on('requestfinished', (request) => {
     const record = records.get(request);
@@ -187,12 +190,14 @@ function createNetworkRecorder(page, baseOrigin) {
     async summary() {
       await Promise.allSettled([...pendingSizes]);
       const groups = {};
-      const cityKeys = new Set();
+      const cityCells = {};
       for (const record of records.values()) {
         const group = groups[record.category] ||= {
           requests: 0,
           completed: 0,
           failed: 0,
+          httpErrorResponses: 0,
+          statusCodes: {},
           encodedResponseBytes: 0,
           requestsWithKnownSize: 0,
           serviceWorkerResponses: 0,
@@ -203,13 +208,45 @@ function createNetworkRecorder(page, baseOrigin) {
         group.requests++;
         if (record.completed) group.completed++;
         if (record.failed) group.failed++;
+        if (Number.isInteger(record.status)) {
+          const statusCode = String(record.status);
+          group.statusCodes[statusCode] = (group.statusCodes[statusCode] || 0) + 1;
+          if (record.status >= 400) group.httpErrorResponses++;
+        }
         if (record.serviceWorker) group.serviceWorkerResponses++;
         if (Number.isFinite(record.durationMs)) group.durationsMs.push(record.durationMs);
         if (Number.isFinite(record.responseBodySize)) {
           group.encodedResponseBytes += record.responseBodySize;
           group.requestsWithKnownSize++;
         }
-        if (record.cityKey) cityKeys.add(record.cityKey);
+        if (record.cityKey) {
+          const cell = cityCells[record.cityKey] ||= {
+            requests: 0,
+            completed: 0,
+            transportFailures: 0,
+            transportFailureReasons: {},
+            httpErrorResponses: 0,
+            statusCodes: {},
+            encodedResponseBytes: 0,
+            requestsWithKnownSize: 0,
+          };
+          cell.requests++;
+          if (record.completed) cell.completed++;
+          if (record.failed) {
+            cell.transportFailures++;
+            const reason = record.failureText || 'request failed';
+            cell.transportFailureReasons[reason] = (cell.transportFailureReasons[reason] || 0) + 1;
+          }
+          if (Number.isInteger(record.status)) {
+            const statusCode = String(record.status);
+            cell.statusCodes[statusCode] = (cell.statusCodes[statusCode] || 0) + 1;
+            if (record.status >= 400) cell.httpErrorResponses++;
+          }
+          if (Number.isFinite(record.responseBodySize)) {
+            cell.encodedResponseBytes += record.responseBodySize;
+            cell.requestsWithKnownSize++;
+          }
+        }
       }
       for (const group of Object.values(groups)) {
         group.requestDurationP50Ms = percentile(group.durationsMs, 0.5);
@@ -222,9 +259,18 @@ function createNetworkRecorder(page, baseOrigin) {
         completedRequests: [...records.values()].filter((record) => record.completed).length,
         incompleteRequests: [...records.values()].filter((record) => !record.completed && !record.failed).length,
         failedRequests: [...records.values()].filter((record) => record.failed).length,
+        httpErrorResponses: [...records.values()].filter((record) => Number.isInteger(record.status) && record.status >= 400).length,
+        statusCodes: [...records.values()].reduce((counts, record) => {
+          if (Number.isInteger(record.status)) {
+            const statusCode = String(record.status);
+            counts[statusCode] = (counts[statusCode] || 0) + 1;
+          }
+          return counts;
+        }, {}),
         encodedResponseBytes: [...records.values()].reduce((sum, record) => sum + (record.responseBodySize || 0), 0),
         requestsWithKnownSize: [...records.values()].filter((record) => Number.isFinite(record.responseBodySize)).length,
-        cityApiCellsRequested: [...cityKeys].sort(),
+        cityApiCellsRequested: Object.keys(cityCells).sort(),
+        cityApiCellResults: cityCells,
         byCategory: groups,
       };
     },

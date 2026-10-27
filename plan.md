@@ -195,9 +195,10 @@ scripts/bench-perf.mjs and benchmarks/fixtures/.
     walking/driving across cell boundaries with network and resource telemetry.
   - [x] Extend the runner with live city loading, cold browser contexts, and a
     verified warm IndexedDB preflight. Record browser-visible request counts,
-    encoded response bytes, failures, and latency percentiles by request family.
-    This enables the remaining runs; the upstream server/CDN cache is not reset,
-    and browser telemetry cannot see server-side Overpass traffic.
+    encoded response bytes, HTTP/transport failures, per-cell status codes, and
+    latency percentiles by request family. This enables the remaining runs; the
+    upstream server/CDN cache is not reset, and browser telemetry cannot see
+    server-side Overpass traffic.
   - [x] Add recorded OSM replay through the browser's normal city API and
     IndexedDB path. Smoke cold, warm and cross-cell setup with the Rome showcase
     fixture; the [summary](benchmarks/results/stage0/recorded-city-cache-smoke.md)
@@ -216,7 +217,10 @@ scripts/bench-perf.mjs and benchmarks/fixtures/.
     reached 1,259 samples and hit the old 1,200-sample limit. Rebuilt and reran
     the crossing walk and drive successfully.
   - A first live cold smoke timed out while the local city API returned an
-    upstream error, so it is not baseline evidence.
+    upstream error, so it is not baseline evidence. A second live boundary retry
+    recorded one `/api/city` 502, two transport failures and no measured cell;
+    the recorded-fixture status smoke returned 12 cell keys with HTTP 200 and
+    zero failures.
   - The default injected-fixture smoke confirmed request accounting but also
     hit the optional asset endpoint's expected 501 response; its four-second
     window is diagnostic only.
