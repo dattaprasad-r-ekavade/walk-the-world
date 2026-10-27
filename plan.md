@@ -105,8 +105,8 @@ scripts/bench-perf.mjs and benchmarks/fixtures/.
 - [x] 0.6 Extend and validate the benchmark CLI for fixture, route, preset,
   renderer mode and output. Fail nonzero on failed checks/console/asset errors.
   Document new switches only after they exist.
-- [ ] 0.7 Prove street movement via player displacement. The runner now clicks
-  the street canvas and requires measurable displacement. Add deterministic
+- [ ] 0.7 Prove street movement via player displacement. The runner focuses the
+  Street page and requires measurable displacement. Add deterministic
   multi-cell walking and driving scenarios.
 - [ ] 0.8 Capture matched production warm/cold/day/night/rain/crossing baselines
   and rank CPU, GPU, network and memory bottlenecks.

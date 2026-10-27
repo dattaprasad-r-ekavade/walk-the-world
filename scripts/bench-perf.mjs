@@ -68,7 +68,8 @@ async function benchStreet(page) {
     return player ? { x: player.x, z: player.z } : null;
   });
   if (!playerStart) throw new Error('Street player debug state is unavailable');
-  await page.locator('.cesium-container canvas').first().click({ timeout: 5000 });
+  await page.bringToFront();
+  await page.evaluate(() => window.focus());
   await page.keyboard.down('w');
   await page.evaluate(() => {
     const counters = window.__perfCounters;
