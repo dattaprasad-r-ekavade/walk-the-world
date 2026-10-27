@@ -48,6 +48,22 @@ describe("performance diagnostics", () => {
     expect(result.reasons).toHaveLength(4);
   });
 
+  it("rejects frame samples from hidden or unfocused pages", () => {
+    const result = validateBenchmarkMeasurement({
+      requestedWalkMs: 12_000,
+      wallElapsedMs: 12_030,
+      frameDurationMs: 12_000,
+      frameSampleCount: 12,
+      rendererSampleCount: 12,
+      gpuSampleCount: 12,
+      visibilityState: 'visible',
+      pageHasFocus: false,
+    });
+
+    expect(result.valid).toBe(false);
+    expect(result.reasons).toContain('Browser page did not have focus during the measurement');
+  });
+
   it("creates and upgrades a versioned report without clearing existing counters", () => {
     const counters = ensurePerfCounters({ schemaVersion: 0, reactRenders: 4 });
     expect(counters.schemaVersion).toBe(2);

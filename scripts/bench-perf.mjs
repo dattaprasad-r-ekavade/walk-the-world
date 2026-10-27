@@ -326,6 +326,8 @@ async function benchStreet(page) {
   await page.waitForTimeout(500);
   const hostTelemetryMonitor = startHostTelemetry(Math.min(600, Math.max(1, Math.ceil(walkDurationMs / 1000) + 3)));
   await hostTelemetryMonitor.ready;
+  await page.bringToFront();
+  await page.evaluate(() => window.focus());
   await page.evaluate(() => {
     const counters = window.__perfCounters;
     if (counters) {
@@ -338,6 +340,15 @@ async function benchStreet(page) {
       counters.fpsSamples.length = 0;
     }
     window.__BENCH_FREEZE_POPULATION = false;
+    const focusMonitor = { active: false, focusLossCount: 0, visibilityLossCount: 0 };
+    window.__BENCH_FOCUS_MONITOR = focusMonitor;
+    window.addEventListener('blur', () => {
+      if (focusMonitor.active) focusMonitor.focusLossCount++;
+    });
+    document.addEventListener('visibilitychange', () => {
+      if (focusMonitor.active && document.visibilityState !== 'visible') focusMonitor.visibilityLossCount++;
+    });
+    focusMonitor.active = true;
   });
   const measurementStartedAt = new Date().toISOString();
   const measurementStartedMonotonicMs = performance.now();
@@ -356,6 +367,8 @@ async function benchStreet(page) {
     const fpsText = fpsChip?.textContent || '0 FPS';
     const fps = parseInt(fpsText, 10) || 0;
     const counters = window.__perfCounters ?? null;
+    const focusMonitor = window.__BENCH_FOCUS_MONITOR;
+    if (focusMonitor) focusMonitor.active = false;
     return {
       fps,
       triangles: window.__streetTriangles ?? null,
@@ -368,6 +381,9 @@ async function benchStreet(page) {
       environment: {
         ...(counters?.environment || {}),
         visibilityState: document.visibilityState,
+        hasFocus: document.hasFocus(),
+        focusLossCount: focusMonitor?.focusLossCount ?? null,
+        visibilityLossCount: focusMonitor?.visibilityLossCount ?? null,
         viewport: { width: innerWidth, height: innerHeight, devicePixelRatio },
       },
       capturedAtBrowserMs: performance.now(),
@@ -426,6 +442,10 @@ async function benchStreet(page) {
     frameSampleCount: frameIntervalsMs.length,
     rendererSampleCount: rendererFrames.length,
     gpuSampleCount: gpuFrameTimesMs.length,
+    visibilityState: metrics.environment.visibilityState,
+    pageHasFocus: metrics.environment.hasFocus,
+    focusLossCount: metrics.environment.focusLossCount ?? 0,
+    visibilityLossCount: metrics.environment.visibilityLossCount ?? 0,
   });
   measurementWindow.startedAt = measurementStartedAt;
   measurementWindow.endedAt = measurementEndedAt;
