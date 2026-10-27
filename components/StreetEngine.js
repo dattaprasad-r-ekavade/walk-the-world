@@ -225,6 +225,9 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false }) {
     engineRef.current = runtime.current;
     const lifetime = new AbortController();
     const signal = lifetime.signal;
+    const readOnlyCityData = window.__BENCH_MODE !== true || window.__BENCH_CITY_DATA_COPY_MODE !== "clone";
+    const profileCityQueries = window.__BENCH_MODE === true && window.__BENCH_PROFILE_CITY_QUERIES === true;
+    const benchmarkRoadQueryMode = window.__BENCH_MODE === true && window.__BENCH_ROAD_QUERY_MODE === "scan" ? "scan" : "indexed";
     const benchmarkWorkerCount = window.__BENCH_MODE === true && Number.isInteger(window.__BENCH_GEOMETRY_WORKERS)
       ? window.__BENCH_GEOMETRY_WORKERS
       : null;
@@ -242,7 +245,10 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false }) {
     const assetListPromise = fetch("/api/assets", { signal })
       .then((r) => (r.ok ? r.json() : []))
       .catch(() => []);
-    const cityDataPromise = measurePerfAsync("city.initial-data-consumer", () => fetchCityData(lat0, lon0, { signal })).catch((e) => {
+    const cityDataPromise = measurePerfAsync("city.initial-data-consumer", () => fetchCityData(lat0, lon0, {
+      signal,
+      readonly: readOnlyCityData,
+    })).catch((e) => {
       console.warn("[street] city data:", e?.message);
       return null;
     });
@@ -616,6 +622,8 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false }) {
           lat0,
           lon0,
           terrainTiles,
+          profileQueries: profileCityQueries,
+          roadQueryMode: benchmarkRoadQueryMode,
           onProgress: (done, total) => {
             setStage(`Building city (${done}/${total})…`);
             setReadyPct((p) => Math.max(p, 60 + Math.floor((done / Math.max(1, total)) * 25)));
@@ -1318,22 +1326,50 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false }) {
         const c = toLocal(tp.lat, tp.lon);
         patchTerrain(c.x, c.z, tp.radius || 10, tp.height);
       }
-      // hidden features: stray/broken OSM elements removed by the editor
-      if (cityData && edits.hidden?.length) {
-        const hiddenSet = new Set(edits.hidden);
-        cityData.elements = (cityData.elements || []).filter(
-          (el) => !hiddenSet.has(`${el.type}/${el.id}`)
-        );
-      }
-      // tag overrides: local corrections over OSM data ("way/123": {k: v})
-      if (cityData && edits.tagOverrides) {
-        for (const el of cityData.elements || []) {
-          const ov = edits.tagOverrides[`${el.type}/${el.id}`];
-          if (ov) el.tags = { ...(el.tags || {}), ...ov };
+      let cityDataForBuild = cityData;
+      if (cityData && readOnlyCityData) {
+        let elements = cityData.elements || [];
+        let changed = false;
+        // hidden features: filter a new array without rewriting the shared cache entry
+        if (edits.hidden?.length) {
+          const hiddenSet = new Set(edits.hidden);
+          elements = elements.filter((el) => !hiddenSet.has(`${el.type}/${el.id}`));
+          changed = true;
+        }
+        // tag overrides: clone only the elements and tag objects that change
+        const overrides = edits.tagOverrides;
+        if (overrides) {
+          let changedElements = null;
+          for (let i = 0; i < elements.length; i++) {
+            const el = elements[i];
+            const override = overrides[`${el.type}/${el.id}`];
+            if (!override) continue;
+            changedElements ||= elements.slice();
+            changedElements[i] = { ...el, tags: { ...(el.tags || {}), ...override } };
+          }
+          if (changedElements) {
+            elements = changedElements;
+            changed = true;
+          }
+        }
+        if (changed) cityDataForBuild = { ...cityData, elements };
+      } else if (cityData) {
+        // Preserve the old mutation path for the benchmark's deep-clone baseline.
+        if (edits.hidden?.length) {
+          const hiddenSet = new Set(edits.hidden);
+          cityData.elements = (cityData.elements || []).filter(
+            (el) => !hiddenSet.has(`${el.type}/${el.id}`)
+          );
+        }
+        if (edits.tagOverrides) {
+          for (const el of cityData.elements || []) {
+            const override = edits.tagOverrides[`${el.type}/${el.id}`];
+            if (override) el.tags = { ...(el.tags || {}), ...override };
+          }
         }
       }
 
-      const cityBuilt = await loadCity(cityData);
+      const cityBuilt = await loadCity(cityDataForBuild);
       if (disposed) return;
       const benchmarkStartPose = window.__BENCH_MODE === true ? window.__BENCH_START_POSE : null;
       if (benchmarkStartPose) {
@@ -1386,7 +1422,7 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false }) {
         },
         onCellLoaded: () => { if (!disposed) window.__engineReady = true; },
         maxCells: 10,
-        buildCity: cityBuilder.build,
+        buildCity: (args) => cityBuilder.build({ ...args, profileQueries: profileCityQueries, roadQueryMode: benchmarkRoadQueryMode }),
       });
       if (cityBuilt) {
         cellStreamer.markLoaded(cityCacheKey(lat0, lon0), lat0, lon0);
@@ -1549,6 +1585,7 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false }) {
 
       window.__streetDebug = {
         player,
+        cityDataCopyMode: readOnlyCityData ? "readonly" : "clone",
         insideBuilding,
         groundHeight,
         propMarkers: () => runtime.current.propMarkers || [],

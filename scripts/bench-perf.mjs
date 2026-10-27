@@ -56,6 +56,9 @@ const rendererMode = option('--renderer-mode', 'software');
 const browserChannel = option('--browser-channel', 'bundled');
 const walkDurationMs = Number(option('--walk-ms', '12000'));
 const geometryWorkers = Number(option('--geometry-workers', '2'));
+const cityDataCopyMode = option('--city-data-copy', 'readonly');
+const profileCityQueries = args.includes('--profile-city-queries');
+const roadQueryMode = option('--road-query-mode', 'indexed');
 const seed = Number(option('--seed', '1337'));
 const location = {
   lat: Number(option('--lat', '41.8902')),
@@ -94,6 +97,12 @@ if (['live', 'recorded'].includes(dataMode) && !['cold', 'warm'].includes(cacheM
 if (!Number.isFinite(walkDurationMs) || walkDurationMs < 1000) throw new Error('--walk-ms must be at least 1000');
 if (!Number.isInteger(geometryWorkers) || geometryWorkers < 1 || geometryWorkers > 2) {
   throw new Error('--geometry-workers must be 1 or 2');
+}
+if (!['clone', 'readonly'].includes(cityDataCopyMode)) {
+  throw new Error('--city-data-copy must be clone or readonly');
+}
+if (!['scan', 'indexed'].includes(roadQueryMode)) {
+  throw new Error('--road-query-mode must be scan or indexed');
 }
 if (!Number.isInteger(seed) || seed < 0 || seed > 0xffffffff) throw new Error('--seed must be an integer from 0 to 4294967295');
 if (!Number.isFinite(location.lat) || Math.abs(location.lat) > 90 || !Number.isFinite(location.lon) || Math.abs(location.lon) > 180) {
@@ -566,6 +575,7 @@ async function benchStreet(page) {
       triangles: window.__streetTriangles ?? null,
       perf: counters,
       cityBuilder: window.__streetDebug?.cityBuilder?.() || null,
+      cityDataCopyMode: window.__streetDebug?.cityDataCopyMode || null,
       player: window.__streetDebug?.player ? {
         x: window.__streetDebug.player.x,
         z: window.__streetDebug.player.z,
@@ -685,6 +695,7 @@ async function benchStreet(page) {
     metadata: metrics.perf?.metadata || {},
     settings: metrics.perf?.settings || {},
     cityBuilder: metrics.cityBuilder,
+    cityDataCopyMode: metrics.cityDataCopyMode,
     resourceCounts: metrics.perf?.resourceCounts || {},
     materialInventory,
     unavailableMeasurements: metrics.perf?.unavailableMeasurements || [],
@@ -725,7 +736,7 @@ async function main() {
   mkdirSync(dirname(outPath), { recursive: true });
 
   console.log(`  Fixture: ${fixturePath}`);
-  console.log(`  Route: ${route}; data: ${dataMode}; cache: ${cacheMode}; preset: ${qualityPreset}; geometry workers: ${geometryWorkers}; browser: ${browserChannel}; renderer: ${rendererMode}; hour: ${benchmarkEnvironment.hour}; weather: ${benchmarkEnvironment.weather}; walk: ${walkDurationMs}ms${crossCell ? '; crossing a cell boundary' : ''}`);
+  console.log(`  Route: ${route}; data: ${dataMode}; cache: ${cacheMode}; preset: ${qualityPreset}; geometry workers: ${geometryWorkers}; city data copy: ${cityDataCopyMode}; road query: ${roadQueryMode}; browser: ${browserChannel}; renderer: ${rendererMode}; hour: ${benchmarkEnvironment.hour}; weather: ${benchmarkEnvironment.weather}; walk: ${walkDurationMs}ms${crossCell ? '; crossing a cell boundary' : ''}`);
 
   const launchOptions = {
     headless: !headed,
@@ -746,7 +757,7 @@ async function main() {
       routeRequest.fulfill({ status: 200, contentType: 'application/json', body: '[]' })
     );
   }
-  await context.addInitScript(({ fixture, schemaVersion, preset, seed, pose, environment, geometryWorkers }) => {
+  await context.addInitScript(({ fixture, schemaVersion, preset, seed, pose, environment, geometryWorkers, cityDataCopyMode, profileCityQueries, roadQueryMode }) => {
     if (location.origin !== 'null') {
       try {
         const saved = JSON.parse(localStorage.getItem('wtw-game') || '{}');
@@ -765,6 +776,9 @@ async function main() {
     }
     window.__BENCH_MODE = true;
     window.__BENCH_GEOMETRY_WORKERS = geometryWorkers;
+    window.__BENCH_CITY_DATA_COPY_MODE = cityDataCopyMode;
+    window.__BENCH_PROFILE_CITY_QUERIES = profileCityQueries;
+    window.__BENCH_ROAD_QUERY_MODE = roadQueryMode;
     window.__BENCH_SEED = seed;
     window.__BENCH_FIXTURE = fixture;
     window.__BENCH_START_POSE = pose;
@@ -796,6 +810,9 @@ async function main() {
     pose: fixedPose,
     environment: benchmarkEnvironment,
     geometryWorkers,
+    cityDataCopyMode,
+    roadQueryMode,
+    profileCityQueries,
   });
 
   let cache = dataMode === 'fixture'
@@ -894,6 +911,9 @@ async function main() {
       driving,
       crossCell,
       geometryWorkers,
+      cityDataCopyMode,
+      roadQueryMode,
+      profileCityQueries,
       fixedPose,
       populationFrozenUntilMeasurement: true,
       hostTelemetryEnabled: !skipHostTelemetry && process.platform === 'win32',
@@ -913,6 +933,12 @@ async function main() {
     result.street = await benchStreet(page);
     if (result.street.cityBuilder?.workerCount !== geometryWorkers) {
       throw new Error(`Requested ${geometryWorkers} geometry worker(s), but the engine reported ${result.street.cityBuilder?.workerCount ?? 'unknown'}`);
+    }
+    if (result.street.cityDataCopyMode !== cityDataCopyMode) {
+      throw new Error(`Requested ${cityDataCopyMode} city data mode, but the engine reported ${result.street.cityDataCopyMode ?? 'unknown'}`);
+    }
+    if (profileCityQueries && !result.street.timings.some((event) => event.name === 'city.worker-poi-road-query' && event.details?.mode === roadQueryMode)) {
+      throw new Error(`Requested ${roadQueryMode} road query mode, but the worker did not confirm it in profile timing.`);
     }
     result.networkTelemetry = await networkRecorder.summary();
     if (result.street.settings?.hour !== benchmarkEnvironment.hour || result.street.settings?.weather !== benchmarkEnvironment.weather) {

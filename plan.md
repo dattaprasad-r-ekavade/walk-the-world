@@ -451,8 +451,15 @@ street/cell-stream.js, street/terrain.js and street/resources.js.
     or frame-time gain. Keep the existing two-worker default. A physical low-core
     device, attributable process memory, and Stage 3.5 KTX2 decoder contention
     remain unmeasured, so 1.3 stays open.
-- [ ] 1.4 Reduce measured clones and temporary allocations. Index repeated road/
-  POI queries only if traces justify it; preserve collision and height caches.
+- [x] 1.4 Reduce measured clones and temporary allocations. The [city-data
+  copy comparison](benchmarks/results/stage1/city-data-copy-on-write-five-pair.json)
+  measured a 17.5 ms median defensive clone; the read-only path skips it and
+  uses copy-on-write for editor changes. Startup and frame p95 did not improve.
+  The [road-query comparison](benchmarks/results/stage1/road-query-index-five-pair.json)
+  justified a local segment grid: query plus index-build time fell by a paired
+  median 9 ms, with identical output-buffer size. Collision and height caches
+  were left intact. The [checkpoint report](benchmarks/results/stage1/city-data-and-road-query-checkpoint-2026-10-28.md)
+  records the five-pair results and limits.
 - [ ] 1.5 Verify terrain eviction/revisit, road repaint, shared material ownership,
   late imagery callbacks and stationary retries.
 

@@ -1,0 +1,167 @@
+{
+  "schemaVersion": 1,
+  "createdAt": "2026-10-28T03:59:16.0286814+05:30",
+  "sourceRevision": "cd5c6299da48e14710912694d6dd228942485467",
+  "sourceTreeDirty": true,
+  "scenario": {
+    "renderer": "browser-default",
+    "pairCount": 5,
+    "browser": "Chrome 156",
+    "crossCell": true,
+    "walkMs": 12000,
+    "geometryWorkers": 2,
+    "dataMode": "recorded",
+    "city": "Rome",
+    "preset": "medium",
+    "cacheMode": "cold"
+  },
+  "runOrder": "Alternating clone/read-only and read-only/clone within each pair",
+  "summary": {
+    "pairedFrameP95DeltaMedianMs": 0.0,
+    "cloneCopyRangeMs": {
+      "min": 16.40000009536743,
+      "max": 18.0
+    },
+    "pairedGpuP95DeltaMedianMs": 0.05270799999999998,
+    "cloneLoadMedianMs": 5201.0,
+    "readonlyCopyRangeMs": {
+      "min": 0.0,
+      "max": 0.0
+    },
+    "cloneFrameP95MedianMs": 14.0,
+    "readonlyLoadMedianMs": 5235.0,
+    "readonlyCopyMedianMs": 0.0,
+    "cloneCopyMedianMs": 17.5,
+    "readonlyFrameP95MedianMs": 14.0,
+    "pairedReadonlyMinusCloneLoadRangeMs": {
+      "min": -138.0,
+      "max": 256.0
+    },
+    "readonlyGpuP95MedianMs": 7.618072,
+    "cloneGpuP95MedianMs": 7.507395,
+    "pairedReadonlyMinusCloneLoadMedianMs": 128.0,
+    "browserDiagnosticFailureCount": 0
+  },
+  "runs": [
+    {
+      "pair": 1,
+      "order": "clone-then-readonly",
+      "cityDataCopyMode": "clone",
+      "copyDurationMs": 18,
+      "loadMs": 4866,
+      "frameP95Ms": 14,
+      "gpuP95Ms": 7.479426,
+      "movementMeters": 60.0065000009547,
+      "cellCrossingValidated": true,
+      "residentCellCount": 10
+    },
+    {
+      "pair": 1,
+      "order": "clone-then-readonly",
+      "cityDataCopyMode": "readonly",
+      "copyDurationMs": 0,
+      "loadMs": 5040,
+      "frameP95Ms": 14,
+      "gpuP95Ms": 7.633593,
+      "movementMeters": 60.06849999904722,
+      "cellCrossingValidated": true,
+      "residentCellCount": 10
+    },
+    {
+      "pair": 2,
+      "order": "readonly-then-clone",
+      "cityDataCopyMode": "readonly",
+      "copyDurationMs": 0,
+      "loadMs": 5178,
+      "frameP95Ms": 14,
+      "gpuP95Ms": 7.469426,
+      "movementMeters": 60.041499999762834,
+      "cellCrossingValidated": true,
+      "residentCellCount": 10
+    },
+    {
+      "pair": 2,
+      "order": "readonly-then-clone",
+      "cityDataCopyMode": "clone",
+      "copyDurationMs": 17.899999856948853,
+      "loadMs": 5285,
+      "frameP95Ms": 14,
+      "gpuP95Ms": 7.507395,
+      "movementMeters": 60.07100000023871,
+      "cellCrossingValidated": true,
+      "residentCellCount": 10
+    },
+    {
+      "pair": 3,
+      "order": "clone-then-readonly",
+      "cityDataCopyMode": "clone",
+      "copyDurationMs": 17.299999952316284,
+      "loadMs": 5014,
+      "frameP95Ms": 14,
+      "gpuP95Ms": 7.571145,
+      "movementMeters": 60.057000000477785,
+      "cellCrossingValidated": true,
+      "residentCellCount": 10
+    },
+    {
+      "pair": 3,
+      "order": "clone-then-readonly",
+      "cityDataCopyMode": "readonly",
+      "copyDurationMs": 0,
+      "loadMs": 5270,
+      "frameP95Ms": 14,
+      "gpuP95Ms": 7.625781,
+      "movementMeters": 60.1195000004783,
+      "cellCrossingValidated": true,
+      "residentCellCount": 10
+    },
+    {
+      "pair": 4,
+      "order": "readonly-then-clone",
+      "cityDataCopyMode": "readonly",
+      "copyDurationMs": 0,
+      "loadMs": 5329,
+      "frameP95Ms": 14.099999999998545,
+      "gpuP95Ms": 7.618072,
+      "movementMeters": 60.05900000095488,
+      "cellCrossingValidated": true,
+      "residentCellCount": 10
+    },
+    {
+      "pair": 4,
+      "order": "readonly-then-clone",
+      "cityDataCopyMode": "clone",
+      "copyDurationMs": 16.40000009536743,
+      "loadMs": 5201,
+      "frameP95Ms": 14.099999999998545,
+      "gpuP95Ms": 7.596405,
+      "movementMeters": 60.03799999952298,
+      "cellCrossingValidated": true,
+      "residentCellCount": 10
+    },
+    {
+      "pair": 5,
+      "order": "clone-then-readonly",
+      "cityDataCopyMode": "clone",
+      "copyDurationMs": 17.5,
+      "loadMs": 5373,
+      "frameP95Ms": 14,
+      "gpuP95Ms": 7.470572,
+      "movementMeters": 60.03399999976301,
+      "cellCrossingValidated": true,
+      "residentCellCount": 10
+    },
+    {
+      "pair": 5,
+      "order": "clone-then-readonly",
+      "cityDataCopyMode": "readonly",
+      "copyDurationMs": 0,
+      "loadMs": 5235,
+      "frameP95Ms": 14,
+      "gpuP95Ms": 7.52328,
+      "movementMeters": 60.077500000000555,
+      "cellCrossingValidated": true,
+      "residentCellCount": 10
+    }
+  ]
+}
