@@ -1270,7 +1270,21 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false }) {
       if (disposed) return;
       markPerf("terrain-ready", { loadedTiles: terrainTiles.size, flatFallback: terrainTiles.size === 0 });
 
-      applySky(12);
+      const initialSettings = useGameStore.getState().settings || settings || {};
+      const initialHour = Number.isFinite(initialSettings.hour)
+        ? Math.max(0, Math.min(24, initialSettings.hour))
+        : 12;
+      const initialWeather = Number.isFinite(initialSettings.weather)
+        ? Math.max(0, Math.min(100, initialSettings.weather))
+        : 0;
+      runtime.current.setTime(initialHour);
+      runtime.current.setWeather(initialWeather);
+      runtime.current.setPrecip(initialWeather >= 85 ? "rain" : null);
+      setPerfMetadata({
+        hour: initialHour,
+        weather: initialWeather,
+        precipitationMode: initialWeather >= 85 ? "rain" : null,
+      });
       loadAvatar();
       loop();
 
@@ -1516,11 +1530,13 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false }) {
         } catch { return null; }
       };
       // soft-sync HUD status strip once (non-blocking)
-      runtime.current.applyRealWeather?.().then((r) => {
-        if (!r || disposed) return;
-        changeSettingStore({ hour: r.hour, weather: r.weather });
-        setLiveTemp(r.temp);
-      });
+      if (window.__BENCH_MODE !== true) {
+        runtime.current.applyRealWeather?.().then((r) => {
+          if (!r || disposed) return;
+          changeSettingStore({ hour: r.hour, weather: r.weather });
+          setLiveTemp(r.temp);
+        });
+      }
 
       window.__streetDebug = {
         player,

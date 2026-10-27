@@ -6,11 +6,12 @@
  */
 import { chromium } from 'playwright';
 import { writeFileSync, mkdirSync, readFileSync } from 'fs';
-import { execFileSync } from 'child_process';
+import { execFileSync, spawn } from 'child_process';
 import { dirname, isAbsolute, join, resolve } from 'path';
 import { fileURLToPath } from 'url';
 import { CELL_STEP, cityCacheKey } from '../lib/city-contract.js';
 import { EARTH_R } from '../lib/engine/geo.js';
+import { parseBenchmarkEnvironment } from './bench-environment.mjs';
 import {
   orderedFrameIntervals,
   orderedGpuFrameTimes,
@@ -33,6 +34,8 @@ function option(name, fallback) {
   if (!value || value.startsWith('--')) throw new Error(`Expected a value after ${name}`);
   return value;
 }
+
+const benchmarkEnvironment = parseBenchmarkEnvironment(args);
 
 const baseUrl = option('--base-url', 'http://127.0.0.1:3456');
 const outputOption = option('--out', join('benchmarks', 'results.json'));
@@ -82,6 +85,58 @@ if (!route.startsWith('/')) throw new Error('--route must be an absolute path su
 const READY_TIMEOUT = 180_000;
 
 const BENCH_FIXTURE = JSON.parse(readFileSync(fixturePath, 'utf8'));
+
+function startHostTelemetry(sampleSeconds) {
+  if (process.platform !== 'win32') {
+    return {
+      finish: async () => ({
+        available: false,
+        reason: `Windows host counters are unavailable on ${process.platform}`,
+      }),
+    };
+  }
+
+  const child = spawn('powershell.exe', [
+    '-NoLogo', '-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass',
+    '-File', join(__dir, 'bench-host-telemetry.ps1'),
+    '-SampleSeconds', String(sampleSeconds),
+  ], { windowsHide: true, stdio: ['ignore', 'pipe', 'pipe'] });
+  let stdout = '';
+  let stderr = '';
+  child.stdout.setEncoding('utf8');
+  child.stderr.setEncoding('utf8');
+  child.stdout.on('data', (chunk) => { stdout += chunk; });
+  child.stderr.on('data', (chunk) => { stderr += chunk; });
+  const completed = new Promise((resolveCompletion) => {
+    child.once('error', (error) => resolveCompletion({ error: error.message }));
+    child.once('close', (code, signal) => resolveCompletion({ code, signal }));
+  });
+
+  return {
+    finish: async () => {
+      const status = await completed;
+      if (status.error) return { available: false, reason: status.error };
+      if (status.code !== 0) {
+        return {
+          available: false,
+          reason: `Host telemetry exited with code ${status.code ?? 'unknown'}${status.signal ? ` (${status.signal})` : ''}`,
+          stderr: stderr.trim() || null,
+          stdout: stdout.trim() || null,
+        };
+      }
+      try {
+        return JSON.parse(stdout);
+      } catch (error) {
+        return {
+          available: false,
+          reason: `Could not parse host telemetry JSON: ${error.message}`,
+          stderr: stderr.trim() || null,
+          stdout: stdout.trim() || null,
+        };
+      }
+    },
+  };
+}
 
 async function benchStreet(page) {
   const t0 = Date.now();
@@ -198,9 +253,11 @@ async function benchStreet(page) {
     }
     window.__BENCH_FREEZE_POPULATION = false;
   });
+  const hostTelemetryMonitor = startHostTelemetry(Math.max(1, Math.ceil(walkDurationMs / 1000)));
   await page.keyboard.down('w');
   await page.waitForTimeout(walkDurationMs);
   await page.keyboard.up('w');
+  const hostTelemetry = await hostTelemetryMonitor.finish();
   await page.waitForTimeout(500);
 
   let cellStreaming = null;
@@ -294,6 +351,7 @@ async function benchStreet(page) {
     resourceCounts: metrics.perf?.resourceCounts || {},
     unavailableMeasurements: metrics.perf?.unavailableMeasurements || [],
     validationErrors: metrics.perf?.validationErrors || [],
+    hostTelemetry,
     environment: await page.evaluate(() => {
       const counters = window.__perfCounters;
       return {
@@ -336,7 +394,7 @@ async function main() {
   mkdirSync(dirname(outPath), { recursive: true });
 
   console.log(`  Fixture: ${fixturePath}`);
-  console.log(`  Route: ${route}; preset: ${qualityPreset}; renderer: ${rendererMode}; walk: ${walkDurationMs}ms${crossCell ? '; crossing a cell boundary' : ''}`);
+  console.log(`  Route: ${route}; preset: ${qualityPreset}; renderer: ${rendererMode}; hour: ${benchmarkEnvironment.hour}; weather: ${benchmarkEnvironment.weather}; walk: ${walkDurationMs}ms${crossCell ? '; crossing a cell boundary' : ''}`);
   console.log('  City cache pre-warm skipped — benchmark fixture mode');
   const cache = { ok: true, ms: 0, skipped: true };
 
@@ -345,7 +403,7 @@ async function main() {
     args: rendererMode === 'software' ? ['--use-gl=angle', '--use-angle=swiftshader'] : [],
   });
   const context = await browser.newContext();
-  await context.addInitScript(({ fixture, schemaVersion, preset, seed, pose }) => {
+  await context.addInitScript(({ fixture, schemaVersion, preset, seed, pose, environment }) => {
     if (location.origin !== 'null') {
       try {
         const saved = JSON.parse(localStorage.getItem('wtw-game') || '{}');
@@ -355,6 +413,8 @@ async function main() {
             ...(saved.state?.settings || {}),
             quality: preset,
             qualityMode: 'manual',
+            hour: environment.hour,
+            weather: environment.weather,
           },
         };
         localStorage.setItem('wtw-game', JSON.stringify(saved));
@@ -364,6 +424,7 @@ async function main() {
     window.__BENCH_SEED = seed;
     window.__BENCH_FIXTURE = fixture;
     window.__BENCH_START_POSE = pose;
+    window.__BENCH_ENVIRONMENT = environment;
     window.__BENCH_POSE_APPLIED = false;
     window.__BENCH_FREEZE_POPULATION = true;
     window.__perfCounters = {
@@ -383,7 +444,14 @@ async function main() {
       metadata: {},
       validationErrors: [],
     };
-  }, { fixture: BENCH_FIXTURE, schemaVersion: PERF_SCHEMA_VERSION, preset: qualityPreset, seed, pose: fixedPose });
+  }, {
+    fixture: BENCH_FIXTURE,
+    schemaVersion: PERF_SCHEMA_VERSION,
+    preset: qualityPreset,
+    seed,
+    pose: fixedPose,
+    environment: benchmarkEnvironment,
+  });
   const page = await context.newPage();
   const browserDiagnostics = { consoleErrors: [], pageErrors: [], assetFailures: [] };
   const baseOrigin = new URL(baseUrl).origin;
@@ -435,6 +503,9 @@ async function main() {
       latitude: location.lat,
       longitude: location.lon,
       qualityPreset,
+      hour: benchmarkEnvironment.hour,
+      weather: benchmarkEnvironment.weather,
+      precipitationMode: benchmarkEnvironment.precipitationMode,
       walkDurationMs,
       seed,
       driving,
@@ -451,6 +522,10 @@ async function main() {
   try {
     console.log('  Street engine…');
     result.street = await benchStreet(page);
+    if (result.street.settings?.hour !== benchmarkEnvironment.hour || result.street.settings?.weather !== benchmarkEnvironment.weather) {
+      throw new Error(`Applied scene environment did not match the requested benchmark: ${JSON.stringify(result.street.settings)}`);
+    }
+    result.hostTelemetry = result.street.hostTelemetry;
     if (screenshotPath) {
       mkdirSync(dirname(screenshotPath), { recursive: true });
       await page.screenshot({ path: screenshotPath, animations: 'disabled' });
