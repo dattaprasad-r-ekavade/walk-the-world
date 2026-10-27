@@ -881,7 +881,7 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false }) {
     const clock = new THREE.Clock();
     let fpsCount = 0, fpsTime = performance.now(), fpsVal = 0, hudTick = 0, precipTick = 0, ambTick = 0;
     let lastFrameAt = null;
-    let perfResourceFrame = 0;
+    let lastPerfResourceSampleAt = 0;
     // Protect frame pacing on real devices: a complex cell can briefly exceed
     // the budget even after the boot GPU probe. Auto quality may step down once
     // sustained FPS is low; manual presets are never overridden.
@@ -923,12 +923,13 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false }) {
       if (!running) return;
       requestAnimationFrame(loop);
       const frameAt = Number.isFinite(rafTimestamp) ? rafTimestamp : performance.now();
-      if (++perfResourceFrame % 120 === 0) {
+      if (frameAt - lastPerfResourceSampleAt >= 1000) {
         setPerfResourceCounts({
           geometries: renderer.info.memory.geometries,
           textures: renderer.info.memory.textures,
           programs: renderer.info.programs?.length ?? null,
         });
+        lastPerfResourceSampleAt = frameAt;
       }
       if (document.visibilityState === "visible" && lastFrameAt !== null) {
         recordFrameInterval(frameAt - lastFrameAt);

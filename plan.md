@@ -1,7 +1,7 @@
 # Walk the World — Performance and Visuals Implementation Plan
 
-Updated: 27 October 2026. Status: Stage 0.1–0.3 implemented locally; benchmark
-and release acceptance remain open.
+Updated: 27 October 2026. Status: Stage 0.1–0.3 and 0.6 implemented locally;
+runtime baseline and release acceptance remain open.
 
 ## 1. Verified baseline and scope
 
@@ -102,12 +102,12 @@ scripts/bench-perf.mjs and benchmarks/fixtures/.
 - [ ] 0.5 Add recorded showcase-city, dense, sparse and difficult-polygon fixtures
   with provenance/licensing. Seed population in benchmark mode. Keep minimal Rome
   as a smoke test, not visual/capacity evidence.
-- [ ] 0.6 Extend and validate the benchmark CLI for fixture, route, preset,
+- [x] 0.6 Extend and validate the benchmark CLI for fixture, route, preset,
   renderer mode and output. Fail nonzero on failed checks/console/asset errors.
   Document new switches only after they exist.
-- [ ] 0.7 Prove street movement via player displacement. The current runner
-  tolerates a failed .cesium-container click; verify actual canvas focus/controls.
-  Add deterministic multi-cell walk and drive scenarios.
+- [ ] 0.7 Prove street movement via player displacement. The runner now clicks
+  the street canvas and requires measurable displacement. Add deterministic
+  multi-cell walking and driving scenarios.
 - [ ] 0.8 Capture matched production warm/cold/day/night/rain/crossing baselines
   and rank CPU, GPU, network and memory bottlenecks.
 
@@ -118,13 +118,16 @@ browser/device/WebGL identity, active quality settings, bounded event timings,
 lifecycle marks, frame intervals and percentiles, renderer geometry/texture/
 program counts, validation errors and named unavailable measurements. Detailed
 timings are opt-in; normal play keeps bounded frame samples and lifecycle marks.
-The benchmark labels renderer timings as CPU submission, records worker compute
-separately from end-to-end roundtrip, and records transferred output bytes.
+The benchmark accepts fixture, route, coordinate, quality preset, renderer,
+duration and output options. It captures browser errors, resource counts and
+player displacement, and fails when movement is not validated. Renderer timings
+are labeled CPU submission; worker compute is separate from roundtrip and output
+bytes.
 
 Validation: `npm test` passed (9 files, 79 tests); `npm run build` passed.
-No production benchmark was captured, so
-Stage 0.4–0.8 and the Stage 0 exit remain open. GPU frame time and estimated VRAM
-bytes are explicitly unavailable in this checkpoint.
+Only a local software-renderer fixture smoke test has been run. It is not a
+production or hardware baseline. Stage 0.4–0.5 and 0.7–0.8 remain open. GPU frame
+time and estimated VRAM bytes are explicitly unavailable in this checkpoint.
 
 Exit: repeatable JSON/captures and a bottleneck report, without architecture changes.
 Choose rendering/scheduling stages next if those dominate; bring Stage 6 forward
