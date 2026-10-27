@@ -1,16 +1,18 @@
 # Walk the World — Performance and Visuals Implementation Plan
 
-Updated: 27 October 2026. Status: Stage 0 instrumentation, synthetic fixtures,
+Updated: 28 October 2026. Status: Stage 0 instrumentation, synthetic fixtures,
 an attributed/sanitized real-city fixture, and bounded cell streaming are
 implemented. A controlled five-run-per-build prop-batching A/B is complete; the
 candidate was rejected because GPU p95 and triangle submission increased while
-frame p95 did not improve. Deterministic time/weather scenarios, time-aligned
-Windows host telemetry and capture-validity checks are implemented. Five
-visible-Chrome Intel UHD repetitions are now recorded for each of day/clear,
-night/clear, day/rain and night/rain. These short synthetic runs are diagnostic,
-not release acceptance; cold/warm starts, real-city stress, dynamic cell
-crossing, mobile, long-walk thermal and release gates remain open. Work is
-consolidated on `main`.
+frame p95 did not improve. The separate family-batching prototype passed a
+five-run-per-build synthetic A/B with 3.9% fewer mean draw calls and unchanged
+frame p95; real-city and mobile acceptance remain open. Deterministic
+time/weather scenarios, time-aligned Windows host telemetry and capture-validity
+checks are implemented. Five visible-Chrome Intel UHD repetitions are recorded
+for each of day/clear, night/clear, day/rain and night/rain. These short synthetic
+runs are diagnostic, not release acceptance; cold/warm starts, real-city stress,
+dynamic cell crossing, mobile, long-walk thermal and release gates remain open.
+Work is consolidated on `main`.
 
 ## 1. Verified baseline and scope
 
@@ -21,6 +23,8 @@ performance branch was removed after verifying its tip is in `main`; the
 remote topic refs were retained. The fixture and profiling checkpoint is
 commit `664b55f`; bounded cell streaming and boundary tests are commit `3235dd9`.
 The consolidated implementation and evidence are maintained on `main`.
+At the 28 October sync, `git pull --ff-only origin main` reported no incoming
+changes; local `main` is seven commits ahead of `origin/main`.
 
 This is the active implementation sequence for
 [PERFORMANCE-VISUALS-PLAN.md](PERFORMANCE-VISUALS-PLAN.md), which contains
@@ -434,10 +438,11 @@ street/assemble-city.js, post-fx.js and StreetEngine.js.
 - [x] 2.3 Prototype family batching with linear-space vertex tint. Preserve AO/
   jitter without multiplying base tint twice. Keep chunk-local culling bounds,
   feature metadata and independent collision/editor picking. The
-  [matched smoke](benchmarks/results/stage2/material-family-batching-smoke.md)
-  kept the scene visually equivalent and reduced mean draw calls slightly;
-  its one-run GPU p95 is 0.25 ms higher, so repeat an interleaved A/B before
-  treating this as a performance improvement.
+  [five-run interleaved A/B](benchmarks/results/stage2/material-family-batching-smoke.md)
+  kept the matched view visually equivalent and reduced mean draw calls by
+  3.9% (22.20 to 21.33) at unchanged median frame p95 (20.7 ms). GPU p95 was
+  0.09 ms higher with overlapping ranges, so keep this as a neutral-cost
+  synthetic improvement; real-city and mobile acceptance remain open.
 - [x] 2.4 Audit sRGB colour/emissive maps versus non-colour normal/ORM data and
   one final tone/output conversion in direct/post-processed rendering. The
   [audit](benchmarks/results/stage2/material-color-space-audit.md) records map
@@ -485,10 +490,11 @@ program count rose from 26/28 to 64 at high quality, where mean draw calls also
 rose from about 238 to 446 in this single run. The Rome fixture has no named
 building-material tags, so Stage 2.2 used a separate CC0 material fixture and
 smoke report. The family-batching prototype is recorded in
-[its matched smoke report](benchmarks/results/stage2/material-family-batching-smoke.md).
-Its small draw-call reduction came with a slightly higher GPU p95 in one run,
-so the Stage 2 performance gate stays open pending interleaved repeats. Stage
-2.4's color-space audit is recorded in
+[its five-run A/B report](benchmarks/results/stage2/material-family-batching-smoke.md).
+The interleaved comparison reduced mean draw calls by 3.9%, kept frame p95
+unchanged, and showed a 0.09 ms higher GPU p95 with overlapping ranges. Stage
+2.3 is retained for this synthetic workload; real-city and mobile gates remain
+open. Stage 2.4's color-space audit is recorded in
 [its audit report](benchmarks/results/stage2/material-color-space-audit.md).
 
 Exit: lower submission/program cost or approved visual gain at neutral cost;
@@ -752,6 +758,7 @@ exposes no ACPI thermal readings. Mobile and 15-minute thermal checks remain
 open. Keep Rust/Wasm/SIMD deferred: worker compute was 25.9 ms median versus
 729.4 ms roundtrip on the earlier synthetic trace, so kernel acceleration is
 not yet the measured opportunity. Rank main-thread assembly/scheduling and GPU
-pacing on dense real-city traces before changing geometry backends. If Stage 2
-resumes first, isolate material reuse from spatial batching and prove equal
-rendered content before accepting a performance claim.
+pacing on dense real-city traces before changing geometry backends. The next
+rendering substage is 2.5: compare simple low/far materials with near PBR using
+actual GPU timings while preserving road, glass and metal response. Stage 2.6
+shader-patch work follows only where profiles show a need.
