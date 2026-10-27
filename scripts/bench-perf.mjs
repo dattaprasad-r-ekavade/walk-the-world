@@ -16,13 +16,16 @@ import {
   orderedFrameIntervals,
   orderedGpuFrameTimes,
   orderedPerfTimeline,
+  orderedResourceSamples,
   orderedRendererFrames,
   PERF_SCHEMA_VERSION,
   PERF_TIMING_LIMIT,
   summarizeDurationSamples,
   summarizeFrameIntervals,
+  summarizeResourceStability,
   summarizeRendererFrames,
   validateBenchmarkMeasurement,
+  validateResourceSoak,
 } from '../lib/perf-summary.mjs';
 
 const __dir = dirname(fileURLToPath(import.meta.url));
@@ -69,6 +72,7 @@ const skipGlobe = args.includes('--skip-globe');
 const skipHostTelemetry = args.includes('--skip-host-telemetry');
 const driving = args.includes('--drive');
 const crossCell = args.includes('--cross-cell');
+const resourceSoakEnabled = args.includes('--resource-soak');
 const poseOptionNames = ['--pose-x', '--pose-z', '--heading'];
 const suppliedPoseOptions = poseOptionNames.filter((name) => args.includes(name));
 let fixedPose = null;
@@ -109,6 +113,11 @@ if (!Number.isFinite(location.lat) || Math.abs(location.lat) > 90 || !Number.isF
   throw new Error('Benchmark latitude/longitude are invalid');
 }
 if (!route.startsWith('/')) throw new Error('--route must be an absolute path such as /street');
+if (resourceSoakEnabled && walkDurationMs < 900_000) {
+  throw new Error('--resource-soak requires --walk-ms of at least 900000 (15 minutes)');
+}
+if (resourceSoakEnabled && !crossCell) throw new Error('--resource-soak requires --cross-cell to exercise streaming and eviction');
+if (resourceSoakEnabled && driving) throw new Error('--resource-soak is a pedestrian walk and cannot be combined with --drive');
 const READY_TIMEOUT = 180_000;
 const HOST_TELEMETRY_READY_MARKER = '__BENCH_HOST_TELEMETRY_READY__';
 
@@ -525,11 +534,12 @@ async function benchStreet(page) {
   // Prime the counter provider while the scene is idle; begin movement only
   // after the first real host sample is available.
   await page.waitForTimeout(500);
-  const hostTelemetryMonitor = startHostTelemetry(Math.min(600, Math.max(1, Math.ceil(walkDurationMs / 1000) + 3)));
+  const hostTelemetryLimit = resourceSoakEnabled ? 1800 : 600;
+  const hostTelemetryMonitor = startHostTelemetry(Math.min(hostTelemetryLimit, Math.max(1, Math.ceil(walkDurationMs / 1000) + 3)));
   await hostTelemetryMonitor.ready;
   await page.bringToFront();
   await page.evaluate(() => window.focus());
-  await page.evaluate(() => {
+  await page.evaluate((resourceSoak) => {
     const counters = window.__perfCounters;
     if (counters) {
       counters.frameIntervalsMs.length = 0;
@@ -539,6 +549,8 @@ async function benchStreet(page) {
       counters.gpuFrameTimesMs.length = 0;
       counters.gpuFrameTimeCursor = 0;
       counters.fpsSamples.length = 0;
+      counters.resourceSamples.length = 0;
+      counters.resourceSampleCursor = 0;
     }
     window.__BENCH_FREEZE_POPULATION = false;
     const focusMonitor = { active: false, focusLossCount: 0, visibilityLossCount: 0 };
@@ -550,14 +562,77 @@ async function benchStreet(page) {
       if (focusMonitor.active && document.visibilityState !== 'visible') focusMonitor.visibilityLossCount++;
     });
     focusMonitor.active = true;
-  });
+    if (resourceSoak) {
+      const debug = window.__streetDebug;
+      const player = debug?.player;
+      const route = {
+        pathDistanceMeters: 0,
+        turnCount: 0,
+        lastX: player?.x ?? 0,
+        lastZ: player?.z ?? 0,
+        timer: null,
+      };
+      const lookAhead = 24;
+      const checkPath = (heading) => {
+        const sin = Math.sin(heading), negCos = -Math.cos(heading);
+        const sideX = Math.cos(heading), sideZ = Math.sin(heading);
+        let clearMeters = 0;
+        for (let distance = 2; distance <= lookAhead; distance += 2) {
+          const x = player.x + sin * distance;
+          const z = player.z + negCos * distance;
+          if (debug.insideBuilding(x, z) ||
+              debug.insideBuilding(x + sideX * 0.7, z + sideZ * 0.7) ||
+              debug.insideBuilding(x - sideX * 0.7, z - sideZ * 0.7)) break;
+          clearMeters = distance;
+        }
+        return clearMeters;
+      };
+      route.timer = window.setInterval(() => {
+        if (!player || !debug?.insideBuilding) return;
+        route.pathDistanceMeters += Math.hypot(player.x - route.lastX, player.z - route.lastZ);
+        route.lastX = player.x;
+        route.lastZ = player.z;
+        if (checkPath(player.heading) >= 10) return;
+        const choices = [0, Math.PI / 4, -Math.PI / 4, Math.PI / 2, -Math.PI / 2, 3 * Math.PI / 4, -3 * Math.PI / 4, Math.PI];
+        let bestHeading = player.heading;
+        let bestScore = -Infinity;
+        for (const delta of choices) {
+          const heading = player.heading + delta;
+          const score = checkPath(heading) + 2 * Math.cos(delta);
+          if (score > bestScore) {
+            bestScore = score;
+            bestHeading = heading;
+          }
+        }
+        if (Math.abs(Math.atan2(Math.sin(bestHeading - player.heading), Math.cos(bestHeading - player.heading))) > 0.05) {
+          route.turnCount++;
+          player.heading = bestHeading;
+        }
+      }, 750);
+      window.__BENCH_RESOURCE_SOAK_NAV = route;
+    }
+  }, resourceSoakEnabled);
   const measurementStartedAt = new Date().toISOString();
-  const measurementStartedMonotonicMs = performance.now();
+  const measurementStartedMonotonicMs = await page.evaluate(() => performance.now());
   await page.keyboard.down('w');
   await page.waitForTimeout(walkDurationMs);
   await page.keyboard.up('w');
+  const endState = await page.evaluate(() => {
+    const navigation = window.__BENCH_RESOURCE_SOAK_NAV;
+    if (navigation?.timer) window.clearInterval(navigation.timer);
+    return {
+      atMs: performance.now(),
+      resourceSoakNavigation: navigation ? {
+        pathDistanceMeters: navigation.pathDistanceMeters,
+        turnCount: navigation.turnCount,
+        obstacleAvoidance: true,
+      } : null,
+    };
+  });
+  const measurementEndedMonotonicMs = endState.atMs;
+  const resourceSoakNavigation = endState.resourceSoakNavigation;
   const measurementEndedAt = new Date().toISOString();
-  const wallElapsedMs = performance.now() - measurementStartedMonotonicMs;
+  const wallElapsedMs = measurementEndedMonotonicMs - measurementStartedMonotonicMs;
   const metricsCapturedAt = new Date().toISOString();
 
   // Snapshot the browser counters immediately after movement. Host telemetry
@@ -600,17 +675,22 @@ async function benchStreet(page) {
   let cellStreaming = null;
   if (crossCell) {
     try {
-      await page.waitForFunction(({ expectedKey }) => {
+      await page.waitForFunction(({ expectedKey, startKey, resourceSoak }) => {
         const state = window.__streetDebug?.cellStream?.();
+        if (resourceSoak) {
+          const centerKey = state?.center?.key;
+          return !!centerKey && centerKey !== startKey &&
+            state.loadedKeys.includes(centerKey) && state.pendingCount === 0;
+        }
         return state?.center?.key === expectedKey &&
           state.loadedKeys.includes(expectedKey) && state.pendingCount === 0;
-      }, { expectedKey: expectedCellKey }, { timeout: READY_TIMEOUT });
+      }, { expectedKey: expectedCellKey, startKey: cellStreamStart, resourceSoak: resourceSoakEnabled }, { timeout: READY_TIMEOUT });
     } catch { /* return the last state so a failed crossing remains diagnosable */ }
-    cellStreaming = await page.evaluate(({ startKey, expectedKey }) => {
+    cellStreaming = await page.evaluate(({ startKey, expectedKey, resourceSoak }) => {
       const state = window.__streetDebug?.cellStream?.();
       const endKey = state?.center?.key || null;
-      const crossed = !!endKey && endKey !== startKey && endKey === expectedKey;
-      const neighborLoaded = !!state?.loadedKeys?.includes(expectedKey);
+      const crossed = !!endKey && endKey !== startKey && (resourceSoak || endKey === expectedKey);
+      const neighborLoaded = !!state?.loadedKeys?.includes(resourceSoak ? endKey : expectedKey);
       const settled = state?.pendingCount === 0;
       const noFailedCells = !!state && state.failedKeys.length === 0;
       const resourceLimitOk = !!state && state.residentCellCount <= state.maxCells;
@@ -626,9 +706,10 @@ async function benchStreet(page) {
         failedCellKeys: state?.failedKeys || [],
         noFailedCells,
         resourceLimitOk,
+        resourceSoak,
         validated: crossed && neighborLoaded && settled && noFailedCells && resourceLimitOk,
       };
-    }, { startKey: cellStreamStart, expectedKey: expectedCellKey });
+    }, { startKey: cellStreamStart, expectedKey: expectedCellKey, resourceSoak: resourceSoakEnabled });
   }
 
   const hostTelemetry = await hostTelemetryPromise;
@@ -658,6 +739,25 @@ async function benchStreet(page) {
   measurementWindow.browserMetricsCapturedAt = metricsCapturedAt;
   measurementWindow.capturedAtBrowserMs = metrics.capturedAtBrowserMs;
   measurementWindow.hostTelemetry = summarizeHostTelemetryWindow(hostTelemetry, measurementStartedAt, measurementEndedAt);
+  if (resourceSoakEnabled) measurementWindow.frameWindowNotApplicable = true;
+  const resourceSamples = orderedResourceSamples(metrics.perf);
+  const resourceSoak = resourceSoakEnabled ? {
+    validation: validateResourceSoak({
+      requestedWalkMs: walkDurationMs,
+      wallElapsedMs,
+      resourceSamples,
+      movementPathMeters: resourceSoakNavigation?.pathDistanceMeters ?? 0,
+      visibilityState: metrics.environment.visibilityState,
+      pageHasFocus: metrics.environment.hasFocus,
+      focusLossCount: metrics.environment.focusLossCount ?? 0,
+      visibilityLossCount: metrics.environment.visibilityLossCount ?? 0,
+    }),
+    stability: summarizeResourceStability(resourceSamples, {
+      startAtMs: measurementStartedMonotonicMs,
+      durationMs: Math.max(0, metrics.capturedAtBrowserMs - measurementStartedMonotonicMs),
+    }),
+    navigation: resourceSoakNavigation,
+  } : null;
   const avgFps = frameSummary.meanFrameTimeMs
     ? Math.round(1000 / frameSummary.meanFrameTimeMs)
     : samples.length > 0
@@ -679,6 +779,8 @@ async function benchStreet(page) {
     fpsSamples: samples,
     frameSummary,
     measurementWindow,
+    resourceSoak,
+    resourceSamples: resourceSoakEnabled ? resourceSamples : undefined,
     frameIntervalsMs,
     rendererFrameSummary: summarizeRendererFrames(rendererFrames),
     rendererFrames,
@@ -736,7 +838,7 @@ async function main() {
   mkdirSync(dirname(outPath), { recursive: true });
 
   console.log(`  Fixture: ${fixturePath}`);
-  console.log(`  Route: ${route}; data: ${dataMode}; cache: ${cacheMode}; preset: ${qualityPreset}; geometry workers: ${geometryWorkers}; city data copy: ${cityDataCopyMode}; road query: ${roadQueryMode}; browser: ${browserChannel}; renderer: ${rendererMode}; hour: ${benchmarkEnvironment.hour}; weather: ${benchmarkEnvironment.weather}; walk: ${walkDurationMs}ms${crossCell ? '; crossing a cell boundary' : ''}`);
+  console.log(`  Route: ${route}; data: ${dataMode}; cache: ${cacheMode}; preset: ${qualityPreset}; geometry workers: ${geometryWorkers}; city data copy: ${cityDataCopyMode}; road query: ${roadQueryMode}; browser: ${browserChannel}; renderer: ${rendererMode}; hour: ${benchmarkEnvironment.hour}; weather: ${benchmarkEnvironment.weather}; walk: ${walkDurationMs}ms${crossCell ? '; crossing a cell boundary' : ''}${resourceSoakEnabled ? '; resource soak' : ''}`);
 
   const launchOptions = {
     headless: !headed,
@@ -796,6 +898,9 @@ async function main() {
       fpsSamples: [],
       frameIntervalsMs: [],
       frameIntervalCursor: 0,
+      resourceCounts: {},
+      resourceSamples: [],
+      resourceSampleCursor: 0,
       timeline: [],
       timelineCursor: 0,
       marks: {},
@@ -914,6 +1019,7 @@ async function main() {
       cityDataCopyMode,
       roadQueryMode,
       profileCityQueries,
+      resourceSoak: resourceSoakEnabled,
       fixedPose,
       populationFrozenUntilMeasurement: true,
       hostTelemetryEnabled: !skipHostTelemetry && process.platform === 'win32',
@@ -940,6 +1046,9 @@ async function main() {
     if (profileCityQueries && !result.street.timings.some((event) => event.name === 'city.worker-poi-road-query' && event.details?.mode === roadQueryMode)) {
       throw new Error(`Requested ${roadQueryMode} road query mode, but the worker did not confirm it in profile timing.`);
     }
+    if (resourceSoakEnabled && !result.street.resourceSoak?.validation?.valid) {
+      throw new Error(`Resource soak validation failed: ${result.street.resourceSoak?.validation?.reasons?.join('; ') || 'missing resource samples'}`);
+    }
     result.networkTelemetry = await networkRecorder.summary();
     if (result.street.settings?.hour !== benchmarkEnvironment.hour || result.street.settings?.weather !== benchmarkEnvironment.weather) {
       throw new Error(`Applied scene environment did not match the requested benchmark: ${JSON.stringify(result.street.settings)}`);
@@ -950,7 +1059,7 @@ async function main() {
       await page.screenshot({ path: screenshotPath, animations: 'disabled' });
       console.log(`    screenshot: ${screenshotPath}`);
     }
-    if (!result.street.measurementWindow?.valid) {
+    if (!resourceSoakEnabled && !result.street.measurementWindow?.valid) {
       throw new Error(`Measurement window is invalid: ${result.street.measurementWindow?.reasons?.join('; ') || 'missing window diagnostics'}`);
     }
     console.log(

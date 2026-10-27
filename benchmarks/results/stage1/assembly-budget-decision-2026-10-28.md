@@ -11,9 +11,10 @@ was 8.1 ms (6.8–9.3 ms); the median of per-run maximum chunks was 9.7 ms
 the largest remaining overrun.
 
 This closes the desktop implementation and recorded-profile portion of Stage
-1.1. It does not close the Stage 1 release exit: mobile, a 15-minute resource
-stability walk, and direct input-latency sampling during assembly remain open.
-The Stage 0.8 live-city matrix also remains open.
+1.1. It does not close the Stage 1 release exit: mobile and direct input-latency
+sampling during assembly remain open. The separate [15-minute desktop resource
+soak](resource-soak-2026-10-28.md) now passes, and the Stage 0.8 live-city matrix
+also remains open.
 
 ## Implementation
 
@@ -88,10 +89,11 @@ The 12-second crossing does not establish resource stability over a 15-minute
 walk. The older Intel UHD 630 profile remains historical context rather than
 the matched baseline for this run.
 
-Next, implement Stage 1.2 queue bounds, cancellation of obsolete work, stale
-result rejection, and rollback coverage. Before closing Stage 1, test mobile
-assembly, a 15-minute walk/return route, and input latency during city assembly.
-Retry the live Stage 0.8 city matrix when the API returns complete cells.
+Stage 1.2 queue bounds, cancellation, stale-result rejection and rollback are
+now implemented and covered by the lifecycle checkpoint. Before closing Stage
+1, test mobile assembly, a real-city walk/return route, and input latency during
+city assembly. Retry the live Stage 0.8 city matrix when the API returns
+complete cells.
 
 Rollback: revert the Stage 1.1 checkpoint commit. Baseline code remains at
 `0f10d395`; no dependency or geometry-semantics changes are part of this

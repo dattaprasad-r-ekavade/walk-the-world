@@ -1,5 +1,5 @@
 param(
-  [ValidateRange(1, 600)]
+  [ValidateRange(1, 1800)]
   [int]$SampleSeconds = 12
 )
 

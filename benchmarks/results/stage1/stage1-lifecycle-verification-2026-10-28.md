@@ -16,7 +16,9 @@ Added focused regression coverage for the lifecycle cases in Stage 1.5:
   retried while the player remains in the same snapped cell once the backoff
   expires.
 
-Validation: `npm test` passed all 15 test files and 116 tests. The targeted
-terrain, road-paint and stream-lifecycle files passed 14 tests. The Stage 1
-15-minute resource soak remains open, as do mobile assembly and input-latency
-measurements from the broader Stage 1 exit criteria.
+Validation at this checkpoint: `npm test` passed all 15 test files and 116
+tests. The targeted terrain, road-paint and stream-lifecycle files passed 14
+tests. Follow-on resource-soak instrumentation and coverage bring the current
+full suite to 119 passing tests. The [15-minute desktop resource soak](resource-soak-2026-10-28.md)
+now passes; mobile assembly and input-latency measurements remain open for the
+broader Stage 1 exit criteria.

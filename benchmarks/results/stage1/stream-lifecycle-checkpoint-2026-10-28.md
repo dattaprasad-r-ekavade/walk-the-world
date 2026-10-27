@@ -29,5 +29,6 @@ release before retrying.
 
 The lifecycle suite covers bounded and canceled queues, stale worker results,
 stale assembly rollback, footprint/metadata cleanup, and reuse of a released
-feature ID. The broader Stage 1 exit still requires mobile/input-latency checks
-and a 15-minute resource-stability walk.
+feature ID. The separate [15-minute desktop resource-soak report](resource-soak-2026-10-28.md)
+confirms count stabilization during a moving walk. Mobile assembly and
+input-latency checks remain open for the broader Stage 1 exit.

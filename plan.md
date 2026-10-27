@@ -9,12 +9,14 @@ unchanged frame p95 on the synthetic fixture. The separate five-run far-material
 comparison showed no frame/GPU benefit and its prototype was reverted. The
 pedestrian walk shader now deforms its color and shadow passes from shared
 uniforms; a production build and recorded-city browser smoke passed. Real-city
-and mobile acceptance remain open. The performance timeline now uses schema v3,
+and mobile acceptance remain open. The performance timeline now uses schema v4,
 retains 4,096 bounded events and reports wrap state. A same-device interleaved
 five-pair Rome A/B completed Stage 1.1's desktop implementation: spawn chunk
 p95 was 8.1 ms median and paired spawn readiness differed by 3 ms. Mobile,
-15-minute resource stability, input latency during assembly, and live-city
-acceptance remain open. Deterministic
+input latency during assembly, low-core/KTX2 contention, and live-city acceptance
+remain open. A 15-minute recorded Rome desktop walk now passes resource-sample,
+movement, and cell-stream checks on an RTX 4060 laptop; thermal readings were
+unavailable. Deterministic
 time/weather scenarios,
 time-aligned Windows host telemetry and capture-validity checks are implemented.
 Five visible-Chrome Intel UHD repetitions are recorded for each of day/clear,
@@ -252,8 +254,14 @@ scripts/bench-perf.mjs and benchmarks/fixtures/.
   - The default injected-fixture smoke confirmed request accounting but also
     hit the optional asset endpoint's expected 501 response; its four-second
     window is diagnostic only.
-  - [ ] Run the 15-minute thermal/resource soak and repeat on real mobile
-    hardware before closing the hardware matrix.
+  - [x] Run a 15-minute recorded Rome desktop walk with resource sampling and
+    cell streaming. The [soak report](benchmarks/results/stage1/resource-soak-2026-10-28.md)
+    records 4.48 km of movement, 887 resource samples (98.6% coverage), a
+    10/10 resident-cell bound, and stable geometry/texture/program counts after
+    initial streaming. This closes the desktop resource-stability check only;
+    the run exposed no ACPI thermal readings.
+  - [ ] Repeat the resource/thermal soak on real mobile hardware before closing
+    the hardware matrix.
 
 ### Implementation checkpoint — Stage 0 instrumentation, fixtures and hardware repeatability
 
@@ -433,7 +441,7 @@ street/cell-stream.js, street/terrain.js and street/resources.js.
   Start individual chunk goals at 8 ms desktop / 12 ms mobile, then calibrate.
   Prioritise centre/visible data and stagger finished neighbour uploads. The
   [interleaved desktop decision](benchmarks/results/stage1/assembly-budget-decision-2026-10-28.md)
-  records the five-pair result and remaining mobile/long-walk gates. The
+  records the five-pair result and remaining mobile gates. The
   candidate's chunk p95 was 8.1 ms median and paired readiness delta was +3 ms;
   the earlier [recorded profile](benchmarks/results/stage1/assembly-profile-2026-10-28.md)
   remains the pre-change baseline context.
@@ -442,7 +450,8 @@ street/cell-stream.js, street/terrain.js and street/resources.js.
   [lifecycle checkpoint](benchmarks/results/stage1/stream-lifecycle-checkpoint-2026-10-28.md)
   records bounded geometry/cell queues, per-cell cancellation, stale-worker
   fencing, rollback coverage, 112 passing tests, a production build, and a
-  recorded Rome boundary smoke. Long-walk resource stability remains open.
+  recorded Rome boundary smoke. The separate [15-minute soak report](benchmarks/results/stage1/resource-soak-2026-10-28.md)
+  now verifies desktop resource stability during a 4.48 km walk.
 - [ ] 1.3 Compare one/two geometry workers on low-core devices. Include KTX2
   decoder workers in contention/memory decisions; retain defaults unless measured.
   - [x] Add a benchmark-only one/two-worker control and a Windows CPU-affinity
@@ -463,14 +472,17 @@ street/cell-stream.js, street/terrain.js and street/resources.js.
 - [x] 1.5 Verify terrain eviction/revisit, road repaint, shared material ownership,
   late imagery callbacks and stationary retries. The [lifecycle verification
   report](benchmarks/results/stage1/stage1-lifecycle-verification-2026-10-28.md)
-  records the targeted regression coverage and full 116-test pass. The 15-minute
-  resource soak remains an open Stage 1 exit gate.
+  records the targeted regression coverage. The [15-minute resource soak](benchmarks/results/stage1/resource-soak-2026-10-28.md)
+  passed on the Windows desktop: 887 samples, 4.48 km movement, a settled
+  10/10 resident-cell bound, and stable resource counts after initial streaming.
 
 Exit: reduced measured spikes, lifecycle regression checks pass, and resident
-resources stabilise in a 15-minute walk. Keep geometry semantics unchanged.
+resources stabilise in a 15-minute walk. The desktop resource-stability gate is
+checked on one RTX 4060 laptop. Keep geometry semantics unchanged.
 The Stage 1.1 desktop candidate passed its matched recorded-city comparison;
-mobile assembly, input latency during assembly, and 15-minute resource
-stability remain open for the broader Stage 1 exit.
+mobile assembly and input latency during assembly remain open for the broader
+Stage 1 exit. Stage 1.3 also needs a physical low-core test and KTX2 worker
+contention/memory measurements.
 
 ## 6. Stage 2 — Material families, batching and shader discipline
 
@@ -807,15 +819,15 @@ for Cesium, imagery and model resources. SSR, volumetrics, displacement, dense
 skeletal crowds and shadowed lamp arrays require separate high-tier budgets.
 None is a prerequisite for this sequence.
 
-**Next bounded implementation:** Stage 1.2, bounded queues and stale-work
-cancellation, with transactional scene rollback. Stage 1.1's desktop candidate
-uses 8 ms / 12 ms slice goals with a 75% yield trigger and keeps the spawn cell
-ahead of neighbors. Five interleaved same-device baseline/candidate pairs found
-near-neutral readiness and frame/GPU p95, with spawn chunk p95 at 8.1 ms median;
-see the [decision report](benchmarks/results/stage1/assembly-budget-decision-2026-10-28.md)
-and [compact summary](benchmarks/results/stage1/assembly-budget-interleaved-five-run.json).
-Mobile, direct input-latency, 15-minute resource, and live-city checks remain
-open; recorded Rome replay is client-side evidence, not live Overpass evidence.
+**Next bounded work:** close the remaining measurement gates before another
+rendering experiment. Stage 1.2 queue bounds, Stage 1.4 allocation changes,
+Stage 1.5 lifecycle checks, and the desktop 15-minute resource soak are complete.
+The next open checks are the Stage 0.8 dense live-city cold/warm walk/drive
+matrix, Stage 1 mobile assembly and input latency, and Stage 1.3 low-core worker
+and KTX2 contention/memory measurements. After those profiling gates, Stage 3.1
+is the next planned implementation: curate a small licensed material and prop
+kit, then record attribution and scale. Recorded Rome replay is client/streaming
+evidence, not live Overpass evidence.
 
 **Open acceptance gate:** Stage 0.8 still needs matched dense live-city cold/
 warm and walk/drive boundary measurements. The 28 October Manhattan retry
@@ -824,8 +836,8 @@ and aborted requests; see the [captured result](benchmarks/results/stage0/main-7
 Retry the live matrix when the API returns complete cells. The four-condition
 summary reports median frame p95 values of 17.0–33.5 ms, with within-condition
 ranges reaching 33–34 ms; host CPU and available memory varied, and Windows
-exposes no ACPI thermal readings. Mobile and 15-minute thermal checks remain
-open. Keep Rust/Wasm/SIMD deferred: worker compute was 25.9 ms median versus
+exposes no ACPI thermal readings. The desktop resource soak passed, but mobile
+thermal checks and direct thermal measurements remain open. Keep Rust/Wasm/SIMD deferred: worker compute was 25.9 ms median versus
 729.4 ms roundtrip on the earlier synthetic trace, so kernel acceleration is
 not yet the measured opportunity. The Stage 2.5 far-material experiment was
 completed and rejected; Stage 2.6 shader/shadow parity is complete. After Stage

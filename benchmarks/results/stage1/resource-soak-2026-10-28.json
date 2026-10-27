@@ -1,0 +1,612 @@
+{
+  "schemaVersion": 4,
+  "timestamp": "2026-10-27T23:18:11.361Z",
+  "sourceRevision": "166e183ab0d2f530067391622c9389096ae5ddab",
+  "sourceTreeDirtyAtCapture": true,
+  "scenario": {
+    "fixture": "benchmarks/fixtures/rome-showcase-osm.json",
+    "route": "/street",
+    "latitude": 41.8902,
+    "longitude": 12.4922,
+    "qualityPreset": "medium",
+    "hour": 12,
+    "weather": 0,
+    "precipitationMode": null,
+    "walkDurationMs": 900000,
+    "seed": 1337,
+    "dataMode": "recorded",
+    "cacheMode": "cold",
+    "driving": false,
+    "crossCell": true,
+    "geometryWorkers": 2,
+    "cityDataCopyMode": "readonly",
+    "roadQueryMode": "indexed",
+    "profileCityQueries": false,
+    "resourceSoak": true,
+    "fixedPose": null,
+    "populationFrozenUntilMeasurement": true,
+    "hostTelemetryEnabled": true
+  },
+  "browser": {
+    "name": "Chromium",
+    "version": "156.0.8078.48",
+    "channel": "chrome",
+    "rendererMode": "browser-default",
+    "headless": false
+  },
+  "environment": {
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36",
+    "platform": "Win32",
+    "hardwareConcurrency": 20,
+    "deviceMemoryGb": 16,
+    "visibilityState": "visible",
+    "viewport": {
+      "width": 1280,
+      "height": 720,
+      "devicePixelRatio": 1
+    },
+    "webgl": {
+      "version": "WebGL 2.0 (OpenGL ES 3.0 Chromium)",
+      "vendor": "Google Inc. (NVIDIA)",
+      "renderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 4060 Laptop GPU (0x000028E0) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+      "webgl2": true,
+      "debugRendererInfoAvailable": true
+    },
+    "hasFocus": true,
+    "focusLossCount": 0,
+    "visibilityLossCount": 0
+  },
+  "movement": {
+    "start": {
+      "x": 225.89001637475945,
+      "z": -22.48605805702893
+    },
+    "end": {
+      "x": 3424.449216397538,
+      "z": 3119.7536419664875
+    },
+    "displacementMeters": 4483.798756462453,
+    "validated": true
+  },
+  "navigation": {
+    "pathDistanceMeters": 4500.036499999449,
+    "turnCount": 1,
+    "obstacleAvoidance": true
+  },
+  "cellStreaming": {
+    "startCellKey": "wtw_city6_41.890_12.492",
+    "expectedCellKey": "wtw_city6_41.890_12.498",
+    "endCellKey": "wtw_city6_41.863_12.536",
+    "crossed": true,
+    "neighborLoaded": true,
+    "settled": true,
+    "residentCellCount": 10,
+    "maxCells": 10,
+    "failedCellKeys": [],
+    "noFailedCells": true,
+    "resourceLimitOk": true,
+    "resourceSoak": true,
+    "validated": true
+  },
+  "resourceSoakValidation": {
+    "valid": true,
+    "requestedWalkMs": 900000,
+    "wallElapsedMs": 900020,
+    "movementPathMeters": 4500,
+    "minimumMovementPathMeters": 450,
+    "sampleCount": 887,
+    "expectedSampleCount": 675,
+    "coverageRatio": 0.986,
+    "maxSampleGapMs": 1033,
+    "firstSampleAtMs": 18465.200000047684,
+    "lastSampleAtMs": 916772.2000000477,
+    "reasons": []
+  },
+  "resourceStability": {
+    "sampleCount": 887,
+    "windowMs": 60000,
+    "windows": [
+      {
+        "startOffsetMs": 0,
+        "endOffsetMs": 60000,
+        "sampleCount": 59,
+        "counts": {
+          "geometries": {
+            "first": 282,
+            "last": 293,
+            "min": 282,
+            "max": 293
+          },
+          "textures": {
+            "first": 27,
+            "last": 27,
+            "min": 27,
+            "max": 27
+          },
+          "programs": {
+            "first": 29,
+            "last": 29,
+            "min": 29,
+            "max": 29
+          }
+        }
+      },
+      {
+        "startOffsetMs": 60000,
+        "endOffsetMs": 120000,
+        "sampleCount": 59,
+        "counts": {
+          "geometries": {
+            "first": 293,
+            "last": 199,
+            "min": 199,
+            "max": 293
+          },
+          "textures": {
+            "first": 27,
+            "last": 27,
+            "min": 27,
+            "max": 27
+          },
+          "programs": {
+            "first": 29,
+            "last": 29,
+            "min": 29,
+            "max": 29
+          }
+        }
+      },
+      {
+        "startOffsetMs": 120000,
+        "endOffsetMs": 180000,
+        "sampleCount": 59,
+        "counts": {
+          "geometries": {
+            "first": 199,
+            "last": 208,
+            "min": 198,
+            "max": 208
+          },
+          "textures": {
+            "first": 27,
+            "last": 32,
+            "min": 27,
+            "max": 32
+          },
+          "programs": {
+            "first": 29,
+            "last": 30,
+            "min": 29,
+            "max": 30
+          }
+        }
+      },
+      {
+        "startOffsetMs": 180000,
+        "endOffsetMs": 240000,
+        "sampleCount": 60,
+        "counts": {
+          "geometries": {
+            "first": 208,
+            "last": 208,
+            "min": 208,
+            "max": 208
+          },
+          "textures": {
+            "first": 32,
+            "last": 32,
+            "min": 32,
+            "max": 32
+          },
+          "programs": {
+            "first": 30,
+            "last": 30,
+            "min": 30,
+            "max": 30
+          }
+        }
+      },
+      {
+        "startOffsetMs": 240000,
+        "endOffsetMs": 300000,
+        "sampleCount": 59,
+        "counts": {
+          "geometries": {
+            "first": 208,
+            "last": 174,
+            "min": 174,
+            "max": 208
+          },
+          "textures": {
+            "first": 32,
+            "last": 32,
+            "min": 32,
+            "max": 32
+          },
+          "programs": {
+            "first": 30,
+            "last": 30,
+            "min": 30,
+            "max": 30
+          }
+        }
+      },
+      {
+        "startOffsetMs": 300000,
+        "endOffsetMs": 360000,
+        "sampleCount": 59,
+        "counts": {
+          "geometries": {
+            "first": 174,
+            "last": 174,
+            "min": 174,
+            "max": 174
+          },
+          "textures": {
+            "first": 32,
+            "last": 32,
+            "min": 32,
+            "max": 32
+          },
+          "programs": {
+            "first": 30,
+            "last": 30,
+            "min": 30,
+            "max": 30
+          }
+        }
+      },
+      {
+        "startOffsetMs": 360000,
+        "endOffsetMs": 420000,
+        "sampleCount": 59,
+        "counts": {
+          "geometries": {
+            "first": 174,
+            "last": 174,
+            "min": 174,
+            "max": 174
+          },
+          "textures": {
+            "first": 32,
+            "last": 32,
+            "min": 32,
+            "max": 32
+          },
+          "programs": {
+            "first": 30,
+            "last": 30,
+            "min": 30,
+            "max": 30
+          }
+        }
+      },
+      {
+        "startOffsetMs": 420000,
+        "endOffsetMs": 480000,
+        "sampleCount": 59,
+        "counts": {
+          "geometries": {
+            "first": 174,
+            "last": 174,
+            "min": 174,
+            "max": 174
+          },
+          "textures": {
+            "first": 32,
+            "last": 32,
+            "min": 32,
+            "max": 32
+          },
+          "programs": {
+            "first": 30,
+            "last": 30,
+            "min": 30,
+            "max": 30
+          }
+        }
+      },
+      {
+        "startOffsetMs": 480000,
+        "endOffsetMs": 540000,
+        "sampleCount": 59,
+        "counts": {
+          "geometries": {
+            "first": 174,
+            "last": 174,
+            "min": 174,
+            "max": 174
+          },
+          "textures": {
+            "first": 32,
+            "last": 32,
+            "min": 32,
+            "max": 32
+          },
+          "programs": {
+            "first": 30,
+            "last": 30,
+            "min": 30,
+            "max": 30
+          }
+        }
+      },
+      {
+        "startOffsetMs": 540000,
+        "endOffsetMs": 600000,
+        "sampleCount": 60,
+        "counts": {
+          "geometries": {
+            "first": 174,
+            "last": 174,
+            "min": 174,
+            "max": 174
+          },
+          "textures": {
+            "first": 32,
+            "last": 32,
+            "min": 32,
+            "max": 32
+          },
+          "programs": {
+            "first": 30,
+            "last": 30,
+            "min": 30,
+            "max": 30
+          }
+        }
+      },
+      {
+        "startOffsetMs": 600000,
+        "endOffsetMs": 660000,
+        "sampleCount": 59,
+        "counts": {
+          "geometries": {
+            "first": 174,
+            "last": 174,
+            "min": 174,
+            "max": 174
+          },
+          "textures": {
+            "first": 32,
+            "last": 32,
+            "min": 32,
+            "max": 32
+          },
+          "programs": {
+            "first": 30,
+            "last": 30,
+            "min": 30,
+            "max": 30
+          }
+        }
+      },
+      {
+        "startOffsetMs": 660000,
+        "endOffsetMs": 720000,
+        "sampleCount": 59,
+        "counts": {
+          "geometries": {
+            "first": 174,
+            "last": 174,
+            "min": 168,
+            "max": 174
+          },
+          "textures": {
+            "first": 32,
+            "last": 32,
+            "min": 29,
+            "max": 32
+          },
+          "programs": {
+            "first": 30,
+            "last": 30,
+            "min": 30,
+            "max": 30
+          }
+        }
+      },
+      {
+        "startOffsetMs": 720000,
+        "endOffsetMs": 780000,
+        "sampleCount": 59,
+        "counts": {
+          "geometries": {
+            "first": 174,
+            "last": 174,
+            "min": 174,
+            "max": 174
+          },
+          "textures": {
+            "first": 32,
+            "last": 32,
+            "min": 32,
+            "max": 32
+          },
+          "programs": {
+            "first": 30,
+            "last": 30,
+            "min": 30,
+            "max": 30
+          }
+        }
+      },
+      {
+        "startOffsetMs": 780000,
+        "endOffsetMs": 840000,
+        "sampleCount": 59,
+        "counts": {
+          "geometries": {
+            "first": 174,
+            "last": 174,
+            "min": 174,
+            "max": 174
+          },
+          "textures": {
+            "first": 32,
+            "last": 32,
+            "min": 32,
+            "max": 32
+          },
+          "programs": {
+            "first": 30,
+            "last": 30,
+            "min": 30,
+            "max": 30
+          }
+        }
+      },
+      {
+        "startOffsetMs": 840000,
+        "endOffsetMs": 900000,
+        "sampleCount": 59,
+        "counts": {
+          "geometries": {
+            "first": 174,
+            "last": 174,
+            "min": 174,
+            "max": 174
+          },
+          "textures": {
+            "first": 32,
+            "last": 32,
+            "min": 32,
+            "max": 32
+          },
+          "programs": {
+            "first": 30,
+            "last": 30,
+            "min": 30,
+            "max": 30
+          }
+        }
+      }
+    ]
+  },
+  "finalResourceCounts": {
+    "geometries": 174,
+    "textures": 32,
+    "programs": 30
+  },
+  "frameWindowNotApplicable": true,
+  "networkSummary": {
+    "totalRequests": 351,
+    "completedRequests": 351,
+    "failedRequests": 0,
+    "httpErrorResponses": 0,
+    "cityApiCellsRequested": [
+      "wtw_city6_41.857_12.525",
+      "wtw_city6_41.857_12.531",
+      "wtw_city6_41.857_12.536",
+      "wtw_city6_41.857_12.542",
+      "wtw_city6_41.863_12.514",
+      "wtw_city6_41.863_12.520",
+      "wtw_city6_41.863_12.525",
+      "wtw_city6_41.863_12.531",
+      "wtw_city6_41.863_12.536",
+      "wtw_city6_41.863_12.542",
+      "wtw_city6_41.868_12.509",
+      "wtw_city6_41.868_12.514",
+      "wtw_city6_41.868_12.520",
+      "wtw_city6_41.868_12.525",
+      "wtw_city6_41.868_12.531",
+      "wtw_city6_41.868_12.536",
+      "wtw_city6_41.868_12.542",
+      "wtw_city6_41.874_12.503",
+      "wtw_city6_41.874_12.509",
+      "wtw_city6_41.874_12.514",
+      "wtw_city6_41.874_12.520",
+      "wtw_city6_41.874_12.525",
+      "wtw_city6_41.874_12.531",
+      "wtw_city6_41.874_12.536",
+      "wtw_city6_41.879_12.492",
+      "wtw_city6_41.879_12.498",
+      "wtw_city6_41.879_12.503",
+      "wtw_city6_41.879_12.509",
+      "wtw_city6_41.879_12.514",
+      "wtw_city6_41.879_12.520",
+      "wtw_city6_41.879_12.525",
+      "wtw_city6_41.885_12.487",
+      "wtw_city6_41.885_12.492",
+      "wtw_city6_41.885_12.498",
+      "wtw_city6_41.885_12.503",
+      "wtw_city6_41.885_12.509",
+      "wtw_city6_41.885_12.514",
+      "wtw_city6_41.885_12.520",
+      "wtw_city6_41.890_12.487",
+      "wtw_city6_41.890_12.492",
+      "wtw_city6_41.890_12.498",
+      "wtw_city6_41.890_12.503",
+      "wtw_city6_41.890_12.509",
+      "wtw_city6_41.890_12.514",
+      "wtw_city6_41.896_12.487",
+      "wtw_city6_41.896_12.492",
+      "wtw_city6_41.896_12.498",
+      "wtw_city6_41.896_12.503"
+    ]
+  },
+  "host": {
+    "manufacturer": "LENOVO",
+    "model": "83DV",
+    "os": "Microsoft Windows 11 Pro",
+    "osVersion": "10.0.26300",
+    "osBuild": "26300",
+    "cpu": [
+      {
+        "name": "13th Gen Intel(R) Core(TM) i7-13650HX",
+        "cores": 14,
+        "logicalProcessors": 20,
+        "maxClockMhz": 2600
+      }
+    ],
+    "gpus": [
+      {
+        "name": "NVIDIA GeForce RTX 4060 Laptop GPU",
+        "driverVersion": "32.0.15.9174",
+        "adapterRamBytes": 4293918720
+      },
+      {
+        "name": "Intel(R) UHD Graphics",
+        "driverVersion": "32.0.101.7026",
+        "adapterRamBytes": 2147479552
+      }
+    ],
+    "activePowerScheme": "Power Scheme GUID: 8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c  (High performance)",
+    "batteries": [
+      {
+        "batteryStatus": 2
+      }
+    ],
+    "acpiThermalZones": [],
+    "thermalReadingsAreJunctionTemperatures": false
+  },
+  "hostWindowSummary": {
+    "available": true,
+    "sampleCount": 884,
+    "expectedSampleCount": 886,
+    "coveragePct": 100,
+    "actualSampleIntervalSeconds": 1.016,
+    "firstSampleOffsetMs": 1005,
+    "lastSampleGapMs": 768,
+    "averageSystemCpuPct": 6.95,
+    "minimumAvailableMemoryMb": 5189,
+    "averagePerEngine3dPeakPct": 34.37,
+    "valid": true,
+    "reasons": []
+  },
+  "hostSummary": {
+    "sampleCount": 903,
+    "requestedSampleCount": 903,
+    "counterFailures": 0,
+    "gpuCountersAvailable": true,
+    "actualSampleIntervalSeconds": 1.016,
+    "sampleWindowDurationSeconds": 917.559,
+    "counterCollectionDurationSeconds": 926.024,
+    "averageSystemCpuPct": 6.95,
+    "minimumAvailableMemoryMb": 5189,
+    "averagePerEngine3dPeakPct": 34.35
+  },
+  "unavailableHostMeasurements": [
+    "ACPI thermal-zone readings: Access denied "
+  ]
+}

@@ -10,7 +10,9 @@ import {
   orderedFrameIntervals,
   orderedGpuFrameTimes,
   orderedPerfTimeline,
+  orderedResourceSamples,
   orderedRendererFrames,
+  PERF_RESOURCE_SAMPLE_LIMIT,
   summarizeFrameIntervals,
   summarizeDurationSamples,
   summarizeRendererFrames,
@@ -20,7 +22,11 @@ import {
   PERF_TIMING_LIMIT,
 } from "@/lib/perf";
 import { createGpuFrameTimer } from "@/lib/engine/gpu-frame-timer";
-import { validateBenchmarkMeasurement } from "@/lib/perf-summary.mjs";
+import {
+  summarizeResourceStability,
+  validateBenchmarkMeasurement,
+  validateResourceSoak,
+} from "@/lib/perf-summary.mjs";
 
 describe("performance diagnostics", () => {
   it("accepts a complete frame window that matches the requested walk", () => {
@@ -68,7 +74,7 @@ describe("performance diagnostics", () => {
 
   it("creates and upgrades a versioned report without clearing existing counters", () => {
     const counters = ensurePerfCounters({ schemaVersion: 0, reactRenders: 4 });
-    expect(counters.schemaVersion).toBe(3);
+    expect(counters.schemaVersion).toBe(4);
     expect(counters.reactRenders).toBe(4);
     expect(counters.frameIntervalsMs).toEqual([]);
     expect(counters).toMatchObject({
@@ -76,6 +82,8 @@ describe("performance diagnostics", () => {
       environment: {},
       settings: {},
       resourceCounts: {},
+      resourceSamples: [],
+      resourceSampleCursor: 0,
       unavailableMeasurements: [],
       rendererFrames: [],
       gpuFrameTimesMs: [],
@@ -143,6 +151,55 @@ describe("performance diagnostics", () => {
       calls: { total: (PERF_RENDERER_LIMIT * (PERF_RENDERER_LIMIT + 1)) / 2 },
     });
     expect(summarizeDurationSamples([1, 2, 4])).toMatchObject({ sampleCount: 3, meanMs: 7 / 3, p95Ms: 4 });
+  });
+
+  it("orders a wrapped resource sample ring oldest-first", () => {
+    const counters = {
+      resourceSamples: Array.from({ length: PERF_RESOURCE_SAMPLE_LIMIT }, (_, index) => ({ atMs: index, geometries: index })),
+      resourceSampleCursor: 2,
+    };
+    const samples = orderedResourceSamples(counters);
+    expect(samples).toHaveLength(PERF_RESOURCE_SAMPLE_LIMIT);
+    expect(samples[0].geometries).toBe(2);
+    expect(samples.at(-1).geometries).toBe(1);
+  });
+
+  it("validates resource-soak coverage and summarizes one-minute stability windows", () => {
+    const samples = Array.from({ length: 900 }, (_, index) => ({
+      atMs: 10_000 + index * 1000,
+      geometries: index < 120 ? 100 + index : 220,
+      textures: 30,
+      programs: 28,
+    }));
+    const validation = validateResourceSoak({
+      requestedWalkMs: 900_000,
+      wallElapsedMs: 900_000,
+      resourceSamples: samples,
+      movementPathMeters: 900,
+      visibilityState: "visible",
+      pageHasFocus: true,
+    });
+    expect(validation).toMatchObject({ valid: true, sampleCount: 900, expectedSampleCount: 675, maxSampleGapMs: 1000 });
+
+    const stability = summarizeResourceStability(samples, { startAtMs: 10_000, durationMs: 900_013 });
+    expect(stability.windows).toHaveLength(15);
+    expect(stability.windows[0].counts.geometries.max).toBe(159);
+    expect(stability.windows.at(-1).counts.geometries).toEqual({ first: 220, last: 220, min: 220, max: 220 });
+  });
+
+  it("rejects resource soaks with hidden pages or gaps in sampling", () => {
+    const result = validateResourceSoak({
+      requestedWalkMs: 900_000,
+      wallElapsedMs: 900_000,
+      resourceSamples: [{ atMs: 1000 }, { atMs: 7000 }],
+      visibilityState: "hidden",
+      pageHasFocus: false,
+    });
+    expect(result.valid).toBe(false);
+    expect(result.reasons).toContain("Page visibility was hidden during the soak");
+    expect(result.reasons).toContain("Browser page did not have focus during the soak");
+    expect(result.reasons).toContain("Resource sample gap reached 6000ms");
+    expect(result.reasons).toContain("Walk covered 0.0m; at least 450.0m is required");
   });
 });
 
