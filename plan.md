@@ -193,6 +193,15 @@ scripts/bench-perf.mjs and benchmarks/fixtures/.
     host load still varied and Windows exposes no ACPI thermal reading.
   - [ ] Compare explicit cold and warm starts; test dense real-city content and
     walking/driving across cell boundaries with network and resource telemetry.
+  - [x] Extend the runner with live city loading, cold browser contexts, and a
+    verified warm IndexedDB preflight. Record browser-visible request counts,
+    encoded response bytes, failures, and latency percentiles by request family.
+    This enables the remaining runs; the upstream server/CDN cache is not reset,
+    and browser telemetry cannot see server-side Overpass traffic.
+    A first live cold smoke timed out while the local city API returned an
+    upstream error, so it is not baseline evidence. The recorded-fixture smoke
+    confirmed request accounting but also hit the optional asset endpoint's
+    expected 501 response; its four-second window is diagnostic only.
   - [ ] Run the 15-minute thermal/resource soak and repeat on real mobile
     hardware before closing the hardware matrix.
 
@@ -640,7 +649,19 @@ Run the server separately; existing smoke/benchmark entry points:
     npm run bench -- --base-url http://127.0.0.1:3456 --out benchmarks/results.json
     npm run bench:street -- http://127.0.0.1:3456
 
-These use a small fixture and do not satisfy Stage 0's full matrix. The runner accepts
+For real-city startup and boundary measurements, use a visible hardware-backed
+Chrome session and skip the separate globe pass. Cold starts use a fresh browser
+context; warm starts first load the origin cell and verify its IndexedDB entry.
+The measured request summary covers browser-visible traffic only, not the
+server's upstream Overpass requests:
+
+    npm run bench -- --base-url http://127.0.0.1:3456 --data-mode live --cache-mode cold --browser-channel chrome --renderer-mode browser-default --headed --skip-globe --cross-cell --out benchmarks/results/stage0/live-cold-walk.json
+    npm run bench -- --base-url http://127.0.0.1:3456 --data-mode live --cache-mode warm --browser-channel chrome --renderer-mode browser-default --headed --skip-globe --cross-cell --out benchmarks/results/stage0/live-warm-walk.json
+    npm run bench -- --base-url http://127.0.0.1:3456 --data-mode live --cache-mode cold --browser-channel chrome --renderer-mode browser-default --headed --skip-globe --drive --cross-cell --out benchmarks/results/stage0/live-cold-drive.json
+    npm run bench -- --base-url http://127.0.0.1:3456 --data-mode live --cache-mode warm --browser-channel chrome --renderer-mode browser-default --headed --skip-globe --drive --cross-cell --out benchmarks/results/stage0/live-warm-drive.json
+
+The default commands use a small fixture; they do not satisfy Stage 0's full
+matrix. The runner accepts
 `--hour` (0–24), `--weather` (0–100; precipitation starts at 85), `--pose-x`,
 `--pose-z`, `--heading` and `--browser-channel chrome`. On Windows it records
 one-second CPU, memory and GPU-engine samples plus power/battery/thermal

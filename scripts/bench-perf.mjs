@@ -47,6 +47,8 @@ const screenshotPath = screenshotOption
   : null;
 const fixtureOption = option('--fixture', join('benchmarks', 'fixtures', 'rome-minimal.json'));
 const fixturePath = isAbsolute(fixtureOption) ? fixtureOption : resolve(ROOT, fixtureOption);
+const dataMode = option('--data-mode', 'fixture');
+const cacheMode = option('--cache-mode', dataMode === 'live' ? 'cold' : 'none');
 const route = option('--route', '/street');
 const qualityPreset = option('--preset', 'medium');
 const rendererMode = option('--renderer-mode', 'software');
@@ -80,6 +82,9 @@ if (suppliedPoseOptions.length > 0) {
 if (!['low', 'medium', 'high'].includes(qualityPreset)) throw new Error('--preset must be low, medium, or high');
 if (!['software', 'browser-default'].includes(rendererMode)) throw new Error('--renderer-mode must be software or browser-default');
 if (!['bundled', 'chrome'].includes(browserChannel)) throw new Error('--browser-channel must be bundled or chrome');
+if (!['fixture', 'live'].includes(dataMode)) throw new Error('--data-mode must be fixture or live');
+if (dataMode === 'fixture' && cacheMode !== 'none') throw new Error('--cache-mode is only valid with --data-mode live');
+if (dataMode === 'live' && !['cold', 'warm'].includes(cacheMode)) throw new Error('--cache-mode must be cold or warm with --data-mode live');
 if (!Number.isFinite(walkDurationMs) || walkDurationMs < 1000) throw new Error('--walk-ms must be at least 1000');
 if (!Number.isInteger(seed) || seed < 0 || seed > 0xffffffff) throw new Error('--seed must be an integer from 0 to 4294967295');
 if (!Number.isFinite(location.lat) || Math.abs(location.lat) > 90 || !Number.isFinite(location.lon) || Math.abs(location.lon) > 180) {
@@ -90,6 +95,137 @@ const READY_TIMEOUT = 180_000;
 const HOST_TELEMETRY_READY_MARKER = '__BENCH_HOST_TELEMETRY_READY__';
 
 const BENCH_FIXTURE = JSON.parse(readFileSync(fixturePath, 'utf8'));
+
+function streetUrl() {
+  const url = new URL(route, baseUrl);
+  url.searchParams.set('lat', String(location.lat));
+  url.searchParams.set('lon', String(location.lon));
+  url.searchParams.set('bench', '1');
+  return url.toString();
+}
+
+async function waitForSpawnCellCache(page, expectedKey) {
+  await page.waitForFunction((cityKey) => {
+    const state = window.__streetDebug?.cellStream?.();
+    return window.__engineReady === true && state?.loadedKeys?.includes(cityKey);
+  }, expectedKey, { timeout: READY_TIMEOUT });
+  await page.waitForFunction(async (cityKey) => {
+    if (typeof indexedDB === 'undefined') return false;
+    const db = await new Promise((resolve) => {
+      const request = indexedDB.open('wtw-city-cache', 1);
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = request.onblocked = () => resolve(null);
+    });
+    if (!db) return false;
+    return new Promise((resolve) => {
+      const request = db.transaction('cells', 'readonly').objectStore('cells').get(cityKey);
+      request.onsuccess = () => resolve(!!request.result?.data?.elements?.length);
+      request.onerror = () => resolve(false);
+    });
+  }, expectedKey, { timeout: READY_TIMEOUT });
+}
+
+function createNetworkRecorder(page, baseOrigin) {
+  const records = new Map();
+  const pendingSizes = new Set();
+  const percentile = (values, fraction) => {
+    const ordered = values.filter(Number.isFinite).sort((a, b) => a - b);
+    return ordered.length ? Number(ordered[Math.min(ordered.length - 1, Math.ceil(ordered.length * fraction) - 1)].toFixed(1)) : null;
+  };
+  const categoryFor = (request) => {
+    try {
+      const url = new URL(request.url());
+      if (url.origin === baseOrigin && /^\/api\/city\//.test(url.pathname)) return 'city-api';
+      if (url.origin === baseOrigin && url.pathname.startsWith('/api/')) return 'app-api';
+      if (url.origin === baseOrigin) return 'app-origin';
+      return 'external';
+    } catch { return 'unknown'; }
+  };
+  page.on('request', (request) => {
+    records.set(request, {
+      category: categoryFor(request),
+      resourceType: request.resourceType(),
+      status: null,
+      failed: false,
+      completed: false,
+      responseBodySize: null,
+      durationMs: null,
+      serviceWorker: request.serviceWorker() !== null,
+      cityKey: (() => {
+        try { return new URL(request.url()).pathname.match(/^\/api\/city\/([^/]+)$/)?.[1] || null; }
+        catch { return null; }
+      })(),
+    });
+  });
+  page.on('response', (response) => {
+    const record = records.get(response.request());
+    if (record) record.status = response.status();
+  });
+  page.on('requestfailed', (request) => {
+    const record = records.get(request);
+    if (record) record.failed = true;
+  });
+  page.on('requestfinished', (request) => {
+    const record = records.get(request);
+    if (!record) return;
+    record.completed = true;
+    const readSizes = request.sizes().then((sizes) => {
+      record.responseBodySize = Number.isFinite(sizes.responseBodySize) && sizes.responseBodySize >= 0
+        ? sizes.responseBodySize
+        : null;
+      const timing = request.timing();
+      if (Number.isFinite(timing.responseEnd) && timing.responseEnd >= 0) record.durationMs = timing.responseEnd;
+    }).catch(() => {});
+    pendingSizes.add(readSizes);
+    readSizes.finally(() => pendingSizes.delete(readSizes));
+  });
+  return {
+    async summary() {
+      await Promise.allSettled([...pendingSizes]);
+      const groups = {};
+      const cityKeys = new Set();
+      for (const record of records.values()) {
+        const group = groups[record.category] ||= {
+          requests: 0,
+          completed: 0,
+          failed: 0,
+          encodedResponseBytes: 0,
+          requestsWithKnownSize: 0,
+          serviceWorkerResponses: 0,
+          requestDurationP50Ms: null,
+          requestDurationP95Ms: null,
+          durationsMs: [],
+        };
+        group.requests++;
+        if (record.completed) group.completed++;
+        if (record.failed) group.failed++;
+        if (record.serviceWorker) group.serviceWorkerResponses++;
+        if (Number.isFinite(record.durationMs)) group.durationsMs.push(record.durationMs);
+        if (Number.isFinite(record.responseBodySize)) {
+          group.encodedResponseBytes += record.responseBodySize;
+          group.requestsWithKnownSize++;
+        }
+        if (record.cityKey) cityKeys.add(record.cityKey);
+      }
+      for (const group of Object.values(groups)) {
+        group.requestDurationP50Ms = percentile(group.durationsMs, 0.5);
+        group.requestDurationP95Ms = percentile(group.durationsMs, 0.95);
+        delete group.durationsMs;
+      }
+      return {
+        scope: 'browser-visible requests on the measured street page; excludes server-side upstream fetches',
+        totalRequests: records.size,
+        completedRequests: [...records.values()].filter((record) => record.completed).length,
+        incompleteRequests: [...records.values()].filter((record) => !record.completed && !record.failed).length,
+        failedRequests: [...records.values()].filter((record) => record.failed).length,
+        encodedResponseBytes: [...records.values()].reduce((sum, record) => sum + (record.responseBodySize || 0), 0),
+        requestsWithKnownSize: [...records.values()].filter((record) => Number.isFinite(record.responseBodySize)).length,
+        cityApiCellsRequested: [...cityKeys].sort(),
+        byCategory: groups,
+      };
+    },
+  };
+}
 
 function summarizeHostTelemetryWindow(telemetry, startedAt, endedAt) {
   if (!telemetry?.available || !Array.isArray(telemetry.samples)) {
@@ -228,11 +364,7 @@ function startHostTelemetry(sampleSeconds) {
 
 async function benchStreet(page) {
   const t0 = Date.now();
-  const streetUrl = new URL(route, baseUrl);
-  streetUrl.searchParams.set('lat', String(location.lat));
-  streetUrl.searchParams.set('lon', String(location.lon));
-  streetUrl.searchParams.set('bench', '1');
-  await page.goto(streetUrl.toString(), {
+  await page.goto(streetUrl(), {
     waitUntil: 'domcontentloaded',
     timeout: 60_000,
   });
@@ -527,9 +659,7 @@ async function main() {
   mkdirSync(dirname(outPath), { recursive: true });
 
   console.log(`  Fixture: ${fixturePath}`);
-  console.log(`  Route: ${route}; preset: ${qualityPreset}; browser: ${browserChannel}; renderer: ${rendererMode}; hour: ${benchmarkEnvironment.hour}; weather: ${benchmarkEnvironment.weather}; walk: ${walkDurationMs}ms${crossCell ? '; crossing a cell boundary' : ''}`);
-  console.log('  City cache pre-warm skipped — benchmark fixture mode');
-  const cache = { ok: true, ms: 0, skipped: true };
+  console.log(`  Route: ${route}; data: ${dataMode}; cache: ${cacheMode}; preset: ${qualityPreset}; browser: ${browserChannel}; renderer: ${rendererMode}; hour: ${benchmarkEnvironment.hour}; weather: ${benchmarkEnvironment.weather}; walk: ${walkDurationMs}ms${crossCell ? '; crossing a cell boundary' : ''}`);
 
   const launchOptions = {
     headless: !headed,
@@ -580,16 +710,48 @@ async function main() {
       validationErrors: [],
     };
   }, {
-    fixture: BENCH_FIXTURE,
+    fixture: dataMode === 'fixture' ? BENCH_FIXTURE : null,
     schemaVersion: PERF_SCHEMA_VERSION,
     preset: qualityPreset,
     seed,
     pose: fixedPose,
     environment: benchmarkEnvironment,
   });
+
+  let cache = dataMode === 'fixture'
+    ? { ok: true, mode: 'none', skipped: true, reason: 'Fixture mode bypasses city API and browser city cache' }
+    : { ok: true, mode: 'cold', primed: false, protocol: 'Fresh Playwright browser context; upstream server and CDN caches are outside this control' };
+  if (dataMode === 'live' && cacheMode === 'warm') {
+    console.log('  Warming origin city cell in IndexedDB…');
+    const warmStartedAt = Date.now();
+    const warmPage = await context.newPage();
+    try {
+      await warmPage.goto(streetUrl(), { waitUntil: 'domcontentloaded', timeout: 60_000 });
+      await waitForSpawnCellCache(warmPage, cityCacheKey(location.lat, location.lon));
+      cache = {
+        ok: true,
+        mode: 'warm',
+        primed: true,
+        indexedDbCellVerified: true,
+        prewarmMs: Date.now() - warmStartedAt,
+        protocol: 'Loaded origin city cell, verified its IndexedDB entry, then measured a new page in the same browser context',
+      };
+    } catch (error) {
+      cache = {
+        ok: false,
+        mode: 'warm',
+        primed: false,
+        prewarmMs: Date.now() - warmStartedAt,
+        error: error.message,
+      };
+    } finally {
+      await warmPage.close();
+    }
+  }
   const page = await context.newPage();
   const browserDiagnostics = { consoleErrors: [], pageErrors: [], assetFailures: [] };
   const baseOrigin = new URL(baseUrl).origin;
+  const networkRecorder = createNetworkRecorder(page, baseOrigin);
   const isLocalAsset = (url) => {
     try {
       const parsed = new URL(url);
@@ -644,6 +806,8 @@ async function main() {
       precipitationMode: benchmarkEnvironment.precipitationMode,
       walkDurationMs,
       seed,
+      dataMode,
+      cacheMode,
       driving,
       crossCell,
       fixedPose,
@@ -651,14 +815,19 @@ async function main() {
       hostTelemetryEnabled: !skipHostTelemetry && process.platform === 'win32',
     },
     cityCacheWarm: cache,
+    networkTelemetry: null,
     street: null,
     globe: null,
     error: null,
   };
 
   try {
+    if (dataMode === 'live' && cacheMode === 'warm' && !cache.ok) {
+      throw new Error(`Warm-cache preparation failed: ${cache.error || 'origin city cell was not persisted'}`);
+    }
     console.log('  Street engine…');
     result.street = await benchStreet(page);
+    result.networkTelemetry = await networkRecorder.summary();
     if (result.street.settings?.hour !== benchmarkEnvironment.hour || result.street.settings?.weather !== benchmarkEnvironment.weather) {
       throw new Error(`Applied scene environment did not match the requested benchmark: ${JSON.stringify(result.street.settings)}`);
     }
@@ -691,6 +860,8 @@ async function main() {
     result.error = e.message;
     console.error('Benchmark failed:', e.message);
   }
+
+  if (!result.networkTelemetry) result.networkTelemetry = await networkRecorder.summary();
 
   result.diagnostics = browserDiagnostics;
   const browserFailures = [
