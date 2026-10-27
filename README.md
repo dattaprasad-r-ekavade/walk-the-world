@@ -153,8 +153,9 @@ is separately identified by its runtime provenance.
 ## Documentation
 
 - [`CASE-STUDY.md`](CASE-STUDY.md) — engineering narrative
-- [`plan.md`](plan.md) — short active roadmap
+- [`plan.md`](plan.md) — detailed active implementation plan
 - [`plan2.md`](plan2.md) — 10/10 transformation plan
+- [`PERFORMANCE-VISUALS-PLAN.md`](PERFORMANCE-VISUALS-PLAN.md) — researched performance, Rust/Wasm/SIMD, shaders, textures, and visual-quality stages
 - [`RELEASE-CHECKLIST.md`](RELEASE-CHECKLIST.md) — launch gate
 - [`CREDITS.md`](CREDITS.md) — data, libraries, and assets
 

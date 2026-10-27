@@ -25,7 +25,7 @@ import { createTrailBuffer } from "@/lib/engine/trail-buffer";
 
 const toolBtn = "rounded bg-white/10 px-2 py-1 hover:bg-white/20";
 const toolBtnPrimary = "rounded bg-emerald-500/80 px-2 py-1 font-semibold text-black hover:bg-emerald-400";
-import { trackRender, recordFpsSample } from "@/lib/perf";
+import { markPerf, markPerfMeasurementUnavailable, measurePerf, measurePerfAsync, recordFrameInterval, recordFpsSample, setPerfEnvironment, setPerfMetadata, setPerfResourceCounts, trackRender } from "@/lib/perf";
 import { STREET } from "@/lib/engine/street/constants";
 import { createCollision } from "@/lib/engine/street/collision";
 import { createTerrainSystem } from "@/lib/engine/street/terrain";
@@ -237,7 +237,7 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false }) {
     const assetListPromise = fetch("/api/assets", { signal })
       .then((r) => (r.ok ? r.json() : []))
       .catch(() => []);
-    const cityDataPromise = fetchCityData(lat0, lon0, { signal }).catch((e) => {
+    const cityDataPromise = measurePerfAsync("city.initial-data-consumer", () => fetchCityData(lat0, lon0, { signal })).catch((e) => {
       console.warn("[street] city data:", e?.message);
       return null;
     });
@@ -259,6 +259,19 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false }) {
       antialias: useMsaa,
       powerPreference: "high-performance",
     });
+    const gl = renderer.getContext();
+    const rendererInfo = gl.getExtension("WEBGL_debug_renderer_info");
+    setPerfEnvironment({
+      webgl: {
+        version: gl.getParameter(gl.VERSION),
+        vendor: rendererInfo ? gl.getParameter(rendererInfo.UNMASKED_VENDOR_WEBGL) : gl.getParameter(gl.VENDOR),
+        renderer: rendererInfo ? gl.getParameter(rendererInfo.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER),
+        webgl2: renderer.capabilities.isWebGL2,
+        debugRendererInfoAvailable: !!rendererInfo,
+      },
+    });
+    markPerfMeasurementUnavailable("gpuFrameTimeMs", "GPU timer queries are not instrumented in this profiling checkpoint.");
+    markPerfMeasurementUnavailable("estimatedGpuMemoryBytes", "WebGL does not expose reliable allocated VRAM bytes; geometry and texture object counts are reported instead.");
     renderer.setSize(mount.clientWidth, mount.clientHeight);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, useMsaa ? 1.5 : 1.25));
     // filmic tone mapping: richer sky gradients, softer highlights, deeper
@@ -359,6 +372,12 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false }) {
       // remember the tier; applySky re-evaluates so night can turn bloom on
       qualityTier = quality;
       postFx.setEnabled(quality === "high", quality === "high");
+      setPerfMetadata({
+        qualityTier: quality,
+        pixelRatio: renderer.getPixelRatio(),
+        shadowMapEnabled: renderer.shadowMap.enabled,
+        postFxActive: postFx.active,
+      });
     };
     applyQuality(bootQuality || useGameStore.getState().settings?.quality || "medium");
 
@@ -515,8 +534,8 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false }) {
       debugPick, editorClick, setMode, showSelBox, clearSelBox, hideHover,
       updateHover, loadGLB, placeAsset } = editorTools;
     runtime.current.captureScreenshot = (placeLabel) => {
-      if (postFx) postFx.render();
-      else renderer.render(scene, camera);
+      if (postFx) measurePerf("renderer.postfx-cpu-submit", () => postFx.render(), { qualityTier });
+      else measurePerf("renderer.direct-cpu-submit", () => renderer.render(scene, camera), { qualityTier });
       const cur = posRef.current || { lat: lat0, lon: lon0 };
       return downloadCanvasPng(
         renderer.domElement,
@@ -535,7 +554,9 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false }) {
       if (!data?.elements?.length || data.partial) return false;
       // Ownership clip: keep all corridors from the fetch; buildings/props
       // only inside the spawn tile so neighbors can own the rest.
-      const elements = clipElementsToCell(data.elements, lat0, lon0);
+      const elements = measurePerf("city.spawn-clip", () => clipElementsToCell(data.elements, lat0, lon0), {
+        inputElements: data.elements.length,
+      });
       if (!elements.length) return true;
       setStage(`Building city (${elements.length} features)…`);
       setReadyPct((p) => Math.max(p, 60));
@@ -543,7 +564,7 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false }) {
       scene.add(cityRoot);
       try {
         if (disposed) return false;
-        const built = await cityBuilder.build({
+        const built = await measurePerfAsync("city.spawn-geometry-total", () => cityBuilder.build({
           signal,
           elements,
           lat0,
@@ -553,10 +574,10 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false }) {
             setStage(`Building city (${done}/${total})…`);
             setReadyPct((p) => Math.max(p, 60 + Math.floor((done / Math.max(1, total)) * 25)));
           },
-        });
+        }), { elements: elements.length });
         if (disposed) return;
         setStage("Assembling city…");
-        await assembleCityFromBuild(built, {
+        await measurePerfAsync("city.spawn-assembly-total", () => assembleCityFromBuild(built, {
           root: cityRoot,
           signal,
           scene,
@@ -573,7 +594,7 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false }) {
           lampGlows,
           cellKey: cityCacheKey(lat0, lon0),
           resumedPosition,
-        });
+        }), { elements: elements.length });
         return true;
       } catch (e) {
         disposeSceneGroup(cityRoot, scene, sharedMaterialTextures());
@@ -859,6 +880,8 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false }) {
     let lastShadowX = 1e9, lastShadowZ = 1e9; // force a first bake
     const clock = new THREE.Clock();
     let fpsCount = 0, fpsTime = performance.now(), fpsVal = 0, hudTick = 0, precipTick = 0, ambTick = 0;
+    let lastFrameAt = null;
+    let perfResourceFrame = 0;
     // Protect frame pacing on real devices: a complex cell can briefly exceed
     // the budget even after the boot GPU probe. Auto quality may step down once
     // sustained FPS is low; manual presets are never overridden.
@@ -896,9 +919,21 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false }) {
         elevClimbAccum = 0;
       }
     };
-    const loop = () => {
+    const loop = (rafTimestamp) => {
       if (!running) return;
       requestAnimationFrame(loop);
+      const frameAt = Number.isFinite(rafTimestamp) ? rafTimestamp : performance.now();
+      if (++perfResourceFrame % 120 === 0) {
+        setPerfResourceCounts({
+          geometries: renderer.info.memory.geometries,
+          textures: renderer.info.memory.textures,
+          programs: renderer.info.programs?.length ?? null,
+        });
+      }
+      if (document.visibilityState === "visible" && lastFrameAt !== null) {
+        recordFrameInterval(frameAt - lastFrameAt);
+      }
+      lastFrameAt = document.visibilityState === "visible" ? frameAt : null;
       const dt = Math.min(clock.getDelta(), 0.1);
 
       let f = 0, r = 0;
@@ -1120,8 +1155,8 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false }) {
         if (lastElev != null && gy > lastElev + 0.15) elevClimbAccum += gy - lastElev;
         lastElev = gy;
       }
-      if (postFx) postFx.render();
-      else renderer.render(scene, camera);
+      if (postFx) measurePerf("renderer.postfx-cpu-submit", () => postFx.render(), { qualityTier });
+      else measurePerf("renderer.direct-cpu-submit", () => renderer.render(scene, camera), { qualityTier });
 
       fpsCount++;
       const now = performance.now();
@@ -1184,8 +1219,9 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false }) {
 
     // ---- boot ----
     (async () => {
-      await loadTerrain();
+      await measurePerfAsync("terrain.initial-load", () => loadTerrain());
       if (disposed) return;
+      markPerf("terrain-ready", { loadedTiles: terrainTiles.size, flatFallback: terrainTiles.size === 0 });
 
       applySky(12);
       loadAvatar();
@@ -1198,7 +1234,9 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false }) {
       setReadyPct(100);
       setCityStreaming(true);
       setStage("Streaming city…");
+      markPerf("input-ready", { terrainTiles: terrainTiles.size });
       const cityData = await cityDataPromise;
+      markPerf("city-data-ready", { elements: cityData?.elements?.length || 0, partial: !!cityData?.partial });
       if (!disposed) setWorldSummary(summarizeCityElements(cityData?.elements || []));
       const edits = (await editsPromise) || {};
       runtime.current.edits = edits;
@@ -1227,6 +1265,7 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false }) {
 
       const cityBuilt = await loadCity(cityData);
       if (disposed) return;
+      markPerf("streaming-complete", { scope: "spawn-cell", cityBuilt });
       for (const entry of edits.assets || []) placeAsset(entry, false);
 
       // The street is already navigable once terrain and static city geometry
