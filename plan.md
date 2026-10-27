@@ -4,8 +4,10 @@ Updated: 27 October 2026. Status: Stage 0 instrumentation, synthetic fixtures,
 an attributed/sanitized real-city fixture, and bounded cell streaming are
 implemented. A controlled five-run-per-build prop-batching A/B is complete; the
 candidate was rejected because GPU p95 and triangle submission increased while
-frame p95 did not improve. The full cold/warm, weather, mobile and release matrix
-remains open. Implementation continues on local `main`.
+frame p95 did not improve. Deterministic time/weather scenarios and Windows host
+telemetry are implemented; a fixed night/rain software-renderer smoke passed.
+The full hardware cold/warm, weather, mobile and release matrix remains open.
+Implementation continues on local `main`.
 
 ## 1. Verified baseline and scope
 
@@ -117,13 +119,21 @@ scripts/bench-perf.mjs and benchmarks/fixtures/.
     provenance and a sanitized source archive; synthetic fixtures remain the
     repeatable density/geometry controls.
 - [x] 0.6 Extend and validate the benchmark CLI for fixture, route, coordinates,
-  preset, renderer mode, duration, seed and output. Fail nonzero on failed
-  checks/console/asset errors. Document switches only after they exist.
+  preset, renderer mode/channel, duration, seed, fixed time/weather and output.
+  Fail nonzero on failed checks/console/asset errors. Document switches only
+  after they exist.
   - [x] Add explicit `--pose-x`, `--pose-z` and `--heading` overrides so A/B
     runs can use the same local position and view direction.
   - [x] Wait for population initialization, hold population motion until the
     measured interval, and skip optional local Overture enrichment in synthetic
     fixture mode so build-only data cannot change the compared scene.
+  - [x] Add `--hour` and `--weather` controls; apply them before city assembly
+    and skip live-weather synchronization in fixture mode.
+  - [x] Allow `--browser-channel chrome` with `--headed` to launch installed
+    Chrome for visible hardware measurements; verify the reported WebGL renderer.
+  - [x] Sample Windows system CPU, available memory, GPU-engine counters, power
+    mode, battery power status and ACPI thermal-zone availability during the
+    measured interval. Hostname, battery identity and GPU-process IDs are omitted.
 - [x] 0.7 Prove street movement via player displacement. The runner focuses the
   Street page and requires measurable displacement.
   - [x] Require displacement for walking and add a seeded driving run that
@@ -136,6 +146,12 @@ scripts/bench-perf.mjs and benchmarks/fixtures/.
     UHD 630; retain as a provisional repeatability check, not a release baseline.
   - [x] Collect five 12-second fixed-path moving samples in visible Chrome on
     Intel UHD 630 at medium/DPR 1.25; p95 repeats, but tail outliers remain.
+  - [x] Smoke the fixed 21:00/weather-90 fixture after the deterministic
+    controls landed. It applied night and rain, moved 1.00 m and recorded no
+    browser/asset errors. The build selected SwiftShader, requested a 1-second
+    interval but accumulated 32.3 seconds of frame intervals, and sampled 96.4%
+    system CPU with 1,241 MB minimum available memory. Windows exposed no ACPI
+    thermal zone. This validates scenario wiring only; exclude its frame timings.
   - [ ] Repeat after checking Chromium foreground state, OS load and integrated-
     GPU thermal/power conditions; alternate baseline/candidate runs for A/B.
   - [ ] Complete cold/warm, day/night, rain and moving/cell-crossing scenarios;
@@ -285,11 +301,23 @@ The warm hardware runs and stationary repetitions are useful baselines, but
 must not be used as candidate pass/fail A/B results yet.
 No shader, texture or visual rendering behavior changed in this checkpoint.
 
-The final local integration check on 27 October passed all 92 tests and the
-optimized production build. The production server returned HTTP 200 for `/`,
+The earlier local integration check passed all 92 tests and the optimized
+production build. After deterministic weather controls and the late-road wetness
+fix, `npm test` passed all 96 tests and `npm run build` passed again. The
+production server returned HTTP 200 for `/`,
 `/street` and `/manifest.webmanifest`. A visible browser loaded the street view
 with a 1046x654 WebGL canvas and no console errors or warnings. This confirms
 local build and startup only; it does not close the performance or device matrix.
+
+The clean-revision [night/rain fixture smoke](benchmarks/results/stage0/main-local-night-rain-swiftshader-smoke.json)
+used commit `aea4e00`, medium quality, seed 1337, a fixed player pose, hour 21,
+weather 90 and the synthetic prop-heavy fixture. The runner verified those exact
+settings, 1.00 m movement and zero console/page/local-asset errors. Its selected
+renderer was SwiftShader and its one-second requested walk accumulated 32.3 s of
+frame intervals under 96.4% system CPU load. Do not interpret those timings as
+integrated-GPU performance. Windows reported no supported ACPI thermal zone.
+The [captured night/rain scene](benchmarks/results/stage0/main-local-night-rain-swiftshader-smoke.png)
+shows the requested UI state; real-GPU road/wetness appearance remains open.
 
 Exit: repeated JSON/captures and a measured bottleneck report, without
 architecture changes. Once noise and network variability are understood, choose
@@ -419,6 +447,9 @@ street/assemble-city.js and StreetEngine.js.
 - [ ] 4.3 Tune existing wetness and validate late-created road materials inherit
   current weather. Roughness/environment response is an approximation, not mirror
   reflection. Keep SSR and planar reflection deferred.
+  - New materials now inherit the current wetness, with a unit test covering
+    creation after the weather change. Real-GPU reflection and visual acceptance
+    remain open.
 - [ ] 4.4 Verify existing four-light high-tier pool reassignment, newly streamed/
   evicted lamp markers and quality transitions. Stable light counts avoid shader
   churn, but visible zero-intensity lights can still cost shading; measure policy.
@@ -568,8 +599,16 @@ Run the server separately; existing smoke/benchmark entry points:
     npm run bench -- --base-url http://127.0.0.1:3456 --out benchmarks/results.json
     npm run bench:street -- http://127.0.0.1:3456
 
-These use a small fixture and do not satisfy Stage 0's full matrix. Implement
-additional switches before documenting them as available.
+These use a small fixture and do not satisfy Stage 0's full matrix. The runner accepts
+`--hour` (0–24), `--weather` (0–100; precipitation starts at 85), `--pose-x`,
+`--pose-z`, `--heading` and `--browser-channel chrome`. On Windows it records
+one-second CPU, memory and GPU-engine samples plus power/battery/thermal
+availability. For visible hardware measurements, start the production server
+and run a fixed scenario with `--headed --browser-channel chrome
+--renderer-mode browser-default`; verify the actual WebGL renderer in the saved
+report. `--renderer-mode software` is integration-only and never hardware
+performance evidence. Complete five repetitions per scenario; a short smoke
+does not replace the full matrix.
 
 Proposed evidence locations:
 
@@ -589,9 +628,11 @@ for Cesium, imagery and model resources. SSR, volumetrics, displacement, dense
 skeletal crowds and shadowed lamp arrays require separate high-tier budgets.
 None is a prerequisite for this sequence.
 
-**Next bounded task:** finish Stage 0's controlled warm/cold, day/night, rain and
-cell-crossing matrix, including OS/GPU load capture and an available mobile
-device. Keep Rust/Wasm/SIMD deferred until full geometry-stage timings show that
+**Next bounded task:** use visible hardware Chromium with a quiet, AC-powered
+system to capture five fixed-pose day, night and rain repetitions. The existing
+night/rain smoke is SwiftShader-only, system CPU was 96.4%, and Windows exposes
+no ACPI thermal zone. Then run cold/warm and cell-crossing scenarios, and include
+an available mobile device before closing Stage 0. Keep Rust/Wasm/SIMD deferred until full geometry-stage timings show that
 geometry, rather than submission, streaming or GPU shading, is the limiting
 cost. If Stage 2 resumes first, isolate material reuse from spatial batching and
 prove equal rendered content before accepting a performance claim.
