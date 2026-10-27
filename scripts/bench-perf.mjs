@@ -58,7 +58,7 @@ async function benchStreet(page) {
     waitUntil: 'domcontentloaded',
     timeout: 60_000,
   });
-  await page.waitForFunction(() => window.__engineReady === true, null, {
+  await page.waitForFunction(() => window.__engineReady === true && !!window.__streetDebug?.player, null, {
     timeout: READY_TIMEOUT,
   });
   const loadMs = Date.now() - t0;
