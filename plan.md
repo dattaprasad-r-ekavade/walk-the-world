@@ -202,12 +202,22 @@ scripts/bench-perf.mjs and benchmarks/fixtures/.
     IndexedDB path. Smoke cold, warm and cross-cell setup with the Rome showcase
     fixture; the [summary](benchmarks/results/stage0/recorded-city-cache-smoke.md)
     confirms the warm origin-cell request is skipped and the 10-cell bound holds.
-    One short run per condition is harness validation, not performance evidence.
-    - A first live cold smoke timed out while the local city API returned an
-      upstream error, so it is not baseline evidence.
-    - The default injected-fixture smoke confirmed request accounting but also
-      hit the optional asset endpoint's expected 501 response; its four-second
-      window is diagnostic only.
+  - [x] Capture five interleaved 12-second cold/warm recorded walks. Median
+    spawn-cell readiness was 5.36 s cold and 2.25 s warm after a separate 5.43 s
+    median preflight; frame p95 medians were both 14.1 ms. Warm city response
+    sizes were unavailable, so traffic totals cannot be compared.
+  - [x] Capture 12-second recorded boundary walk and drive checks. Both reached
+    the expected east neighbor, settled with no failed cells, and retained 10/10
+    resident cells. They are one-run client/streaming checks, not live network
+    performance evidence.
+  - [x] Raise renderer/GPU history capacity to 4,096 after a 12-second crossing
+    reached 1,259 samples and hit the old 1,200-sample limit. Rebuilt and reran
+    the crossing walk and drive successfully.
+  - A first live cold smoke timed out while the local city API returned an
+    upstream error, so it is not baseline evidence.
+  - The default injected-fixture smoke confirmed request accounting but also
+    hit the optional asset endpoint's expected 501 response; its four-second
+    window is diagnostic only.
   - [ ] Run the 15-minute thermal/resource soak and repeat on real mobile
     hardware before closing the hardware matrix.
 
