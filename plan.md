@@ -1,7 +1,8 @@
 # Walk the World — Performance and Visuals Implementation Plan
 
-Updated: 27 October 2026. Status: Stage 0.1–0.3 and 0.6 implemented locally;
-runtime baseline and release acceptance remain open.
+Updated: 27 October 2026. Status: Stage 0.1–0.3 and 0.6 implemented; local
+software-renderer smoke tests recorded; hardware baseline and release acceptance
+remain open.
 
 ## 1. Verified baseline and scope
 
@@ -125,9 +126,21 @@ are labeled CPU submission; worker compute is separate from roundtrip and output
 bytes.
 
 Validation: `npm test` passed (9 files, 79 tests); `npm run build` passed.
-Only a local software-renderer fixture smoke test has been run. It is not a
-production or hardware baseline. Stage 0.4–0.5 and 0.7–0.8 remain open. GPU frame
-time and estimated VRAM bytes are explicitly unavailable in this checkpoint.
+Two single-run reports used the local production build, Rome smoke fixture,
+medium preset and 12-second walk on revision `52873ca`:
+
+- [Forced SwiftShader](benchmarks/results/stage0/main-52873ca-swiftshader-medium.json):
+  26.3 s to ready, 1 FPS average, p95 2433 ms, 12 frame samples, 5.04 m moved.
+- [Browser-default renderer](benchmarks/results/stage0/main-52873ca-browser-default.json):
+  40.9 s to ready, 1 FPS average, p95 1100 ms, 14 frame samples, 7.00 m moved.
+
+Both selected SwiftShader in the actual WebGL renderer report, so these are local
+software smoke results, not comparable repetitions or hardware/production
+baselines. Both recorded 39 geometries, 23 textures and 19 programs, with zero
+validation, browser-console, runtime or local-asset errors. Terrain used the flat
+fallback (zero loaded tiles). A headed Chromium launch failed with `spawn UNKNOWN`,
+so the actual hardware GPU remains unmeasured. Stage 0.4–0.5 and 0.7–0.8 remain
+open. GPU frame time and estimated VRAM bytes are explicitly unavailable.
 
 Exit: repeatable JSON/captures and a bottleneck report, without architecture changes.
 Choose rendering/scheduling stages next if those dominate; bring Stage 6 forward

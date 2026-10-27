@@ -1,0 +1,621 @@
+{
+  "schemaVersion": 1,
+  "timestamp": "2026-10-27T08:27:33.982Z",
+  "sourceRevision": "52873cae5c1552d6815de0010a845be38971b2df",
+  "sourceTreeDirty": false,
+  "baseUrl": "http://127.0.0.1:3456",
+  "browser": {
+    "name": "Chromium",
+    "version": "136.0.7103.25",
+    "rendererMode": "software",
+    "headless": true
+  },
+  "scenario": {
+    "fixture": "benchmarks\\fixtures\\rome-minimal.json",
+    "route": "/street",
+    "latitude": 41.8902,
+    "longitude": 12.4922,
+    "qualityPreset": "medium",
+    "walkDurationMs": 12000
+  },
+  "cityCacheWarm": {
+    "ok": true,
+    "ms": 0,
+    "skipped": true
+  },
+  "street": {
+    "loadMs": 26290,
+    "avgFps": 1,
+    "movement": {
+      "start": {
+        "x": -10.206001517552492,
+        "z": 21.915754604831264
+      },
+      "end": {
+        "x": -7.197339271107225,
+        "z": 17.8741665832469
+      },
+      "displacementMeters": 5.038499999940388,
+      "validated": true
+    },
+    "preset": "medium",
+    "fpsSamples": [
+      1
+    ],
+    "frameSummary": {
+      "sampleCount": 12,
+      "durationMs": 12266,
+      "meanFrameTimeMs": 1022.183333333333,
+      "p50FrameTimeMs": 1016.5999999999985,
+      "p95FrameTimeMs": 2433.199999999997,
+      "p99FrameTimeMs": 2433.199999999997,
+      "onePercentLowFps": 0.41098142363965195,
+      "framesOver50Ms": 11,
+      "framesOver100Ms": 11
+    },
+    "frameIntervalsMs": [
+      483.40000000000146,
+      2433.199999999997,
+      16.600000000002183,
+      1149.9999999999964,
+      1049.9000000000015,
+      1066.7000000000044,
+      999.8999999999942,
+      983.4000000000015,
+      999.9000000000015,
+      1033.300000000003,
+      1033.2999999999956,
+      1016.5999999999985
+    ],
+    "marks": {
+      "terrain-ready": {
+        "atMs": 2101.600000023842,
+        "details": {
+          "loadedTiles": 1,
+          "flatFallback": false
+        }
+      },
+      "input-ready": {
+        "atMs": 8862.600000023842,
+        "details": {
+          "terrainTiles": 1
+        }
+      },
+      "city-data-ready": {
+        "atMs": 8862.700000047684,
+        "details": {
+          "elements": 8,
+          "partial": false
+        }
+      },
+      "first-building": {
+        "atMs": 10193.700000047684,
+        "details": {
+          "cellKey": "wtw_city6_41.890_12.492",
+          "triangles": 8
+        }
+      },
+      "streaming-complete": {
+        "atMs": 24432.30000001192,
+        "details": {
+          "scope": "spawn-cell",
+          "cityBuilt": true
+        }
+      }
+    },
+    "timings": [
+      {
+        "type": "timing",
+        "name": "city.initial-data-consumer",
+        "durationMs": 58.59999996423721,
+        "atMs": 475.10000002384186,
+        "details": {}
+      },
+      {
+        "type": "timing",
+        "name": "terrain.initial-load",
+        "durationMs": 1626.8999999761581,
+        "atMs": 2101.400000035763,
+        "details": {}
+      },
+      {
+        "type": "mark",
+        "name": "terrain-ready",
+        "atMs": 2101.600000023842,
+        "details": {
+          "loadedTiles": 1,
+          "flatFallback": false
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 3306.699999988079,
+        "atMs": 8862.300000011921,
+        "details": {
+          "qualityTier": "medium"
+        }
+      },
+      {
+        "type": "mark",
+        "name": "input-ready",
+        "atMs": 8862.600000023842,
+        "details": {
+          "terrainTiles": 1
+        }
+      },
+      {
+        "type": "mark",
+        "name": "city-data-ready",
+        "atMs": 8862.700000047684,
+        "details": {
+          "elements": 8,
+          "partial": false
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.spawn-clip",
+        "durationMs": 0.3999999761581421,
+        "atMs": 8863.600000023842,
+        "details": {
+          "inputElements": 8
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.worker-queue",
+        "durationMs": 9.800000011920929,
+        "atMs": 8874,
+        "details": {
+          "elements": 8
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.worker-input-pack",
+        "durationMs": 0.20000004768371582,
+        "atMs": 8874.400000035763,
+        "details": {
+          "elements": 8,
+          "terrainTiles": 1,
+          "copiedHeightBytes": 16900
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.worker-post-message",
+        "durationMs": 0.09999996423721313,
+        "atMs": 8874.5,
+        "details": {
+          "elements": 8,
+          "terrainTiles": 1
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 1.199999988079071,
+        "atMs": 8994,
+        "details": {
+          "qualityTier": "medium"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 1.600000023841858,
+        "atMs": 9314.100000023842,
+        "details": {
+          "qualityTier": "medium"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 19,
+        "atMs": 9697.700000047684,
+        "details": {
+          "qualityTier": "medium"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.worker-roundtrip",
+        "durationMs": 1172.6000000238419,
+        "atMs": 10047.200000047684,
+        "details": {
+          "elements": 8,
+          "outputBufferBytes": 40836
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.worker-compute",
+        "durationMs": 32.200000047683716,
+        "atMs": 10047.200000047684,
+        "details": {
+          "elements": 8
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.spawn-geometry-total",
+        "durationMs": 1183.699999988079,
+        "atMs": 10047.400000035763,
+        "details": {
+          "elements": 8
+        }
+      },
+      {
+        "type": "mark",
+        "name": "first-building",
+        "atMs": 10193.700000047684,
+        "details": {
+          "cellKey": "wtw_city6_41.890_12.492",
+          "triangles": 8
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 10569.699999988079,
+        "atMs": 20765.400000035763,
+        "details": {
+          "qualityTier": "medium"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 2.599999964237213,
+        "atMs": 20821.100000023842,
+        "details": {
+          "qualityTier": "medium"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.road-canvas-paint",
+        "durationMs": 0.5999999642372131,
+        "atMs": 20952.80000001192,
+        "details": {
+          "tiles": 9,
+          "roads": 2,
+          "buildings": 3,
+          "crossings": 0
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 2799.599999964237,
+        "atMs": 24387.80000001192,
+        "details": {
+          "qualityTier": "medium"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 2.599999964237213,
+        "atMs": 24416.30000001192,
+        "details": {
+          "qualityTier": "medium"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.spawn-assembly-total",
+        "durationMs": 14384.800000011921,
+        "atMs": 24432.30000001192,
+        "details": {
+          "elements": 8
+        }
+      },
+      {
+        "type": "mark",
+        "name": "streaming-complete",
+        "atMs": 24432.30000001192,
+        "details": {
+          "scope": "spawn-cell",
+          "cityBuilt": true
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.neighbor-clip",
+        "durationMs": 0.09999996423721313,
+        "atMs": 24438.30000001192,
+        "details": {
+          "inputElements": 8
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.neighbor-clip",
+        "durationMs": 0,
+        "atMs": 24438.900000035763,
+        "details": {
+          "inputElements": 8
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.neighbor-clip",
+        "durationMs": 0.09999996423721313,
+        "atMs": 24439.5,
+        "details": {
+          "inputElements": 8
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.neighbor-clip",
+        "durationMs": 0,
+        "atMs": 24439.600000023842,
+        "details": {
+          "inputElements": 8
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.neighbor-clip",
+        "durationMs": 0,
+        "atMs": 24440.100000023842,
+        "details": {
+          "inputElements": 8
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.neighbor-clip",
+        "durationMs": 0,
+        "atMs": 24440.30000001192,
+        "details": {
+          "inputElements": 8
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.neighbor-clip",
+        "durationMs": 0,
+        "atMs": 24440.900000035763,
+        "details": {
+          "inputElements": 8
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.neighbor-clip",
+        "durationMs": 0,
+        "atMs": 24441,
+        "details": {
+          "inputElements": 8
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 7.300000011920929,
+        "atMs": 24464.900000035763,
+        "details": {
+          "qualityTier": "medium"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 9.800000011920929,
+        "atMs": 25314,
+        "details": {
+          "qualityTier": "medium"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 1.9000000357627869,
+        "atMs": 25551.700000047684,
+        "details": {
+          "qualityTier": "medium"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 3045.5,
+        "atMs": 29323.80000001192,
+        "details": {
+          "qualityTier": "medium"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 2.399999976158142,
+        "atMs": 29337.100000023842,
+        "details": {
+          "qualityTier": "medium"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 1.699999988079071,
+        "atMs": 29342,
+        "details": {
+          "qualityTier": "medium"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 2425.199999988079,
+        "atMs": 32254.600000023842,
+        "details": {
+          "qualityTier": "medium"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 3.5,
+        "atMs": 32275.900000035763,
+        "details": {
+          "qualityTier": "medium"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 3.300000011920929,
+        "atMs": 32282.900000035763,
+        "details": {
+          "qualityTier": "medium"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 3,
+        "atMs": 33439.5,
+        "details": {
+          "qualityTier": "medium"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 2.5,
+        "atMs": 34477.80000001192,
+        "details": {
+          "qualityTier": "medium"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 2.300000011920929,
+        "atMs": 35550.40000003576,
+        "details": {
+          "qualityTier": "medium"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 4.600000023841858,
+        "atMs": 36548.200000047684,
+        "details": {
+          "qualityTier": "medium"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 3.699999988079071,
+        "atMs": 37536.40000003576,
+        "details": {
+          "qualityTier": "medium"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 4.800000011920929,
+        "atMs": 38546.10000002384,
+        "details": {
+          "qualityTier": "medium"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 1.899999976158142,
+        "atMs": 39567.90000003576,
+        "details": {
+          "qualityTier": "medium"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 5.899999976158142,
+        "atMs": 40597.700000047684,
+        "details": {
+          "qualityTier": "medium"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 3,
+        "atMs": 41612.80000001192,
+        "details": {
+          "qualityTier": "medium"
+        }
+      }
+    ],
+    "metadata": {
+      "qualityTier": "medium",
+      "pixelRatio": 1,
+      "shadowMapEnabled": true,
+      "postFxActive": false
+    },
+    "settings": {
+      "qualityTier": "medium",
+      "pixelRatio": 1,
+      "shadowMapEnabled": true,
+      "postFxActive": false
+    },
+    "resourceCounts": {
+      "geometries": 39,
+      "textures": 23,
+      "programs": 19
+    },
+    "unavailableMeasurements": [
+      {
+        "name": "gpuFrameTimeMs",
+        "reason": "GPU timer queries are not instrumented in this profiling checkpoint."
+      },
+      {
+        "name": "estimatedGpuMemoryBytes",
+        "reason": "WebGL does not expose reliable allocated VRAM bytes; geometry and texture object counts are reported instead."
+      }
+    ],
+    "validationErrors": [],
+    "environment": {
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/136.0.7103.25 Safari/537.36",
+      "platform": "Win32",
+      "hardwareConcurrency": 8,
+      "deviceMemoryGb": 8,
+      "visibilityState": "visible",
+      "viewport": {
+        "width": 1280,
+        "height": 720,
+        "devicePixelRatio": 1
+      },
+      "webgl": {
+        "version": "WebGL 2.0 (OpenGL ES 3.0 Chromium)",
+        "vendor": "Google Inc. (Google)",
+        "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+        "webgl2": true,
+        "debugRendererInfoAvailable": true
+      }
+    },
+    "triangles": 24,
+    "reactRenders": 8,
+    "minimapDraws": 34,
+    "hudUpdates": 0
+  },
+  "globe": {
+    "skipped": true
+  },
+  "error": null,
+  "diagnostics": {
+    "consoleErrors": [],
+    "pageErrors": [],
+    "assetFailures": []
+  }
+}
