@@ -3,16 +3,17 @@
 Updated: 27 October 2026. Status: Stage 0 instrumentation, synthetic fixtures,
 and an attributed/sanitized real-city fixture are implemented. Five same-
 condition integrated-GPU repetitions are recorded as provisional because frame
-pacing drifted. Deterministic multi-cell movement, a stable matched matrix, and
-release acceptance remain open. Implementation continues.
+pacing drifted. Deterministic walk/drive cell-boundary checks and the resident-
+cell cap regression are implemented. A stable matched matrix and release
+acceptance remain open. Implementation continues.
 
 ## 1. Verified baseline and scope
 
-Fetched origin on 27 October 2026 and verified that local `main` and
-`origin/main` both point to `adf6d073a56f1dd8e2937aeb9147e4fc4645eca0` before
-this implementation checkpoint. Earlier performance and setup branch work is
-already merged into `main`. Stage 0.4/0.5 changes are local and uncommitted;
-recheck the remote before the next checkpoint.
+Fetched origin on 27 October 2026. The performance and setup branches are already
+contained in `main`; before implementation, local `main` matched
+`origin/main` at `adf6d073a56f1dd8e2937aeb9147e4fc4645eca0`. The fixture and
+profiling checkpoint is saved in local commit `664b55f`. The cross-cell changes
+below are the current uncommitted work. No changes have been pushed.
 
 This is the active implementation sequence for
 [PERFORMANCE-VISUALS-PLAN.md](PERFORMANCE-VISUALS-PLAN.md), which contains
@@ -115,11 +116,11 @@ scripts/bench-perf.mjs and benchmarks/fixtures/.
 - [x] 0.6 Extend and validate the benchmark CLI for fixture, route, coordinates,
   preset, renderer mode, duration, seed and output. Fail nonzero on failed
   checks/console/asset errors. Document switches only after they exist.
-- [ ] 0.7 Prove street movement via player displacement. The runner focuses the
+- [x] 0.7 Prove street movement via player displacement. The runner focuses the
   Street page and requires measurable displacement.
   - [x] Require displacement for walking and add a seeded driving run that
     enters a nearby traffic car through the normal control handler.
-  - [ ] Add deterministic walk and drive routes that cross a cell boundary and
+  - [x] Add deterministic walk and drive routes that cross a cell boundary and
     validate neighbor streaming and resource limits.
 - [ ] 0.8 Capture matched production warm/cold/day/night/rain/crossing baselines
   and rank CPU, GPU, network and memory bottlenecks.
@@ -148,7 +149,7 @@ deterministic cell-boundary streaming. The fixture README distinguishes syntheti
 CC0 data from the old Rome smoke fixture, whose provenance is unverified.
 
 Validation on this checkpoint: `npm test -- --reporter=dot` passed (10 files,
-90 tests); `npm run build` passed. The app was run locally from the production
+91 tests); `npm run build` passed after the cell-cap fix. The app was run locally from the production
 build. A separate visible Chromium run confirmed WebGL2 on Intel UHD 630
 (ANGLE/D3D11) with the GPU timer-query extension supported. The fixed-medium run
 was a warm, live-data 12-second walk at 1046x654 CSS pixels and DPR 1.25:
@@ -229,13 +230,24 @@ records 54.7 seconds to stream the same fixture and 0.5 m movement. Its rendered
 scene capture is saved at
 `benchmarks/results/stage0/rome-osm-showcase-swiftshader.png`.
 
-Remaining Stage 0 gates: make deterministic walk and drive paths cross cell
-boundaries; and
-stabilise the five-run baseline before alternating matched candidate runs across
-warm/cold, day/night/rain and crossing scenarios. Include real mobile hardware.
-The current stationary repetition set is useful for repeatability diagnostics
-but must not be used as a pass/fail A/B baseline. No shader, texture or visual
-rendering behavior changed in this checkpoint.
+The first boundary-crossing walk report exposed a resource-cap defect: cells
+with no new features skipped eviction, and the application was configured for
+9 cells even though the active 3x3 ring can coexist with a pinned spawn cell.
+The follow-up fix evicts empty cells and sets the cap to 10. A lifecycle test
+advances three empty rings and verifies the bound. The [walk report](benchmarks/results/stage0/main-664b55f-osm-rome-walk-cross-cell-after-eviction-fix.json)
+and [drive report](benchmarks/results/stage0/main-664b55f-osm-rome-drive-cross-cell-swiftshader.json)
+both crossed from `wtw_city6_41.890_12.492` to the expected east neighbor,
+finished neighbor streaming with zero failed cells, and retained exactly 10 of
+10 allowed cells. Walk displacement was 6.50 m; drive displacement was 12.86 m.
+These used headless SwiftShader, so their frame timings are excluded from GPU
+performance comparisons. The earlier [failed report](benchmarks/results/stage0/main-664b55f-osm-rome-walk-cross-cell-swiftshader.json)
+is retained to show the regression that the new checks caught.
+
+Remaining Stage 0 gates: stabilise the five-run baseline before alternating
+matched candidate runs across warm/cold, day/night/rain and crossing scenarios.
+Include real mobile hardware. The current stationary repetition set is useful
+for repeatability diagnostics but must not be used as a pass/fail A/B baseline.
+No shader, texture or visual rendering behavior changed in this checkpoint.
 
 Exit: repeated JSON/captures and a measured bottleneck report, without
 architecture changes. Once noise and network variability are understood, choose

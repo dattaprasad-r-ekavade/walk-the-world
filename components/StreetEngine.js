@@ -1343,7 +1343,7 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false }) {
           }
         },
         onCellLoaded: () => { if (!disposed) window.__engineReady = true; },
-        maxCells: 9,
+        maxCells: 10,
         buildCity: cityBuilder.build,
       });
       if (cityBuilt) {
@@ -1522,6 +1522,7 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false }) {
         // How the opening shot was framed (lib/engine/street/spawn.js): mode,
         // metres moved from the requested point, and the view-cone score.
         spawnFraming: () => runtime.current.spawnFraming || null,
+        cellStream: () => runtime.current.cellStreamer?.debugState?.() || null,
         vehicle,
         population: () => population,
         tickPopulation: () => population?.update?.(1 / 60, player, runtimeHour, false),

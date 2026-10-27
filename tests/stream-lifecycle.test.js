@@ -46,10 +46,29 @@ describe('stream eviction',()=>{
     streamer.markLoaded('wtw_city6_1.000_2.000',1,2);
     streamer.tick(1.0055,2); // ring centered one cell north of spawn
     await vi.waitFor(()=>expect(streamer.loadingCount()).toBe(0));
+    const state=streamer.debugState();
+    expect(state.center.key).toBe('wtw_city6_1.006_2.000');
+    expect(state.pendingCount).toBe(0);
+    expect(state.residentCellCount).toBeLessThanOrEqual(state.maxCells);
     const calls=fetchCityDataForStream.mock.calls.length;
     streamer.tick(1.0055,2.0001);
     expect(fetchCityDataForStream.mock.calls.length).toBe(calls);
     expect(calls).toBeGreaterThanOrEqual(8); // all ring cells requested (spawn is pinned, one is skipped)
+    streamer.dispose();
+  });
+  it('evicts empty cells as the loaded ring advances and preserves its capacity bound',async()=>{
+    vi.spyOn(console,'warn').mockImplementation(()=>{}); vi.spyOn(console,'info').mockImplementation(()=>{});
+    fetchCityDataForStream.mockImplementation(async(la,lo)=>({lat:la,lon:lo,cacheKey:'empty',data:{elements:[]}}));
+    const streamer=createCellStreamer({scene:new THREE.Scene(),lat0:1,lon0:2,terrainTiles:new Map(),engineRef:{current:{}},maxCells:10});
+    streamer.markLoaded('wtw_city6_1.000_2.000',1,2);
+    for(const lon of [2,2.0055,2.011]){
+      streamer.tick(1,lon);
+      await vi.waitFor(()=>expect(streamer.loadingCount()).toBe(0));
+    }
+    const state=streamer.debugState();
+    expect(state.center.key).toBe('wtw_city6_1.000_2.011');
+    expect(state.loadedKeys).toContain('wtw_city6_1.000_2.000');
+    expect(state.residentCellCount).toBeLessThanOrEqual(10);
     streamer.dispose();
   });
 });

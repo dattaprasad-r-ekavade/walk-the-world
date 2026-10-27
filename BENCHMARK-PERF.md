@@ -72,7 +72,11 @@ Supported options are `--base-url`, `--fixture`, `--route`, `--lat`, `--lon`,
 `--preset` (`low|medium|high`), `--renderer-mode` (`software|browser-default`),
 `--walk-ms` (minimum 1000), `--seed` (0 through 4294967295), `--out`,
 `--screenshot` (optional rendered street capture), `--headed`
-`--drive` and `--skip-globe`. `--drive` waits for seeded traffic, approaches a
+`--drive`, `--cross-cell` and `--skip-globe`. `--cross-cell` starts just before
+the next east cell boundary, finds an unobstructed path, crosses it with real
+walk/drive input, waits for neighbor streaming to settle, and checks the cell
+capacity bound. Combine with `--drive` to test vehicle movement through the same
+boundary. `--drive` waits for seeded traffic, approaches a
 nearby car, enters through the normal `C` control handler and drives with `W`.
 Reports contain the selected WebGL renderer, per-frame
 renderer counters, asynchronous GPU timing when the extension is available,

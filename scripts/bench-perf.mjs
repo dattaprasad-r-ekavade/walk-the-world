@@ -8,6 +8,8 @@ import { writeFileSync, mkdirSync, readFileSync } from 'fs';
 import { execFileSync } from 'child_process';
 import { dirname, isAbsolute, join, resolve } from 'path';
 import { fileURLToPath } from 'url';
+import { CELL_STEP, cityCacheKey } from '../lib/city-contract.js';
+import { EARTH_R } from '../lib/engine/geo.js';
 import {
   orderedFrameIntervals,
   orderedGpuFrameTimes,
@@ -52,6 +54,7 @@ const location = {
 const headed = args.includes('--headed');
 const skipGlobe = args.includes('--skip-globe');
 const driving = args.includes('--drive');
+const crossCell = args.includes('--cross-cell');
 if (!['low', 'medium', 'high'].includes(qualityPreset)) throw new Error('--preset must be low, medium, or high');
 if (!['software', 'browser-default'].includes(rendererMode)) throw new Error('--renderer-mode must be software or browser-default');
 if (!Number.isFinite(walkDurationMs) || walkDurationMs < 1000) throw new Error('--walk-ms must be at least 1000');
@@ -84,7 +87,7 @@ async function benchStreet(page) {
       timeout: READY_TIMEOUT,
     });
   }
-  const playerStart = await page.evaluate((useDriving) => {
+  let playerStart = await page.evaluate((useDriving) => {
     const player = window.__streetDebug?.player;
     if (!player) return null;
     if (useDriving) {
@@ -104,6 +107,55 @@ async function benchStreet(page) {
     await page.keyboard.press('c');
     await page.waitForFunction(() => window.__streetDebug?.vehicle?.active === true, null, { timeout: 5000 });
   }
+  let cellStreamStart = null;
+  let expectedCellKey = null;
+  if (crossCell) {
+    await page.waitForFunction(() => {
+      const state = window.__streetDebug?.cellStream?.();
+      return !!state && state.pendingCount === 0;
+    }, null, { timeout: READY_TIMEOUT });
+    const initialCellState = await page.evaluate(() => window.__streetDebug.cellStream());
+    cellStreamStart = initialCellState.center.key;
+    expectedCellKey = cityCacheKey(location.lat, location.lon + CELL_STEP);
+    const crossingSetup = await page.evaluate(({ lat, lon, step, earthRadius, useDriving }) => {
+      const debug = window.__streetDebug;
+      const player = debug?.player;
+      if (!player) throw new Error('Street player debug state is unavailable');
+      const boundaryX = (step / 2) * Math.PI * earthRadius * Math.cos(lat * Math.PI / 180) / 180;
+      const lead = useDriving ? 6 : 2;
+      const startX = boundaryX - lead;
+      const offsets = [0];
+      for (let distance = 3; distance <= 300; distance += 3) offsets.push(distance, -distance);
+      const pathOffsets = [-10, -7, -4, 0, 4, 7, 10];
+      let clearZ = null;
+      for (const offset of offsets) {
+        const z = player.z + offset;
+        if (pathOffsets.every((xOffset) => !debug.insideBuilding(startX + xOffset, z))) {
+          clearZ = z;
+          break;
+        }
+      }
+      if (clearZ === null) throw new Error('No clear eastbound path found near the next cell boundary');
+      const ground = debug.groundHeight(startX, clearZ);
+      if (useDriving) {
+        const car = debug.vehicle?.state;
+        if (!car?.active) throw new Error('Vehicle did not enter driving mode');
+        car.x = startX;
+        car.z = clearZ;
+        car.y = ground + 0.05;
+        car.heading = Math.PI / 2;
+        car.speed = 0.5;
+        debug.population?.()?.setDrivenPose?.(car.carIndex, {
+          x: car.x, y: car.y, z: car.z, heading: car.heading, speed: car.speed,
+        });
+      }
+      player.x = startX;
+      player.z = clearZ;
+      player.heading = Math.PI / 2;
+      return { x: startX, z: clearZ, boundaryX };
+    }, { lat: location.lat, lon: location.lon, step: CELL_STEP, earthRadius: EARTH_R, useDriving: driving });
+    playerStart = { x: crossingSetup.x, z: crossingSetup.z };
+  }
   // Let startup GPU queries finish before the measured movement window begins.
   await page.waitForTimeout(500);
   await page.evaluate(() => {
@@ -121,6 +173,40 @@ async function benchStreet(page) {
   await page.waitForTimeout(walkDurationMs);
   await page.keyboard.up('w');
   await page.waitForTimeout(500);
+
+  let cellStreaming = null;
+  if (crossCell) {
+    try {
+      await page.waitForFunction(({ expectedKey }) => {
+        const state = window.__streetDebug?.cellStream?.();
+        return state?.center?.key === expectedKey &&
+          state.loadedKeys.includes(expectedKey) && state.pendingCount === 0;
+      }, { expectedKey: expectedCellKey }, { timeout: READY_TIMEOUT });
+    } catch { /* return the last state so a failed crossing remains diagnosable */ }
+    cellStreaming = await page.evaluate(({ startKey, expectedKey }) => {
+      const state = window.__streetDebug?.cellStream?.();
+      const endKey = state?.center?.key || null;
+      const crossed = !!endKey && endKey !== startKey && endKey === expectedKey;
+      const neighborLoaded = !!state?.loadedKeys?.includes(expectedKey);
+      const settled = state?.pendingCount === 0;
+      const noFailedCells = !!state && state.failedKeys.length === 0;
+      const resourceLimitOk = !!state && state.residentCellCount <= state.maxCells;
+      return {
+        startCellKey: startKey,
+        expectedCellKey: expectedKey,
+        endCellKey: endKey,
+        crossed,
+        neighborLoaded,
+        settled,
+        residentCellCount: state?.residentCellCount ?? null,
+        maxCells: state?.maxCells ?? null,
+        failedCellKeys: state?.failedKeys || [],
+        noFailedCells,
+        resourceLimitOk,
+        validated: crossed && neighborLoaded && settled && noFailedCells && resourceLimitOk,
+      };
+    }, { startKey: cellStreamStart, expectedKey: expectedCellKey });
+  }
 
   const metrics = await page.evaluate(() => {
     const fpsChip = document.querySelector('.chip.fps');
@@ -162,6 +248,7 @@ async function benchStreet(page) {
       validated: displacementMeters !== null && displacementMeters > 0.25,
     },
     driving: metrics.vehicleActive,
+    cellStreaming,
     preset: qualityPreset,
     fpsSamples: samples,
     frameSummary,
@@ -220,7 +307,7 @@ async function main() {
   mkdirSync(dirname(outPath), { recursive: true });
 
   console.log(`  Fixture: ${fixturePath}`);
-  console.log(`  Route: ${route}; preset: ${qualityPreset}; renderer: ${rendererMode}; walk: ${walkDurationMs}ms`);
+  console.log(`  Route: ${route}; preset: ${qualityPreset}; renderer: ${rendererMode}; walk: ${walkDurationMs}ms${crossCell ? '; crossing a cell boundary' : ''}`);
   console.log('  City cache pre-warm skipped — benchmark fixture mode');
   const cache = { ok: true, ms: 0, skipped: true };
 
@@ -319,6 +406,7 @@ async function main() {
       walkDurationMs,
       seed,
       driving,
+      crossCell,
     },
     cityCacheWarm: cache,
     street: null,
@@ -338,6 +426,9 @@ async function main() {
       `    load: ${result.street.loadMs}ms, avg FPS: ${result.street.avgFps}, movement: ${result.street.movement.displacementMeters?.toFixed(2) ?? 'n/a'}m`
     );
     if (!result.street.movement.validated) throw new Error('Street movement did not exceed 0.25m; controls were not validated');
+    if (crossCell && !result.street.cellStreaming?.validated) {
+      throw new Error(`Cell-crossing validation failed: ${JSON.stringify(result.street.cellStreaming)}`);
+    }
 
     if (skipGlobe) result.globe = { skipped: true };
     else {
