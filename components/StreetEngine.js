@@ -264,6 +264,7 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false }) {
     // Keep renderer counters cumulative across the app's complete logical
     // frame, including composer passes. The counters are reset after each draw.
     renderer.info.autoReset = false;
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
     const gl = renderer.getContext();
     const gpuTimer = createGpuFrameTimer(gl, {
       onSample: (durationMs) => appendGpuFrameTime(getPerfCounters(), durationMs),
@@ -363,6 +364,7 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false }) {
       g2.fillStyle = grad;
       g2.fillRect(0, 0, 128, 128);
       const tx = new THREE.CanvasTexture(c);
+      tx.colorSpace = THREE.SRGBColorSpace;
       const sp = new THREE.Sprite(
         new THREE.SpriteMaterial({ map: tx, transparent: true, depthWrite: false, fog: false })
       );

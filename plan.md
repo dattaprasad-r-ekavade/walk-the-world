@@ -431,11 +431,17 @@ street/assemble-city.js, post-fx.js and StreetEngine.js.
   The [tagged material smoke](benchmarks/results/stage2/material-family-mapping-smoke.md)
   reduced 16 canonical/alias/unknown names to 10 building factory keys; the Rome
   showcase itself has no `building:material` values.
-- [ ] 2.3 Prototype family batching with linear-space vertex tint. Preserve AO/
+- [x] 2.3 Prototype family batching with linear-space vertex tint. Preserve AO/
   jitter without multiplying base tint twice. Keep chunk-local culling bounds,
-  feature metadata and independent collision/editor picking.
-- [ ] 2.4 Audit sRGB colour/emissive maps versus non-colour normal/ORM data and
-  one final tone/output conversion in direct/post-processed rendering.
+  feature metadata and independent collision/editor picking. The
+  [matched smoke](benchmarks/results/stage2/material-family-batching-smoke.md)
+  kept the scene visually equivalent and reduced mean draw calls slightly;
+  its one-run GPU p95 is 0.25 ms higher, so repeat an interleaved A/B before
+  treating this as a performance improvement.
+- [x] 2.4 Audit sRGB colour/emissive maps versus non-colour normal/ORM data and
+  one final tone/output conversion in direct/post-processed rendering. The
+  [audit](benchmarks/results/stage2/material-color-space-audit.md) records map
+  roles, explicit sRGB fixes and direct/composer output paths.
 - [ ] 2.5 Compare simple low/far materials with near PBR using actual GPU timings.
   Preserve important road, glass and metal response.
 - [ ] 2.6 Keep necessary shader patches version-matched, with stable cache keys
@@ -478,8 +484,12 @@ The same 154 scene materials and 42 referenced textures appeared at all tiers;
 program count rose from 26/28 to 64 at high quality, where mean draw calls also
 rose from about 238 to 446 in this single run. The Rome fixture has no named
 building-material tags, so Stage 2.2 used a separate CC0 material fixture and
-smoke report. The full family/constructor audit remains open; Stage 2.3 should
-prototype vertex-tint batching while preserving the deterministic family colors.
+smoke report. The family-batching prototype is recorded in
+[its matched smoke report](benchmarks/results/stage2/material-family-batching-smoke.md).
+Its small draw-call reduction came with a slightly higher GPU p95 in one run,
+so the Stage 2 performance gate stays open pending interleaved repeats. Stage
+2.4's color-space audit is recorded in
+[its audit report](benchmarks/results/stage2/material-color-space-audit.md).
 
 Exit: lower submission/program cost or approved visual gain at neutral cost;
 no hue, silhouette, placement or editor-selection regression.
