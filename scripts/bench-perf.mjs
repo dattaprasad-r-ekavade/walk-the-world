@@ -86,6 +86,7 @@ if (!Number.isFinite(location.lat) || Math.abs(location.lat) > 90 || !Number.isF
 }
 if (!route.startsWith('/')) throw new Error('--route must be an absolute path such as /street');
 const READY_TIMEOUT = 180_000;
+const HOST_TELEMETRY_READY_MARKER = '__BENCH_HOST_TELEMETRY_READY__';
 
 const BENCH_FIXTURE = JSON.parse(readFileSync(fixturePath, 'utf8'));
 
@@ -108,27 +109,39 @@ function summarizeHostTelemetryWindow(telemetry, startedAt, endedAt) {
     : null;
   const firstSampleAtMs = samples.length ? Date.parse(samples[0].sampledAt) : null;
   const lastSampleAtMs = samples.length ? Date.parse(samples[samples.length - 1].sampledAt) : null;
+  const firstSampleOffsetMs = firstSampleAtMs === null ? null : Math.round(firstSampleAtMs - startMs);
+  const lastSampleGapMs = lastSampleAtMs === null ? null : Math.round(endMs - lastSampleAtMs);
+  const reasons = [];
+  if (samples.length === 0) reasons.push('No host samples fell inside the browser measurement window');
+  if (!expectedSampleCount) reasons.push('Actual host sample interval is unavailable');
+  if (expectedSampleCount && samples.length / expectedSampleCount < 0.75) reasons.push('Host sample coverage was below 75%');
+  if (firstSampleOffsetMs !== null && firstSampleOffsetMs > telemetry.actualSampleIntervalSeconds * 1500) {
+    reasons.push('The first host sample was too far into the browser measurement window');
+  }
+  if (lastSampleGapMs !== null && lastSampleGapMs > telemetry.actualSampleIntervalSeconds * 1500) {
+    reasons.push('The last host sample was too far before the browser measurement window ended');
+  }
 
   return {
     available: true,
     sampleCount: samples.length,
     expectedSampleCount,
     coveragePct: expectedSampleCount ? Math.round((samples.length / expectedSampleCount) * 100) : null,
-    firstSampleOffsetMs: firstSampleAtMs === null ? null : Math.round(firstSampleAtMs - startMs),
-    lastSampleGapMs: lastSampleAtMs === null ? null : Math.round(endMs - lastSampleAtMs),
+    actualSampleIntervalSeconds: telemetry.actualSampleIntervalSeconds,
+    firstSampleOffsetMs,
+    lastSampleGapMs,
     averageSystemCpuPct: cpuValues.length ? Number((cpuValues.reduce((sum, value) => sum + value, 0) / cpuValues.length).toFixed(2)) : null,
     minimumAvailableMemoryMb: memoryValues.length ? Math.min(...memoryValues) : null,
     averagePerEngine3dPeakPct: gpu3dValues.length ? Number((gpu3dValues.reduce((sum, value) => sum + value, 0) / gpu3dValues.length).toFixed(2)) : null,
-    valid: samples.length > 0 && expectedSampleCount > 0 &&
-      samples.length / expectedSampleCount >= 0.75 &&
-      firstSampleAtMs - startMs <= telemetry.actualSampleIntervalSeconds * 1500 &&
-      endMs - lastSampleAtMs <= telemetry.actualSampleIntervalSeconds * 1500,
+    valid: reasons.length === 0 && expectedSampleCount > 0,
+    reasons,
   };
 }
 
 function startHostTelemetry(sampleSeconds) {
   if (process.platform !== 'win32') {
     return {
+      ready: Promise.resolve({ available: false, reason: `Windows host counters are unavailable on ${process.platform}` }),
       finish: async () => ({
         available: false,
         reason: `Windows host counters are unavailable on ${process.platform}`,
@@ -142,17 +155,42 @@ function startHostTelemetry(sampleSeconds) {
     '-SampleSeconds', String(sampleSeconds),
   ], { windowsHide: true, stdio: ['ignore', 'pipe', 'pipe'] });
   let stdout = '';
+  let pendingStdoutLine = '';
   let stderr = '';
+  let resolveReady;
+  let readyResolved = false;
+  const ready = new Promise((resolveReadySignal) => { resolveReady = resolveReadySignal; });
+  const signalReady = (value) => {
+    if (readyResolved) return;
+    readyResolved = true;
+    resolveReady(value);
+  };
   child.stdout.setEncoding('utf8');
   child.stderr.setEncoding('utf8');
-  child.stdout.on('data', (chunk) => { stdout += chunk; });
+  child.stdout.on('data', (chunk) => {
+    stdout += chunk;
+    pendingStdoutLine += chunk;
+    const lines = pendingStdoutLine.split(/\r?\n/);
+    pendingStdoutLine = lines.pop() || '';
+    for (const line of lines) {
+      if (line.trim() === HOST_TELEMETRY_READY_MARKER) signalReady({ available: true });
+    }
+  });
   child.stderr.on('data', (chunk) => { stderr += chunk; });
   const completed = new Promise((resolveCompletion) => {
-    child.once('error', (error) => resolveCompletion({ error: error.message }));
-    child.once('close', (code, signal) => resolveCompletion({ code, signal }));
+    child.once('error', (error) => {
+      signalReady({ available: false, reason: error.message });
+      resolveCompletion({ error: error.message });
+    });
+    child.once('close', (code, signal) => {
+      if (pendingStdoutLine.trim() === HOST_TELEMETRY_READY_MARKER) signalReady({ available: true });
+      if (!readyResolved) signalReady({ available: false, reason: `Host telemetry exited before its first sample (code ${code ?? 'unknown'})` });
+      resolveCompletion({ code, signal });
+    });
   });
 
   return {
+    ready,
     finish: async () => {
       const status = await completed;
       if (status.error) return { available: false, reason: status.error };
@@ -165,7 +203,12 @@ function startHostTelemetry(sampleSeconds) {
         };
       }
       try {
-        return JSON.parse(stdout);
+        const jsonOutput = stdout
+          .split(/\r?\n/)
+          .filter((line) => line.trim() !== HOST_TELEMETRY_READY_MARKER)
+          .join('\n')
+          .trim();
+        return JSON.parse(jsonOutput);
       } catch (error) {
         return {
           available: false,
@@ -178,7 +221,7 @@ function startHostTelemetry(sampleSeconds) {
   };
 }
 
-async function benchStreet(page, hostTelemetryMonitor) {
+async function benchStreet(page) {
   const t0 = Date.now();
   const streetUrl = new URL(route, baseUrl);
   streetUrl.searchParams.set('lat', String(location.lat));
@@ -278,8 +321,11 @@ async function benchStreet(page, hostTelemetryMonitor) {
     }, { lat: location.lat, lon: location.lon, step: CELL_STEP, earthRadius: EARTH_R, useDriving: driving });
     playerStart = { x: crossingSetup.x, z: crossingSetup.z };
   }
-  // Let the host counter process initialize during page load and scene setup.
+  // Prime the counter provider while the scene is idle; begin movement only
+  // after the first real host sample is available.
   await page.waitForTimeout(500);
+  const hostTelemetryMonitor = startHostTelemetry(Math.min(600, Math.max(1, Math.ceil(walkDurationMs / 1000) + 3)));
+  await hostTelemetryMonitor.ready;
   await page.evaluate(() => {
     const counters = window.__perfCounters;
     if (counters) {
@@ -460,11 +506,6 @@ async function main() {
   console.log('  City cache pre-warm skipped — benchmark fixture mode');
   const cache = { ok: true, ms: 0, skipped: true };
 
-  // Start host collection before Chromium startup. On Windows, initializing
-  // the WMI/performance-counter provider can take several seconds, so starting
-  // near the walk omits the first part of the measurement window.
-  const hostTelemetryMonitor = startHostTelemetry(Math.min(600, Math.max(1, Math.ceil(walkDurationMs / 1000) + 7)));
-
   const launchOptions = {
     headless: !headed,
     args: rendererMode === 'software' ? ['--use-gl=angle', '--use-angle=swiftshader'] : [],
@@ -591,7 +632,7 @@ async function main() {
 
   try {
     console.log('  Street engine…');
-    result.street = await benchStreet(page, hostTelemetryMonitor);
+    result.street = await benchStreet(page);
     if (result.street.settings?.hour !== benchmarkEnvironment.hour || result.street.settings?.weather !== benchmarkEnvironment.weather) {
       throw new Error(`Applied scene environment did not match the requested benchmark: ${JSON.stringify(result.street.settings)}`);
     }

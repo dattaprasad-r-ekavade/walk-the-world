@@ -48,17 +48,32 @@ try {
 
 $samples = [System.Collections.Generic.List[object]]::new()
 $counterFailures = 0
-$counterSets = @()
+$counterSets = [System.Collections.Generic.List[object]]::new()
+$firstCounterSampleReady = $false
 $counterCollectionClock = [System.Diagnostics.Stopwatch]::StartNew()
 try {
-  $counterSets = @(Get-Counter -Counter $counterPaths -SampleInterval 1 -MaxSamples $SampleSeconds -ErrorAction Stop)
+  Get-Counter -Counter $counterPaths -SampleInterval 1 -MaxSamples $SampleSeconds -ErrorAction Stop | ForEach-Object {
+    [void]$counterSets.Add($_)
+    if (-not $firstCounterSampleReady) {
+      [Console]::Out.WriteLine('__BENCH_HOST_TELEMETRY_READY__')
+      [Console]::Out.Flush()
+      $firstCounterSampleReady = $true
+    }
+  }
 } catch {
   $counterFailures++
   if ($gpuCountersAvailable) {
     $unavailable.Add("Combined CPU/GPU sampling: $($_.Exception.Message)")
     $gpuCountersAvailable = $false
     try {
-      $counterSets = @(Get-Counter -Counter '\Processor(_Total)\% Processor Time', '\Memory\Available MBytes' -SampleInterval 1 -MaxSamples $SampleSeconds -ErrorAction Stop)
+      Get-Counter -Counter '\Processor(_Total)\% Processor Time', '\Memory\Available MBytes' -SampleInterval 1 -MaxSamples $SampleSeconds -ErrorAction Stop | ForEach-Object {
+        [void]$counterSets.Add($_)
+        if (-not $firstCounterSampleReady) {
+          [Console]::Out.WriteLine('__BENCH_HOST_TELEMETRY_READY__')
+          [Console]::Out.Flush()
+          $firstCounterSampleReady = $true
+        }
+      }
     } catch { $unavailable.Add("CPU/memory counters: $($_.Exception.Message)") }
   } else {
     $unavailable.Add("CPU/memory counters: $($_.Exception.Message)")
