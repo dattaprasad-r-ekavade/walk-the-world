@@ -119,6 +119,10 @@ function summarizeHostTelemetryWindow(telemetry, startedAt, endedAt) {
     averageSystemCpuPct: cpuValues.length ? Number((cpuValues.reduce((sum, value) => sum + value, 0) / cpuValues.length).toFixed(2)) : null,
     minimumAvailableMemoryMb: memoryValues.length ? Math.min(...memoryValues) : null,
     averagePerEngine3dPeakPct: gpu3dValues.length ? Number((gpu3dValues.reduce((sum, value) => sum + value, 0) / gpu3dValues.length).toFixed(2)) : null,
+    valid: samples.length > 0 && expectedSampleCount > 0 &&
+      samples.length / expectedSampleCount >= 0.75 &&
+      firstSampleAtMs - startMs <= telemetry.actualSampleIntervalSeconds * 1500 &&
+      endMs - lastSampleAtMs <= telemetry.actualSampleIntervalSeconds * 1500,
   };
 }
 
@@ -174,7 +178,7 @@ function startHostTelemetry(sampleSeconds) {
   };
 }
 
-async function benchStreet(page) {
+async function benchStreet(page, hostTelemetryMonitor) {
   const t0 = Date.now();
   const streetUrl = new URL(route, baseUrl);
   streetUrl.searchParams.set('lat', String(location.lat));
@@ -274,9 +278,7 @@ async function benchStreet(page) {
     }, { lat: location.lat, lon: location.lon, step: CELL_STEP, earthRadius: EARTH_R, useDriving: driving });
     playerStart = { x: crossingSetup.x, z: crossingSetup.z };
   }
-  // Start host collection before the measured window so its setup time does not
-  // extend browser sampling after the walk has ended.
-  const hostTelemetryMonitor = startHostTelemetry(Math.min(600, Math.max(1, Math.ceil(walkDurationMs / 1000) + 3)));
+  // Let the host counter process initialize during page load and scene setup.
   await page.waitForTimeout(500);
   await page.evaluate(() => {
     const counters = window.__perfCounters;
@@ -584,7 +586,8 @@ async function main() {
 
   try {
     console.log('  Street engine…');
-    result.street = await benchStreet(page);
+    const hostTelemetryMonitor = startHostTelemetry(Math.min(600, Math.max(1, Math.ceil(walkDurationMs / 1000) + 5)));
+    result.street = await benchStreet(page, hostTelemetryMonitor);
     if (result.street.settings?.hour !== benchmarkEnvironment.hour || result.street.settings?.weather !== benchmarkEnvironment.weather) {
       throw new Error(`Applied scene environment did not match the requested benchmark: ${JSON.stringify(result.street.settings)}`);
     }
