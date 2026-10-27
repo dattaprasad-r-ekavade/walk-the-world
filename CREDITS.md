@@ -40,6 +40,15 @@ Optional CC0 loops can be dropped at `public/audio/day.ogg` and
 ## Materials & lighting (17.1 / 17.2)
 
 Street materials are procedural PBR (`lib/engine/materials.js`) with optional
-CC0 photoscanned maps later (Poly Haven / ambientCG → R2 or `/public/textures`).
-IBL uses a procedural equirect sky → PMREM (`lib/engine/env-map.js`); swap in
-Poly Haven HDRIs when hosted.
+CC0 maps cataloged for a later runtime pilot. The selected sources are tracked
+in [assets/manifest.json](assets/manifest.json); they are not converted or loaded
+by the runtime yet.
+
+| Set | Publisher / author | License | Source |
+|---|---|---|---|
+| Plaster004, Bricks060, Rocks025, Concrete034, Asphalt025A, PavingStones036 | ambientCG (individual creator not exposed in its v3 API) | CC0 1.0 | [ambientCG license](https://docs.ambientcg.com/license/) and the per-asset links in the manifest |
+| City Kit Roads 2.2: construction cone/barrier, stop sign, traffic light | Kenney | CC0 1.0 | [Kenney City Kit Roads](https://kenney.nl/assets/city-kit-roads) |
+
+The manifest records source archive/model hashes, map roles and scale metadata.
+IBL uses a procedural equirect sky → PMREM (`lib/engine/env-map.js`); Poly
+Haven HDRIs remain a later option when hosted.

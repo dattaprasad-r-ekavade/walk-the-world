@@ -1,0 +1,260 @@
+{
+  "schemaVersion": 1,
+  "manifestRevision": "stage3-source-r1",
+  "outputRevision": "source-only-r1",
+  "status": "curated; source files are hashed but no runtime outputs are built",
+  "sourceSelectionNotes": [
+    "AmbientCG supplies the six selected PBR surfaces; its downloadable assets are CC0 1.0.",
+    "Kenney City Kit Roads supplies the selected street props; the inspected package is version 2.2 and includes its CC0 license file.",
+    "Poly Haven and Quaternius remain alternate catalogs for later additions; this first set stays small and avoids duplicate materials or a bulk model import."
+  ],
+  "surfaces": [
+    {
+      "id": "ambientCG:Plaster004",
+      "category": "plaster",
+      "use": "building facade",
+      "publisher": "ambientCG",
+      "author": "Not listed in the ambientCG v3 asset metadata",
+      "license": "CC0-1.0",
+      "licenseUrl": "https://docs.ambientcg.com/license/",
+      "sourceUrl": "https://ambientcg.com/a/Plaster004",
+      "sourcePackage": {
+        "variant": "1K-JPG",
+        "url": "https://ambientcg.com/get?file=Plaster004_1K-JPG.zip",
+        "bytes": 8286805,
+        "sha256": "ac9fd63a9b1774c3912aed5feaceee61c8a552df9487929a2bc9618c6fd468cd"
+      },
+      "sourceApiDimensions": { "width": 0, "height": 0, "depth": 0, "unit": "unspecified by API" },
+      "sourceResolutionPx": [1024, 1024],
+      "tileMeters": [2, 2],
+      "uvDensityPixelsPerMeter": [512, 512],
+      "maps": {
+        "color": { "file": "Plaster004_1K-JPG_Color.jpg", "role": "albedo", "colorSpace": "sRGB", "selected": true },
+        "normalGL": { "file": "Plaster004_1K-JPG_NormalGL.jpg", "role": "tangent-space normal, OpenGL convention", "colorSpace": "linear", "selected": true },
+        "roughness": { "file": "Plaster004_1K-JPG_Roughness.jpg", "role": "roughness", "colorSpace": "linear", "selected": true },
+        "displacement": { "file": "Plaster004_1K-JPG_Displacement.jpg", "role": "height/displacement", "colorSpace": "linear", "selected": false, "deferredTo": "stage-3.3" }
+      },
+      "outputRevision": "source-only-r1"
+    },
+    {
+      "id": "ambientCG:Bricks060",
+      "category": "brick",
+      "use": "light masonry facade",
+      "publisher": "ambientCG",
+      "author": "Not listed in the ambientCG v3 asset metadata",
+      "license": "CC0-1.0",
+      "licenseUrl": "https://docs.ambientcg.com/license/",
+      "sourceUrl": "https://ambientcg.com/a/Bricks060",
+      "sourcePackage": {
+        "variant": "1K-JPG",
+        "url": "https://ambientcg.com/get?file=Bricks060_1K-JPG.zip",
+        "bytes": 7852794,
+        "sha256": "e8dce6fd843fce863bd60aa118ae904d52cef020b4db7d343a2e389fc489ac6f"
+      },
+      "sourceApiDimensions": { "width": 105, "height": 105, "depth": 0, "unit": "unspecified by API" },
+      "sourceResolutionPx": [1024, 1024],
+      "tileMeters": [2, 2],
+      "uvDensityPixelsPerMeter": [512, 512],
+      "maps": {
+        "color": { "file": "Bricks060_1K-JPG_Color.jpg", "role": "albedo", "colorSpace": "sRGB", "selected": true },
+        "normalGL": { "file": "Bricks060_1K-JPG_NormalGL.jpg", "role": "tangent-space normal, OpenGL convention", "colorSpace": "linear", "selected": true },
+        "roughness": { "file": "Bricks060_1K-JPG_Roughness.jpg", "role": "roughness", "colorSpace": "linear", "selected": true },
+        "ambientOcclusion": { "file": "Bricks060_1K-JPG_AmbientOcclusion.jpg", "role": "ambient occlusion", "colorSpace": "linear", "selected": true },
+        "displacement": { "file": "Bricks060_1K-JPG_Displacement.jpg", "role": "height/displacement", "colorSpace": "linear", "selected": false, "deferredTo": "stage-3.3" }
+      },
+      "outputRevision": "source-only-r1"
+    },
+    {
+      "id": "ambientCG:Rocks025",
+      "category": "stone",
+      "use": "stone masonry facade or retaining wall",
+      "publisher": "ambientCG",
+      "author": "Not listed in the ambientCG v3 asset metadata",
+      "license": "CC0-1.0",
+      "licenseUrl": "https://docs.ambientcg.com/license/",
+      "sourceUrl": "https://ambientcg.com/a/Rocks025",
+      "sourcePackage": {
+        "variant": "1K-JPG",
+        "url": "https://ambientcg.com/get?file=Rocks025_1K-JPG.zip",
+        "bytes": 9037823,
+        "sha256": "b92da13c054134309c03ca4cac8ac38ae93b2866267013b2ce53bdc942ce1d86"
+      },
+      "sourceApiDimensions": { "width": 190, "height": 190, "depth": 0, "unit": "unspecified by API" },
+      "sourceResolutionPx": [1024, 1024],
+      "tileMeters": [2, 2],
+      "uvDensityPixelsPerMeter": [512, 512],
+      "maps": {
+        "color": { "file": "Rocks025_1K-JPG_Color.jpg", "role": "albedo", "colorSpace": "sRGB", "selected": true },
+        "normalGL": { "file": "Rocks025_1K-JPG_NormalGL.jpg", "role": "tangent-space normal, OpenGL convention", "colorSpace": "linear", "selected": true },
+        "roughness": { "file": "Rocks025_1K-JPG_Roughness.jpg", "role": "roughness", "colorSpace": "linear", "selected": true },
+        "ambientOcclusion": { "file": "Rocks025_1K-JPG_AmbientOcclusion.jpg", "role": "ambient occlusion", "colorSpace": "linear", "selected": true },
+        "displacement": { "file": "Rocks025_1K-JPG_Displacement.jpg", "role": "height/displacement", "colorSpace": "linear", "selected": false, "deferredTo": "stage-3.3" }
+      },
+      "outputRevision": "source-only-r1"
+    },
+    {
+      "id": "ambientCG:Concrete034",
+      "category": "concrete",
+      "use": "concrete wall and slab",
+      "publisher": "ambientCG",
+      "author": "Not listed in the ambientCG v3 asset metadata",
+      "license": "CC0-1.0",
+      "licenseUrl": "https://docs.ambientcg.com/license/",
+      "sourceUrl": "https://ambientcg.com/a/Concrete034",
+      "sourcePackage": {
+        "variant": "1K-JPG",
+        "url": "https://ambientcg.com/get?file=Concrete034_1K-JPG.zip",
+        "bytes": 3657575,
+        "sha256": "5839d284d94ffb8d2a56df742ec522b13dd311c52dbd42b8fd33f0409ceedb81"
+      },
+      "sourceApiDimensions": { "width": 110, "height": 55, "depth": 0, "unit": "unspecified by API" },
+      "sourceResolutionPx": [1024, 512],
+      "tileMeters": [2, 1],
+      "uvDensityPixelsPerMeter": [512, 512],
+      "maps": {
+        "color": { "file": "Concrete034_1K-JPG_Color.jpg", "role": "albedo", "colorSpace": "sRGB", "selected": true },
+        "normalGL": { "file": "Concrete034_1K-JPG_NormalGL.jpg", "role": "tangent-space normal, OpenGL convention", "colorSpace": "linear", "selected": true },
+        "roughness": { "file": "Concrete034_1K-JPG_Roughness.jpg", "role": "roughness", "colorSpace": "linear", "selected": true },
+        "displacement": { "file": "Concrete034_1K-JPG_Displacement.jpg", "role": "height/displacement", "colorSpace": "linear", "selected": false, "deferredTo": "stage-3.3" }
+      },
+      "outputRevision": "source-only-r1"
+    },
+    {
+      "id": "ambientCG:Asphalt025A",
+      "category": "asphalt",
+      "use": "road surface",
+      "publisher": "ambientCG",
+      "author": "Not listed in the ambientCG v3 asset metadata",
+      "license": "CC0-1.0",
+      "licenseUrl": "https://docs.ambientcg.com/license/",
+      "sourceUrl": "https://ambientcg.com/a/Asphalt025A",
+      "sourcePackage": {
+        "variant": "1K-JPG",
+        "url": "https://ambientcg.com/get?file=Asphalt025A_1K-JPG.zip",
+        "bytes": 8502228,
+        "sha256": "a007d81975030430efdfbb404cb66d211b946f5eccd1c5d08dcfe1b50511ba82"
+      },
+      "sourceApiDimensions": { "width": 0, "height": 0, "depth": 0, "unit": "unspecified by API" },
+      "sourceResolutionPx": [1024, 1024],
+      "tileMeters": [4, 4],
+      "uvDensityPixelsPerMeter": [256, 256],
+      "maps": {
+        "color": { "file": "Asphalt025A_1K-JPG_Color.jpg", "role": "albedo", "colorSpace": "sRGB", "selected": true },
+        "normalGL": { "file": "Asphalt025A_1K-JPG_NormalGL.jpg", "role": "tangent-space normal, OpenGL convention", "colorSpace": "linear", "selected": true },
+        "roughness": { "file": "Asphalt025A_1K-JPG_Roughness.jpg", "role": "roughness", "colorSpace": "linear", "selected": true },
+        "ambientOcclusion": { "file": "Asphalt025A_1K-JPG_AmbientOcclusion.jpg", "role": "ambient occlusion", "colorSpace": "linear", "selected": true },
+        "displacement": { "file": "Asphalt025A_1K-JPG_Displacement.jpg", "role": "height/displacement", "colorSpace": "linear", "selected": false, "deferredTo": "stage-3.3" }
+      },
+      "outputRevision": "source-only-r1"
+    },
+    {
+      "id": "ambientCG:PavingStones036",
+      "category": "paving",
+      "use": "sidewalk and pedestrian plaza",
+      "publisher": "ambientCG",
+      "author": "Not listed in the ambientCG v3 asset metadata",
+      "license": "CC0-1.0",
+      "licenseUrl": "https://docs.ambientcg.com/license/",
+      "sourceUrl": "https://ambientcg.com/a/PavingStones036",
+      "sourcePackage": {
+        "variant": "1K-JPG",
+        "url": "https://ambientcg.com/get?file=PavingStones036_1K-JPG.zip",
+        "bytes": 9354813,
+        "sha256": "91223aa46aa4275bb30df310fba788d8bfb740f2b1e9796ac0eb9a14f367e9ce"
+      },
+      "sourceApiDimensions": { "width": 0, "height": 0, "depth": 0, "unit": "unspecified by API" },
+      "sourceResolutionPx": [1024, 1024],
+      "tileMeters": [2, 2],
+      "uvDensityPixelsPerMeter": [512, 512],
+      "maps": {
+        "color": { "file": "PavingStones036_1K-JPG_Color.jpg", "role": "albedo", "colorSpace": "sRGB", "selected": true },
+        "normalGL": { "file": "PavingStones036_1K-JPG_NormalGL.jpg", "role": "tangent-space normal, OpenGL convention", "colorSpace": "linear", "selected": true },
+        "roughness": { "file": "PavingStones036_1K-JPG_Roughness.jpg", "role": "roughness", "colorSpace": "linear", "selected": true },
+        "ambientOcclusion": { "file": "PavingStones036_1K-JPG_AmbientOcclusion.jpg", "role": "ambient occlusion", "colorSpace": "linear", "selected": true },
+        "displacement": { "file": "PavingStones036_1K-JPG_Displacement.jpg", "role": "height/displacement", "colorSpace": "linear", "selected": false, "deferredTo": "stage-3.3" }
+      },
+      "outputRevision": "source-only-r1"
+    }
+  ],
+  "propKit": {
+    "id": "kenney:city-kit-roads",
+    "name": "City Kit Roads",
+    "version": "2.2",
+    "publisher": "Kenney",
+    "author": "Kenney",
+    "license": "CC0-1.0",
+    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "sourceUrl": "https://kenney.nl/assets/city-kit-roads",
+    "sourceArchive": {
+      "bytes": 2852289,
+      "sha256": "374a4552115cbd11b4ec5c930ee31a533562dc78a09af249a655d03f7ea3b959"
+    },
+    "colorAtlas": {
+      "sourceFile": "Models/GLB format/Textures/colormap.png",
+      "sha256": "a48e2962661ae44368ffddf3054f80ed8491d082b757dcc3011184cd9a98b185",
+      "resolutionPx": [512, 512],
+      "role": "palette-style base color atlas",
+      "colorSpace": "sRGB",
+      "uvDensityPixelsPerMeter": null,
+      "uvDensityNote": "Palette lookup atlas; texels-per-meter is not meaningful for the flat color swatches."
+    },
+    "coordinateConvention": {
+      "sourceFormat": "glTF 2.0 GLB",
+      "linearUnits": "meters",
+      "upAxis": "+Y",
+      "frontAxisByFormatConvention": "+Z",
+      "frontAxisVisualAudit": "pending stage-3.3",
+      "formatReference": "https://github.com/KhronosGroup/glTF/blob/main/specification/2.0/Specification.adoc"
+    },
+    "models": [
+      {
+        "id": "kenney:construction-cone",
+        "sourceFile": "Models/GLB format/construction-cone.glb",
+        "sourceSha256": "50ceae45cd1d71f738a8f7c40f8b6b46f360063c2754bf717aae54013d6f2ee4",
+        "rawBoundsMeters": { "min": [-0.0375, 0, -0.0375], "max": [0.0375, 0.09375, 0.0375], "size": [0.075, 0.09375, 0.075] },
+        "pivot": "ground-level; minimum Y is 0",
+        "targetSizeMeters": [0.4, 0.5, 0.4],
+        "uniformScaleFactor": 5.333333,
+        "scaleApplied": false,
+        "mapRoles": { "baseColor": "Models/GLB format/Textures/colormap.png" },
+        "outputRevision": "source-only-r1"
+      },
+      {
+        "id": "kenney:construction-barrier",
+        "sourceFile": "Models/GLB format/construction-barrier.glb",
+        "sourceSha256": "906f73a6d62d8de58a4c5a19e76ff95b460c42b37e5fa37478b8612f06793f26",
+        "rawBoundsMeters": { "min": [-0.06775, 0, -0.1125], "max": [0.06775, 0.13, 0.1125], "size": [0.1355, 0.13, 0.225] },
+        "pivot": "ground-level; minimum Y is 0",
+        "targetSizeMeters": [0.9033, 0.8667, 1.5],
+        "uniformScaleFactor": 6.666667,
+        "scaleApplied": false,
+        "mapRoles": { "baseColor": "Models/GLB format/Textures/colormap.png" },
+        "outputRevision": "source-only-r1"
+      },
+      {
+        "id": "kenney:road-sign-stop",
+        "sourceFile": "Models/GLB format/road-sign-stop.glb",
+        "sourceSha256": "0991181f37171daf8d2501e436a688e46ea2bcebb5e27aa451640fcbaab107ef",
+        "rawBoundsMeters": { "min": [-0.051404, 0, -0.069106], "max": [0.026096, 0.494075, 0.069106], "size": [0.0775, 0.494075, 0.138212] },
+        "pivot": "ground-level; minimum Y is 0",
+        "targetSizeMeters": [0.3294, 2.1, 0.5875],
+        "uniformScaleFactor": 4.250368,
+        "scaleApplied": false,
+        "mapRoles": { "baseColor": "Models/GLB format/Textures/colormap.png" },
+        "outputRevision": "source-only-r1"
+      },
+      {
+        "id": "kenney:traffic-light",
+        "sourceFile": "Models/GLB format/traffic-light.glb",
+        "sourceSha256": "6c9ee253b7370e1043168493b2e662b349484a0cdd02100cff04d9d8d1bd9abb",
+        "rawBoundsMeters": { "min": [-0.0726, 0, -0.045], "max": [0.045, 0.515, 0.045], "size": [0.1176, 0.515, 0.09] },
+        "pivot": "ground-level; minimum Y is approximately 0",
+        "targetSizeMeters": [0.6394, 2.8, 0.4893],
+        "uniformScaleFactor": 5.436893,
+        "scaleApplied": false,
+        "mapRoles": { "baseColor": "Models/GLB format/Textures/colormap.png" },
+        "outputRevision": "source-only-r1"
+      }
+    ]
+  }
+}

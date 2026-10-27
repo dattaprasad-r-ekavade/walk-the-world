@@ -1,0 +1,161 @@
+{
+  "schemaVersion": 4,
+  "timestamp": "2026-10-27T23:41:50.396Z",
+  "sourceRevision": "5250d015b7b14daabb8a6e89aa2023375fb0699e",
+  "sourceTreeDirty": true,
+  "baseUrl": "http://127.0.0.1:3458",
+  "browser": {
+    "name": "Chromium",
+    "version": "156.0.8078.48",
+    "channel": "chrome",
+    "rendererMode": "browser-default",
+    "headless": false
+  },
+  "scenario": {
+    "fixture": "benchmarks\\fixtures\\rome-minimal.json",
+    "route": "/street",
+    "latitude": 40.75,
+    "longitude": -73.98,
+    "qualityPreset": "medium",
+    "hour": 12,
+    "weather": 0,
+    "precipitationMode": null,
+    "walkDurationMs": 12000,
+    "seed": 1337,
+    "dataMode": "live",
+    "cacheMode": "cold",
+    "driving": false,
+    "crossCell": true,
+    "geometryWorkers": 2,
+    "cityDataCopyMode": "readonly",
+    "roadQueryMode": "indexed",
+    "profileCityQueries": false,
+    "resourceSoak": false,
+    "fixedPose": null,
+    "populationFrozenUntilMeasurement": true,
+    "hostTelemetryEnabled": true
+  },
+  "cityCacheWarm": {
+    "ok": true,
+    "mode": "cold",
+    "primed": false,
+    "protocol": "Fresh Playwright browser context; upstream server and CDN caches are outside this control"
+  },
+  "networkTelemetry": {
+    "scope": "browser-visible requests on the measured street page; excludes server-side upstream fetches",
+    "totalRequests": 94,
+    "completedRequests": 90,
+    "incompleteRequests": 2,
+    "failedRequests": 2,
+    "httpErrorResponses": 2,
+    "statusCodes": {
+      "200": 88,
+      "307": 1,
+      "501": 1,
+      "502": 1
+    },
+    "encodedResponseBytes": 1716553,
+    "requestsWithKnownSize": 90,
+    "cityApiCellsRequested": [
+      "wtw_city6_40.750_-73.980",
+      "wtw_city6_40.755_-73.980"
+    ],
+    "cityApiCellResults": {
+      "wtw_city6_40.750_-73.980": {
+        "requests": 3,
+        "completed": 0,
+        "transportFailures": 2,
+        "transportFailureReasons": {
+          "net::ERR_ABORTED": 2
+        },
+        "httpErrorResponses": 1,
+        "statusCodes": {
+          "502": 1
+        },
+        "encodedResponseBytes": 0,
+        "requestsWithKnownSize": 0
+      },
+      "wtw_city6_40.755_-73.980": {
+        "requests": 1,
+        "completed": 0,
+        "transportFailures": 0,
+        "transportFailureReasons": {},
+        "httpErrorResponses": 0,
+        "statusCodes": {},
+        "encodedResponseBytes": 0,
+        "requestsWithKnownSize": 0
+      }
+    },
+    "byCategory": {
+      "app-origin": {
+        "requests": 16,
+        "completed": 16,
+        "failed": 0,
+        "httpErrorResponses": 0,
+        "statusCodes": {
+          "200": 16
+        },
+        "encodedResponseBytes": 381842,
+        "requestsWithKnownSize": 16,
+        "serviceWorkerResponses": 0,
+        "requestDurationP50Ms": 19.2,
+        "requestDurationP95Ms": 165.4
+      },
+      "app-api": {
+        "requests": 2,
+        "completed": 2,
+        "failed": 0,
+        "httpErrorResponses": 1,
+        "statusCodes": {
+          "200": 1,
+          "501": 1
+        },
+        "encodedResponseBytes": 52,
+        "requestsWithKnownSize": 2,
+        "serviceWorkerResponses": 0,
+        "requestDurationP50Ms": 137.3,
+        "requestDurationP95Ms": 143.8
+      },
+      "external": {
+        "requests": 72,
+        "completed": 72,
+        "failed": 0,
+        "httpErrorResponses": 0,
+        "statusCodes": {
+          "200": 71,
+          "307": 1
+        },
+        "encodedResponseBytes": 1334659,
+        "requestsWithKnownSize": 72,
+        "serviceWorkerResponses": 0,
+        "requestDurationP50Ms": 126.5,
+        "requestDurationP95Ms": 1365.8
+      },
+      "city-api": {
+        "requests": 4,
+        "completed": 0,
+        "failed": 2,
+        "httpErrorResponses": 1,
+        "statusCodes": {
+          "502": 1
+        },
+        "encodedResponseBytes": 0,
+        "requestsWithKnownSize": 0,
+        "serviceWorkerResponses": 0,
+        "requestDurationP50Ms": null,
+        "requestDurationP95Ms": null
+      }
+    }
+  },
+  "street": null,
+  "globe": null,
+  "error": "page.waitForFunction: Timeout 180000ms exceeded.",
+  "diagnostics": {
+    "consoleErrors": [
+      "Failed to load resource: the server responded with a status of 501 (Not Implemented)",
+      "Failed to load resource: the server responded with a status of 502 (Bad Gateway)"
+    ],
+    "pageErrors": [],
+    "assetFailures": []
+  }
+}

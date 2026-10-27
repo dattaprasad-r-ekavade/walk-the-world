@@ -577,11 +577,19 @@ Files: materials.js, facade-uv.js, textures.js, model loading in StreetEngine.js
 public/sw.js and CREDITS.md. Proposed: assets/manifest.json,
 scripts/build-assets.mjs and public/textures/.
 
-- [ ] 3.1 Curate a coherent plaster/brick/stone/concrete/asphalt/paving set and
+- [x] 3.1 Curate a coherent plaster/brick/stone/concrete/asphalt/paving set and
   small prop kit. Use the researched Poly Haven, ambientCG, Kenney and Quaternius
   sources; record actual asset URLs/licenses. Reuse existing credited assets.
-- [ ] 3.2 Record author, license, source hash, metre scale, UV density, map roles
+  - The [source manifest](assets/manifest.json) selects six ambientCG surfaces
+    and four Kenney City Kit Roads props. Poly Haven and Quaternius remain
+    alternates for later additions; no library-wide import was made.
+- [x] 3.2 Record author, license, source hash, metre scale, UV density, map roles
   and output revision. Preserve map/imagery attribution separately.
+  - The manifest records source archive and model hashes, initial metre tiling,
+    UV density, map roles, raw GLB bounds, target dimensions and a source-only
+    revision. ambientCG's v3 API does not expose individual creator names, so
+    those are marked as unavailable. Conversion and runtime adoption remain
+    open; imagery credits stay in their separate section.
 - [ ] 3.3 Normalise pivots/+Z direction; prune unused geometry/maps. Bake shallow
   facade detail into shared atlases, align emissive masks, add mip-safe gutters
   and avoid baking directional sunlight into albedo.
@@ -824,15 +832,17 @@ rendering experiment. Stage 1.2 queue bounds, Stage 1.4 allocation changes,
 Stage 1.5 lifecycle checks, and the desktop 15-minute resource soak are complete.
 The next open checks are the Stage 0.8 dense live-city cold/warm walk/drive
 matrix, Stage 1 mobile assembly and input latency, and Stage 1.3 low-core worker
-and KTX2 contention/memory measurements. After those profiling gates, Stage 3.1
-is the next planned implementation: curate a small licensed material and prop
-kit, then record attribution and scale. Recorded Rome replay is client/streaming
-evidence, not live Overpass evidence.
+and KTX2 contention/memory measurements. Stage 3.1 and 3.2 are now complete as
+a source-only asset curation and metadata pilot; Stage 3.3 is the next content
+step after the profiling gates. The manifest does not mean that these assets
+have been converted, visually approved in the engine, or loaded at runtime.
+Recorded Rome replay is client/streaming evidence, not live Overpass evidence.
 
 **Open acceptance gate:** Stage 0.8 still needs matched dense live-city cold/
-warm and walk/drive boundary measurements. The 28 October Manhattan retry
+warm and walk/drive boundary measurements. The 28 October Manhattan retries
 failed before a valid measurement because the origin city API returned HTTP 502
-and aborted requests; see the [captured result](benchmarks/results/stage0/main-727d46e-live-manhattan-cold-walk-smoke.json).
+and aborted requests; see the earlier [smoke result](benchmarks/results/stage0/main-727d46e-live-manhattan-cold-walk-smoke.json)
+and the [latest cold-walk diagnostics](benchmarks/results/stage0/main-5250d01-live-manhattan-cold-walk.json).
 Retry the live matrix when the API returns complete cells. The four-condition
 summary reports median frame p95 values of 17.0–33.5 ms, with within-condition
 ranges reaching 33–34 ms; host CPU and available memory varied, and Windows
