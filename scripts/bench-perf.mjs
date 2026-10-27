@@ -49,6 +49,7 @@ const fixturePath = isAbsolute(fixtureOption) ? fixtureOption : resolve(ROOT, fi
 const route = option('--route', '/street');
 const qualityPreset = option('--preset', 'medium');
 const rendererMode = option('--renderer-mode', 'software');
+const browserChannel = option('--browser-channel', 'bundled');
 const walkDurationMs = Number(option('--walk-ms', '12000'));
 const seed = Number(option('--seed', '1337'));
 const location = {
@@ -76,6 +77,7 @@ if (suppliedPoseOptions.length > 0) {
 }
 if (!['low', 'medium', 'high'].includes(qualityPreset)) throw new Error('--preset must be low, medium, or high');
 if (!['software', 'browser-default'].includes(rendererMode)) throw new Error('--renderer-mode must be software or browser-default');
+if (!['bundled', 'chrome'].includes(browserChannel)) throw new Error('--browser-channel must be bundled or chrome');
 if (!Number.isFinite(walkDurationMs) || walkDurationMs < 1000) throw new Error('--walk-ms must be at least 1000');
 if (!Number.isInteger(seed) || seed < 0 || seed > 0xffffffff) throw new Error('--seed must be an integer from 0 to 4294967295');
 if (!Number.isFinite(location.lat) || Math.abs(location.lat) > 90 || !Number.isFinite(location.lon) || Math.abs(location.lon) > 180) {
@@ -394,14 +396,16 @@ async function main() {
   mkdirSync(dirname(outPath), { recursive: true });
 
   console.log(`  Fixture: ${fixturePath}`);
-  console.log(`  Route: ${route}; preset: ${qualityPreset}; renderer: ${rendererMode}; hour: ${benchmarkEnvironment.hour}; weather: ${benchmarkEnvironment.weather}; walk: ${walkDurationMs}ms${crossCell ? '; crossing a cell boundary' : ''}`);
+  console.log(`  Route: ${route}; preset: ${qualityPreset}; browser: ${browserChannel}; renderer: ${rendererMode}; hour: ${benchmarkEnvironment.hour}; weather: ${benchmarkEnvironment.weather}; walk: ${walkDurationMs}ms${crossCell ? '; crossing a cell boundary' : ''}`);
   console.log('  City cache pre-warm skipped — benchmark fixture mode');
   const cache = { ok: true, ms: 0, skipped: true };
 
-  const browser = await chromium.launch({
+  const launchOptions = {
     headless: !headed,
     args: rendererMode === 'software' ? ['--use-gl=angle', '--use-angle=swiftshader'] : [],
-  });
+  };
+  if (browserChannel === 'chrome') launchOptions.channel = 'chrome';
+  const browser = await chromium.launch(launchOptions);
   const context = await browser.newContext();
   await context.addInitScript(({ fixture, schemaVersion, preset, seed, pose, environment }) => {
     if (location.origin !== 'null') {
@@ -494,6 +498,7 @@ async function main() {
     browser: {
       name: 'Chromium',
       version: browser.version(),
+      channel: browserChannel,
       rendererMode,
       headless: !headed,
     },
