@@ -45,7 +45,9 @@ describe("performance diagnostics", () => {
     });
 
     expect(result.valid).toBe(false);
-    expect(result.reasons).toHaveLength(4);
+    expect(result.reasons).toHaveLength(2);
+    expect(result.reasons).toContain("Frame interval history reached its 3000-sample limit");
+    expect(result.reasons.some((reason) => reason.startsWith("Frame history covers"))).toBe(true);
   });
 
   it("rejects frame samples from hidden or unfocused pages", () => {
@@ -66,7 +68,7 @@ describe("performance diagnostics", () => {
 
   it("creates and upgrades a versioned report without clearing existing counters", () => {
     const counters = ensurePerfCounters({ schemaVersion: 0, reactRenders: 4 });
-    expect(counters.schemaVersion).toBe(2);
+    expect(counters.schemaVersion).toBe(3);
     expect(counters.reactRenders).toBe(4);
     expect(counters.frameIntervalsMs).toEqual([]);
     expect(counters).toMatchObject({
@@ -96,6 +98,19 @@ describe("performance diagnostics", () => {
     for (let i = 0; i <= PERF_FRAME_LIMIT; i++) appendFrameInterval(counters, i + 1);
     expect(counters.frameIntervalsMs).toHaveLength(PERF_FRAME_LIMIT);
     expect(orderedFrameIntervals(counters)[0]).toBe(2);
+  });
+
+  it("retains startup timing events through a full measurement-sized render burst", () => {
+    const counters = createPerfCounters();
+    appendPerfTiming(counters, "city.spawn-assembly-total", 1600, { elements: 4524 });
+    for (let i = 0; i < PERF_FRAME_LIMIT; i++) {
+      appendPerfTiming(counters, "renderer.postfx-cpu-submit", 1);
+    }
+
+    const timeline = orderedPerfTimeline(counters);
+    expect(timeline).toHaveLength(PERF_FRAME_LIMIT + 1);
+    expect(timeline[0]).toMatchObject({ name: "city.spawn-assembly-total", durationMs: 1600 });
+    expect(counters.timelineCursor).toBe(0);
   });
 
   it("summarizes frame percentiles and low-FPS using slowest one percent", () => {

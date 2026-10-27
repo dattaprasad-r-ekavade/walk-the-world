@@ -9,7 +9,11 @@ unchanged frame p95 on the synthetic fixture. The separate five-run far-material
 comparison showed no frame/GPU benefit and its prototype was reverted. The
 pedestrian walk shader now deforms its color and shadow passes from shared
 uniforms; a production build and recorded-city browser smoke passed. Real-city
-and mobile acceptance remain open. Deterministic time/weather scenarios,
+and mobile acceptance remain open. The performance timeline now uses schema v3,
+retains 4,096 bounded events and reports wrap state. Five recorded Rome profile
+runs repeatedly found spawn assembly at about 2.61 s; this supports a Stage 1.1
+client-side candidate but does not close the live-city gate. Deterministic
+time/weather scenarios,
 time-aligned Windows host telemetry and capture-validity checks are implemented.
 Five visible-Chrome Intel UHD repetitions are recorded for each of day/clear,
 night/clear, day/rain and night/rain. These short synthetic runs are diagnostic,
@@ -106,6 +110,9 @@ scripts/bench-perf.mjs and benchmarks/fixtures/.
 - [x] 0.1 Define a versioned result schema: environment, settings, stage timings,
   frame intervals, resource counts, validation errors and unavailable measurements.
   Bound telemetry; detailed tracing runs only in diagnostics.
+  - [x] Raise the performance timeline from 2,000 to 4,096 entries, bump the
+    schema to v3, and report sample count/capacity/wrap state so startup events
+    remain available after a 12-second high-frame-rate capture.
 - [x] 0.2 Instrument fetch/cache, JSON decode, clipping/filtering, queue delay,
   input packing and postMessage submission, worker compute and roundtrip/output
   bytes, assembly, canvas repaint and renderer CPU submission. Define
@@ -223,6 +230,13 @@ scripts/bench-perf.mjs and benchmarks/fixtures/.
   - [x] Raise renderer/GPU history capacity to 4,096 after a 12-second crossing
     reached 1,259 samples and hit the old 1,200-sample limit. Rebuilt and reran
     the crossing walk and drive successfully.
+  - [x] Capture five current-main cold recorded Rome boundary walks with the
+    v3 timing timeline. All windows validated, retained 10/10 cells, and kept
+    2,626–2,657 timing events without wrapping. The 4,524-element spawn cell's
+    assembly median was 2,612.7 ms (2,450.3–2,630.3); spawn geometry was 219.8 ms
+    (205.6–235.7). Neighbor assembly was 38.8 ms median per cell. See the
+    [profile report](benchmarks/results/stage1/assembly-profile-2026-10-28.md)
+    and [five-run summary](benchmarks/results/stage1/recorded-rome-assembly-profile-five-run.json).
   - [x] Retry a cold live boundary walk in Manhattan on 28 October. The runner
     timed out after 180 seconds: the spawn cell had two `net::ERR_ABORTED`
     requests and one HTTP 502, the east neighbor did not complete, and no valid
@@ -415,7 +429,10 @@ street/cell-stream.js, street/terrain.js and street/resources.js.
 
 - [ ] 1.1 Split measured assembly/paint/upload hotspots into time-budgeted work.
   Start individual chunk goals at 8 ms desktop / 12 ms mobile, then calibrate.
-  Prioritise centre/visible data and stagger finished neighbour uploads.
+  Prioritise centre/visible data and stagger finished neighbour uploads. The
+  [five-run recorded profile](benchmarks/results/stage1/assembly-profile-2026-10-28.md)
+  identifies spawn assembly as the first candidate; its wall timing includes
+  current async checkpoint delays and needs chunk-level measurements.
 - [ ] 1.2 Bound queues, cancel obsolete work and reject stale results. Preserve
   transactional rollback of scene objects, footprints and reserved IDs.
 - [ ] 1.3 Compare one/two geometry workers on low-core devices. Include KTX2
@@ -763,20 +780,27 @@ for Cesium, imagery and model resources. SSR, volumetrics, displacement, dense
 skeletal crowds and shadowed lamp arrays require separate high-tier budgets.
 None is a prerequisite for this sequence.
 
-**Next bounded task:** complete the cold/warm and five-run walk/drive boundary
-matrix against the live city API with a dense real city. The 28 October
-Manhattan retry failed before a valid measurement because the origin city API
-returned HTTP 502 and aborted requests; see the [captured result](benchmarks/results/stage0/main-727d46e-live-manhattan-cold-walk-smoke.json).
-Recorded OSM replay remains useful for client-side streaming evidence, but it is
-not a live Overpass measurement. The four-condition summary reports median frame
-p95 values of 17.0–33.5 ms, with within-condition ranges reaching 33–34 ms; host
-CPU and available memory varied, and Windows exposes no ACPI thermal readings.
-Mobile and 15-minute thermal checks remain open. Keep Rust/Wasm/SIMD deferred:
-worker compute was 25.9 ms median versus 729.4 ms roundtrip on the earlier
-synthetic trace, so kernel acceleration is not yet the measured opportunity.
-Rank main-thread assembly/scheduling and GPU pacing on dense real-city traces
-before selecting Stage 1.1/1.4 changes. The Stage 2.5 far-material experiment
-was completed and rejected; Stage 2.6 shader/shadow parity is complete. After
-Stage 0/1 profiling gates, the next visual content work is Stage 3.1: curate a
-small licensed plaster/brick/stone/concrete/asphalt/paving material set and prop
-kit, then record attribution and scale before building the conversion pipeline.
+**Next bounded implementation:** Stage 1.1, time-budgeted city assembly. Five
+current-main recorded Rome runs retained complete startup timings and measured
+spawn assembly at 2,612.7 ms median (2,450.3–2,630.3 ms) for 4,524 elements.
+Measure uninterrupted chunk lengths, replace per-object yields with 8 ms desktop
+/ 12 ms mobile batches, and keep the spawn cell ahead of streamed neighbors.
+Compare startup readiness, longest chunk, total assembly time, frame/GPU p95 and
+streaming behavior over repeated baseline/candidate runs. This replay profile is
+client-side evidence, not a live Overpass measurement.
+
+**Open acceptance gate:** Stage 0.8 still needs matched dense live-city cold/
+warm and walk/drive boundary measurements. The 28 October Manhattan retry
+failed before a valid measurement because the origin city API returned HTTP 502
+and aborted requests; see the [captured result](benchmarks/results/stage0/main-727d46e-live-manhattan-cold-walk-smoke.json).
+Retry the live matrix when the API returns complete cells. The four-condition
+summary reports median frame p95 values of 17.0–33.5 ms, with within-condition
+ranges reaching 33–34 ms; host CPU and available memory varied, and Windows
+exposes no ACPI thermal readings. Mobile and 15-minute thermal checks remain
+open. Keep Rust/Wasm/SIMD deferred: worker compute was 25.9 ms median versus
+729.4 ms roundtrip on the earlier synthetic trace, so kernel acceleration is
+not yet the measured opportunity. The Stage 2.5 far-material experiment was
+completed and rejected; Stage 2.6 shader/shadow parity is complete. After Stage
+0/1 profiling gates, visual content work resumes with Stage 3.1: curate a small
+licensed material set and prop kit, then record attribution and scale before
+building the conversion pipeline.

@@ -1,0 +1,546 @@
+{
+  "schemaVersion": 1,
+  "recordedDate": "2026-10-28",
+  "source": {
+    "revision": "33e905fd77abae7e539cff3f5a1a7b7cd4e01ed6",
+    "treeDirtyDuringCapture": true,
+    "changesDuringCapture": [
+      "lib/perf-summary.mjs",
+      "scripts/bench-perf.mjs",
+      "tests/perf.test.js"
+    ]
+  },
+  "environment": {
+    "browser": "Chrome 156.0.8078.48",
+    "renderer": "ANGLE Intel UHD Graphics via Direct3D11",
+    "viewport": {
+      "width": 1280,
+      "height": 720,
+      "devicePixelRatio": 1
+    },
+    "qualityPreset": "medium",
+    "operatingSystem": "Windows 11"
+  },
+  "scenario": {
+    "fixture": "benchmarks/fixtures/rome-showcase-osm.json",
+    "dataMode": "recorded",
+    "cacheMode": "cold",
+    "walkDurationMs": 12000,
+    "seed": 1337,
+    "route": "/street",
+    "crossCell": true,
+    "hour": 12,
+    "weather": 0
+  },
+  "summary": {
+    "validRuns": 5,
+    "spawnElements": [
+      4524,
+      4524,
+      4524,
+      4524,
+      4524
+    ],
+    "medianLoadMs": 5084,
+    "loadRangeMs": [
+      4954,
+      5396
+    ],
+    "medianMovementMeters": 60.04,
+    "frameP95MedianMs": 14,
+    "gpuP95MedianMs": 7.53,
+    "gpuP95RangeMs": [
+      7.47,
+      7.68
+    ],
+    "spawnAssemblyMedianMs": 2612.7,
+    "spawnAssemblyRangeMs": [
+      2450.3,
+      2630.3
+    ]
+  },
+  "aggregates": {
+    "spawnGeometry": {
+      "measurement": "city.spawn-geometry-total",
+      "runCount": 5,
+      "medianOfRunMediansMs": 219.8,
+      "runMedianRangeMs": [
+        205.6,
+        235.7
+      ],
+      "maxEventMs": 235.7
+    },
+    "spawnAssembly": {
+      "measurement": "city.spawn-assembly-total",
+      "runCount": 5,
+      "medianOfRunMediansMs": 2612.7,
+      "runMedianRangeMs": [
+        2450.3,
+        2630.3
+      ],
+      "maxEventMs": 2630.3
+    },
+    "neighborGeometry": {
+      "measurement": "city.neighbor-geometry-total",
+      "runCount": 5,
+      "medianOfRunMediansMs": 13.1,
+      "runMedianRangeMs": [
+        12.15,
+        13.7
+      ],
+      "maxEventMs": 132.1
+    },
+    "neighborAssembly": {
+      "measurement": "city.neighbor-assembly-total",
+      "runCount": 5,
+      "medianOfRunMediansMs": 38.8,
+      "runMedianRangeMs": [
+        35.6,
+        42.8
+      ],
+      "maxEventMs": 66.6
+    },
+    "workerCompute": {
+      "measurement": "city.worker-compute",
+      "runCount": 5,
+      "medianOfRunMediansMs": 7.6,
+      "runMedianRangeMs": [
+        5.7,
+        8.5
+      ],
+      "maxEventMs": 103.2
+    },
+    "workerRoundtrip": {
+      "measurement": "city.worker-roundtrip",
+      "runCount": 5,
+      "medianOfRunMediansMs": 14.1,
+      "runMedianRangeMs": [
+        13.1,
+        15.5
+      ],
+      "maxEventMs": 231.4
+    },
+    "roadCanvasPaint": {
+      "measurement": "city.road-canvas-paint",
+      "runCount": 5,
+      "medianOfRunMediansMs": 0.1,
+      "runMedianRangeMs": [
+        0.1,
+        0.1
+      ],
+      "maxEventMs": 3.8
+    },
+    "workerQueue": {
+      "measurement": "city.worker-queue",
+      "runCount": 5,
+      "medianOfRunMediansMs": 0.1,
+      "runMedianRangeMs": [
+        0,
+        0.1
+      ],
+      "maxEventMs": 0.5
+    },
+    "workerInputPack": {
+      "measurement": "city.worker-input-pack",
+      "runCount": 5,
+      "medianOfRunMediansMs": 0.1,
+      "runMedianRangeMs": [
+        0.1,
+        0.1
+      ],
+      "maxEventMs": 0.3
+    },
+    "workerPostMessage": {
+      "measurement": "city.worker-post-message",
+      "runCount": 5,
+      "medianOfRunMediansMs": 0.2,
+      "runMedianRangeMs": [
+        0.2,
+        0.3
+      ],
+      "maxEventMs": 4.4
+    }
+  },
+  "runs": [
+    {
+      "run": 1,
+      "sourceRevision": "33e905fd77abae7e539cff3f5a1a7b7cd4e01ed6",
+      "sourceTreeDirty": true,
+      "measurementValid": true,
+      "hostTelemetryValid": true,
+      "hostTelemetryCoveragePct": 92,
+      "timingHistory": {
+        "sampleCount": 2638,
+        "capacity": 4096,
+        "wrapped": false
+      },
+      "loadMs": 5396,
+      "movementMeters": 60.04,
+      "frameP95Ms": 14,
+      "gpuP95Ms": 7.53,
+      "spawnElementCount": 4524,
+      "crossedCell": true,
+      "neighborLoaded": true,
+      "residentCells": 10,
+      "maxCells": 10,
+      "errorCount": 0,
+      "timings": {
+        "spawnGeometry": {
+          "eventCount": 1,
+          "medianMs": 205.6,
+          "maxEventMs": 205.6
+        },
+        "spawnAssembly": {
+          "eventCount": 1,
+          "medianMs": 2612.7,
+          "maxEventMs": 2612.7
+        },
+        "neighborGeometry": {
+          "eventCount": 8,
+          "medianMs": 12.15,
+          "maxEventMs": 123.6
+        },
+        "neighborAssembly": {
+          "eventCount": 8,
+          "medianMs": 35.6,
+          "maxEventMs": 59.1
+        },
+        "workerCompute": {
+          "eventCount": 9,
+          "medianMs": 5.7,
+          "maxEventMs": 81.7
+        },
+        "workerRoundtrip": {
+          "eventCount": 9,
+          "medianMs": 13.1,
+          "maxEventMs": 201.9
+        },
+        "roadCanvasPaint": {
+          "eventCount": 9,
+          "medianMs": 0.1,
+          "maxEventMs": 2.9
+        },
+        "workerQueue": {
+          "eventCount": 9,
+          "medianMs": 0.1,
+          "maxEventMs": 0.4
+        },
+        "workerInputPack": {
+          "eventCount": 9,
+          "medianMs": 0.1,
+          "maxEventMs": 0.2
+        },
+        "workerPostMessage": {
+          "eventCount": 9,
+          "medianMs": 0.2,
+          "maxEventMs": 2.8
+        }
+      }
+    },
+    {
+      "run": 2,
+      "sourceRevision": "33e905fd77abae7e539cff3f5a1a7b7cd4e01ed6",
+      "sourceTreeDirty": true,
+      "measurementValid": true,
+      "hostTelemetryValid": true,
+      "hostTelemetryCoveragePct": 92,
+      "timingHistory": {
+        "sampleCount": 2626,
+        "capacity": 4096,
+        "wrapped": false
+      },
+      "loadMs": 5182,
+      "movementMeters": 60.08,
+      "frameP95Ms": 14,
+      "gpuP95Ms": 7.47,
+      "spawnElementCount": 4524,
+      "crossedCell": true,
+      "neighborLoaded": true,
+      "residentCells": 10,
+      "maxCells": 10,
+      "errorCount": 0,
+      "timings": {
+        "spawnGeometry": {
+          "eventCount": 1,
+          "medianMs": 219.8,
+          "maxEventMs": 219.8
+        },
+        "spawnAssembly": {
+          "eventCount": 1,
+          "medianMs": 2450.3,
+          "maxEventMs": 2450.3
+        },
+        "neighborGeometry": {
+          "eventCount": 8,
+          "medianMs": 13.3,
+          "maxEventMs": 119.2
+        },
+        "neighborAssembly": {
+          "eventCount": 8,
+          "medianMs": 37.55,
+          "maxEventMs": 66.6
+        },
+        "workerCompute": {
+          "eventCount": 9,
+          "medianMs": 6.1,
+          "maxEventMs": 81.4
+        },
+        "workerRoundtrip": {
+          "eventCount": 9,
+          "medianMs": 15.5,
+          "maxEventMs": 214.5
+        },
+        "roadCanvasPaint": {
+          "eventCount": 9,
+          "medianMs": 0.1,
+          "maxEventMs": 2.3
+        },
+        "workerQueue": {
+          "eventCount": 9,
+          "medianMs": 0.1,
+          "maxEventMs": 0.5
+        },
+        "workerInputPack": {
+          "eventCount": 9,
+          "medianMs": 0.1,
+          "maxEventMs": 0.3
+        },
+        "workerPostMessage": {
+          "eventCount": 9,
+          "medianMs": 0.2,
+          "maxEventMs": 4.4
+        }
+      }
+    },
+    {
+      "run": 3,
+      "sourceRevision": "33e905fd77abae7e539cff3f5a1a7b7cd4e01ed6",
+      "sourceTreeDirty": true,
+      "measurementValid": true,
+      "hostTelemetryValid": true,
+      "hostTelemetryCoveragePct": 92,
+      "timingHistory": {
+        "sampleCount": 2630,
+        "capacity": 4096,
+        "wrapped": false
+      },
+      "loadMs": 4954,
+      "movementMeters": 60.06,
+      "frameP95Ms": 14,
+      "gpuP95Ms": 7.56,
+      "spawnElementCount": 4524,
+      "crossedCell": true,
+      "neighborLoaded": true,
+      "residentCells": 10,
+      "maxCells": 10,
+      "errorCount": 0,
+      "timings": {
+        "spawnGeometry": {
+          "eventCount": 1,
+          "medianMs": 235.7,
+          "maxEventMs": 235.7
+        },
+        "spawnAssembly": {
+          "eventCount": 1,
+          "medianMs": 2614.1,
+          "maxEventMs": 2614.1
+        },
+        "neighborGeometry": {
+          "eventCount": 8,
+          "medianMs": 13.05,
+          "maxEventMs": 119.5
+        },
+        "neighborAssembly": {
+          "eventCount": 8,
+          "medianMs": 38.8,
+          "maxEventMs": 50.9
+        },
+        "workerCompute": {
+          "eventCount": 9,
+          "medianMs": 7.6,
+          "maxEventMs": 88.8
+        },
+        "workerRoundtrip": {
+          "eventCount": 9,
+          "medianMs": 15.4,
+          "maxEventMs": 231.4
+        },
+        "roadCanvasPaint": {
+          "eventCount": 9,
+          "medianMs": 0.1,
+          "maxEventMs": 3.8
+        },
+        "workerQueue": {
+          "eventCount": 9,
+          "medianMs": 0,
+          "maxEventMs": 0.3
+        },
+        "workerInputPack": {
+          "eventCount": 9,
+          "medianMs": 0.1,
+          "maxEventMs": 0.2
+        },
+        "workerPostMessage": {
+          "eventCount": 9,
+          "medianMs": 0.2,
+          "maxEventMs": 3.3
+        }
+      }
+    },
+    {
+      "run": 4,
+      "sourceRevision": "33e905fd77abae7e539cff3f5a1a7b7cd4e01ed6",
+      "sourceTreeDirty": true,
+      "measurementValid": true,
+      "hostTelemetryValid": true,
+      "hostTelemetryCoveragePct": 92,
+      "timingHistory": {
+        "sampleCount": 2657,
+        "capacity": 4096,
+        "wrapped": false
+      },
+      "loadMs": 5084,
+      "movementMeters": 60.02,
+      "frameP95Ms": 14,
+      "gpuP95Ms": 7.47,
+      "spawnElementCount": 4524,
+      "crossedCell": true,
+      "neighborLoaded": true,
+      "residentCells": 10,
+      "maxCells": 10,
+      "errorCount": 0,
+      "timings": {
+        "spawnGeometry": {
+          "eventCount": 1,
+          "medianMs": 219.4,
+          "maxEventMs": 219.4
+        },
+        "spawnAssembly": {
+          "eventCount": 1,
+          "medianMs": 2571.2,
+          "maxEventMs": 2571.2
+        },
+        "neighborGeometry": {
+          "eventCount": 8,
+          "medianMs": 13.1,
+          "maxEventMs": 120.5
+        },
+        "neighborAssembly": {
+          "eventCount": 8,
+          "medianMs": 40.2,
+          "maxEventMs": 65.8
+        },
+        "workerCompute": {
+          "eventCount": 9,
+          "medianMs": 8.3,
+          "maxEventMs": 91.2
+        },
+        "workerRoundtrip": {
+          "eventCount": 9,
+          "medianMs": 13.5,
+          "maxEventMs": 215.2
+        },
+        "roadCanvasPaint": {
+          "eventCount": 9,
+          "medianMs": 0.1,
+          "maxEventMs": 2.3
+        },
+        "workerQueue": {
+          "eventCount": 9,
+          "medianMs": 0.1,
+          "maxEventMs": 0.4
+        },
+        "workerInputPack": {
+          "eventCount": 9,
+          "medianMs": 0.1,
+          "maxEventMs": 0.2
+        },
+        "workerPostMessage": {
+          "eventCount": 9,
+          "medianMs": 0.2,
+          "maxEventMs": 3.2
+        }
+      }
+    },
+    {
+      "run": 5,
+      "sourceRevision": "33e905fd77abae7e539cff3f5a1a7b7cd4e01ed6",
+      "sourceTreeDirty": true,
+      "measurementValid": true,
+      "hostTelemetryValid": true,
+      "hostTelemetryCoveragePct": 92,
+      "timingHistory": {
+        "sampleCount": 2643,
+        "capacity": 4096,
+        "wrapped": false
+      },
+      "loadMs": 4957,
+      "movementMeters": 60.04,
+      "frameP95Ms": 14,
+      "gpuP95Ms": 7.68,
+      "spawnElementCount": 4524,
+      "crossedCell": true,
+      "neighborLoaded": true,
+      "residentCells": 10,
+      "maxCells": 10,
+      "errorCount": 0,
+      "timings": {
+        "spawnGeometry": {
+          "eventCount": 1,
+          "medianMs": 231.9,
+          "maxEventMs": 231.9
+        },
+        "spawnAssembly": {
+          "eventCount": 1,
+          "medianMs": 2630.3,
+          "maxEventMs": 2630.3
+        },
+        "neighborGeometry": {
+          "eventCount": 8,
+          "medianMs": 13.7,
+          "maxEventMs": 132.1
+        },
+        "neighborAssembly": {
+          "eventCount": 8,
+          "medianMs": 42.8,
+          "maxEventMs": 63.7
+        },
+        "workerCompute": {
+          "eventCount": 9,
+          "medianMs": 8.5,
+          "maxEventMs": 103.2
+        },
+        "workerRoundtrip": {
+          "eventCount": 9,
+          "medianMs": 14.1,
+          "maxEventMs": 227.6
+        },
+        "roadCanvasPaint": {
+          "eventCount": 9,
+          "medianMs": 0.1,
+          "maxEventMs": 2.7
+        },
+        "workerQueue": {
+          "eventCount": 9,
+          "medianMs": 0.1,
+          "maxEventMs": 0.3
+        },
+        "workerInputPack": {
+          "eventCount": 9,
+          "medianMs": 0.1,
+          "maxEventMs": 0.2
+        },
+        "workerPostMessage": {
+          "eventCount": 9,
+          "medianMs": 0.3,
+          "maxEventMs": 3.4
+        }
+      }
+    }
+  ],
+  "limitations": [
+    "Recorded Rome replay is client/streaming evidence, not a live Overpass measurement.",
+    "city.spawn-assembly-total is wall duration and includes existing asynchronous checkpoints; it is not CPU-only time.",
+    "Five runs on one integrated-GPU laptop do not establish mobile or production-device acceptance."
+  ]
+}
