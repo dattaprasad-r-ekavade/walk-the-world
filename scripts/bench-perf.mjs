@@ -59,6 +59,7 @@ const location = {
 };
 const headed = args.includes('--headed');
 const skipGlobe = args.includes('--skip-globe');
+const skipHostTelemetry = args.includes('--skip-host-telemetry');
 const driving = args.includes('--drive');
 const crossCell = args.includes('--cross-cell');
 const poseOptionNames = ['--pose-x', '--pose-z', '--heading'];
@@ -139,6 +140,10 @@ function summarizeHostTelemetryWindow(telemetry, startedAt, endedAt) {
 }
 
 function startHostTelemetry(sampleSeconds) {
+  if (skipHostTelemetry) {
+    const result = { available: false, reason: 'Disabled by --skip-host-telemetry' };
+    return { ready: Promise.resolve(result), finish: async () => result };
+  }
   if (process.platform !== 'win32') {
     return {
       ready: Promise.resolve({ available: false, reason: `Windows host counters are unavailable on ${process.platform}` }),
@@ -643,6 +648,7 @@ async function main() {
       crossCell,
       fixedPose,
       populationFrozenUntilMeasurement: true,
+      hostTelemetryEnabled: !skipHostTelemetry && process.platform === 'win32',
     },
     cityCacheWarm: cache,
     street: null,
