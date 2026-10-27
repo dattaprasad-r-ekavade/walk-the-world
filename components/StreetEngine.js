@@ -17,7 +17,7 @@ import { createCityBuilderPool } from "@/lib/engine/city-builder";
 import { assembleCityFromBuild } from "@/lib/engine/street/assemble-city";
 import { createCellStreamer } from "@/lib/engine/street/cell-stream";
 import { clipElementsToCell } from "@/lib/engine/cell-clip";
-import { getSimpleStandard, setRoadWetness, sharedMaterialTextures, disposeMaterialCache } from "@/lib/engine/materials";
+import { getSimpleStandard, setRoadWetness, sharedMaterialTextures, materialFactoryInventory, disposeMaterialCache } from "@/lib/engine/materials";
 import { createVehicleController } from "@/lib/engine/street/vehicle";
 import { createPostFx } from "@/lib/engine/post-fx";
 import { applyAutoQuality } from "@/lib/engine/gpu-tier";
@@ -1641,6 +1641,7 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false }) {
             }
           });
           const materialFamilies = new Map();
+          const textureRoleBindings = new Map();
           for (const material of materials.values()) {
             const family = [
               material.type,
@@ -1654,6 +1655,18 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false }) {
             entry.meshUses += material.meshUses;
             entry.colorVariants.add(material.color);
             materialFamilies.set(family, entry);
+            for (const role of material.roles) {
+              const roleEntry = textureRoleBindings.get(role) || { role, materialBindings: 0, meshBindings: 0, uniqueTextures: 0 };
+              roleEntry.materialBindings++;
+              roleEntry.meshBindings += material.meshUses;
+              textureRoleBindings.set(role, roleEntry);
+            }
+          }
+          for (const texture of textures.values()) {
+            for (const role of texture.roles) {
+              const roleEntry = textureRoleBindings.get(role);
+              if (roleEntry) roleEntry.uniqueTextures++;
+            }
           }
           return {
             meshCount,
@@ -1662,11 +1675,13 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false }) {
             instanceCount,
             uniqueMaterialCount: materials.size,
             uniqueTextureCount: textures.size,
+            textureRoleBindings: [...textureRoleBindings.values()].sort((a, b) => a.role.localeCompare(b.role)),
             materialFamilies: [...materialFamilies.values()]
               .map(({ colorVariants, ...entry }) => ({ ...entry, colorVariantCount: colorVariants.size }))
               .sort((a, b) => b.meshUses - a.meshUses),
             materials: [...materials.values()],
             textures: [...textures.values()],
+            factoryCache: materialFactoryInventory(),
           };
         },
       };

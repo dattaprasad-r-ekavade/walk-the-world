@@ -1,0 +1,665 @@
+{
+  "benchmarkFixture": {
+    "id": "synthetic-material-families",
+    "title": "Building material family coverage",
+    "dataKind": "synthetic city-shaped benchmark data; not a real-world map extract",
+    "provenance": "Generated deterministically by scripts/build-benchmark-fixtures.mjs",
+    "license": "CC0-1.0",
+    "center": {
+      "lat": 41.8902,
+      "lon": 12.4922
+    },
+    "featureCounts": {
+      "buildings": 16,
+      "roads": 8,
+      "parks": 1,
+      "materialTags": 16
+    },
+    "materialNames": [
+      "plaster",
+      "stucco",
+      "brick",
+      "terracotta",
+      "stone",
+      "sandstone",
+      "metal",
+      "steel",
+      "glass",
+      "curtain wall",
+      "concrete",
+      "reinforced_concrete",
+      "wood",
+      "timber",
+      "composite",
+      "unclassified-fiber"
+    ]
+  },
+  "elements": [
+    {
+      "type": "way",
+      "id": 10000,
+      "tags": {
+        "building": "apartments",
+        "building:levels": "2",
+        "name": "Synthetic block 1",
+        "building:material": "plaster"
+      },
+      "geometry": [
+        {
+          "lat": 41.88872676967301,
+          "lon": 12.49023305139594
+        },
+        {
+          "lat": 41.88872676967301,
+          "lon": 12.490450260444241
+        },
+        {
+          "lat": 41.88890643190801,
+          "lon": 12.490450260444241
+        },
+        {
+          "lat": 41.88890643190801,
+          "lon": 12.49023305139594
+        }
+      ]
+    },
+    {
+      "type": "way",
+      "id": 10001,
+      "tags": {
+        "building": "commercial",
+        "building:levels": "4",
+        "building:material": "stucco"
+      },
+      "geometry": [
+        {
+          "lat": 41.88870431189364,
+          "lon": 12.490721771754618
+        },
+        {
+          "lat": 41.88870431189364,
+          "lon": 12.491023450988369
+        },
+        {
+          "lat": 41.888928889687385,
+          "lon": 12.491023450988369
+        },
+        {
+          "lat": 41.888928889687385,
+          "lon": 12.490721771754618
+        }
+      ]
+    },
+    {
+      "type": "way",
+      "id": 10002,
+      "tags": {
+        "building": "residential",
+        "building:levels": "6",
+        "building:material": "brick"
+      },
+      "geometry": [
+        {
+          "lat": 41.88873126122889,
+          "lon": 12.491276861544721
+        },
+        {
+          "lat": 41.88873126122889,
+          "lon": 12.491530272101071
+        },
+        {
+          "lat": 41.888901940352135,
+          "lon": 12.491530272101071
+        },
+        {
+          "lat": 41.888901940352135,
+          "lon": 12.491276861544721
+        }
+      ]
+    },
+    {
+      "type": "way",
+      "id": 10003,
+      "tags": {
+        "building": "civic",
+        "building:levels": "8",
+        "building:material": "terracotta"
+      },
+      "geometry": [
+        {
+          "lat": 41.88870880344952,
+          "lon": 12.491765581903397
+        },
+        {
+          "lat": 41.88870880344952,
+          "lon": 12.4921034626452
+        },
+        {
+          "lat": 41.888924398131515,
+          "lon": 12.4921034626452
+        },
+        {
+          "lat": 41.888924398131515,
+          "lon": 12.491765581903397
+        }
+      ]
+    },
+    {
+      "type": "way",
+      "id": 10004,
+      "tags": {
+        "building": "apartments",
+        "building:levels": "10",
+        "building:material": "stone"
+      },
+      "geometry": [
+        {
+          "lat": 41.88873575278476,
+          "lon": 12.4923206716935
+        },
+        {
+          "lat": 41.88873575278476,
+          "lon": 12.492610283757902
+        },
+        {
+          "lat": 41.888897448796264,
+          "lon": 12.492610283757902
+        },
+        {
+          "lat": 41.888897448796264,
+          "lon": 12.4923206716935
+        }
+      ]
+    },
+    {
+      "type": "way",
+      "id": 10005,
+      "tags": {
+        "building": "commercial",
+        "building:levels": "3",
+        "building:material": "sandstone"
+      },
+      "geometry": [
+        {
+          "lat": 41.88871329500539,
+          "lon": 12.492875761483603
+        },
+        {
+          "lat": 41.88871329500539,
+          "lon": 12.493117104870604
+        },
+        {
+          "lat": 41.88891990657564,
+          "lon": 12.493117104870604
+        },
+        {
+          "lat": 41.88891990657564,
+          "lon": 12.492875761483603
+        }
+      ]
+    },
+    {
+      "type": "way",
+      "id": 10006,
+      "tags": {
+        "building": "residential",
+        "building:levels": "5",
+        "building:material": "metal"
+      },
+      "geometry": [
+        {
+          "lat": 41.888690837226015,
+          "lon": 12.493364481842281
+        },
+        {
+          "lat": 41.888690837226015,
+          "lon": 12.493690295414734
+        },
+        {
+          "lat": 41.88894236435501,
+          "lon": 12.493690295414734
+        },
+        {
+          "lat": 41.88894236435501,
+          "lon": 12.493364481842281
+        }
+      ]
+    },
+    {
+      "type": "way",
+      "id": 10007,
+      "tags": {
+        "building": "civic",
+        "building:levels": "7",
+        "building:material": "steel"
+      },
+      "geometry": [
+        {
+          "lat": 41.888717786561266,
+          "lon": 12.493919571632384
+        },
+        {
+          "lat": 41.888717786561266,
+          "lon": 12.494197116527436
+        },
+        {
+          "lat": 41.88891541501976,
+          "lon": 12.494197116527436
+        },
+        {
+          "lat": 41.88891541501976,
+          "lon": 12.493919571632384
+        }
+      ]
+    },
+    {
+      "type": "way",
+      "id": 10008,
+      "tags": {
+        "building": "apartments",
+        "building:levels": "3",
+        "building:material": "glass"
+      },
+      "geometry": [
+        {
+          "lat": 41.88912202659001,
+          "lon": 12.490214950641915
+        },
+        {
+          "lat": 41.88912202659001,
+          "lon": 12.490468361198266
+        },
+        {
+          "lat": 41.88930168882501,
+          "lon": 12.490468361198266
+        },
+        {
+          "lat": 41.88930168882501,
+          "lon": 12.490214950641915
+        }
+      ]
+    },
+    {
+      "type": "way",
+      "id": 10009,
+      "tags": {
+        "building": "commercial",
+        "building:levels": "5",
+        "name": "Synthetic block 10",
+        "building:material": "curtain wall"
+      },
+      "geometry": [
+        {
+          "lat": 41.889099568810636,
+          "lon": 12.490703671000594
+        },
+        {
+          "lat": 41.889099568810636,
+          "lon": 12.491041551742395
+        },
+        {
+          "lat": 41.88932414660438,
+          "lon": 12.491041551742395
+        },
+        {
+          "lat": 41.88932414660438,
+          "lon": 12.490703671000594
+        }
+      ]
+    },
+    {
+      "type": "way",
+      "id": 10010,
+      "tags": {
+        "building": "residential",
+        "building:levels": "7",
+        "building:material": "concrete"
+      },
+      "geometry": [
+        {
+          "lat": 41.889126518145886,
+          "lon": 12.491258760790696
+        },
+        {
+          "lat": 41.889126518145886,
+          "lon": 12.491548372855098
+        },
+        {
+          "lat": 41.88929719726914,
+          "lon": 12.491548372855098
+        },
+        {
+          "lat": 41.88929719726914,
+          "lon": 12.491258760790696
+        }
+      ]
+    },
+    {
+      "type": "way",
+      "id": 10011,
+      "tags": {
+        "building": "civic",
+        "building:levels": "9",
+        "building:material": "reinforced_concrete"
+      },
+      "geometry": [
+        {
+          "lat": 41.88910406036651,
+          "lon": 12.4918138505808
+        },
+        {
+          "lat": 41.88910406036651,
+          "lon": 12.492055193967799
+        },
+        {
+          "lat": 41.88931965504851,
+          "lon": 12.492055193967799
+        },
+        {
+          "lat": 41.88931965504851,
+          "lon": 12.4918138505808
+        }
+      ]
+    },
+    {
+      "type": "way",
+      "id": 10012,
+      "tags": {
+        "building": "apartments",
+        "building:levels": "2",
+        "building:material": "wood"
+      },
+      "geometry": [
+        {
+          "lat": 41.889131009701764,
+          "lon": 12.492302570939476
+        },
+        {
+          "lat": 41.889131009701764,
+          "lon": 12.492628384511928
+        },
+        {
+          "lat": 41.88929270571326,
+          "lon": 12.492628384511928
+        },
+        {
+          "lat": 41.88929270571326,
+          "lon": 12.492302570939476
+        }
+      ]
+    },
+    {
+      "type": "way",
+      "id": 10013,
+      "tags": {
+        "building": "commercial",
+        "building:levels": "4",
+        "building:material": "timber"
+      },
+      "geometry": [
+        {
+          "lat": 41.889108551922384,
+          "lon": 12.492857660729578
+        },
+        {
+          "lat": 41.889108551922384,
+          "lon": 12.49313520562463
+        },
+        {
+          "lat": 41.88931516349263,
+          "lon": 12.49313520562463
+        },
+        {
+          "lat": 41.88931516349263,
+          "lon": 12.492857660729578
+        }
+      ]
+    },
+    {
+      "type": "way",
+      "id": 10014,
+      "tags": {
+        "building": "residential",
+        "building:levels": "6",
+        "building:material": "composite"
+      },
+      "geometry": [
+        {
+          "lat": 41.88908609414301,
+          "lon": 12.493412750519681
+        },
+        {
+          "lat": 41.88908609414301,
+          "lon": 12.493642026737334
+        },
+        {
+          "lat": 41.889337621272006,
+          "lon": 12.493642026737334
+        },
+        {
+          "lat": 41.889337621272006,
+          "lon": 12.493412750519681
+        }
+      ]
+    },
+    {
+      "type": "way",
+      "id": 10015,
+      "tags": {
+        "building": "civic",
+        "building:levels": "8",
+        "building:material": "unclassified-fiber"
+      },
+      "geometry": [
+        {
+          "lat": 41.88911304347826,
+          "lon": 12.49390147087836
+        },
+        {
+          "lat": 41.88911304347826,
+          "lon": 12.494215217281461
+        },
+        {
+          "lat": 41.88931067193676,
+          "lon": 12.494215217281461
+        },
+        {
+          "lat": 41.88931067193676,
+          "lon": 12.49390147087836
+        }
+      ]
+    },
+    {
+      "type": "way",
+      "id": 10016,
+      "tags": {
+        "highway": "primary",
+        "name": "Synthetic avenue 1"
+      },
+      "geometry": [
+        {
+          "lat": 41.88861897233202,
+          "lon": 12.489810700468688
+        },
+        {
+          "lat": 41.88861897233202,
+          "lon": 12.494589299531313
+        }
+      ]
+    },
+    {
+      "type": "way",
+      "id": 10017,
+      "tags": {
+        "highway": "residential",
+        "name": "Synthetic avenue 2"
+      },
+      "geometry": [
+        {
+          "lat": 41.889014229249014,
+          "lon": 12.489810700468688
+        },
+        {
+          "lat": 41.889014229249014,
+          "lon": 12.494589299531313
+        }
+      ]
+    },
+    {
+      "type": "way",
+      "id": 10018,
+      "tags": {
+        "highway": "residential",
+        "name": "Synthetic avenue 3"
+      },
+      "geometry": [
+        {
+          "lat": 41.88940948616601,
+          "lon": 12.489810700468688
+        },
+        {
+          "lat": 41.88940948616601,
+          "lon": 12.494589299531313
+        }
+      ]
+    },
+    {
+      "type": "way",
+      "id": 10019,
+      "tags": {
+        "highway": "residential"
+      },
+      "geometry": [
+        {
+          "lat": 41.88842134387352,
+          "lon": 12.49007617819439
+        },
+        {
+          "lat": 41.8896071146245,
+          "lon": 12.49007617819439
+        }
+      ]
+    },
+    {
+      "type": "way",
+      "id": 10020,
+      "tags": {
+        "highway": "residential"
+      },
+      "geometry": [
+        {
+          "lat": 41.88842134387352,
+          "lon": 12.491138089097195
+        },
+        {
+          "lat": 41.8896071146245,
+          "lon": 12.491138089097195
+        }
+      ]
+    },
+    {
+      "type": "way",
+      "id": 10021,
+      "tags": {
+        "highway": "residential"
+      },
+      "geometry": [
+        {
+          "lat": 41.88842134387352,
+          "lon": 12.4922
+        },
+        {
+          "lat": 41.8896071146245,
+          "lon": 12.4922
+        }
+      ]
+    },
+    {
+      "type": "way",
+      "id": 10022,
+      "tags": {
+        "highway": "residential"
+      },
+      "geometry": [
+        {
+          "lat": 41.88842134387352,
+          "lon": 12.493261910902806
+        },
+        {
+          "lat": 41.8896071146245,
+          "lon": 12.493261910902806
+        }
+      ]
+    },
+    {
+      "type": "way",
+      "id": 10023,
+      "tags": {
+        "highway": "residential"
+      },
+      "geometry": [
+        {
+          "lat": 41.88842134387352,
+          "lon": 12.494323821805612
+        },
+        {
+          "lat": 41.8896071146245,
+          "lon": 12.494323821805612
+        }
+      ]
+    },
+    {
+      "type": "way",
+      "id": 10024,
+      "tags": {
+        "leisure": "park",
+        "name": "Synthetic green"
+      },
+      "geometry": [
+        {
+          "lat": 41.88913999281351,
+          "lon": 12.49019684988789
+        },
+        {
+          "lat": 41.889131009701764,
+          "lon": 12.490462327613592
+        },
+        {
+          "lat": 41.88931067193676,
+          "lon": 12.490510596290992
+        },
+        {
+          "lat": 41.88932863816026,
+          "lon": 12.49023305139594
+        }
+      ]
+    },
+    {
+      "type": "node",
+      "id": 10025,
+      "lat": 41.88881660079051,
+      "lon": 12.49034165592009,
+      "tags": {
+        "amenity": "bench"
+      }
+    },
+    {
+      "type": "node",
+      "id": 10026,
+      "lat": 41.88881660079051,
+      "lon": 12.490872611371493,
+      "tags": {
+        "highway": "street_lamp"
+      }
+    },
+    {
+      "type": "node",
+      "id": 10027,
+      "lat": 41.88921185770751,
+      "lon": 12.489810700468688,
+      "tags": {
+        "highway": "traffic_signals"
+      }
+    }
+  ]
+}

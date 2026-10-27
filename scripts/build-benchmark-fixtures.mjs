@@ -175,12 +175,45 @@ function makePropHeavyFixture() {
   };
 }
 
+function makeMaterialFamiliesFixture() {
+  const fixture = makeCityFixture({
+    id: 'synthetic-material-families',
+    title: 'Building material family coverage',
+    columns: 8,
+    rows: 2,
+    pitch: 44,
+    start: -154,
+    buildingSize: [18, 28],
+    roadEvery: 1,
+  });
+  const materials = [
+    'plaster', 'stucco',
+    'brick', 'terracotta',
+    'stone', 'sandstone',
+    'metal', 'steel',
+    'glass', 'curtain wall',
+    'concrete', 'reinforced_concrete',
+    'wood', 'timber',
+    'composite', 'unclassified-fiber',
+  ];
+  let buildingIndex = 0;
+  for (const element of fixture.elements) {
+    if (element.type !== 'way' || !element.tags?.building) continue;
+    element.tags['building:material'] = materials[buildingIndex++];
+  }
+  fixture.benchmarkFixture.provenance = 'Generated deterministically by scripts/build-benchmark-fixtures.mjs';
+  fixture.benchmarkFixture.featureCounts.materialTags = buildingIndex;
+  fixture.benchmarkFixture.materialNames = materials;
+  return fixture;
+}
+
 const fixtures = [
   ['synthetic-showcase.json', makeCityFixture({ id: 'synthetic-showcase', title: 'Feature-rich synthetic downtown', columns: 8, rows: 7, pitch: 42, start: -126, buildingSize: [14, 28], roadEvery: 3 })],
   ['synthetic-dense.json', makeCityFixture({ id: 'synthetic-dense', title: 'High building and road density', columns: 12, rows: 10, pitch: 22, start: -121, buildingSize: [9, 17], roadEvery: 2 })],
   ['synthetic-sparse.json', makeCityFixture({ id: 'synthetic-sparse', title: 'Low building density with long streets', columns: 4, rows: 3, pitch: 78, start: -117, buildingSize: [16, 30], roadEvery: 1 })],
   ['synthetic-difficult-polygons.json', makeDifficultPolygons()],
   ['synthetic-prop-heavy.json', makePropHeavyFixture()],
+  ['synthetic-material-families.json', makeMaterialFamiliesFixture()],
 ];
 
 mkdirSync(FIXTURES, { recursive: true });

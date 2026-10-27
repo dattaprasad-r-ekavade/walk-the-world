@@ -421,10 +421,16 @@ resources stabilise in a 15-minute walk. Keep geometry semantics unchanged.
 Files: styles.js, materials.js, facade-uv.js, city-builder-core.js,
 street/assemble-city.js, post-fx.js and StreetEngine.js.
 
-- [ ] 2.1 Inventory material keys, batches, shader programs and map samples per
-  tier. Existing caches already share resources; target residual fragmentation.
-- [ ] 2.2 Map raw OSM material names to a small family table, retaining meaningful
+- [x] 2.1 Inventory material keys, scene geometry, shader programs, draw calls
+  and texture-role bindings per tier. The [three-tier census](benchmarks/results/stage2/material-inventory-three-tier.md)
+  covers the recorded Rome fixture; factory caches stay fixed at 4 building,
+  3 roof, 7 road and 20 simple keys. Its raw material values are empty, so named
+  family coverage remains for 2.2.
+- [x] 2.2 Map raw OSM material names to bounded families, retaining meaningful
   plaster/brick/stone/metal/glass differences and deterministic colour variation.
+  The [tagged material smoke](benchmarks/results/stage2/material-family-mapping-smoke.md)
+  reduced 16 canonical/alias/unknown names to 10 building factory keys; the Rome
+  showcase itself has no `building:material` values.
 - [ ] 2.3 Prototype family batching with linear-space vertex tint. Preserve AO/
   jitter without multiplying base tint twice. Keep chunk-local culling bounds,
   feature metadata and independent collision/editor picking.
@@ -465,10 +471,15 @@ each independently, but only with equal visible geometry and the same GPU/frame
 no-regression gate. This synthetic result does not close the real-city, mobile,
 weather or long-walk gates.
 
-For Stage 2.1, the current medium-tier material/resource census and diagnostic
-hook are useful starting evidence; low/high-tier inventories and a full material
-family audit remain open. Continue with actual shader/material-family analysis
-before adding heavier texture or shader effects.
+The Stage 2.1 medium-tier census and diagnostic hook are now extended to low,
+medium and high quality in the recorded Rome fixture. See the
+[three-tier census](benchmarks/results/stage2/material-inventory-three-tier.md).
+The same 154 scene materials and 42 referenced textures appeared at all tiers;
+program count rose from 26/28 to 64 at high quality, where mean draw calls also
+rose from about 238 to 446 in this single run. The Rome fixture has no named
+building-material tags, so Stage 2.2 used a separate CC0 material fixture and
+smoke report. The full family/constructor audit remains open; Stage 2.3 should
+prototype vertex-tint batching while preserving the deterministic family colors.
 
 Exit: lower submission/program cost or approved visual gain at neutral cost;
 no hue, silhouette, placement or editor-selection regression.

@@ -13,6 +13,7 @@ visual fidelity against a real city.
 | `synthetic-sparse.json` | Few buildings with longer connected streets |
 | `synthetic-difficult-polygons.json` | Concave outlines and a 96-vertex footprint |
 | `synthetic-prop-heavy.json` | 256 repeated static street props for material and draw-call comparisons |
+| `synthetic-material-families.json` | Canonical, alias and unknown `building:material` names for family-key coverage |
 | `rome-showcase-osm.json` | Real OpenStreetMap features near the Colosseum; ODbL 1.0 |
 | `rome-minimal.json` | Existing small smoke-test fixture; not capacity evidence |
 

@@ -576,6 +576,9 @@ async function benchStreet(page) {
       capturedAtBrowserMs: performance.now(),
     };
   });
+  // Material census runs after the frame window is frozen so its scene walk
+  // cannot perturb the measured movement interval.
+  const materialInventory = await page.evaluate(() => window.__streetDebug?.materialInventory?.() || null);
   const hostTelemetryPromise = hostTelemetryMonitor.finish();
 
   let cellStreaming = null;
@@ -671,6 +674,7 @@ async function benchStreet(page) {
     metadata: metrics.perf?.metadata || {},
     settings: metrics.perf?.settings || {},
     resourceCounts: metrics.perf?.resourceCounts || {},
+    materialInventory,
     unavailableMeasurements: metrics.perf?.unavailableMeasurements || [],
     validationErrors: metrics.perf?.validationErrors || [],
     hostTelemetry,
@@ -724,6 +728,8 @@ async function main() {
     await context.route((url) => url.origin === baseOrigin && /^\/api\/city\//.test(url.pathname), (routeRequest) =>
       routeRequest.fulfill({ status: 200, contentType: 'application/json', body: fixtureBody })
     );
+  }
+  if (['fixture', 'recorded'].includes(dataMode)) {
     await context.route((url) => url.origin === baseOrigin && url.pathname === '/api/assets', (routeRequest) =>
       routeRequest.fulfill({ status: 200, contentType: 'application/json', body: '[]' })
     );
