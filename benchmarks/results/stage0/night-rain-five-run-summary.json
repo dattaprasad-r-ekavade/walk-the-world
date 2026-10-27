@@ -1,0 +1,521 @@
+{
+  "schemaVersion": 1,
+  "createdAt": "2026-10-27",
+  "status": "five valid visible-Chrome night/rain repetitions; diagnostic, not release acceptance",
+  "system": {
+    "manufacturer": "LENOVO",
+    "model": "81W8",
+    "os": "Windows 11 Home Single Language",
+    "cpu": "Intel Core i5-1035G1",
+    "gpu": "Intel UHD Graphics 630",
+    "driver": "27.20.100.9664",
+    "powerMode": "High performance",
+    "pluggedIn": true,
+    "acpiThermalReadingsAvailable": false
+  },
+  "scenario": {
+    "fixture": "synthetic-prop-heavy",
+    "quality": "medium",
+    "hour": 21,
+    "weather": 90,
+    "precipitation": "rain",
+    "walkMs": 12000,
+    "viewport": "1280x720",
+    "dpr": 1,
+    "browser": "Chrome 155",
+    "renderer": "ANGLE Intel UHD Graphics 630 / Direct3D 11"
+  },
+  "acceptedRuns": [
+    {
+      "report": "main-local-night-rain-chrome-12s-v5.json",
+      "sourceRevision": "aae8d3e01e399c1bc79833a274b54d67e60b6b04",
+      "browser": {
+        "name": "Chromium",
+        "version": "155.0.8059.86",
+        "channel": "chrome",
+        "rendererMode": "browser-default",
+        "headless": false
+      },
+      "scenario": {
+        "fixture": "benchmarks/fixtures/synthetic-prop-heavy.json",
+        "route": "/street",
+        "latitude": 41.8902,
+        "longitude": 12.4922,
+        "qualityPreset": "medium",
+        "hour": 21,
+        "weather": 90,
+        "precipitationMode": "rain",
+        "walkDurationMs": 12000,
+        "seed": 1337,
+        "driving": false,
+        "crossCell": false,
+        "fixedPose": {
+          "x": -7.647023843889386,
+          "z": 112,
+          "heading": 1.5707963267949
+        },
+        "populationFrozenUntilMeasurement": true
+      },
+      "webgl": {
+        "version": "WebGL 2.0 (OpenGL ES 3.0 Chromium)",
+        "vendor": "Google Inc. (Intel)",
+        "renderer": "ANGLE (Intel, Intel(R) UHD Graphics (0x00008A56) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+        "webgl2": true,
+        "debugRendererInfoAvailable": true
+      },
+      "focus": {
+        "visible": true,
+        "hasFocus": null,
+        "focusLossCount": null,
+        "visibilityLossCount": null
+      },
+      "measurement": {
+        "valid": true,
+        "requestedWalkMs": 12000,
+        "wallElapsedMs": 12046,
+        "frameDurationMs": 12048,
+        "frameCoverageRatio": 1,
+        "hostTelemetry": {
+          "available": true,
+          "sampleCount": 11,
+          "expectedSampleCount": 12,
+          "coveragePct": 92,
+          "actualSampleIntervalSeconds": 1.037,
+          "firstSampleOffsetMs": 999,
+          "lastSampleGapMs": 567,
+          "averageSystemCpuPct": 83.76,
+          "minimumAvailableMemoryMb": 1878,
+          "averagePerEngine3dPeakPct": 65.8,
+          "valid": true,
+          "reasons": []
+        }
+      },
+      "frame": {
+        "sampleCount": 478,
+        "meanMs": 25.20564853556485,
+        "p50Ms": 17.099999999998545,
+        "p95Ms": 34.29999999999927,
+        "p99Ms": 50,
+        "onePercentLowFps": 15.757957768673036,
+        "averageFps": 40,
+        "framesOver50Ms": 4,
+        "framesOver100Ms": 1
+      },
+      "gpu": {
+        "sampleCount": 478,
+        "p50Ms": 7.731926,
+        "p95Ms": 11.729686,
+        "p99Ms": 14.341405
+      },
+      "renderer": {
+        "drawCallsMean": 63.62343096234309,
+        "trianglesMean": 74444.58995815899,
+        "cpuSubmissionSampleCount": 478,
+        "cpuSubmissionP95Ms": 11.399999976158142
+      },
+      "startupStagesMs": {
+        "workerCompute": 22.600000023841858,
+        "workerRoundtrip": 600.1000000238419,
+        "geometryTotal": 605.5,
+        "assemblyTotal": 1459
+      }
+    },
+    {
+      "report": "main-local-night-rain-chrome-12s-rep3.json",
+      "sourceRevision": "49a6c43085fb01c63f751dd1969077097527ab58",
+      "browser": {
+        "name": "Chromium",
+        "version": "155.0.8059.86",
+        "channel": "chrome",
+        "rendererMode": "browser-default",
+        "headless": false
+      },
+      "scenario": {
+        "fixture": "benchmarks/fixtures/synthetic-prop-heavy.json",
+        "route": "/street",
+        "latitude": 41.8902,
+        "longitude": 12.4922,
+        "qualityPreset": "medium",
+        "hour": 21,
+        "weather": 90,
+        "precipitationMode": "rain",
+        "walkDurationMs": 12000,
+        "seed": 1337,
+        "driving": false,
+        "crossCell": false,
+        "fixedPose": {
+          "x": -7.647023843889386,
+          "z": 112,
+          "heading": 1.5707963267949
+        },
+        "populationFrozenUntilMeasurement": true
+      },
+      "webgl": {
+        "version": "WebGL 2.0 (OpenGL ES 3.0 Chromium)",
+        "vendor": "Google Inc. (Intel)",
+        "renderer": "ANGLE (Intel, Intel(R) UHD Graphics (0x00008A56) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+        "webgl2": true,
+        "debugRendererInfoAvailable": true
+      },
+      "focus": {
+        "visible": true,
+        "hasFocus": true,
+        "focusLossCount": 0,
+        "visibilityLossCount": 0
+      },
+      "measurement": {
+        "valid": true,
+        "requestedWalkMs": 12000,
+        "wallElapsedMs": 12040,
+        "frameDurationMs": 12065,
+        "frameCoverageRatio": 1.002,
+        "hostTelemetry": {
+          "available": true,
+          "sampleCount": 11,
+          "expectedSampleCount": 12,
+          "coveragePct": 92,
+          "actualSampleIntervalSeconds": 1.033,
+          "firstSampleOffsetMs": 973,
+          "lastSampleGapMs": 698,
+          "averageSystemCpuPct": 69.95,
+          "minimumAvailableMemoryMb": 1894,
+          "averagePerEngine3dPeakPct": 71.79,
+          "valid": true,
+          "reasons": []
+        }
+      },
+      "frame": {
+        "sampleCount": 555,
+        "meanMs": 21.738918918918916,
+        "p50Ms": 16.700000000004366,
+        "p95Ms": 33.69999999999709,
+        "p99Ms": 49.89999999999418,
+        "onePercentLowFps": 17.128175849272264,
+        "averageFps": 46,
+        "framesOver50Ms": 3,
+        "framesOver100Ms": 1
+      },
+      "gpu": {
+        "sampleCount": 555,
+        "p50Ms": 7.441405,
+        "p95Ms": 10.849373,
+        "p99Ms": 13.423332
+      },
+      "renderer": {
+        "drawCallsMean": 64.04864864864865,
+        "trianglesMean": 74415.36936936936,
+        "cpuSubmissionSampleCount": 555,
+        "cpuSubmissionP95Ms": 6.200000047683716
+      },
+      "startupStagesMs": {
+        "workerCompute": 25.5,
+        "workerRoundtrip": 826.8999999761581,
+        "geometryTotal": 832.3999999761581,
+        "assemblyTotal": 2332.399999976158
+      }
+    },
+    {
+      "report": "main-local-night-rain-chrome-12s-rep4.json",
+      "sourceRevision": "49a6c43085fb01c63f751dd1969077097527ab58",
+      "browser": {
+        "name": "Chromium",
+        "version": "155.0.8059.86",
+        "channel": "chrome",
+        "rendererMode": "browser-default",
+        "headless": false
+      },
+      "scenario": {
+        "fixture": "benchmarks/fixtures/synthetic-prop-heavy.json",
+        "route": "/street",
+        "latitude": 41.8902,
+        "longitude": 12.4922,
+        "qualityPreset": "medium",
+        "hour": 21,
+        "weather": 90,
+        "precipitationMode": "rain",
+        "walkDurationMs": 12000,
+        "seed": 1337,
+        "driving": false,
+        "crossCell": false,
+        "fixedPose": {
+          "x": -7.647023843889386,
+          "z": 112,
+          "heading": 1.5707963267949
+        },
+        "populationFrozenUntilMeasurement": true
+      },
+      "webgl": {
+        "version": "WebGL 2.0 (OpenGL ES 3.0 Chromium)",
+        "vendor": "Google Inc. (Intel)",
+        "renderer": "ANGLE (Intel, Intel(R) UHD Graphics (0x00008A56) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+        "webgl2": true,
+        "debugRendererInfoAvailable": true
+      },
+      "focus": {
+        "visible": true,
+        "hasFocus": true,
+        "focusLossCount": 0,
+        "visibilityLossCount": 0
+      },
+      "measurement": {
+        "valid": true,
+        "requestedWalkMs": 12000,
+        "wallElapsedMs": 12021,
+        "frameDurationMs": 12014,
+        "frameCoverageRatio": 0.999,
+        "hostTelemetry": {
+          "available": true,
+          "sampleCount": 11,
+          "expectedSampleCount": 12,
+          "coveragePct": 92,
+          "actualSampleIntervalSeconds": 1.031,
+          "firstSampleOffsetMs": 994,
+          "lastSampleGapMs": 742,
+          "averageSystemCpuPct": 60.02,
+          "minimumAvailableMemoryMb": 1747,
+          "averagePerEngine3dPeakPct": 76.19,
+          "valid": true,
+          "reasons": []
+        }
+      },
+      "frame": {
+        "sampleCount": 622,
+        "meanMs": 19.31591639871382,
+        "p50Ms": 16.69999999999709,
+        "p95Ms": 33.400000000001455,
+        "p99Ms": 50,
+        "onePercentLowFps": 17.535070140280688,
+        "averageFps": 52,
+        "framesOver50Ms": 5,
+        "framesOver100Ms": 0
+      },
+      "gpu": {
+        "sampleCount": 621,
+        "p50Ms": 7.232812,
+        "p95Ms": 9.899843,
+        "p99Ms": 12.813176
+      },
+      "renderer": {
+        "drawCallsMean": 64.34244372990354,
+        "trianglesMean": 74512.5112540193,
+        "cpuSubmissionSampleCount": 622,
+        "cpuSubmissionP95Ms": 6.699999928474426
+      },
+      "startupStagesMs": {
+        "workerCompute": 25.899999976158142,
+        "workerRoundtrip": 644.8000000715256,
+        "geometryTotal": 651.3999999761581,
+        "assemblyTotal": 1822.6999999284744
+      }
+    },
+    {
+      "report": "main-local-night-rain-chrome-12s-rep5.json",
+      "sourceRevision": "49a6c43085fb01c63f751dd1969077097527ab58",
+      "browser": {
+        "name": "Chromium",
+        "version": "155.0.8059.86",
+        "channel": "chrome",
+        "rendererMode": "browser-default",
+        "headless": false
+      },
+      "scenario": {
+        "fixture": "benchmarks/fixtures/synthetic-prop-heavy.json",
+        "route": "/street",
+        "latitude": 41.8902,
+        "longitude": 12.4922,
+        "qualityPreset": "medium",
+        "hour": 21,
+        "weather": 90,
+        "precipitationMode": "rain",
+        "walkDurationMs": 12000,
+        "seed": 1337,
+        "driving": false,
+        "crossCell": false,
+        "fixedPose": {
+          "x": -7.647023843889386,
+          "z": 112,
+          "heading": 1.5707963267949
+        },
+        "populationFrozenUntilMeasurement": true
+      },
+      "webgl": {
+        "version": "WebGL 2.0 (OpenGL ES 3.0 Chromium)",
+        "vendor": "Google Inc. (Intel)",
+        "renderer": "ANGLE (Intel, Intel(R) UHD Graphics (0x00008A56) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+        "webgl2": true,
+        "debugRendererInfoAvailable": true
+      },
+      "focus": {
+        "visible": true,
+        "hasFocus": true,
+        "focusLossCount": 0,
+        "visibilityLossCount": 0
+      },
+      "measurement": {
+        "valid": true,
+        "requestedWalkMs": 12000,
+        "wallElapsedMs": 12029,
+        "frameDurationMs": 12031,
+        "frameCoverageRatio": 1,
+        "hostTelemetry": {
+          "available": true,
+          "sampleCount": 11,
+          "expectedSampleCount": 12,
+          "coveragePct": 92,
+          "actualSampleIntervalSeconds": 1.03,
+          "firstSampleOffsetMs": 996,
+          "lastSampleGapMs": 743,
+          "averageSystemCpuPct": 43.23,
+          "minimumAvailableMemoryMb": 2070,
+          "averagePerEngine3dPeakPct": 80.94,
+          "valid": true,
+          "reasons": []
+        }
+      },
+      "frame": {
+        "sampleCount": 714,
+        "meanMs": 16.850280112044818,
+        "p50Ms": 16.69999999999709,
+        "p95Ms": 17.099999999998545,
+        "p99Ms": 18.200000000004366,
+        "onePercentLowFps": 29.884198729923504,
+        "averageFps": 59,
+        "framesOver50Ms": 0,
+        "framesOver100Ms": 0
+      },
+      "gpu": {
+        "sampleCount": 713,
+        "p50Ms": 6.837238,
+        "p95Ms": 9.023332,
+        "p99Ms": 9.563332
+      },
+      "renderer": {
+        "drawCallsMean": 65.61064425770309,
+        "trianglesMean": 74595.67507002801,
+        "cpuSubmissionSampleCount": 714,
+        "cpuSubmissionP95Ms": 5.700000047683716
+      },
+      "startupStagesMs": {
+        "workerCompute": 26.100000023841858,
+        "workerRoundtrip": 729.4000000953674,
+        "geometryTotal": 737.1000000238419,
+        "assemblyTotal": 1650.1999999284744
+      }
+    },
+    {
+      "report": "main-local-night-rain-chrome-12s-rep6.json",
+      "sourceRevision": "49a6c43085fb01c63f751dd1969077097527ab58",
+      "browser": {
+        "name": "Chromium",
+        "version": "155.0.8059.86",
+        "channel": "chrome",
+        "rendererMode": "browser-default",
+        "headless": false
+      },
+      "scenario": {
+        "fixture": "benchmarks/fixtures/synthetic-prop-heavy.json",
+        "route": "/street",
+        "latitude": 41.8902,
+        "longitude": 12.4922,
+        "qualityPreset": "medium",
+        "hour": 21,
+        "weather": 90,
+        "precipitationMode": "rain",
+        "walkDurationMs": 12000,
+        "seed": 1337,
+        "driving": false,
+        "crossCell": false,
+        "fixedPose": {
+          "x": -7.647023843889386,
+          "z": 112,
+          "heading": 1.5707963267949
+        },
+        "populationFrozenUntilMeasurement": true
+      },
+      "webgl": {
+        "version": "WebGL 2.0 (OpenGL ES 3.0 Chromium)",
+        "vendor": "Google Inc. (Intel)",
+        "renderer": "ANGLE (Intel, Intel(R) UHD Graphics (0x00008A56) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+        "webgl2": true,
+        "debugRendererInfoAvailable": true
+      },
+      "focus": {
+        "visible": true,
+        "hasFocus": true,
+        "focusLossCount": 0,
+        "visibilityLossCount": 0
+      },
+      "measurement": {
+        "valid": true,
+        "requestedWalkMs": 12000,
+        "wallElapsedMs": 12042,
+        "frameDurationMs": 12082,
+        "frameCoverageRatio": 1.003,
+        "hostTelemetry": {
+          "available": true,
+          "sampleCount": 10,
+          "expectedSampleCount": 12,
+          "coveragePct": 83,
+          "actualSampleIntervalSeconds": 1.016,
+          "firstSampleOffsetMs": 977,
+          "lastSampleGapMs": 599,
+          "averageSystemCpuPct": 64.51,
+          "minimumAvailableMemoryMb": 1938,
+          "averagePerEngine3dPeakPct": 72.72,
+          "valid": true,
+          "reasons": []
+        }
+      },
+      "frame": {
+        "sampleCount": 602,
+        "meanMs": 20.069269102990027,
+        "p50Ms": 16.700000000000728,
+        "p95Ms": 33.5,
+        "p99Ms": 50,
+        "onePercentLowFps": 18.243419338024292,
+        "averageFps": 50,
+        "framesOver50Ms": 3,
+        "framesOver100Ms": 0
+      },
+      "gpu": {
+        "sampleCount": 601,
+        "p50Ms": 7.097811,
+        "p95Ms": 10.551405,
+        "p99Ms": 11.881041
+      },
+      "renderer": {
+        "drawCallsMean": 64.34717607973423,
+        "trianglesMean": 74521.97674418605,
+        "cpuSubmissionSampleCount": 602,
+        "cpuSubmissionP95Ms": 7.399999976158142
+      },
+      "startupStagesMs": {
+        "workerCompute": 27.799999952316284,
+        "workerRoundtrip": 762,
+        "geometryTotal": 773,
+        "assemblyTotal": 1620.5999999046326
+      }
+    }
+  ],
+  "telemetryFreeControl": {
+    "report": "main-local-night-rain-chrome-12s-no-telemetry.json",
+    "frameValid": true,
+    "frameP95Ms": 33.5,
+    "gpuTimerP95Ms": 10.856717,
+    "hostTelemetryEnabled": false
+  },
+  "conclusions": [
+    "Five-run frame p95 median 33.5 ms, range 17.1-34.3 ms.",
+    "Five-run GPU timer p95 median 10.55 ms.",
+    "Median worker compute 25.9 ms; median worker roundtrip 729.4 ms; Rust/Wasm/SIMD remain deferred.",
+    "Full day/night/rain, cold/warm, real-city, crossing, mobile and 15-minute gates remain open."
+  ],
+  "rawReportsRetainedLocally": [
+    "main-local-night-rain-chrome-12s-v5.json",
+    "main-local-night-rain-chrome-12s-rep3.json",
+    "main-local-night-rain-chrome-12s-rep4.json",
+    "main-local-night-rain-chrome-12s-rep5.json",
+    "main-local-night-rain-chrome-12s-rep6.json",
+    "main-local-night-rain-chrome-12s-no-telemetry.json"
+  ]
+}

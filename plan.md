@@ -4,10 +4,11 @@ Updated: 27 October 2026. Status: Stage 0 instrumentation, synthetic fixtures,
 an attributed/sanitized real-city fixture, and bounded cell streaming are
 implemented. A controlled five-run-per-build prop-batching A/B is complete; the
 candidate was rejected because GPU p95 and triangle submission increased while
-frame p95 did not improve. Deterministic time/weather scenarios and Windows host
-telemetry are implemented; a fixed night/rain software-renderer smoke passed.
-The full hardware cold/warm, weather, mobile and release matrix remains open.
-Implementation continues on local `main`.
+frame p95 did not improve. Deterministic time/weather scenarios, time-aligned
+Windows host telemetry and capture-validity checks are implemented. Five
+visible-Chrome Intel UHD night/rain repetitions and a telemetry-free control
+are recorded; the full cold/warm, day/night/rain, crossing, mobile, long-walk and
+release matrix remains open. Implementation continues on local `main`.
 
 ## 1. Verified baseline and scope
 
@@ -134,6 +135,11 @@ scripts/bench-perf.mjs and benchmarks/fixtures/.
   - [x] Sample Windows system CPU, available memory, GPU-engine counters, power
     mode, battery power status and ACPI thermal-zone availability during the
     measured interval. Hostname, battery identity and GPU-process IDs are omitted.
+  - [x] Use one continuous counter query, retain actual sample timestamps and
+    intervals, and wait for its first sample before starting movement.
+  - [x] Snapshot frame/GPU/renderer counters at key release; reject incomplete,
+    saturated, hidden or unfocused windows. Record in-window host coverage and
+    offer `--skip-host-telemetry` as a sampler-overhead control.
 - [x] 0.7 Prove street movement via player displacement. The runner focuses the
   Street page and requires measurable displacement.
   - [x] Require displacement for walking and add a seeded driving run that
@@ -152,6 +158,13 @@ scripts/bench-perf.mjs and benchmarks/fixtures/.
     interval but accumulated 32.3 seconds of frame intervals, and sampled 96.4%
     system CPU with 1,241 MB minimum available memory. Windows exposed no ACPI
     thermal zone. This validates scenario wiring only; exclude its frame timings.
+  - [x] Capture five valid 12-second warm, fixed-pose medium night/rain runs on
+    Intel UHD 630 in visible Chrome. Median frame p95 was 33.5 ms (range
+    17.1–34.3 ms); median GPU timer p95 was 10.55 ms. Four newer runs confirmed
+    focus and visibility; all five had at least 92% in-window host coverage.
+    A single telemetry-free control recorded 33.5 ms frame p95. See the
+    [five-run decision](benchmarks/results/stage0/night-rain-five-run-decision.md)
+    and [compact JSON summary](benchmarks/results/stage0/night-rain-five-run-summary.json).
   - [ ] Repeat after checking Chromium foreground state, OS load and integrated-
     GPU thermal/power conditions; alternate baseline/candidate runs for A/B.
   - [ ] Complete cold/warm, day/night, rain and moving/cell-crossing scenarios;
@@ -175,8 +188,10 @@ stream. The fixture README distinguishes synthetic CC0 data from the old Rome
 smoke fixture, whose provenance is unverified.
 
 Validation on this checkpoint: `npm test -- --reporter=dot` passed (10 files,
-91 tests); the current consolidated tree passes all 92 tests. `npm run build`
-passed after the cell-cap fix and again on the consolidated tree. The app was
+91 tests); the earlier consolidated tree passed all 92 tests. Fresh validation
+after benchmark hardening passed `npm test` (12 files, 99 tests) and
+`npm run build`; `npm run start -- --port 3456` served `/street` locally with
+HTTP 200. The app was
 run locally from the production build. A separate visible Chromium run
 confirmed WebGL2 on Intel UHD 630
 (ANGLE/D3D11) with the GPU timer-query extension supported. The fixed-medium run
@@ -628,11 +643,15 @@ for Cesium, imagery and model resources. SSR, volumetrics, displacement, dense
 skeletal crowds and shadowed lamp arrays require separate high-tier budgets.
 None is a prerequisite for this sequence.
 
-**Next bounded task:** use visible hardware Chromium with a quiet, AC-powered
-system to capture five fixed-pose day, night and rain repetitions. The existing
-night/rain smoke is SwiftShader-only, system CPU was 96.4%, and Windows exposes
-no ACPI thermal zone. Then run cold/warm and cell-crossing scenarios, and include
-an available mobile device before closing Stage 0. Keep Rust/Wasm/SIMD deferred until full geometry-stage timings show that
-geometry, rather than submission, streaming or GPU shading, is the limiting
-cost. If Stage 2 resumes first, isolate material reuse from spatial batching and
-prove equal rendered content before accepting a performance claim.
+**Next bounded task:** run five matched visible-Chrome repeats for daytime clear,
+clear night and daytime rain on this same Intel UHD device, then compare cold and
+warm starts and moving/cell-crossing paths. The night/rain checkpoint is
+diagnostic: median frame p95 was 33.5 ms, but one run was 17.1 ms and host CPU
+varied from 43% to 84%. Windows was on AC/High Performance but exposes no ACPI
+thermal readings. Mobile and 15-minute thermal checks remain open. Keep
+Rust/Wasm/SIMD deferred: worker compute was 25.9 ms median versus 729.4 ms
+roundtrip, so kernel acceleration is not yet the measured opportunity. Rank
+main-thread assembly/scheduling and GPU pacing on dense real-city traces before
+changing geometry backends. If Stage 2 resumes first, isolate material reuse
+from spatial batching and prove equal rendered content before accepting a
+performance claim.
