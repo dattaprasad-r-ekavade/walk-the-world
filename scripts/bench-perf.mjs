@@ -460,6 +460,11 @@ async function main() {
   console.log('  City cache pre-warm skipped — benchmark fixture mode');
   const cache = { ok: true, ms: 0, skipped: true };
 
+  // Start host collection before Chromium startup. On Windows, initializing
+  // the WMI/performance-counter provider can take several seconds, so starting
+  // near the walk omits the first part of the measurement window.
+  const hostTelemetryMonitor = startHostTelemetry(Math.min(600, Math.max(1, Math.ceil(walkDurationMs / 1000) + 7)));
+
   const launchOptions = {
     headless: !headed,
     args: rendererMode === 'software' ? ['--use-gl=angle', '--use-angle=swiftshader'] : [],
@@ -586,7 +591,6 @@ async function main() {
 
   try {
     console.log('  Street engine…');
-    const hostTelemetryMonitor = startHostTelemetry(Math.min(600, Math.max(1, Math.ceil(walkDurationMs / 1000) + 5)));
     result.street = await benchStreet(page, hostTelemetryMonitor);
     if (result.street.settings?.hour !== benchmarkEnvironment.hour || result.street.settings?.weather !== benchmarkEnvironment.weather) {
       throw new Error(`Applied scene environment did not match the requested benchmark: ${JSON.stringify(result.street.settings)}`);
