@@ -34,19 +34,37 @@ key; it does not reproduce live Overpass latency or establish a live-network
 performance baseline. Raw JSON traces remain in the local temp directory.
 The reports identify clean source revision `fdbf314`.
 
-## Cell-boundary walk and drive checks
+## Five-run cell-boundary walk and drive comparison
 
-One 12-second cold recorded walk and one 12-second cold recorded drive crossed
-from `wtw_city6_41.890_12.492` into `wtw_city6_41.890_12.498`. Both settled the
-expected neighbor, reported no failed cells, and held 10 resident cells against
-the 10-cell cap. The walk moved 60.02 m with 1,255 frame/renderer/GPU samples;
-the drive moved 22.56 m with the vehicle active and 844 samples. Both
-measurement windows were valid and had no browser errors. The renderer/GPU
-history cap was raised from 1,200 to 4,096 after an earlier crossing sample
-collected 1,259 frames and correctly failed validation at the old bound.
+Five cold recorded runs per movement mode crossed from
+`wtw_city6_41.890_12.492` into `wtw_city6_41.890_12.498`. Each run loaded and
+settled the expected neighbor, reported no failed cells, and held 10 resident
+cells against the 10-cell cap. All ten measurement and host telemetry windows
+validated, and all ten had zero browser console, runtime or local asset errors.
 
-These were one run per movement mode, with the recorded snapshot replayed for
-city API cells. They validate boundary setup and resource accounting, not a
-five-run walk/drive performance comparison or live network behavior. Raw reports
-remain in the local temp directory; the post-cap runs used the production build
-at `fdbf314` plus the uncommitted history-cap change.
+| Measure | Walk (5 runs) | Drive (5 runs) |
+|---|---:|---:|
+| Spawn-cell ready median (range) | 5,032 ms (4,878–5,149) | 4,904 ms (4,830–5,143) |
+| Movement median (range) | 60.07 m (60.03–60.12) | 22.10 m (21.79–22.98) |
+| Frame p95 median (range) | 14.0 ms (14.0–14.0) | 20.8 ms (20.8–20.9) |
+| GPU timer p95 median (range) | 7.67 ms (7.39–7.89) | 12.13 ms (11.46–12.30) |
+| Host system CPU median (range) | 17.1% (15.16–19.02) | 15.5% (13.43–17.57) |
+| Median run-average host GPU 3D peak (range) | 90.9% (90.32–91.02) | 90.1% (89.18–90.39) |
+| Geometries / textures / programs (median) | 287 / 27 / 28 | 297 / 27 / 28 |
+| City API requests / known encoded city bytes | 12 / 16,317,612 | 12 / 16,317,612 |
+
+The drive runs show higher GPU timer and frame p95 than walking on this recorded
+scene, while host system CPU averages were lower. The integrated Intel GPU's
+3D peak stayed near 90% in both modes. This points to GPU pacing as a material
+factor for this specific workload; host CPU percentages are system-wide and do
+not measure main-thread assembly directly. Windows ACPI thermal readings were
+unavailable. These results do not establish live Overpass throughput or a
+production-device performance guarantee.
+
+The recorded runner serves the same Rome snapshot for each requested city key,
+so the 12 cell response bodies and their bytes are local fixture replay, not
+independent live-cell payloads. The raw reports remain in the local temp
+directory. These runs used clean source revision `98ef7d8` and the production
+bundle after the renderer/GPU history cap had been raised from 1,200 to 4,096;
+the earlier 1,259-sample crossing had correctly failed validation at the old
+bound.

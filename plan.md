@@ -206,10 +206,12 @@ scripts/bench-perf.mjs and benchmarks/fixtures/.
     spawn-cell readiness was 5.36 s cold and 2.25 s warm after a separate 5.43 s
     median preflight; frame p95 medians were both 14.1 ms. Warm city response
     sizes were unavailable, so traffic totals cannot be compared.
-  - [x] Capture 12-second recorded boundary walk and drive checks. Both reached
-    the expected east neighbor, settled with no failed cells, and retained 10/10
-    resident cells. They are one-run client/streaming checks, not live network
-    performance evidence.
+  - [x] Capture five 12-second recorded boundary walks and five drives. All ten
+    reached the expected east neighbor, settled with no failed cells, validated
+    host/frame windows, and retained 10/10 resident cells. The [run summary](benchmarks/results/stage0/recorded-city-cache-smoke.md)
+    reports frame/GPU timings, system load, resources and browser-visible cell
+    traffic. Replayed payloads remain client/streaming evidence, not live
+    Overpass measurements.
   - [x] Raise renderer/GPU history capacity to 4,096 after a 12-second crossing
     reached 1,259 samples and hit the old 1,200-sample limit. Rebuilt and reran
     the crossing walk and drive successfully.
@@ -715,10 +717,10 @@ for Cesium, imagery and model resources. SSR, volumetrics, displacement, dense
 skeletal crowds and shadowed lamp arrays require separate high-tier budgets.
 None is a prerequisite for this sequence.
 
-**Next bounded task:** compare explicit cold and warm startup on the same device
-with a fixed first-visit/revisit protocol and collect a visible-Chrome baseline
-for a dense real-city fixture. Then measure walking and driving across cell
-boundaries with CPU/GPU, network and resource counters. The four-condition
+**Next bounded task:** retry the cold/warm and five-run walk/drive boundary
+matrix against the live city API with a dense real city. The local API returned
+an upstream error in the first live smoke; recorded OSM replay now provides a
+controlled client baseline while that service is unavailable. The four-condition
 summary reports median frame p95 values of 17.0–33.5 ms, with within-condition
 ranges reaching 33–34 ms; host CPU and available memory varied, and Windows
 exposes no ACPI thermal readings. Mobile and 15-minute thermal checks remain
