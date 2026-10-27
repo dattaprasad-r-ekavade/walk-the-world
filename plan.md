@@ -198,10 +198,16 @@ scripts/bench-perf.mjs and benchmarks/fixtures/.
     encoded response bytes, failures, and latency percentiles by request family.
     This enables the remaining runs; the upstream server/CDN cache is not reset,
     and browser telemetry cannot see server-side Overpass traffic.
-    A first live cold smoke timed out while the local city API returned an
-    upstream error, so it is not baseline evidence. The recorded-fixture smoke
-    confirmed request accounting but also hit the optional asset endpoint's
-    expected 501 response; its four-second window is diagnostic only.
+  - [x] Add recorded OSM replay through the browser's normal city API and
+    IndexedDB path. Smoke cold, warm and cross-cell setup with the Rome showcase
+    fixture; the [summary](benchmarks/results/stage0/recorded-city-cache-smoke.md)
+    confirms the warm origin-cell request is skipped and the 10-cell bound holds.
+    One short run per condition is harness validation, not performance evidence.
+    - A first live cold smoke timed out while the local city API returned an
+      upstream error, so it is not baseline evidence.
+    - The default injected-fixture smoke confirmed request accounting but also
+      hit the optional asset endpoint's expected 501 response; its four-second
+      window is diagnostic only.
   - [ ] Run the 15-minute thermal/resource soak and repeat on real mobile
     hardware before closing the hardware matrix.
 
@@ -659,6 +665,15 @@ server's upstream Overpass requests:
     npm run bench -- --base-url http://127.0.0.1:3456 --data-mode live --cache-mode warm --browser-channel chrome --renderer-mode browser-default --headed --skip-globe --cross-cell --out benchmarks/results/stage0/live-warm-walk.json
     npm run bench -- --base-url http://127.0.0.1:3456 --data-mode live --cache-mode cold --browser-channel chrome --renderer-mode browser-default --headed --skip-globe --drive --cross-cell --out benchmarks/results/stage0/live-cold-drive.json
     npm run bench -- --base-url http://127.0.0.1:3456 --data-mode live --cache-mode warm --browser-channel chrome --renderer-mode browser-default --headed --skip-globe --drive --cross-cell --out benchmarks/results/stage0/live-warm-drive.json
+
+If the upstream city API is unavailable, replay the recorded OSM city through
+the normal browser city API and IndexedDB path to check client startup/cache
+behavior. Replay uses the same recorded city body for requested cells, so it
+does not measure live network latency or stand in for the live boundary matrix.
+Use the Rome showcase fixture explicitly:
+
+    npm run bench -- --base-url http://127.0.0.1:3456 --data-mode recorded --cache-mode cold --fixture benchmarks/fixtures/rome-showcase-osm.json --browser-channel chrome --renderer-mode browser-default --headed --skip-globe --cross-cell --out benchmarks/results/stage0/recorded-cold-walk.json
+    npm run bench -- --base-url http://127.0.0.1:3456 --data-mode recorded --cache-mode warm --fixture benchmarks/fixtures/rome-showcase-osm.json --browser-channel chrome --renderer-mode browser-default --headed --skip-globe --cross-cell --out benchmarks/results/stage0/recorded-warm-walk.json
 
 The default commands use a small fixture; they do not satisfy Stage 0's full
 matrix. The runner accepts

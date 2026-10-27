@@ -45,10 +45,10 @@ const screenshotOption = option('--screenshot', null);
 const screenshotPath = screenshotOption
   ? (isAbsolute(screenshotOption) ? screenshotOption : resolve(ROOT, screenshotOption))
   : null;
-const fixtureOption = option('--fixture', join('benchmarks', 'fixtures', 'rome-minimal.json'));
-const fixturePath = isAbsolute(fixtureOption) ? fixtureOption : resolve(ROOT, fixtureOption);
 const dataMode = option('--data-mode', 'fixture');
-const cacheMode = option('--cache-mode', dataMode === 'live' ? 'cold' : 'none');
+const fixtureOption = option('--fixture', join('benchmarks', 'fixtures', dataMode === 'recorded' ? 'rome-showcase-osm.json' : 'rome-minimal.json'));
+const fixturePath = isAbsolute(fixtureOption) ? fixtureOption : resolve(ROOT, fixtureOption);
+const cacheMode = option('--cache-mode', ['live', 'recorded'].includes(dataMode) ? 'cold' : 'none');
 const route = option('--route', '/street');
 const qualityPreset = option('--preset', 'medium');
 const rendererMode = option('--renderer-mode', 'software');
@@ -82,9 +82,13 @@ if (suppliedPoseOptions.length > 0) {
 if (!['low', 'medium', 'high'].includes(qualityPreset)) throw new Error('--preset must be low, medium, or high');
 if (!['software', 'browser-default'].includes(rendererMode)) throw new Error('--renderer-mode must be software or browser-default');
 if (!['bundled', 'chrome'].includes(browserChannel)) throw new Error('--browser-channel must be bundled or chrome');
-if (!['fixture', 'live'].includes(dataMode)) throw new Error('--data-mode must be fixture or live');
-if (dataMode === 'fixture' && cacheMode !== 'none') throw new Error('--cache-mode is only valid with --data-mode live');
-if (dataMode === 'live' && !['cold', 'warm'].includes(cacheMode)) throw new Error('--cache-mode must be cold or warm with --data-mode live');
+if (!['fixture', 'recorded', 'live'].includes(dataMode)) throw new Error('--data-mode must be fixture, recorded, or live');
+if (dataMode === 'fixture' && cacheMode !== 'none') {
+  throw new Error('--cache-mode is only valid with --data-mode live or recorded');
+}
+if (['live', 'recorded'].includes(dataMode) && !['cold', 'warm'].includes(cacheMode)) {
+  throw new Error('--cache-mode must be cold or warm with --data-mode live or recorded');
+}
 if (!Number.isFinite(walkDurationMs) || walkDurationMs < 1000) throw new Error('--walk-ms must be at least 1000');
 if (!Number.isInteger(seed) || seed < 0 || seed > 0xffffffff) throw new Error('--seed must be an integer from 0 to 4294967295');
 if (!Number.isFinite(location.lat) || Math.abs(location.lat) > 90 || !Number.isFinite(location.lon) || Math.abs(location.lon) > 180) {
@@ -668,6 +672,16 @@ async function main() {
   if (browserChannel === 'chrome') launchOptions.channel = 'chrome';
   const browser = await chromium.launch(launchOptions);
   const context = await browser.newContext();
+  const baseOrigin = new URL(baseUrl).origin;
+  if (dataMode === 'recorded') {
+    const fixtureBody = JSON.stringify(BENCH_FIXTURE);
+    await context.route((url) => url.origin === baseOrigin && /^\/api\/city\//.test(url.pathname), (routeRequest) =>
+      routeRequest.fulfill({ status: 200, contentType: 'application/json', body: fixtureBody })
+    );
+    await context.route((url) => url.origin === baseOrigin && url.pathname === '/api/assets', (routeRequest) =>
+      routeRequest.fulfill({ status: 200, contentType: 'application/json', body: '[]' })
+    );
+  }
   await context.addInitScript(({ fixture, schemaVersion, preset, seed, pose, environment }) => {
     if (location.origin !== 'null') {
       try {
@@ -720,8 +734,10 @@ async function main() {
 
   let cache = dataMode === 'fixture'
     ? { ok: true, mode: 'none', skipped: true, reason: 'Fixture mode bypasses city API and browser city cache' }
-    : { ok: true, mode: 'cold', primed: false, protocol: 'Fresh Playwright browser context; upstream server and CDN caches are outside this control' };
-  if (dataMode === 'live' && cacheMode === 'warm') {
+    : dataMode === 'recorded'
+      ? { ok: true, mode: 'cold', primed: false, protocol: 'Fresh Playwright browser context; city API responses are replayed from the checked-in OSM fixture' }
+      : { ok: true, mode: 'cold', primed: false, protocol: 'Fresh Playwright browser context; upstream server and CDN caches are outside this control' };
+  if (['live', 'recorded'].includes(dataMode) && cacheMode === 'warm') {
     console.log('  Warming origin city cell in IndexedDB…');
     const warmStartedAt = Date.now();
     const warmPage = await context.newPage();
@@ -734,7 +750,9 @@ async function main() {
         primed: true,
         indexedDbCellVerified: true,
         prewarmMs: Date.now() - warmStartedAt,
-        protocol: 'Loaded origin city cell, verified its IndexedDB entry, then measured a new page in the same browser context',
+        protocol: dataMode === 'recorded'
+          ? 'Loaded the recorded origin city cell through the app API, verified its IndexedDB entry, then measured a new page in the same browser context'
+          : 'Loaded origin city cell, verified its IndexedDB entry, then measured a new page in the same browser context',
       };
     } catch (error) {
       cache = {
@@ -750,7 +768,6 @@ async function main() {
   }
   const page = await context.newPage();
   const browserDiagnostics = { consoleErrors: [], pageErrors: [], assetFailures: [] };
-  const baseOrigin = new URL(baseUrl).origin;
   const networkRecorder = createNetworkRecorder(page, baseOrigin);
   const isLocalAsset = (url) => {
     try {
@@ -822,7 +839,7 @@ async function main() {
   };
 
   try {
-    if (dataMode === 'live' && cacheMode === 'warm' && !cache.ok) {
+    if (['live', 'recorded'].includes(dataMode) && cacheMode === 'warm' && !cache.ok) {
       throw new Error(`Warm-cache preparation failed: ${cache.error || 'origin city cell was not persisted'}`);
     }
     console.log('  Street engine…');
