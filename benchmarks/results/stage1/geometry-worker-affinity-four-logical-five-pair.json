@@ -1,0 +1,558 @@
+{
+  "schemaVersion": 1,
+  "createdAt": "2026-10-27T22:16:47.211Z",
+  "scenario": {
+    "pairs": 5,
+    "order": "Alternating one/two and two/one within each pair",
+    "cpuAffinityCount": 4,
+    "affinityMask": 15,
+    "browserHardwareConcurrency": 20,
+    "browser": "156.0.8078.48",
+    "renderer": "ANGLE (Intel, Intel(R) UHD Graphics (0x0000A78B) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+    "host": {
+      "manufacturer": "LENOVO",
+      "model": "83DV",
+      "os": "Microsoft Windows 11 Pro",
+      "osVersion": "10.0.26300",
+      "osBuild": "26300",
+      "cpu": [
+        {
+          "name": "13th Gen Intel(R) Core(TM) i7-13650HX",
+          "cores": 14,
+          "logicalProcessors": 20,
+          "maxClockMhz": 2600
+        }
+      ],
+      "gpus": [
+        {
+          "name": "NVIDIA GeForce RTX 4060 Laptop GPU",
+          "driverVersion": "32.0.15.9174",
+          "adapterRamBytes": 4293918720
+        },
+        {
+          "name": "Intel(R) UHD Graphics",
+          "driverVersion": "32.0.101.7026",
+          "adapterRamBytes": 2147479552
+        }
+      ],
+      "activePowerScheme": "Power Scheme GUID: 8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c  (High performance)",
+      "batteries": [
+        {
+          "batteryStatus": 2
+        }
+      ],
+      "acpiThermalZones": [],
+      "thermalReadingsAreJunctionTemperatures": false
+    },
+    "sourceRevision": "a73c76e78838489689fa82f1e1f4628d6c82cb3a",
+    "sourceTreeDirty": true
+  },
+  "groups": [
+    {
+      "workers": 1,
+      "validRuns": 5,
+      "metrics": {
+        "loadMs": {
+          "median": 5493,
+          "range": [
+            5288,
+            6128
+          ]
+        },
+        "spawnGeometryMs": {
+          "median": 351.60000014305115,
+          "range": [
+            321.5,
+            792.5
+          ]
+        },
+        "spawnWorkerComputeMs": {
+          "median": 186.69999980926514,
+          "range": [
+            170.29999995231628,
+            271.40000009536743
+          ]
+        },
+        "spawnWorkerRoundtripMs": {
+          "median": 345.2999999523163,
+          "range": [
+            315.69999980926514,
+            787.0999999046326
+          ]
+        },
+        "neighborGeometryMedianMs": {
+          "median": 17.949999928474426,
+          "range": [
+            16.100000023841858,
+            23.149999976158142
+          ]
+        },
+        "workerQueueP95Ms": {
+          "median": 5.200000047683716,
+          "range": [
+            0.5999999046325684,
+            5.5
+          ]
+        },
+        "workerComputeMedianMs": {
+          "median": 6.1000001430511475,
+          "range": [
+            4.200000047683716,
+            7.200000047683716
+          ]
+        },
+        "workerRoundtripMedianMs": {
+          "median": 18.5,
+          "range": [
+            14.799999952316284,
+            23.799999952316284
+          ]
+        },
+        "frameP95Ms": {
+          "median": 14.299999999999272,
+          "range": [
+            14.099999999998545,
+            14.5
+          ]
+        },
+        "frameP99Ms": {
+          "median": 20.900000000001455,
+          "range": [
+            20.69999999999709,
+            21
+          ]
+        },
+        "gpuP95Ms": {
+          "median": 7.626718,
+          "range": [
+            7.432916,
+            7.680208
+          ]
+        },
+        "systemCpuPct": {
+          "median": 13.59,
+          "range": [
+            12.19,
+            14.54
+          ]
+        },
+        "minAvailableMemoryMb": {
+          "median": 5224,
+          "range": [
+            5046,
+            5450
+          ]
+        }
+      }
+    },
+    {
+      "workers": 2,
+      "validRuns": 5,
+      "metrics": {
+        "loadMs": {
+          "median": 5586,
+          "range": [
+            5415,
+            6106
+          ]
+        },
+        "spawnGeometryMs": {
+          "median": 306.7999999523163,
+          "range": [
+            304.2999999523163,
+            802.7000000476837
+          ]
+        },
+        "spawnWorkerComputeMs": {
+          "median": 149.79999995231628,
+          "range": [
+            149,
+            558.0999999046326
+          ]
+        },
+        "spawnWorkerRoundtripMs": {
+          "median": 301.2000000476837,
+          "range": [
+            298.30000019073486,
+            796.5
+          ]
+        },
+        "neighborGeometryMedianMs": {
+          "median": 19.049999952316284,
+          "range": [
+            14.099999904632568,
+            24.84999990463257
+          ]
+        },
+        "workerQueueP95Ms": {
+          "median": 0.5,
+          "range": [
+            0.40000009536743164,
+            0.5999999046325684
+          ]
+        },
+        "workerComputeMedianMs": {
+          "median": 9.399999856948853,
+          "range": [
+            6.699999809265137,
+            13.799999952316284
+          ]
+        },
+        "workerRoundtripMedianMs": {
+          "median": 18.90000009536743,
+          "range": [
+            15.200000047683716,
+            25.700000047683716
+          ]
+        },
+        "frameP95Ms": {
+          "median": 14.400000000001455,
+          "range": [
+            14.19999999999709,
+            14.5
+          ]
+        },
+        "frameP99Ms": {
+          "median": 20.799999999999272,
+          "range": [
+            20.799999999999272,
+            20.900000000001455
+          ]
+        },
+        "gpuP95Ms": {
+          "median": 7.531509,
+          "range": [
+            7.525415,
+            7.697291
+          ]
+        },
+        "systemCpuPct": {
+          "median": 12.77,
+          "range": [
+            11.73,
+            14.1
+          ]
+        },
+        "minAvailableMemoryMb": {
+          "median": 5385,
+          "range": [
+            5061,
+            5471
+          ]
+        }
+      }
+    }
+  ],
+  "pairedDeltas": [
+    {
+      "metric": "loadMs",
+      "twoMinusOneMedian": 235,
+      "pairedRange": [
+        -553,
+        613
+      ]
+    },
+    {
+      "metric": "spawnGeometryMs",
+      "twoMinusOneMedian": -33.700000047683716,
+      "pairedRange": [
+        -485.7000000476837,
+        481.2000000476837
+      ]
+    },
+    {
+      "metric": "spawnWorkerComputeMs",
+      "twoMinusOneMedian": -36.89999985694885,
+      "pairedRange": [
+        -122.40000009536743,
+        387.7999999523163
+      ]
+    },
+    {
+      "metric": "spawnWorkerRoundtripMs",
+      "twoMinusOneMedian": -33.09999990463257,
+      "pairedRange": [
+        -485.89999985694885,
+        480.80000019073486
+      ]
+    },
+    {
+      "metric": "neighborGeometryMedianMs",
+      "twoMinusOneMedian": -1.3499997854232788,
+      "pairedRange": [
+        -4.100000023841858,
+        6.899999976158142
+      ]
+    },
+    {
+      "metric": "workerQueueP95Ms",
+      "twoMinusOneMedian": -4.6000001430511475,
+      "pairedRange": [
+        -5.099999904632568,
+        -0.09999990463256836
+      ]
+    },
+    {
+      "metric": "workerComputeMedianMs",
+      "twoMinusOneMedian": 2.999999761581421,
+      "pairedRange": [
+        2.499999761581421,
+        6.599999904632568
+      ]
+    },
+    {
+      "metric": "workerRoundtripMedianMs",
+      "twoMinusOneMedian": 1.200000286102295,
+      "pairedRange": [
+        -4.8999998569488525,
+        7.200000047683716
+      ]
+    },
+    {
+      "metric": "frameP95Ms",
+      "twoMinusOneMedian": 0.10000000000218279,
+      "pairedRange": [
+        -0.2999999999956344,
+        0.3000000000029104
+      ]
+    },
+    {
+      "metric": "frameP99Ms",
+      "twoMinusOneMedian": -0.09999999999854481,
+      "pairedRange": [
+        -0.10000000000218279,
+        0.10000000000218279
+      ]
+    },
+    {
+      "metric": "gpuP95Ms",
+      "twoMinusOneMedian": -0.05635399999999979,
+      "pairedRange": [
+        -0.15479300000000062,
+        0.26437500000000025
+      ]
+    }
+  ],
+  "runs": [
+    {
+      "pair": 1,
+      "workers": 1,
+      "loadMs": 5493,
+      "spawnGeometryMs": 321.5,
+      "spawnWorkerComputeMs": 170.29999995231628,
+      "spawnWorkerRoundtripMs": 315.69999980926514,
+      "neighborGeometryMedianMs": 16.100000023841858,
+      "workerQueueP95Ms": 4.3999998569488525,
+      "workerComputeMedianMs": 4.200000047683716,
+      "workerRoundtripMedianMs": 15.5,
+      "frameP95Ms": 14.299999999999272,
+      "frameP99Ms": 21,
+      "gpuP95Ms": 7.627395,
+      "systemCpuPct": 13.78,
+      "minAvailableMemoryMb": 5085,
+      "movementMeters": 60.12750000000011,
+      "cellValid": true,
+      "consoleErrors": 0,
+      "pageErrors": 0,
+      "assetFailures": 0
+    },
+    {
+      "pair": 1,
+      "workers": 2,
+      "loadMs": 6106,
+      "spawnGeometryMs": 802.7000000476837,
+      "spawnWorkerComputeMs": 558.0999999046326,
+      "spawnWorkerRoundtripMs": 796.5,
+      "neighborGeometryMedianMs": 14.099999904632568,
+      "workerQueueP95Ms": 0.5999999046325684,
+      "workerComputeMedianMs": 6.699999809265137,
+      "workerRoundtripMedianMs": 16.899999856948853,
+      "frameP95Ms": 14.19999999999709,
+      "frameP99Ms": 20.900000000001455,
+      "gpuP95Ms": 7.571041,
+      "systemCpuPct": 14.1,
+      "minAvailableMemoryMb": 5061,
+      "movementMeters": 60.02050000071682,
+      "cellValid": true,
+      "consoleErrors": 0,
+      "pageErrors": 0,
+      "assetFailures": 0
+    },
+    {
+      "pair": 2,
+      "workers": 2,
+      "loadMs": 5575,
+      "spawnGeometryMs": 306.7999999523163,
+      "spawnWorkerComputeMs": 149,
+      "spawnWorkerRoundtripMs": 301.2000000476837,
+      "neighborGeometryMedianMs": 19.049999952316284,
+      "workerQueueP95Ms": 0.40000009536743164,
+      "workerComputeMedianMs": 8.799999952316284,
+      "workerRoundtripMedianMs": 18.90000009536743,
+      "frameP95Ms": 14.400000000001455,
+      "frameP99Ms": 20.799999999999272,
+      "gpuP95Ms": 7.697291,
+      "systemCpuPct": 13.52,
+      "minAvailableMemoryMb": 5152,
+      "movementMeters": 60.02500000000089,
+      "cellValid": true,
+      "consoleErrors": 0,
+      "pageErrors": 0,
+      "assetFailures": 0
+    },
+    {
+      "pair": 2,
+      "workers": 1,
+      "loadMs": 6128,
+      "spawnGeometryMs": 792.5,
+      "spawnWorkerComputeMs": 271.40000009536743,
+      "spawnWorkerRoundtripMs": 787.0999999046326,
+      "neighborGeometryMedianMs": 23.149999976158142,
+      "workerQueueP95Ms": 5.5,
+      "workerComputeMedianMs": 6.1000001430511475,
+      "workerRoundtripMedianMs": 23.799999952316284,
+      "frameP95Ms": 14.200000000000728,
+      "frameP99Ms": 20.900000000001455,
+      "gpuP95Ms": 7.432916,
+      "systemCpuPct": 13.59,
+      "minAvailableMemoryMb": 5046,
+      "movementMeters": 60.065499999523695,
+      "cellValid": true,
+      "consoleErrors": 0,
+      "pageErrors": 0,
+      "assetFailures": 0
+    },
+    {
+      "pair": 3,
+      "workers": 1,
+      "loadMs": 5288,
+      "spawnGeometryMs": 351.60000014305115,
+      "spawnWorkerComputeMs": 186.69999980926514,
+      "spawnWorkerRoundtripMs": 345.2999999523163,
+      "neighborGeometryMedianMs": 16.99999988079071,
+      "workerQueueP95Ms": 5.200000047683716,
+      "workerComputeMedianMs": 4.700000047683716,
+      "workerRoundtripMedianMs": 14.799999952316284,
+      "frameP95Ms": 14.099999999998545,
+      "frameP99Ms": 20.69999999999709,
+      "gpuP95Ms": 7.626718,
+      "systemCpuPct": 14.54,
+      "minAvailableMemoryMb": 5224,
+      "movementMeters": 60.045499999523145,
+      "cellValid": true,
+      "consoleErrors": 0,
+      "pageErrors": 0,
+      "assetFailures": 0
+    },
+    {
+      "pair": 3,
+      "workers": 2,
+      "loadMs": 5712,
+      "spawnGeometryMs": 317.90000009536743,
+      "spawnWorkerComputeMs": 149.79999995231628,
+      "spawnWorkerRoundtripMs": 312.2000000476837,
+      "neighborGeometryMedianMs": 15.650000095367432,
+      "workerQueueP95Ms": 0.5,
+      "workerComputeMedianMs": 9.700000047683716,
+      "workerRoundtripMedianMs": 15.200000047683716,
+      "frameP95Ms": 14.400000000001455,
+      "frameP99Ms": 20.799999999999272,
+      "gpuP95Ms": 7.528906,
+      "systemCpuPct": 12.77,
+      "minAvailableMemoryMb": 5445,
+      "movementMeters": 60.07149999976167,
+      "cellValid": true,
+      "consoleErrors": 0,
+      "pageErrors": 0,
+      "assetFailures": 0
+    },
+    {
+      "pair": 4,
+      "workers": 2,
+      "loadMs": 5415,
+      "spawnGeometryMs": 304.39999985694885,
+      "spawnWorkerComputeMs": 149.5,
+      "spawnWorkerRoundtripMs": 298.30000019073486,
+      "neighborGeometryMedianMs": 24.84999990463257,
+      "workerQueueP95Ms": 0.5999999046325684,
+      "workerComputeMedianMs": 9.399999856948853,
+      "workerRoundtripMedianMs": 25.700000047683716,
+      "frameP95Ms": 14.5,
+      "frameP99Ms": 20.900000000001455,
+      "gpuP95Ms": 7.531509,
+      "systemCpuPct": 11.73,
+      "minAvailableMemoryMb": 5471,
+      "movementMeters": 60.05399999976254,
+      "cellValid": true,
+      "consoleErrors": 0,
+      "pageErrors": 0,
+      "assetFailures": 0
+    },
+    {
+      "pair": 4,
+      "workers": 1,
+      "loadMs": 5607,
+      "spawnGeometryMs": 332.5,
+      "spawnWorkerComputeMs": 170.39999985694885,
+      "spawnWorkerRoundtripMs": 325.10000014305115,
+      "neighborGeometryMedianMs": 17.949999928474426,
+      "workerQueueP95Ms": 5.200000047683716,
+      "workerComputeMedianMs": 6.400000095367432,
+      "workerRoundtripMedianMs": 18.5,
+      "frameP95Ms": 14.399999999997817,
+      "frameP99Ms": 21,
+      "gpuP95Ms": 7.546822,
+      "systemCpuPct": 12.19,
+      "minAvailableMemoryMb": 5450,
+      "movementMeters": 60.03199999928512,
+      "cellValid": true,
+      "consoleErrors": 0,
+      "pageErrors": 0,
+      "assetFailures": 0
+    },
+    {
+      "pair": 5,
+      "workers": 1,
+      "loadMs": 5351,
+      "spawnGeometryMs": 391.7999999523163,
+      "spawnWorkerComputeMs": 220.60000014305115,
+      "spawnWorkerRoundtripMs": 386,
+      "neighborGeometryMedianMs": 18.799999952316284,
+      "workerQueueP95Ms": 0.5999999046325684,
+      "workerComputeMedianMs": 7.200000047683716,
+      "workerRoundtripMedianMs": 19.59999990463257,
+      "frameP95Ms": 14.5,
+      "frameP99Ms": 20.799999999999272,
+      "gpuP95Ms": 7.680208,
+      "systemCpuPct": 12.65,
+      "minAvailableMemoryMb": 5262,
+      "movementMeters": 60.08450000047668,
+      "cellValid": true,
+      "consoleErrors": 0,
+      "pageErrors": 0,
+      "assetFailures": 0
+    },
+    {
+      "pair": 5,
+      "workers": 2,
+      "loadMs": 5586,
+      "spawnGeometryMs": 304.2999999523163,
+      "spawnWorkerComputeMs": 157.79999995231628,
+      "spawnWorkerRoundtripMs": 298.7999999523163,
+      "neighborGeometryMedianMs": 19.600000023841858,
+      "workerQueueP95Ms": 0.5,
+      "workerComputeMedianMs": 13.799999952316284,
+      "workerRoundtripMedianMs": 20.800000190734863,
+      "frameP95Ms": 14.200000000004366,
+      "frameP99Ms": 20.799999999999272,
+      "gpuP95Ms": 7.525415,
+      "systemCpuPct": 12.17,
+      "minAvailableMemoryMb": 5385,
+      "movementMeters": 60.07600000023973,
+      "cellValid": true,
+      "consoleErrors": 0,
+      "pageErrors": 0,
+      "assetFailures": 0
+    }
+  ]
+}

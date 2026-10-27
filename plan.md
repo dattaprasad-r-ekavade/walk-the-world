@@ -445,6 +445,12 @@ street/cell-stream.js, street/terrain.js and street/resources.js.
   recorded Rome boundary smoke. Long-walk resource stability remains open.
 - [ ] 1.3 Compare one/two geometry workers on low-core devices. Include KTX2
   decoder workers in contention/memory decisions; retain defaults unless measured.
+  - [x] Add a benchmark-only one/two-worker control and a Windows CPU-affinity
+    harness. The [five-pair constrained desktop comparison](benchmarks/results/stage1/geometry-worker-affinity-four-logical-five-pair.md)
+    reduced worker queue delay with two workers but showed no reliable cold-ready
+    or frame-time gain. Keep the existing two-worker default. A physical low-core
+    device, attributable process memory, and Stage 3.5 KTX2 decoder contention
+    remain unmeasured, so 1.3 stays open.
 - [ ] 1.4 Reduce measured clones and temporary allocations. Index repeated road/
   POI queries only if traces justify it; preserve collision and height caches.
 - [ ] 1.5 Verify terrain eviction/revisit, road repaint, shared material ownership,

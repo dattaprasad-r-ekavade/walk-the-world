@@ -225,7 +225,10 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false }) {
     engineRef.current = runtime.current;
     const lifetime = new AbortController();
     const signal = lifetime.signal;
-    const cityBuilder = createCityBuilderPool();
+    const benchmarkWorkerCount = window.__BENCH_MODE === true && Number.isInteger(window.__BENCH_GEOMETRY_WORKERS)
+      ? window.__BENCH_GEOMETRY_WORKERS
+      : null;
+    const cityBuilder = createCityBuilderPool(benchmarkWorkerCount ? { size: benchmarkWorkerCount } : undefined);
     const mount = mountRef.current;
     if (!mount) return;
 
@@ -1564,6 +1567,7 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false }) {
         // metres moved from the requested point, and the view-cone score.
         spawnFraming: () => runtime.current.spawnFraming || null,
         cellStream: () => runtime.current.cellStreamer?.debugState?.() || null,
+        cityBuilder: () => cityBuilder.debugState(),
         vehicle,
         population: () => population,
         tickPopulation: () => population?.update?.(1 / 60, player, runtimeHour, false),

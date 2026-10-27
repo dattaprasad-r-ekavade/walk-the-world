@@ -55,6 +55,7 @@ const qualityPreset = option('--preset', 'medium');
 const rendererMode = option('--renderer-mode', 'software');
 const browserChannel = option('--browser-channel', 'bundled');
 const walkDurationMs = Number(option('--walk-ms', '12000'));
+const geometryWorkers = Number(option('--geometry-workers', '2'));
 const seed = Number(option('--seed', '1337'));
 const location = {
   lat: Number(option('--lat', '41.8902')),
@@ -91,6 +92,9 @@ if (['live', 'recorded'].includes(dataMode) && !['cold', 'warm'].includes(cacheM
   throw new Error('--cache-mode must be cold or warm with --data-mode live or recorded');
 }
 if (!Number.isFinite(walkDurationMs) || walkDurationMs < 1000) throw new Error('--walk-ms must be at least 1000');
+if (!Number.isInteger(geometryWorkers) || geometryWorkers < 1 || geometryWorkers > 2) {
+  throw new Error('--geometry-workers must be 1 or 2');
+}
 if (!Number.isInteger(seed) || seed < 0 || seed > 0xffffffff) throw new Error('--seed must be an integer from 0 to 4294967295');
 if (!Number.isFinite(location.lat) || Math.abs(location.lat) > 90 || !Number.isFinite(location.lon) || Math.abs(location.lon) > 180) {
   throw new Error('Benchmark latitude/longitude are invalid');
@@ -561,6 +565,7 @@ async function benchStreet(page) {
       fps,
       triangles: window.__streetTriangles ?? null,
       perf: counters,
+      cityBuilder: window.__streetDebug?.cityBuilder?.() || null,
       player: window.__streetDebug?.player ? {
         x: window.__streetDebug.player.x,
         z: window.__streetDebug.player.z,
@@ -679,6 +684,7 @@ async function benchStreet(page) {
     },
     metadata: metrics.perf?.metadata || {},
     settings: metrics.perf?.settings || {},
+    cityBuilder: metrics.cityBuilder,
     resourceCounts: metrics.perf?.resourceCounts || {},
     materialInventory,
     unavailableMeasurements: metrics.perf?.unavailableMeasurements || [],
@@ -719,7 +725,7 @@ async function main() {
   mkdirSync(dirname(outPath), { recursive: true });
 
   console.log(`  Fixture: ${fixturePath}`);
-  console.log(`  Route: ${route}; data: ${dataMode}; cache: ${cacheMode}; preset: ${qualityPreset}; browser: ${browserChannel}; renderer: ${rendererMode}; hour: ${benchmarkEnvironment.hour}; weather: ${benchmarkEnvironment.weather}; walk: ${walkDurationMs}ms${crossCell ? '; crossing a cell boundary' : ''}`);
+  console.log(`  Route: ${route}; data: ${dataMode}; cache: ${cacheMode}; preset: ${qualityPreset}; geometry workers: ${geometryWorkers}; browser: ${browserChannel}; renderer: ${rendererMode}; hour: ${benchmarkEnvironment.hour}; weather: ${benchmarkEnvironment.weather}; walk: ${walkDurationMs}ms${crossCell ? '; crossing a cell boundary' : ''}`);
 
   const launchOptions = {
     headless: !headed,
@@ -740,7 +746,7 @@ async function main() {
       routeRequest.fulfill({ status: 200, contentType: 'application/json', body: '[]' })
     );
   }
-  await context.addInitScript(({ fixture, schemaVersion, preset, seed, pose, environment }) => {
+  await context.addInitScript(({ fixture, schemaVersion, preset, seed, pose, environment, geometryWorkers }) => {
     if (location.origin !== 'null') {
       try {
         const saved = JSON.parse(localStorage.getItem('wtw-game') || '{}');
@@ -758,6 +764,7 @@ async function main() {
       } catch { /* the benchmark still records the active runtime preset */ }
     }
     window.__BENCH_MODE = true;
+    window.__BENCH_GEOMETRY_WORKERS = geometryWorkers;
     window.__BENCH_SEED = seed;
     window.__BENCH_FIXTURE = fixture;
     window.__BENCH_START_POSE = pose;
@@ -788,6 +795,7 @@ async function main() {
     seed,
     pose: fixedPose,
     environment: benchmarkEnvironment,
+    geometryWorkers,
   });
 
   let cache = dataMode === 'fixture'
@@ -885,6 +893,7 @@ async function main() {
       cacheMode,
       driving,
       crossCell,
+      geometryWorkers,
       fixedPose,
       populationFrozenUntilMeasurement: true,
       hostTelemetryEnabled: !skipHostTelemetry && process.platform === 'win32',
@@ -902,6 +911,9 @@ async function main() {
     }
     console.log('  Street engine…');
     result.street = await benchStreet(page);
+    if (result.street.cityBuilder?.workerCount !== geometryWorkers) {
+      throw new Error(`Requested ${geometryWorkers} geometry worker(s), but the engine reported ${result.street.cityBuilder?.workerCount ?? 'unknown'}`);
+    }
     result.networkTelemetry = await networkRecorder.summary();
     if (result.street.settings?.hour !== benchmarkEnvironment.hour || result.street.settings?.weather !== benchmarkEnvironment.weather) {
       throw new Error(`Applied scene environment did not match the requested benchmark: ${JSON.stringify(result.street.settings)}`);
