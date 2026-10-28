@@ -410,6 +410,13 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false }) {
     let qualityTier = "medium";
     let postFx = null;
     let applyQuality = () => {};
+    let streetLights = null;
+    let streetLightWorldReady = false;
+    let streetLampSource = null;
+    let streetLampMarkers = [];
+    let streetLightEnabledTier = null;
+    let currentStreetLightNight = 0;
+    let syncStreetLightQuality = () => {};
 
     const renderMeasuredFrame = () => {
       const diagnosticsEnabled = window.__perfCounters?.diagnosticsEnabled === true;
@@ -523,6 +530,7 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false }) {
         shadowMapEnabled: renderer.shadowMap.enabled,
         postFxActive: postFx.active,
       });
+      syncStreetLightQuality();
     };
     applyQuality(bootQuality || useGameStore.getState().settings?.quality || "medium");
 
@@ -546,7 +554,8 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false }) {
       // windows light up as the sun sets (elev < ~0.08 → fully lit)
       const winGlow = Math.max(0, Math.min(1, (0.08 - elev) * 9)) * 0.85;
       for (const bm of runtime.current.buildingMats || []) bm.emissiveIntensity = winGlow;
-      streetLights?.setNight(winGlow);
+      currentStreetLightNight = winGlow;
+      streetLights?.setNight(qualityTier === "high" ? winGlow : 0);
       for (const pool of runtime.current.lampPoolMaterials || []) {
         // slight "bloom" via brighter additive pools at night
         pool.opacity = winGlow * (1.05 + winGlow * 0.35);
@@ -588,7 +597,7 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false }) {
       // HDR values (>1) so UnrealBloom actually catches the bulbs at night —
       // a clamped 0xffe9a8 sits under the threshold and never blooms (21.0)
       for (const m of glows) {
-        if (night) m.color.setRGB(3.2, 2.7, 1.9);
+        if (night) m.color.setRGB(1.8, 1.45, 0.95);
         else m.color.setHex(0x1a1c20);
       }
     };
@@ -605,6 +614,7 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false }) {
       runtimeHour = h;
       origSetTime(h);
     };
+    runtime.current.refreshEnvironment = () => applySky(runtimeHour);
     // ---- precipitation particles (rain/snow) ----
     let precip = null;
     runtime.current.setPrecip = (mode) => {
@@ -663,7 +673,6 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false }) {
     scene.add(headL.target);
     scene.add(headR.target);
     let population = null;
-    let streetLights = null; // M5: pooled real lights, created after quality tier
     const ambience = createAmbience();
     const groundSource =
       useGameStore.getState().settings?.groundSource === "satellite" ? "satellite" : "osm";
@@ -674,6 +683,28 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false }) {
     const groundHeight = terrain.height;
     const patchTerrain = terrain.patch;
     ghRef.fn = groundHeight;
+    syncStreetLightQuality = () => {
+      if (!streetLightWorldReady) return;
+      const markers = runtime.current.propMarkers || [];
+      if (markers !== streetLampSource) {
+        streetLampSource = markers;
+        streetLampMarkers = markers.filter((marker) => marker.kind === "lamp");
+        streetLights?.setLamps(streetLampMarkers, groundHeight);
+      }
+      if (qualityTier === "high" && !streetLights && streetLampMarkers.length) {
+        streetLights = createStreetLights(scene, { maxLights: 4 });
+        runtime.current.streetLights = streetLights;
+        streetLightEnabledTier = null;
+        streetLights.setLamps(streetLampMarkers, groundHeight);
+      }
+      if (!streetLights) return;
+      const enabled = qualityTier === "high";
+      if (streetLightEnabledTier !== enabled) {
+        streetLights.setNight(enabled ? currentStreetLightNight : 0);
+        streetLightEnabledTier = enabled;
+      }
+      streetLights.update(player);
+    };
     const editorTools = createStreetEditor({
       scene, renderer, camera, player, engineRef: runtime, ambience, editsKey,
       toLocal, toGeo, groundHeight, patchTerrain, footprintAt, signal,
@@ -1188,6 +1219,7 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false }) {
           if (walkMetersAccum >= 8) flushWalk();
         }
       }
+      syncStreetLightQuality();
       let gy = groundHeight(player.x, player.z);
       // stand on bridge decks when above them
       const decks = runtime.current.bridgeDecks;
@@ -1616,16 +1648,11 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false }) {
             : Math.random,
         });
         console.log("[population]", population.counts);
-        // M5: real street lighting, created here (not at boot) so it runs
-        // after every dependency is initialised and only when lamps exist.
-        // Each dynamic light costs shading on every lit fragment, so this is
-        // gated to the "high" tier until measured on real GPU hardware;
-        // medium/low keep the free fake lighting (glow sprites + ground pools).
-        if (!streetLights && qualityTier === "high") {
-          streetLights = createStreetLights(scene, { maxLights: 4 });
-          runtime.current.streetLights = streetLights;
-        }
-        streetLights?.setLamps(runtime.current.propMarkers || [], groundHeight);
+        // The high-tier pool is created once eligible lamp markers are known.
+        // It is reassigned as streamed cell metadata changes and held at zero
+        // intensity below high so quality transitions keep a stable light count.
+        streetLightWorldReady = true;
+        syncStreetLightQuality();
         const enrichedDensity = Number(cityData?.enrichment?.density?.urban) || 0;
         ambience.set({
           density: Math.min(1, Math.max(population.counts.peds / 140, enrichedDensity * 0.65)),
@@ -1688,12 +1715,25 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false }) {
         propMarkers: () => runtime.current.propMarkers || [],
         streetLightStats: () => {
           const sl = runtime.current.streetLights;
-          if (!sl) return { pool: 0, on: 0 };
+          const markers = runtime.current.propMarkers || [];
+          const lampMarkers = markers.filter((marker) => marker.kind === "lamp");
+          if (!sl) return {
+            pool: 0,
+            on: 0,
+            assigned: 0,
+            lampMarkers: lampMarkers.length,
+            qualityTier,
+            nightAmount: currentStreetLightNight,
+          };
           const g = scene.getObjectByName("streetLights");
           const lights = g ? g.children.filter((c) => c.isSpotLight) : [];
           return {
             pool: lights.length,
             on: lights.filter((l) => l.visible && l.intensity > 0).length,
+            assigned: lights.filter((l) => l.userData.assigned).length,
+            lampMarkers: lampMarkers.length,
+            qualityTier,
+            nightAmount: currentStreetLightNight,
           };
         },
         nameplates: () => population?.getNameplateStats?.(player) || [],

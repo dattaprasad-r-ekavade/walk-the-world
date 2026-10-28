@@ -1,19 +1,20 @@
 import { Suspense } from 'react';
-import { Outfit } from 'next/font/google';
+import localFont from 'next/font/local';
 import './globals.css';
 import { Providers } from '@/components/Providers';
 
-const outfit = Outfit({
-  subsets: ['latin'],
+const outfit = localFont({
+  src: '../public/fonts/outfit-latin.woff2',
+  weight: '100 900',
   variable: '--font-sans',
   display: 'swap',
 });
 
 // Standard font for display contexts too (no decorative faces) — titles
 // keep their weight/tracking so they still read as a wordmark.
-const displayFont = Outfit({
-  subsets: ['latin'],
-  weight: ['600', '700', '800'],
+const displayFont = localFont({
+  src: '../public/fonts/outfit-latin.woff2',
+  weight: '600 800',
   variable: '--font-display',
   display: 'swap',
 });

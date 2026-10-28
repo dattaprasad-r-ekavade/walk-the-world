@@ -19,8 +19,9 @@ describe('road material weather inheritance', () => {
     setRoadWetness(0.8);
     const material = getRoadMaterial(0x3a7b2d, 'plain', 'service');
 
-    expect(material.roughness).toBeCloseTo(0.424);
-    expect(material.envMapIntensity).toBeCloseTo(1.23);
+    expect(material.roughness).toBeCloseTo(0.296);
+    expect(material.normalScale.x).toBeCloseTo(0.27);
+    expect(material.envMapIntensity).toBeCloseTo(1.63);
 
     setRoadWetness(0);
     expect(material.roughness).toBe(1);

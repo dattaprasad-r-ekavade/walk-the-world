@@ -1,0 +1,7143 @@
+{
+  "schemaVersion": 4,
+  "timestamp": "2026-10-28T03:39:10.024Z",
+  "sourceRevision": "e99b12a9a92e3d9494cebfac46d270d4b534d3d3",
+  "sourceTreeDirty": true,
+  "baseUrl": "http://127.0.0.1:3456",
+  "browser": {
+    "name": "Chromium",
+    "version": "156.0.8078.48",
+    "channel": "chrome",
+    "rendererMode": "browser-default",
+    "headless": false
+  },
+  "scenario": {
+    "fixture": "benchmarks/fixtures/rome-showcase-osm.json",
+    "route": "/street",
+    "latitude": 41.8902,
+    "longitude": 12.4922,
+    "qualityPreset": "high",
+    "hour": 21,
+    "weather": 90,
+    "precipitationMode": "rain",
+    "walkDurationMs": 1500,
+    "seed": 1337,
+    "dataMode": "recorded",
+    "cacheMode": "cold",
+    "driving": false,
+    "crossCell": false,
+    "geometryWorkers": 2,
+    "cityDataCopyMode": "readonly",
+    "roadQueryMode": "indexed",
+    "profileCityQueries": false,
+    "resourceSoak": false,
+    "fixedPose": {
+      "x": -252,
+      "z": -32,
+      "heading": 4
+    },
+    "populationFrozenUntilMeasurement": true,
+    "hostTelemetryEnabled": false
+  },
+  "cityCacheWarm": {
+    "ok": true,
+    "mode": "cold",
+    "primed": false,
+    "protocol": "Fresh Playwright browser context; city API responses are replayed from the checked-in OSM fixture"
+  },
+  "networkTelemetry": {
+    "scope": "browser-visible requests on the measured street page; excludes server-side upstream fetches",
+    "totalRequests": 121,
+    "completedRequests": 121,
+    "incompleteRequests": 0,
+    "failedRequests": 0,
+    "httpErrorResponses": 0,
+    "statusCodes": {
+      "200": 120,
+      "307": 1
+    },
+    "encodedResponseBytes": 14236671,
+    "requestsWithKnownSize": 103,
+    "cityApiCellsRequested": [
+      "wtw_city6_41.885_12.481",
+      "wtw_city6_41.885_12.487",
+      "wtw_city6_41.885_12.492",
+      "wtw_city6_41.890_12.481",
+      "wtw_city6_41.890_12.487",
+      "wtw_city6_41.890_12.492",
+      "wtw_city6_41.896_12.481",
+      "wtw_city6_41.896_12.487",
+      "wtw_city6_41.896_12.492"
+    ],
+    "cityApiCellResults": {
+      "wtw_city6_41.890_12.492": {
+        "requests": 1,
+        "completed": 1,
+        "transportFailures": 0,
+        "transportFailureReasons": {},
+        "httpErrorResponses": 0,
+        "statusCodes": {
+          "200": 1
+        },
+        "encodedResponseBytes": 1359801,
+        "requestsWithKnownSize": 1
+      },
+      "wtw_city6_41.896_12.492": {
+        "requests": 1,
+        "completed": 1,
+        "transportFailures": 0,
+        "transportFailureReasons": {},
+        "httpErrorResponses": 0,
+        "statusCodes": {
+          "200": 1
+        },
+        "encodedResponseBytes": 1359801,
+        "requestsWithKnownSize": 1
+      },
+      "wtw_city6_41.885_12.492": {
+        "requests": 1,
+        "completed": 1,
+        "transportFailures": 0,
+        "transportFailureReasons": {},
+        "httpErrorResponses": 0,
+        "statusCodes": {
+          "200": 1
+        },
+        "encodedResponseBytes": 1359801,
+        "requestsWithKnownSize": 1
+      },
+      "wtw_city6_41.890_12.487": {
+        "requests": 1,
+        "completed": 1,
+        "transportFailures": 0,
+        "transportFailureReasons": {},
+        "httpErrorResponses": 0,
+        "statusCodes": {
+          "200": 1
+        },
+        "encodedResponseBytes": 1359801,
+        "requestsWithKnownSize": 1
+      },
+      "wtw_city6_41.896_12.487": {
+        "requests": 1,
+        "completed": 1,
+        "transportFailures": 0,
+        "transportFailureReasons": {},
+        "httpErrorResponses": 0,
+        "statusCodes": {
+          "200": 1
+        },
+        "encodedResponseBytes": 1359801,
+        "requestsWithKnownSize": 1
+      },
+      "wtw_city6_41.890_12.481": {
+        "requests": 1,
+        "completed": 1,
+        "transportFailures": 0,
+        "transportFailureReasons": {},
+        "httpErrorResponses": 0,
+        "statusCodes": {
+          "200": 1
+        },
+        "encodedResponseBytes": 1359801,
+        "requestsWithKnownSize": 1
+      },
+      "wtw_city6_41.885_12.487": {
+        "requests": 1,
+        "completed": 1,
+        "transportFailures": 0,
+        "transportFailureReasons": {},
+        "httpErrorResponses": 0,
+        "statusCodes": {
+          "200": 1
+        },
+        "encodedResponseBytes": 1359801,
+        "requestsWithKnownSize": 1
+      },
+      "wtw_city6_41.896_12.481": {
+        "requests": 1,
+        "completed": 1,
+        "transportFailures": 0,
+        "transportFailureReasons": {},
+        "httpErrorResponses": 0,
+        "statusCodes": {
+          "200": 1
+        },
+        "encodedResponseBytes": 1359801,
+        "requestsWithKnownSize": 1
+      },
+      "wtw_city6_41.885_12.481": {
+        "requests": 1,
+        "completed": 1,
+        "transportFailures": 0,
+        "transportFailureReasons": {},
+        "httpErrorResponses": 0,
+        "statusCodes": {
+          "200": 1
+        },
+        "encodedResponseBytes": 1359801,
+        "requestsWithKnownSize": 1
+      }
+    },
+    "byCategory": {
+      "app-origin": {
+        "requests": 33,
+        "completed": 33,
+        "failed": 0,
+        "httpErrorResponses": 0,
+        "statusCodes": {
+          "200": 33
+        },
+        "encodedResponseBytes": 416673,
+        "requestsWithKnownSize": 16,
+        "serviceWorkerResponses": 0,
+        "requestDurationP50Ms": 27.2,
+        "requestDurationP95Ms": 113.8
+      },
+      "app-api": {
+        "requests": 2,
+        "completed": 2,
+        "failed": 0,
+        "httpErrorResponses": 0,
+        "statusCodes": {
+          "200": 2
+        },
+        "encodedResponseBytes": 12,
+        "requestsWithKnownSize": 1,
+        "serviceWorkerResponses": 0,
+        "requestDurationP50Ms": 27.4,
+        "requestDurationP95Ms": 31.5
+      },
+      "external": {
+        "requests": 77,
+        "completed": 77,
+        "failed": 0,
+        "httpErrorResponses": 0,
+        "statusCodes": {
+          "200": 76,
+          "307": 1
+        },
+        "encodedResponseBytes": 1581777,
+        "requestsWithKnownSize": 77,
+        "serviceWorkerResponses": 0,
+        "requestDurationP50Ms": 240.1,
+        "requestDurationP95Ms": 2106.8
+      },
+      "city-api": {
+        "requests": 9,
+        "completed": 9,
+        "failed": 0,
+        "httpErrorResponses": 0,
+        "statusCodes": {
+          "200": 9
+        },
+        "encodedResponseBytes": 12238209,
+        "requestsWithKnownSize": 9,
+        "serviceWorkerResponses": 0,
+        "requestDurationP50Ms": 24.6,
+        "requestDurationP95Ms": 37.8
+      }
+    }
+  },
+  "street": {
+    "loadMs": 5496,
+    "avgFps": 41,
+    "movement": {
+      "start": {
+        "x": -252,
+        "z": -32,
+        "heading": 4,
+        "pitch": 0
+      },
+      "end": {
+        "x": -257.69418197451654,
+        "z": -27.081985396778016
+      },
+      "displacementMeters": 7.52399999976168,
+      "validated": true
+    },
+    "driving": false,
+    "cellStreaming": null,
+    "preset": "high",
+    "fpsSamples": [
+      5,
+      26,
+      26,
+      26,
+      45
+    ],
+    "frameSummary": {
+      "sampleCount": 64,
+      "durationMs": 1549,
+      "meanFrameTimeMs": 24.1953125,
+      "p50FrameTimeMs": 20.899999999999636,
+      "p95FrameTimeMs": 41.600000000000364,
+      "p99FrameTimeMs": 83.29999999999927,
+      "onePercentLowFps": 12.004801920768411,
+      "framesOver50Ms": 2,
+      "framesOver100Ms": 0
+    },
+    "measurementWindow": {
+      "valid": true,
+      "requestedWalkMs": 1500,
+      "wallElapsedMs": 1512,
+      "frameDurationMs": 1549,
+      "frameSampleCount": 64,
+      "rendererSampleCount": 64,
+      "gpuSampleCount": 65,
+      "frameCoverageRatio": 1.025,
+      "reasons": [],
+      "startedAt": "2026-10-28T03:39:18.339Z",
+      "endedAt": "2026-10-28T03:39:19.876Z",
+      "browserMetricsCapturedAt": "2026-10-28T03:39:19.876Z",
+      "capturedAtBrowserMs": 9716.599999904633,
+      "hostTelemetry": {
+        "available": false,
+        "reason": "Disabled by --skip-host-telemetry"
+      }
+    },
+    "resourceSoak": null,
+    "frameIntervalsMs": [
+      7.100000000000364,
+      27.600000000000364,
+      20.799999999999272,
+      27.80000000000109,
+      41.69999999999891,
+      27.80000000000109,
+      76.29999999999927,
+      83.29999999999927,
+      14.100000000000364,
+      27.700000000000728,
+      7,
+      41.600000000000364,
+      7,
+      34.69999999999891,
+      20.700000000000728,
+      20.799999999999272,
+      27.899999999999636,
+      20.80000000000109,
+      20.799999999999272,
+      20.80000000000109,
+      27.799999999999272,
+      20.799999999999272,
+      20.900000000001455,
+      13.799999999999272,
+      27.799999999999272,
+      27.900000000001455,
+      6.799999999999272,
+      34.79999999999927,
+      20.900000000001455,
+      20.599999999998545,
+      13.900000000001455,
+      34.79999999999927,
+      20.799999999999272,
+      21.30000000000109,
+      20.299999999999272,
+      21,
+      20.899999999999636,
+      27.700000000000728,
+      20.799999999999272,
+      20.80000000000109,
+      20.899999999999636,
+      20.700000000000728,
+      21,
+      13.799999999999272,
+      34.70000000000073,
+      20.899999999999636,
+      20.899999999999636,
+      20.799999999999272,
+      20.900000000001455,
+      27.69999999999891,
+      20.80000000000109,
+      20.69999999999891,
+      21.100000000000364,
+      20.799999999999272,
+      20.80000000000109,
+      20.899999999999636,
+      27.600000000000364,
+      21,
+      20.69999999999891,
+      20.80000000000109,
+      20.69999999999891,
+      27.900000000001455,
+      13.899999999999636,
+      27.799999999999272
+    ],
+    "rendererFrameSummary": {
+      "sampleCount": 64,
+      "calls": {
+        "total": 13543,
+        "meanPerFrame": 211.609375,
+        "maxPerFrame": 220
+      },
+      "triangles": {
+        "total": 13524014,
+        "meanPerFrame": 211312.71875,
+        "maxPerFrame": 212121
+      },
+      "lines": {
+        "total": 0,
+        "meanPerFrame": 0,
+        "maxPerFrame": 0
+      },
+      "points": {
+        "total": 102400,
+        "meanPerFrame": 1600,
+        "maxPerFrame": 1600
+      }
+    },
+    "rendererFrames": [
+      {
+        "atMs": 8181.200000047684,
+        "calls": 206,
+        "triangles": 210265,
+        "lines": 0,
+        "points": 1600
+      },
+      {
+        "atMs": 8206.200000047684,
+        "calls": 206,
+        "triangles": 210265,
+        "lines": 0,
+        "points": 1600
+      },
+      {
+        "atMs": 8219.5,
+        "calls": 206,
+        "triangles": 210265,
+        "lines": 0,
+        "points": 1600
+      },
+      {
+        "atMs": 8269.799999952316,
+        "calls": 206,
+        "triangles": 210265,
+        "lines": 0,
+        "points": 1600
+      },
+      {
+        "atMs": 8306.900000095367,
+        "calls": 220,
+        "triangles": 212121,
+        "lines": 0,
+        "points": 1600
+      },
+      {
+        "atMs": 8315.599999904633,
+        "calls": 220,
+        "triangles": 212121,
+        "lines": 0,
+        "points": 1600
+      },
+      {
+        "atMs": 8393.5,
+        "calls": 216,
+        "triangles": 211369,
+        "lines": 0,
+        "points": 1600
+      },
+      {
+        "atMs": 8474.099999904633,
+        "calls": 216,
+        "triangles": 211369,
+        "lines": 0,
+        "points": 1600
+      },
+      {
+        "atMs": 8491.700000047684,
+        "calls": 216,
+        "triangles": 211369,
+        "lines": 0,
+        "points": 1600
+      },
+      {
+        "atMs": 8517.200000047684,
+        "calls": 216,
+        "triangles": 211369,
+        "lines": 0,
+        "points": 1600
+      },
+      {
+        "atMs": 8527.799999952316,
+        "calls": 216,
+        "triangles": 211369,
+        "lines": 0,
+        "points": 1600
+      },
+      {
+        "atMs": 8564.200000047684,
+        "calls": 216,
+        "triangles": 211369,
+        "lines": 0,
+        "points": 1600
+      },
+      {
+        "atMs": 8573.799999952316,
+        "calls": 216,
+        "triangles": 211369,
+        "lines": 0,
+        "points": 1600
+      },
+      {
+        "atMs": 8606.5,
+        "calls": 213,
+        "triangles": 211363,
+        "lines": 0,
+        "points": 1600
+      },
+      {
+        "atMs": 8630.299999952316,
+        "calls": 213,
+        "triangles": 211363,
+        "lines": 0,
+        "points": 1600
+      },
+      {
+        "atMs": 8652.400000095367,
+        "calls": 213,
+        "triangles": 211363,
+        "lines": 0,
+        "points": 1600
+      },
+      {
+        "atMs": 8676.200000047684,
+        "calls": 213,
+        "triangles": 211363,
+        "lines": 0,
+        "points": 1600
+      },
+      {
+        "atMs": 8699.599999904633,
+        "calls": 213,
+        "triangles": 211363,
+        "lines": 0,
+        "points": 1600
+      },
+      {
+        "atMs": 8717.400000095367,
+        "calls": 213,
+        "triangles": 211363,
+        "lines": 0,
+        "points": 1600
+      },
+      {
+        "atMs": 8742.599999904633,
+        "calls": 213,
+        "triangles": 211363,
+        "lines": 0,
+        "points": 1600
+      },
+      {
+        "atMs": 8766.799999952316,
+        "calls": 213,
+        "triangles": 211363,
+        "lines": 0,
+        "points": 1600
+      },
+      {
+        "atMs": 8787.700000047684,
+        "calls": 213,
+        "triangles": 211363,
+        "lines": 0,
+        "points": 1600
+      },
+      {
+        "atMs": 8808.599999904633,
+        "calls": 213,
+        "triangles": 211363,
+        "lines": 0,
+        "points": 1600
+      },
+      {
+        "atMs": 8821.900000095367,
+        "calls": 213,
+        "triangles": 211363,
+        "lines": 0,
+        "points": 1600
+      },
+      {
+        "atMs": 8855.599999904633,
+        "calls": 213,
+        "triangles": 211363,
+        "lines": 0,
+        "points": 1600
+      },
+      {
+        "atMs": 8876.799999952316,
+        "calls": 213,
+        "triangles": 211363,
+        "lines": 0,
+        "points": 1600
+      },
+      {
+        "atMs": 8887.700000047684,
+        "calls": 213,
+        "triangles": 211363,
+        "lines": 0,
+        "points": 1600
+      },
+      {
+        "atMs": 8919.099999904633,
+        "calls": 213,
+        "triangles": 211363,
+        "lines": 0,
+        "points": 1600
+      },
+      {
+        "atMs": 8942.299999952316,
+        "calls": 213,
+        "triangles": 211363,
+        "lines": 0,
+        "points": 1600
+      },
+      {
+        "atMs": 8963,
+        "calls": 213,
+        "triangles": 211363,
+        "lines": 0,
+        "points": 1600
+      },
+      {
+        "atMs": 8976.5,
+        "calls": 213,
+        "triangles": 211363,
+        "lines": 0,
+        "points": 1600
+      },
+      {
+        "atMs": 9008.599999904633,
+        "calls": 213,
+        "triangles": 211363,
+        "lines": 0,
+        "points": 1600
+      },
+      {
+        "atMs": 9030.299999952316,
+        "calls": 210,
+        "triangles": 211351,
+        "lines": 0,
+        "points": 1600
+      },
+      {
+        "atMs": 9050.599999904633,
+        "calls": 210,
+        "triangles": 211351,
+        "lines": 0,
+        "points": 1600
+      },
+      {
+        "atMs": 9072.599999904633,
+        "calls": 210,
+        "triangles": 211351,
+        "lines": 0,
+        "points": 1600
+      },
+      {
+        "atMs": 9095.099999904633,
+        "calls": 210,
+        "triangles": 211351,
+        "lines": 0,
+        "points": 1600
+      },
+      {
+        "atMs": 9117.099999904633,
+        "calls": 210,
+        "triangles": 211351,
+        "lines": 0,
+        "points": 1600
+      },
+      {
+        "atMs": 9140.200000047684,
+        "calls": 210,
+        "triangles": 211351,
+        "lines": 0,
+        "points": 1600
+      },
+      {
+        "atMs": 9162.299999952316,
+        "calls": 210,
+        "triangles": 211351,
+        "lines": 0,
+        "points": 1600
+      },
+      {
+        "atMs": 9182.599999904633,
+        "calls": 210,
+        "triangles": 211351,
+        "lines": 0,
+        "points": 1600
+      },
+      {
+        "atMs": 9203.700000047684,
+        "calls": 210,
+        "triangles": 211351,
+        "lines": 0,
+        "points": 1600
+      },
+      {
+        "atMs": 9226.599999904633,
+        "calls": 210,
+        "triangles": 211351,
+        "lines": 0,
+        "points": 1600
+      },
+      {
+        "atMs": 9249.700000047684,
+        "calls": 210,
+        "triangles": 211351,
+        "lines": 0,
+        "points": 1600
+      },
+      {
+        "atMs": 9259.200000047684,
+        "calls": 210,
+        "triangles": 211351,
+        "lines": 0,
+        "points": 1600
+      },
+      {
+        "atMs": 9293.400000095367,
+        "calls": 210,
+        "triangles": 211351,
+        "lines": 0,
+        "points": 1600
+      },
+      {
+        "atMs": 9313.799999952316,
+        "calls": 210,
+        "triangles": 211351,
+        "lines": 0,
+        "points": 1600
+      },
+      {
+        "atMs": 9336.5,
+        "calls": 210,
+        "triangles": 211351,
+        "lines": 0,
+        "points": 1600
+      },
+      {
+        "atMs": 9357.700000047684,
+        "calls": 210,
+        "triangles": 211351,
+        "lines": 0,
+        "points": 1600
+      },
+      {
+        "atMs": 9381.599999904633,
+        "calls": 210,
+        "triangles": 211351,
+        "lines": 0,
+        "points": 1600
+      },
+      {
+        "atMs": 9404.400000095367,
+        "calls": 210,
+        "triangles": 211351,
+        "lines": 0,
+        "points": 1600
+      },
+      {
+        "atMs": 9425.900000095367,
+        "calls": 210,
+        "triangles": 211351,
+        "lines": 0,
+        "points": 1600
+      },
+      {
+        "atMs": 9447.400000095367,
+        "calls": 210,
+        "triangles": 211351,
+        "lines": 0,
+        "points": 1600
+      },
+      {
+        "atMs": 9468.900000095367,
+        "calls": 210,
+        "triangles": 211351,
+        "lines": 0,
+        "points": 1600
+      },
+      {
+        "atMs": 9490,
+        "calls": 210,
+        "triangles": 211351,
+        "lines": 0,
+        "points": 1600
+      },
+      {
+        "atMs": 9512.799999952316,
+        "calls": 210,
+        "triangles": 211351,
+        "lines": 0,
+        "points": 1600
+      },
+      {
+        "atMs": 9534.599999904633,
+        "calls": 210,
+        "triangles": 211351,
+        "lines": 0,
+        "points": 1600
+      },
+      {
+        "atMs": 9557.900000095367,
+        "calls": 210,
+        "triangles": 211351,
+        "lines": 0,
+        "points": 1600
+      },
+      {
+        "atMs": 9579,
+        "calls": 210,
+        "triangles": 211351,
+        "lines": 0,
+        "points": 1600
+      },
+      {
+        "atMs": 9601.099999904633,
+        "calls": 210,
+        "triangles": 211351,
+        "lines": 0,
+        "points": 1600
+      },
+      {
+        "atMs": 9623.599999904633,
+        "calls": 210,
+        "triangles": 211351,
+        "lines": 0,
+        "points": 1600
+      },
+      {
+        "atMs": 9643.5,
+        "calls": 210,
+        "triangles": 211351,
+        "lines": 0,
+        "points": 1600
+      },
+      {
+        "atMs": 9669.299999952316,
+        "calls": 210,
+        "triangles": 211351,
+        "lines": 0,
+        "points": 1600
+      },
+      {
+        "atMs": 9686.200000047684,
+        "calls": 210,
+        "triangles": 211351,
+        "lines": 0,
+        "points": 1600
+      },
+      {
+        "atMs": 9710.099999904633,
+        "calls": 210,
+        "triangles": 211351,
+        "lines": 0,
+        "points": 1600
+      }
+    ],
+    "gpuFrameSummary": {
+      "sampleCount": 65,
+      "meanMs": 19.68601584615384,
+      "p50Ms": 18.128124,
+      "p95Ms": 20.069791,
+      "p99Ms": 75.388177
+    },
+    "gpuFrameTimesMs": [
+      18.128124,
+      19.922186,
+      19.974947,
+      17.71677,
+      20.165207,
+      18.300051,
+      18.437916,
+      17.078854,
+      75.388177,
+      73.363541,
+      19.251927,
+      18.322915,
+      18.205155,
+      18.161769,
+      16.79677,
+      19.572083,
+      19.329479,
+      17.878019,
+      20.069791,
+      19.19453,
+      16.527342,
+      17.967239,
+      17.824999,
+      18.292291,
+      18.468957,
+      16.262239,
+      19.537811,
+      18.082603,
+      16.425728,
+      18.845832,
+      17.954895,
+      16.567708,
+      18.426457,
+      16.734427,
+      16.047238,
+      18.48401,
+      18.382082,
+      18.094686,
+      16.254322,
+      16.470207,
+      16.113957,
+      17.902551,
+      17.51302,
+      17.831249,
+      17.281665,
+      18.383125,
+      17.717916,
+      17.381041,
+      19.224113,
+      18.592239,
+      16.90453,
+      18.625207,
+      16.147239,
+      17.814217,
+      18.667551,
+      18.531666,
+      17.079217,
+      18.497707,
+      16.643229,
+      18.880156,
+      16.239634,
+      17.497343,
+      18.290625,
+      15.985259,
+      18.93729
+    ],
+    "gpuTimer": {
+      "supported": true,
+      "reason": null,
+      "pendingQueries": 4,
+      "disjointSamples": 0,
+      "skippedForCapacity": 0
+    },
+    "marks": {
+      "city-cache-miss": {
+        "atMs": 492.7999999523163,
+        "details": {
+          "source": "api"
+        }
+      },
+      "terrain-ready": {
+        "atMs": 1833.5,
+        "details": {
+          "loadedTiles": 1,
+          "flatFallback": false
+        }
+      },
+      "input-ready": {
+        "atMs": 2577.5,
+        "details": {
+          "terrainTiles": 1
+        }
+      },
+      "city-data-ready": {
+        "atMs": 2580.0999999046326,
+        "details": {
+          "elements": 4524,
+          "partial": false
+        }
+      },
+      "ktx2-transfer-complete": {
+        "atMs": 2667.7000000476837,
+        "details": {
+          "bytes": 194691,
+          "count": 2
+        }
+      },
+      "ktx2-high-transfer-complete": {
+        "atMs": 2704.4000000953674,
+        "details": {
+          "bytes": 6269713,
+          "count": 5
+        }
+      },
+      "first-building": {
+        "atMs": 2814,
+        "details": {
+          "cellKey": "wtw_city6_41.890_12.492",
+          "triangles": 2702
+        }
+      },
+      "ktx2-textures-ready": {
+        "atMs": 2830.5999999046326,
+        "details": {
+          "transcodeFormats": {
+            "facade-basecolor": 36492,
+            "facade-emissive": 36492
+          },
+          "transferBytes": 194691,
+          "transferMs": 21.200000047683716,
+          "decoderBytes": 584862,
+          "mipLevels": {
+            "facade-basecolor": 11,
+            "facade-emissive": 11
+          },
+          "workerLimit": 2,
+          "estimatedGpuBytes": 1398176,
+          "estimatedTotalGpuBytes": 1398176,
+          "textureCountDelta": 2,
+          "compileAndTranscodeMs": 160.39999985694885,
+          "uploadSubmitMs": 2.0999999046325684
+        }
+      },
+      "ktx2-high-textures-ready": {
+        "atMs": 4128.099999904633,
+        "details": {
+          "transcodeFormats": {
+            "facade-near-basecolor": 36492,
+            "facade-near-normal": 36492,
+            "facade-near-roughness": 36492,
+            "facade-near-emissive": 36492
+          },
+          "transferBytes": 6269713,
+          "transferMs": 57.30000019073486,
+          "decoderBytes": 584862,
+          "mipLevels": {
+            "facade-near-basecolor": 12,
+            "facade-near-normal": 12,
+            "facade-near-roughness": 12,
+            "facade-near-emissive": 12
+          },
+          "workerLimit": 2,
+          "estimatedGpuBytes": 17889344,
+          "estimatedTotalGpuBytes": 19287520,
+          "textureCountDelta": 4,
+          "compileAndTranscodeMs": 1412.1999998092651,
+          "uploadSubmitMs": 11.100000143051147
+        }
+      },
+      "streaming-complete": {
+        "atMs": 5466.5,
+        "details": {
+          "scope": "spawn-cell",
+          "cityBuilt": true
+        }
+      }
+    },
+    "timings": [
+      {
+        "type": "timing",
+        "name": "city.indexeddb-read",
+        "durationMs": 30.200000047683716,
+        "atMs": 454.09999990463257,
+        "details": {}
+      },
+      {
+        "type": "timing",
+        "name": "city.fetch-to-headers",
+        "durationMs": 22.200000047683716,
+        "atMs": 476.59999990463257,
+        "details": {
+          "source": "api",
+          "status": 200,
+          "attempt": 1
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.json-body-and-parse",
+        "durationMs": 12.800000190734863,
+        "atMs": 489.5,
+        "details": {
+          "source": "api",
+          "attempt": 1
+        }
+      },
+      {
+        "type": "mark",
+        "name": "city-cache-miss",
+        "atMs": 492.7999999523163,
+        "details": {
+          "source": "api"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.enrichment",
+        "durationMs": 0,
+        "atMs": 492.7999999523163,
+        "details": {}
+      },
+      {
+        "type": "timing",
+        "name": "city.cell-load",
+        "durationMs": 89.59999990463257,
+        "atMs": 513.2999999523163,
+        "details": {}
+      },
+      {
+        "type": "timing",
+        "name": "city.consumer-copy",
+        "durationMs": 0,
+        "atMs": 513.5,
+        "details": {
+          "elements": 4524,
+          "readonly": true
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.initial-data-consumer",
+        "durationMs": 89.90000009536743,
+        "atMs": 513.5,
+        "details": {}
+      },
+      {
+        "type": "timing",
+        "name": "terrain.initial-load",
+        "durationMs": 1387.0999999046326,
+        "atMs": 1833.5,
+        "details": {}
+      },
+      {
+        "type": "mark",
+        "name": "terrain-ready",
+        "atMs": 1833.5,
+        "details": {
+          "loadedTiles": 1,
+          "flatFallback": false
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 605.0999999046326,
+        "atMs": 2577.2999999523163,
+        "details": {
+          "qualityTier": "high"
+        }
+      },
+      {
+        "type": "mark",
+        "name": "input-ready",
+        "atMs": 2577.5,
+        "details": {
+          "terrainTiles": 1
+        }
+      },
+      {
+        "type": "mark",
+        "name": "city-data-ready",
+        "atMs": 2580.0999999046326,
+        "details": {
+          "elements": 4524,
+          "partial": false
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.spawn-clip",
+        "durationMs": 2.200000047683716,
+        "atMs": 2584,
+        "details": {
+          "inputElements": 4524
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.worker-queue",
+        "durationMs": 0.5999999046325684,
+        "atMs": 2585,
+        "details": {
+          "elements": 2278
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.worker-input-pack",
+        "durationMs": 0.09999990463256836,
+        "atMs": 2585.0999999046326,
+        "details": {
+          "elements": 2278,
+          "terrainTiles": 1,
+          "copiedHeightBytes": 16900
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.worker-post-message",
+        "durationMs": 2.5,
+        "atMs": 2587.5999999046326,
+        "details": {
+          "elements": 2278,
+          "terrainTiles": 1
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 1.0999999046325684,
+        "atMs": 2610.7999999523163,
+        "details": {
+          "qualityTier": "high"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 1.2999999523162842,
+        "atMs": 2620.5999999046326,
+        "details": {
+          "qualityTier": "high"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "ktx2.decoder-resources",
+        "durationMs": 68.5,
+        "atMs": 2646.2999999523163,
+        "details": {
+          "bytes": 584862,
+          "workerLimit": 2
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 1,
+        "atMs": 2649.4000000953674,
+        "details": {
+          "qualityTier": "high"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 1.7000000476837158,
+        "atMs": 2664.7000000476837,
+        "details": {
+          "qualityTier": "high"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "ktx2.texture-transfer",
+        "durationMs": 21.200000047683716,
+        "atMs": 2667.5999999046326,
+        "details": {
+          "bytes": 194691,
+          "count": 2
+        }
+      },
+      {
+        "type": "mark",
+        "name": "ktx2-transfer-complete",
+        "atMs": 2667.7000000476837,
+        "details": {
+          "bytes": 194691,
+          "count": 2
+        }
+      },
+      {
+        "type": "timing",
+        "name": "ktx2.high.texture-transfer",
+        "durationMs": 57.30000019073486,
+        "atMs": 2704.4000000953674,
+        "details": {
+          "bytes": 6269713,
+          "count": 5
+        }
+      },
+      {
+        "type": "mark",
+        "name": "ktx2-high-transfer-complete",
+        "atMs": 2704.4000000953674,
+        "details": {
+          "bytes": 6269713,
+          "count": 5
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.worker-roundtrip",
+        "durationMs": 215.20000004768372,
+        "atMs": 2802.7999999523163,
+        "details": {
+          "elements": 2278,
+          "outputBufferBytes": 1679084
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.worker-compute",
+        "durationMs": 85.90000009536743,
+        "atMs": 2802.7999999523163,
+        "details": {
+          "elements": 2278
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.spawn-geometry-total",
+        "durationMs": 218.70000004768372,
+        "atMs": 2802.9000000953674,
+        "details": {
+          "elements": 2278
+        }
+      },
+      {
+        "type": "mark",
+        "name": "first-building",
+        "atMs": 2814,
+        "details": {
+          "cellKey": "wtw_city6_41.890_12.492",
+          "triangles": 2702
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.assembly-chunk",
+        "durationMs": 10.700000047683716,
+        "atMs": 2814.0999999046326,
+        "details": {
+          "cellKey": "wtw_city6_41.890_12.492",
+          "assemblyKind": "spawn",
+          "budgetMs": 8,
+          "yieldThresholdMs": 6,
+          "chunkIndex": 0,
+          "operationCount": 123,
+          "stages": [
+            "footprints",
+            "walls",
+            "roof-caps"
+          ],
+          "yielded": true,
+          "asyncWait": false,
+          "overBudget": true,
+          "failed": false
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.assembly-chunk",
+        "durationMs": 10.199999809265137,
+        "atMs": 2827.0999999046326,
+        "details": {
+          "cellKey": "wtw_city6_41.890_12.492",
+          "assemblyKind": "spawn",
+          "budgetMs": 8,
+          "yieldThresholdMs": 6,
+          "chunkIndex": 1,
+          "operationCount": 3,
+          "stages": [
+            "pitched-roofs",
+            "road-decals"
+          ],
+          "yielded": true,
+          "asyncWait": false,
+          "overBudget": true,
+          "failed": false
+        }
+      },
+      {
+        "type": "timing",
+        "name": "ktx2.worker-start-compile-transcode",
+        "durationMs": 160.39999985694885,
+        "atMs": 2828.0999999046326,
+        "details": {
+          "count": 2,
+          "workerLimit": 2,
+          "compileAndTranscodeCombined": true
+        }
+      },
+      {
+        "type": "timing",
+        "name": "ktx2.texture-upload-submit",
+        "durationMs": 2.0999999046325684,
+        "atMs": 2830.5,
+        "details": {
+          "bytes": 1398176,
+          "textureCountDelta": 2
+        }
+      },
+      {
+        "type": "mark",
+        "name": "ktx2-textures-ready",
+        "atMs": 2830.5999999046326,
+        "details": {
+          "transcodeFormats": {
+            "facade-basecolor": 36492,
+            "facade-emissive": 36492
+          },
+          "transferBytes": 194691,
+          "transferMs": 21.200000047683716,
+          "decoderBytes": 584862,
+          "mipLevels": {
+            "facade-basecolor": 11,
+            "facade-emissive": 11
+          },
+          "workerLimit": 2,
+          "estimatedGpuBytes": 1398176,
+          "estimatedTotalGpuBytes": 1398176,
+          "textureCountDelta": 2,
+          "compileAndTranscodeMs": 160.39999985694885,
+          "uploadSubmitMs": 2.0999999046325684
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.assembly-chunk",
+        "durationMs": 6.700000047683716,
+        "atMs": 2843.4000000953674,
+        "details": {
+          "cellKey": "wtw_city6_41.890_12.492",
+          "assemblyKind": "spawn",
+          "budgetMs": 8,
+          "yieldThresholdMs": 6,
+          "chunkIndex": 2,
+          "operationCount": 2,
+          "stages": [
+            "road-decals"
+          ],
+          "yielded": true,
+          "asyncWait": false,
+          "overBudget": false,
+          "failed": false
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.assembly-chunk",
+        "durationMs": 6.400000095367432,
+        "atMs": 2850.2000000476837,
+        "details": {
+          "cellKey": "wtw_city6_41.890_12.492",
+          "assemblyKind": "spawn",
+          "budgetMs": 8,
+          "yieldThresholdMs": 6,
+          "chunkIndex": 3,
+          "operationCount": 2,
+          "stages": [
+            "road-decals"
+          ],
+          "yielded": true,
+          "asyncWait": false,
+          "overBudget": false,
+          "failed": false
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.assembly-chunk",
+        "durationMs": 6.799999952316284,
+        "atMs": 2857.7999999523163,
+        "details": {
+          "cellKey": "wtw_city6_41.890_12.492",
+          "assemblyKind": "spawn",
+          "budgetMs": 8,
+          "yieldThresholdMs": 6,
+          "chunkIndex": 4,
+          "operationCount": 972,
+          "stages": [
+            "road-decals",
+            "flat-surfaces",
+            "tree-instances",
+            "road-mask",
+            "road-bounds",
+            "building-ring-bounds",
+            "road-path-bounds",
+            "crossing-road-match"
+          ],
+          "yielded": true,
+          "asyncWait": false,
+          "overBudget": false,
+          "failed": false
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.assembly-chunk",
+        "durationMs": 6.199999809265137,
+        "atMs": 2864.2000000476837,
+        "details": {
+          "cellKey": "wtw_city6_41.890_12.492",
+          "assemblyKind": "spawn",
+          "budgetMs": 8,
+          "yieldThresholdMs": 6,
+          "chunkIndex": 5,
+          "operationCount": 6,
+          "stages": [
+            "crossing-road-match"
+          ],
+          "yielded": true,
+          "asyncWait": false,
+          "overBudget": false,
+          "failed": false
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.assembly-chunk",
+        "durationMs": 6.200000047683716,
+        "atMs": 2871.5,
+        "details": {
+          "cellKey": "wtw_city6_41.890_12.492",
+          "assemblyKind": "spawn",
+          "budgetMs": 8,
+          "yieldThresholdMs": 6,
+          "chunkIndex": 6,
+          "operationCount": 7,
+          "stages": [
+            "crossing-road-match"
+          ],
+          "yielded": true,
+          "asyncWait": false,
+          "overBudget": false,
+          "failed": false
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.assembly-chunk",
+        "durationMs": 6.099999904632568,
+        "atMs": 2881.7999999523163,
+        "details": {
+          "cellKey": "wtw_city6_41.890_12.492",
+          "assemblyKind": "spawn",
+          "budgetMs": 8,
+          "yieldThresholdMs": 6,
+          "chunkIndex": 7,
+          "operationCount": 17,
+          "stages": [
+            "crossing-road-match"
+          ],
+          "yielded": true,
+          "asyncWait": false,
+          "overBudget": false,
+          "failed": false
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 1028.0999999046326,
+        "atMs": 3926.0999999046326,
+        "details": {
+          "qualityTier": "high"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.assembly-chunk",
+        "durationMs": 6.099999904632568,
+        "atMs": 3941.7000000476837,
+        "details": {
+          "cellKey": "wtw_city6_41.890_12.492",
+          "assemblyKind": "spawn",
+          "budgetMs": 8,
+          "yieldThresholdMs": 6,
+          "chunkIndex": 8,
+          "operationCount": 19,
+          "stages": [
+            "crossing-road-match"
+          ],
+          "yielded": true,
+          "asyncWait": false,
+          "overBudget": false,
+          "failed": false
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 3.0999999046325684,
+        "atMs": 3947.5999999046326,
+        "details": {
+          "qualityTier": "high"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 7.299999952316284,
+        "atMs": 4006.2999999523163,
+        "details": {
+          "qualityTier": "high"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.assembly-chunk",
+        "durationMs": 6.299999952316284,
+        "atMs": 4014.0999999046326,
+        "details": {
+          "cellKey": "wtw_city6_41.890_12.492",
+          "assemblyKind": "spawn",
+          "budgetMs": 8,
+          "yieldThresholdMs": 6,
+          "chunkIndex": 9,
+          "operationCount": 16,
+          "stages": [
+            "crossing-road-match"
+          ],
+          "yielded": true,
+          "asyncWait": false,
+          "overBudget": false,
+          "failed": false
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 3.1000001430511475,
+        "atMs": 4048.2999999523163,
+        "details": {
+          "qualityTier": "high"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.assembly-chunk",
+        "durationMs": 6.1000001430511475,
+        "atMs": 4055,
+        "details": {
+          "cellKey": "wtw_city6_41.890_12.492",
+          "assemblyKind": "spawn",
+          "budgetMs": 8,
+          "yieldThresholdMs": 6,
+          "chunkIndex": 10,
+          "operationCount": 22,
+          "stages": [
+            "crossing-road-match"
+          ],
+          "yielded": true,
+          "asyncWait": false,
+          "overBudget": false,
+          "failed": false
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.assembly-chunk",
+        "durationMs": 6.200000047683716,
+        "atMs": 4092.7999999523163,
+        "details": {
+          "cellKey": "wtw_city6_41.890_12.492",
+          "assemblyKind": "spawn",
+          "budgetMs": 8,
+          "yieldThresholdMs": 6,
+          "chunkIndex": 11,
+          "operationCount": 14,
+          "stages": [
+            "crossing-road-match"
+          ],
+          "yielded": true,
+          "asyncWait": false,
+          "overBudget": false,
+          "failed": false
+        }
+      },
+      {
+        "type": "timing",
+        "name": "ktx2.high.worker-start-compile-transcode",
+        "durationMs": 1412.1999998092651,
+        "atMs": 4116.599999904633,
+        "details": {
+          "count": 4,
+          "workerLimit": 2,
+          "compileAndTranscodeCombined": true
+        }
+      },
+      {
+        "type": "timing",
+        "name": "ktx2.high.texture-upload-submit",
+        "durationMs": 11.100000143051147,
+        "atMs": 4128,
+        "details": {
+          "bytes": 17889344,
+          "textureCountDelta": 4
+        }
+      },
+      {
+        "type": "mark",
+        "name": "ktx2-high-textures-ready",
+        "atMs": 4128.099999904633,
+        "details": {
+          "transcodeFormats": {
+            "facade-near-basecolor": 36492,
+            "facade-near-normal": 36492,
+            "facade-near-roughness": 36492,
+            "facade-near-emissive": 36492
+          },
+          "transferBytes": 6269713,
+          "transferMs": 57.30000019073486,
+          "decoderBytes": 584862,
+          "mipLevels": {
+            "facade-near-basecolor": 12,
+            "facade-near-normal": 12,
+            "facade-near-roughness": 12,
+            "facade-near-emissive": 12
+          },
+          "workerLimit": 2,
+          "estimatedGpuBytes": 17889344,
+          "estimatedTotalGpuBytes": 19287520,
+          "textureCountDelta": 4,
+          "compileAndTranscodeMs": 1412.1999998092651,
+          "uploadSubmitMs": 11.100000143051147
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.assembly-chunk",
+        "durationMs": 6.200000047683716,
+        "atMs": 4134.5,
+        "details": {
+          "cellKey": "wtw_city6_41.890_12.492",
+          "assemblyKind": "spawn",
+          "budgetMs": 8,
+          "yieldThresholdMs": 6,
+          "chunkIndex": 12,
+          "operationCount": 2,
+          "stages": [
+            "crossing-road-match"
+          ],
+          "yielded": true,
+          "asyncWait": false,
+          "overBudget": false,
+          "failed": false
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.assembly-chunk",
+        "durationMs": 6,
+        "atMs": 4145,
+        "details": {
+          "cellKey": "wtw_city6_41.890_12.492",
+          "assemblyKind": "spawn",
+          "budgetMs": 8,
+          "yieldThresholdMs": 6,
+          "chunkIndex": 13,
+          "operationCount": 12,
+          "stages": [
+            "crossing-road-match"
+          ],
+          "yielded": true,
+          "asyncWait": false,
+          "overBudget": false,
+          "failed": false
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.assembly-chunk",
+        "durationMs": 6.099999904632568,
+        "atMs": 4156.099999904633,
+        "details": {
+          "cellKey": "wtw_city6_41.890_12.492",
+          "assemblyKind": "spawn",
+          "budgetMs": 8,
+          "yieldThresholdMs": 6,
+          "chunkIndex": 14,
+          "operationCount": 15,
+          "stages": [
+            "crossing-road-match"
+          ],
+          "yielded": true,
+          "asyncWait": false,
+          "overBudget": false,
+          "failed": false
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.assembly-chunk",
+        "durationMs": 6.299999952316284,
+        "atMs": 4168.299999952316,
+        "details": {
+          "cellKey": "wtw_city6_41.890_12.492",
+          "assemblyKind": "spawn",
+          "budgetMs": 8,
+          "yieldThresholdMs": 6,
+          "chunkIndex": 15,
+          "operationCount": 12,
+          "stages": [
+            "crossing-road-match"
+          ],
+          "yielded": true,
+          "asyncWait": false,
+          "overBudget": false,
+          "failed": false
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 2.8000001907348633,
+        "atMs": 4171.400000095367,
+        "details": {
+          "qualityTier": "high"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 2.200000047683716,
+        "atMs": 4174.200000047684,
+        "details": {
+          "qualityTier": "high"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.road-canvas-paint",
+        "durationMs": 4.1000001430511475,
+        "atMs": 4180.400000095367,
+        "details": {
+          "tiles": 9,
+          "roads": 729,
+          "buildings": 121,
+          "crossings": 145,
+          "budgetYields": 0
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.assembly-chunk",
+        "durationMs": 6,
+        "atMs": 4181,
+        "details": {
+          "cellKey": "wtw_city6_41.890_12.492",
+          "assemblyKind": "spawn",
+          "budgetMs": 8,
+          "yieldThresholdMs": 6,
+          "chunkIndex": 16,
+          "operationCount": 257,
+          "stages": [
+            "crossing-road-match",
+            "road-canvas-tile",
+            "road-contact-shadows",
+            "road-asphalt-underpaint",
+            "road-stroke-path",
+            "road-crossing-paint",
+            "rails",
+            "rail-paths",
+            "rail-points",
+            "rail-mesh"
+          ],
+          "yielded": true,
+          "asyncWait": false,
+          "overBudget": false,
+          "failed": false
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 2,
+        "atMs": 4185.099999904633,
+        "details": {
+          "qualityTier": "high"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.assembly-chunk",
+        "durationMs": 6.400000095367432,
+        "atMs": 4192.099999904633,
+        "details": {
+          "cellKey": "wtw_city6_41.890_12.492",
+          "assemblyKind": "spawn",
+          "budgetMs": 8,
+          "yieldThresholdMs": 6,
+          "chunkIndex": 17,
+          "operationCount": 51,
+          "stages": [
+            "rail-mesh",
+            "rail-paths",
+            "rail-points",
+            "waterways",
+            "bridges",
+            "bridge-paths",
+            "bridge-pillars",
+            "stations",
+            "station-platform",
+            "station-roof",
+            "station-posts",
+            "station-label",
+            "station-label-measure",
+            "station-label-texture",
+            "station-sign"
+          ],
+          "yielded": true,
+          "asyncWait": false,
+          "overBudget": false,
+          "failed": false
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 730.7000000476837,
+        "atMs": 4928.700000047684,
+        "details": {
+          "qualityTier": "high"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.assembly-chunk",
+        "durationMs": 6.299999952316284,
+        "atMs": 4935.5,
+        "details": {
+          "cellKey": "wtw_city6_41.890_12.492",
+          "assemblyKind": "spawn",
+          "budgetMs": 8,
+          "yieldThresholdMs": 6,
+          "chunkIndex": 18,
+          "operationCount": 17,
+          "stages": [
+            "overture",
+            "props"
+          ],
+          "yielded": true,
+          "asyncWait": false,
+          "overBudget": false,
+          "failed": false
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 47.5,
+        "atMs": 4983.5,
+        "details": {
+          "qualityTier": "high"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 1.2000000476837158,
+        "atMs": 4985.200000047684,
+        "details": {
+          "qualityTier": "high"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.assembly-chunk",
+        "durationMs": 6,
+        "atMs": 4991.700000047684,
+        "details": {
+          "cellKey": "wtw_city6_41.890_12.492",
+          "assemblyKind": "spawn",
+          "budgetMs": 8,
+          "yieldThresholdMs": 6,
+          "chunkIndex": 19,
+          "operationCount": 16,
+          "stages": [
+            "props"
+          ],
+          "yielded": true,
+          "asyncWait": false,
+          "overBudget": false,
+          "failed": false
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 1.8000001907348633,
+        "atMs": 4994,
+        "details": {
+          "qualityTier": "high"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 1.5,
+        "atMs": 4996,
+        "details": {
+          "qualityTier": "high"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.assembly-chunk",
+        "durationMs": 6.200000047683716,
+        "atMs": 5002.5,
+        "details": {
+          "cellKey": "wtw_city6_41.890_12.492",
+          "assemblyKind": "spawn",
+          "budgetMs": 8,
+          "yieldThresholdMs": 6,
+          "chunkIndex": 20,
+          "operationCount": 34,
+          "stages": [
+            "props"
+          ],
+          "yielded": true,
+          "asyncWait": false,
+          "overBudget": false,
+          "failed": false
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.assembly-chunk",
+        "durationMs": 6,
+        "atMs": 5013.200000047684,
+        "details": {
+          "cellKey": "wtw_city6_41.890_12.492",
+          "assemblyKind": "spawn",
+          "budgetMs": 8,
+          "yieldThresholdMs": 6,
+          "chunkIndex": 21,
+          "operationCount": 92,
+          "stages": [
+            "props",
+            "prop-merge",
+            "lamp-pools",
+            "barriers",
+            "barrier-ways"
+          ],
+          "yielded": true,
+          "asyncWait": false,
+          "overBudget": false,
+          "failed": false
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 143.70000004768372,
+        "atMs": 5159.200000047684,
+        "details": {
+          "qualityTier": "high"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.assembly-chunk",
+        "durationMs": 6,
+        "atMs": 5165.900000095367,
+        "details": {
+          "cellKey": "wtw_city6_41.890_12.492",
+          "assemblyKind": "spawn",
+          "budgetMs": 8,
+          "yieldThresholdMs": 6,
+          "chunkIndex": 22,
+          "operationCount": 186,
+          "stages": [
+            "barrier-ways",
+            "barrier-points",
+            "power-lines",
+            "spawn-road-candidates",
+            "spawn-view-rays"
+          ],
+          "yielded": true,
+          "asyncWait": false,
+          "overBudget": false,
+          "failed": false
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 246.90000009536743,
+        "atMs": 5412.900000095367,
+        "details": {
+          "qualityTier": "high"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 2,
+        "atMs": 5415.5,
+        "details": {
+          "qualityTier": "high"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.assembly-chunk",
+        "durationMs": 6,
+        "atMs": 5422,
+        "details": {
+          "cellKey": "wtw_city6_41.890_12.492",
+          "assemblyKind": "spawn",
+          "budgetMs": 8,
+          "yieldThresholdMs": 6,
+          "chunkIndex": 23,
+          "operationCount": 361,
+          "stages": [
+            "spawn-view-rays"
+          ],
+          "yielded": true,
+          "asyncWait": false,
+          "overBudget": false,
+          "failed": false
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 2.5,
+        "atMs": 5425.299999952316,
+        "details": {
+          "qualityTier": "high"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 1.8999998569488525,
+        "atMs": 5427.799999952316,
+        "details": {
+          "qualityTier": "high"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.assembly-chunk",
+        "durationMs": 6,
+        "atMs": 5434.099999904633,
+        "details": {
+          "cellKey": "wtw_city6_41.890_12.492",
+          "assemblyKind": "spawn",
+          "budgetMs": 8,
+          "yieldThresholdMs": 6,
+          "chunkIndex": 24,
+          "operationCount": 325,
+          "stages": [
+            "spawn-view-rays"
+          ],
+          "yielded": true,
+          "asyncWait": false,
+          "overBudget": false,
+          "failed": false
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.assembly-chunk",
+        "durationMs": 6,
+        "atMs": 5444.299999952316,
+        "details": {
+          "cellKey": "wtw_city6_41.890_12.492",
+          "assemblyKind": "spawn",
+          "budgetMs": 8,
+          "yieldThresholdMs": 6,
+          "chunkIndex": 25,
+          "operationCount": 297,
+          "stages": [
+            "spawn-view-rays"
+          ],
+          "yielded": true,
+          "asyncWait": false,
+          "overBudget": false,
+          "failed": false
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 2.299999952316284,
+        "atMs": 5446.799999952316,
+        "details": {
+          "qualityTier": "high"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.assembly-chunk",
+        "durationMs": 6,
+        "atMs": 5454.400000095367,
+        "details": {
+          "cellKey": "wtw_city6_41.890_12.492",
+          "assemblyKind": "spawn",
+          "budgetMs": 8,
+          "yieldThresholdMs": 6,
+          "chunkIndex": 26,
+          "operationCount": 308,
+          "stages": [
+            "spawn-view-rays"
+          ],
+          "yielded": true,
+          "asyncWait": false,
+          "overBudget": false,
+          "failed": false
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 2.5999999046325684,
+        "atMs": 5457.299999952316,
+        "details": {
+          "qualityTier": "high"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 2.799999952316284,
+        "atMs": 5462.299999952316,
+        "details": {
+          "qualityTier": "high"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.assembly-chunk",
+        "durationMs": 3.8000001907348633,
+        "atMs": 5466.400000095367,
+        "details": {
+          "cellKey": "wtw_city6_41.890_12.492",
+          "assemblyKind": "spawn",
+          "budgetMs": 8,
+          "yieldThresholdMs": 6,
+          "chunkIndex": 27,
+          "operationCount": 195,
+          "stages": [
+            "spawn-view-rays"
+          ],
+          "yielded": false,
+          "asyncWait": false,
+          "overBudget": false,
+          "failed": false
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.spawn-assembly-total",
+        "durationMs": 2663.5,
+        "atMs": 5466.400000095367,
+        "details": {
+          "elements": 2278
+        }
+      },
+      {
+        "type": "mark",
+        "name": "streaming-complete",
+        "atMs": 5466.5,
+        "details": {
+          "scope": "spawn-cell",
+          "cityBuilt": true
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.indexeddb-read",
+        "durationMs": 17.40000009536743,
+        "atMs": 5487.700000047684,
+        "details": {}
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 2094.100000143051,
+        "atMs": 7582.400000095367,
+        "details": {
+          "qualityTier": "high"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.indexeddb-read",
+        "durationMs": 2115.7000000476837,
+        "atMs": 7586,
+        "details": {}
+      },
+      {
+        "type": "timing",
+        "name": "city.fetch-to-headers",
+        "durationMs": 2099.399999856949,
+        "atMs": 7587.099999904633,
+        "details": {
+          "source": "api",
+          "status": 200,
+          "attempt": 1
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 1.4000000953674316,
+        "atMs": 7589.200000047684,
+        "details": {
+          "qualityTier": "high"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 1.7000000476837158,
+        "atMs": 7607.200000047684,
+        "details": {
+          "qualityTier": "high"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.json-body-and-parse",
+        "durationMs": 20.5,
+        "atMs": 7607.599999904633,
+        "details": {
+          "source": "api",
+          "attempt": 1
+        }
+      },
+      {
+        "type": "mark",
+        "name": "city-cache-miss",
+        "atMs": 7609.799999952316,
+        "details": {
+          "source": "api"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.enrichment",
+        "durationMs": 0,
+        "atMs": 7609.799999952316,
+        "details": {}
+      },
+      {
+        "type": "timing",
+        "name": "city.cell-load",
+        "durationMs": 2157.7000000476837,
+        "atMs": 7628,
+        "details": {}
+      },
+      {
+        "type": "timing",
+        "name": "city.consumer-copy",
+        "durationMs": 0,
+        "atMs": 7628,
+        "details": {
+          "elements": 4524,
+          "readonly": true
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.neighbor-clip",
+        "durationMs": 0.9000000953674316,
+        "atMs": 7629,
+        "details": {
+          "inputElements": 4524
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.worker-queue",
+        "durationMs": 0,
+        "atMs": 7631.900000095367,
+        "details": {
+          "elements": 1428
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.worker-input-pack",
+        "durationMs": 0.2999999523162842,
+        "atMs": 7632.200000047684,
+        "details": {
+          "elements": 1428,
+          "terrainTiles": 9,
+          "copiedHeightBytes": 152100
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.worker-post-message",
+        "durationMs": 1.5,
+        "atMs": 7633.700000047684,
+        "details": {
+          "elements": 1428,
+          "terrainTiles": 9
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 1.7000000476837158,
+        "atMs": 7637.799999952316,
+        "details": {
+          "qualityTier": "high"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.fetch-to-headers",
+        "durationMs": 52.40000009536743,
+        "atMs": 7638.599999904633,
+        "details": {
+          "source": "api",
+          "status": 200,
+          "attempt": 1
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 1.8999998569488525,
+        "atMs": 7653.599999904633,
+        "details": {
+          "qualityTier": "high"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.worker-roundtrip",
+        "durationMs": 20.700000047683716,
+        "atMs": 7654.400000095367,
+        "details": {
+          "elements": 1428,
+          "outputBufferBytes": 348080
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.worker-compute",
+        "durationMs": 10.699999809265137,
+        "atMs": 7654.400000095367,
+        "details": {
+          "elements": 1428
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.neighbor-geometry-total",
+        "durationMs": 22.600000143051147,
+        "atMs": 7654.400000095367,
+        "details": {
+          "elements": 1428
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.road-canvas-paint",
+        "durationMs": 0.20000004768371582,
+        "atMs": 7656.299999952316,
+        "details": {
+          "tiles": 9,
+          "roads": 0,
+          "buildings": 75,
+          "crossings": 0,
+          "budgetYields": 0
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.assembly-chunk",
+        "durationMs": 6.900000095367432,
+        "atMs": 7661.5,
+        "details": {
+          "cellKey": "wtw_city6_41.896_12.492",
+          "assemblyKind": "neighbor",
+          "budgetMs": 8,
+          "yieldThresholdMs": 6,
+          "chunkIndex": 0,
+          "operationCount": 212,
+          "stages": [
+            "footprints",
+            "walls",
+            "roof-caps",
+            "flat-surfaces",
+            "tree-instances",
+            "road-mask",
+            "road-bounds",
+            "building-ring-bounds",
+            "road-canvas-tile",
+            "road-contact-shadows",
+            "rails",
+            "waterways",
+            "bridges",
+            "stations",
+            "overture",
+            "props"
+          ],
+          "yielded": true,
+          "asyncWait": false,
+          "overBudget": false,
+          "failed": false
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.json-body-and-parse",
+        "durationMs": 23,
+        "atMs": 7661.599999904633,
+        "details": {
+          "source": "api",
+          "attempt": 1
+        }
+      },
+      {
+        "type": "mark",
+        "name": "city-cache-miss",
+        "atMs": 7664.299999952316,
+        "details": {
+          "source": "api"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.enrichment",
+        "durationMs": 0,
+        "atMs": 7664.299999952316,
+        "details": {}
+      },
+      {
+        "type": "timing",
+        "name": "city.cell-load",
+        "durationMs": 2210.9000000953674,
+        "atMs": 7681.200000047684,
+        "details": {}
+      },
+      {
+        "type": "timing",
+        "name": "city.consumer-copy",
+        "durationMs": 0.09999990463256836,
+        "atMs": 7681.299999952316,
+        "details": {
+          "elements": 4524,
+          "readonly": true
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.neighbor-clip",
+        "durationMs": 0.6000001430511475,
+        "atMs": 7681.900000095367,
+        "details": {
+          "inputElements": 4524
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.worker-queue",
+        "durationMs": 0,
+        "atMs": 7682.799999952316,
+        "details": {
+          "elements": 101
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.worker-input-pack",
+        "durationMs": 0.10000014305114746,
+        "atMs": 7682.900000095367,
+        "details": {
+          "elements": 101,
+          "terrainTiles": 9,
+          "copiedHeightBytes": 152100
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.worker-post-message",
+        "durationMs": 0.19999980926513672,
+        "atMs": 7683.099999904633,
+        "details": {
+          "elements": 101,
+          "terrainTiles": 9
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 2.5,
+        "atMs": 7686.099999904633,
+        "details": {
+          "qualityTier": "high"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.assembly-chunk",
+        "durationMs": 1.2999999523162842,
+        "atMs": 7688.299999952316,
+        "details": {
+          "cellKey": "wtw_city6_41.896_12.492",
+          "assemblyKind": "neighbor",
+          "budgetMs": 8,
+          "yieldThresholdMs": 6,
+          "chunkIndex": 1,
+          "operationCount": 18,
+          "stages": [
+            "props",
+            "prop-merge",
+            "barriers",
+            "barrier-ways",
+            "power-lines"
+          ],
+          "yielded": false,
+          "asyncWait": false,
+          "overBudget": false,
+          "failed": false
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.neighbor-assembly-total",
+        "durationMs": 33.799999952316284,
+        "atMs": 7688.299999952316,
+        "details": {
+          "elements": 1428
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.worker-roundtrip",
+        "durationMs": 9.200000047683716,
+        "atMs": 7692.299999952316,
+        "details": {
+          "elements": 101,
+          "outputBufferBytes": 71430
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.worker-compute",
+        "durationMs": 6.700000047683716,
+        "atMs": 7692.299999952316,
+        "details": {
+          "elements": 101
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.neighbor-geometry-total",
+        "durationMs": 9.5,
+        "atMs": 7692.299999952316,
+        "details": {
+          "elements": 101
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.road-canvas-paint",
+        "durationMs": 0,
+        "atMs": 7693.400000095367,
+        "details": {
+          "tiles": 9,
+          "roads": 0,
+          "buildings": 7,
+          "crossings": 0,
+          "budgetYields": 0
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.assembly-chunk",
+        "durationMs": 4.3999998569488525,
+        "atMs": 7696.900000095367,
+        "details": {
+          "cellKey": "wtw_city6_41.885_12.492",
+          "assemblyKind": "neighbor",
+          "budgetMs": 8,
+          "yieldThresholdMs": 6,
+          "chunkIndex": 0,
+          "operationCount": 148,
+          "stages": [
+            "footprints",
+            "walls",
+            "roof-caps",
+            "flat-surfaces",
+            "tree-instances",
+            "road-mask",
+            "road-bounds",
+            "building-ring-bounds",
+            "road-canvas-tile",
+            "rails",
+            "waterways",
+            "bridges",
+            "stations",
+            "overture",
+            "props",
+            "prop-merge",
+            "barriers",
+            "barrier-ways",
+            "power-lines"
+          ],
+          "yielded": false,
+          "asyncWait": false,
+          "overBudget": false,
+          "failed": false
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.neighbor-assembly-total",
+        "durationMs": 4.6000001430511475,
+        "atMs": 7696.900000095367,
+        "details": {
+          "elements": 101
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.indexeddb-read",
+        "durationMs": 8.099999904632568,
+        "atMs": 7698,
+        "details": {}
+      },
+      {
+        "type": "timing",
+        "name": "city.indexeddb-read",
+        "durationMs": 1.0999999046325684,
+        "atMs": 7698.299999952316,
+        "details": {}
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 2.6000001430511475,
+        "atMs": 7704.700000047684,
+        "details": {
+          "qualityTier": "high"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.fetch-to-headers",
+        "durationMs": 30.90000009536743,
+        "atMs": 7728.900000095367,
+        "details": {
+          "source": "api",
+          "status": 200,
+          "attempt": 1
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.json-body-and-parse",
+        "durationMs": 10.799999952316284,
+        "atMs": 7739.799999952316,
+        "details": {
+          "source": "api",
+          "attempt": 1
+        }
+      },
+      {
+        "type": "mark",
+        "name": "city-cache-miss",
+        "atMs": 7740.700000047684,
+        "details": {
+          "source": "api"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.enrichment",
+        "durationMs": 0,
+        "atMs": 7740.700000047684,
+        "details": {}
+      },
+      {
+        "type": "timing",
+        "name": "city.cell-load",
+        "durationMs": 67.79999995231628,
+        "atMs": 7757.700000047684,
+        "details": {}
+      },
+      {
+        "type": "timing",
+        "name": "city.consumer-copy",
+        "durationMs": 0,
+        "atMs": 7757.700000047684,
+        "details": {
+          "elements": 4524,
+          "readonly": true
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.neighbor-clip",
+        "durationMs": 0.5,
+        "atMs": 7758.200000047684,
+        "details": {
+          "inputElements": 4524
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.worker-queue",
+        "durationMs": 0,
+        "atMs": 7759.099999904633,
+        "details": {
+          "elements": 299
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.worker-input-pack",
+        "durationMs": 0,
+        "atMs": 7759.200000047684,
+        "details": {
+          "elements": 299,
+          "terrainTiles": 9,
+          "copiedHeightBytes": 152100
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.worker-post-message",
+        "durationMs": 0.39999985694885254,
+        "atMs": 7759.599999904633,
+        "details": {
+          "elements": 299,
+          "terrainTiles": 9
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.fetch-to-headers",
+        "durationMs": 61.40000009536743,
+        "atMs": 7759.700000047684,
+        "details": {
+          "source": "api",
+          "status": 200,
+          "attempt": 1
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 1.4000000953674316,
+        "atMs": 7774.400000095367,
+        "details": {
+          "qualityTier": "high"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.json-body-and-parse",
+        "durationMs": 15.299999952316284,
+        "atMs": 7775,
+        "details": {
+          "source": "api",
+          "attempt": 1
+        }
+      },
+      {
+        "type": "mark",
+        "name": "city-cache-miss",
+        "atMs": 7776.599999904633,
+        "details": {
+          "source": "api"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.enrichment",
+        "durationMs": 0,
+        "atMs": 7776.599999904633,
+        "details": {}
+      },
+      {
+        "type": "timing",
+        "name": "city.cell-load",
+        "durationMs": 94.29999995231628,
+        "atMs": 7791.5,
+        "details": {}
+      },
+      {
+        "type": "timing",
+        "name": "city.consumer-copy",
+        "durationMs": 0,
+        "atMs": 7791.5,
+        "details": {
+          "elements": 4524,
+          "readonly": true
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.neighbor-clip",
+        "durationMs": 0.7000000476837158,
+        "atMs": 7792.200000047684,
+        "details": {
+          "inputElements": 4524
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.worker-queue",
+        "durationMs": 0.20000004768371582,
+        "atMs": 7793.700000047684,
+        "details": {
+          "elements": 81
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.worker-input-pack",
+        "durationMs": 0.09999990463256836,
+        "atMs": 7793.799999952316,
+        "details": {
+          "elements": 81,
+          "terrainTiles": 9,
+          "copiedHeightBytes": 152100
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.worker-post-message",
+        "durationMs": 0.10000014305114746,
+        "atMs": 7793.900000095367,
+        "details": {
+          "elements": 81,
+          "terrainTiles": 9
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.worker-roundtrip",
+        "durationMs": 34.700000047683716,
+        "atMs": 7794.299999952316,
+        "details": {
+          "elements": 299,
+          "outputBufferBytes": 217482
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.worker-compute",
+        "durationMs": 8.700000047683716,
+        "atMs": 7794.299999952316,
+        "details": {
+          "elements": 299
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.neighbor-geometry-total",
+        "durationMs": 35.200000047683716,
+        "atMs": 7794.299999952316,
+        "details": {
+          "elements": 299
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.road-canvas-paint",
+        "durationMs": 0.19999980926513672,
+        "atMs": 7795.599999904633,
+        "details": {
+          "tiles": 9,
+          "roads": 0,
+          "buildings": 48,
+          "crossings": 0,
+          "budgetYields": 0
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.assembly-chunk",
+        "durationMs": 6.8999998569488525,
+        "atMs": 7801.400000095367,
+        "details": {
+          "cellKey": "wtw_city6_41.890_12.487",
+          "assemblyKind": "neighbor",
+          "budgetMs": 8,
+          "yieldThresholdMs": 6,
+          "chunkIndex": 0,
+          "operationCount": 264,
+          "stages": [
+            "footprints",
+            "walls",
+            "roof-caps",
+            "flat-surfaces",
+            "tree-instances",
+            "road-mask",
+            "road-bounds",
+            "building-ring-bounds",
+            "road-canvas-tile",
+            "rails",
+            "waterways",
+            "bridges",
+            "stations",
+            "overture",
+            "props",
+            "prop-merge",
+            "barriers",
+            "barrier-ways"
+          ],
+          "yielded": true,
+          "asyncWait": false,
+          "overBudget": false,
+          "failed": false
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 308.09999990463257,
+        "atMs": 8109.799999952316,
+        "details": {
+          "qualityTier": "high"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.assembly-chunk",
+        "durationMs": 0.5,
+        "atMs": 8111.700000047684,
+        "details": {
+          "cellKey": "wtw_city6_41.890_12.487",
+          "assemblyKind": "neighbor",
+          "budgetMs": 8,
+          "yieldThresholdMs": 6,
+          "chunkIndex": 1,
+          "operationCount": 40,
+          "stages": [
+            "barrier-ways",
+            "power-lines"
+          ],
+          "yielded": false,
+          "asyncWait": false,
+          "overBudget": false,
+          "failed": false
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.neighbor-assembly-total",
+        "durationMs": 317.2999999523163,
+        "atMs": 8111.700000047684,
+        "details": {
+          "elements": 299
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 2.799999952316284,
+        "atMs": 8115.599999904633,
+        "details": {
+          "qualityTier": "high"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 5,
+        "atMs": 8124,
+        "details": {
+          "qualityTier": "high"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 7.099999904632568,
+        "atMs": 8135.299999952316,
+        "details": {
+          "qualityTier": "high"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 3.5999999046325684,
+        "atMs": 8140.099999904633,
+        "details": {
+          "qualityTier": "high"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.indexeddb-read",
+        "durationMs": 31,
+        "atMs": 8143,
+        "details": {}
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 2.200000047683716,
+        "atMs": 8161.700000047684,
+        "details": {
+          "qualityTier": "high"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.fetch-to-headers",
+        "durationMs": 22.799999952316284,
+        "atMs": 8165.799999952316,
+        "details": {
+          "source": "api",
+          "status": 200,
+          "attempt": 1
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 2.3999998569488525,
+        "atMs": 8181.200000047684,
+        "details": {
+          "qualityTier": "high"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.json-body-and-parse",
+        "durationMs": 15.900000095367432,
+        "atMs": 8181.700000047684,
+        "details": {
+          "source": "api",
+          "attempt": 1
+        }
+      },
+      {
+        "type": "mark",
+        "name": "city-cache-miss",
+        "atMs": 8182.5,
+        "details": {
+          "source": "api"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.enrichment",
+        "durationMs": 0,
+        "atMs": 8182.5,
+        "details": {}
+      },
+      {
+        "type": "timing",
+        "name": "city.cell-load",
+        "durationMs": 87.5,
+        "atMs": 8199.5,
+        "details": {}
+      },
+      {
+        "type": "timing",
+        "name": "city.consumer-copy",
+        "durationMs": 0,
+        "atMs": 8199.5,
+        "details": {
+          "elements": 4524,
+          "readonly": true
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.neighbor-clip",
+        "durationMs": 0.9000000953674316,
+        "atMs": 8200.400000095367,
+        "details": {
+          "inputElements": 4524
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 2.700000047683716,
+        "atMs": 8206.200000047684,
+        "details": {
+          "qualityTier": "high"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.indexeddb-read",
+        "durationMs": 7,
+        "atMs": 8209.099999904633,
+        "details": {}
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 2.5,
+        "atMs": 8219.5,
+        "details": {
+          "qualityTier": "high"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.worker-roundtrip",
+        "durationMs": 426.7999999523163,
+        "atMs": 8220.700000047684,
+        "details": {
+          "elements": 81,
+          "outputBufferBytes": 48344
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.worker-compute",
+        "durationMs": 14.899999856948853,
+        "atMs": 8220.700000047684,
+        "details": {
+          "elements": 81
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.neighbor-geometry-total",
+        "durationMs": 427.2999999523163,
+        "atMs": 8220.799999952316,
+        "details": {
+          "elements": 81
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.road-canvas-paint",
+        "durationMs": 0.09999990463256836,
+        "atMs": 8222,
+        "details": {
+          "tiles": 9,
+          "roads": 0,
+          "buildings": 12,
+          "crossings": 0,
+          "budgetYields": 0
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.assembly-chunk",
+        "durationMs": 2.5999999046325684,
+        "atMs": 8223.599999904633,
+        "details": {
+          "cellKey": "wtw_city6_41.896_12.487",
+          "assemblyKind": "neighbor",
+          "budgetMs": 8,
+          "yieldThresholdMs": 6,
+          "chunkIndex": 0,
+          "operationCount": 54,
+          "stages": [
+            "footprints",
+            "walls",
+            "roof-caps",
+            "tree-instances",
+            "road-mask",
+            "road-bounds",
+            "building-ring-bounds",
+            "road-canvas-tile",
+            "rails",
+            "waterways",
+            "bridges",
+            "stations",
+            "overture",
+            "props",
+            "prop-merge",
+            "barriers",
+            "barrier-ways",
+            "power-lines"
+          ],
+          "yielded": false,
+          "asyncWait": false,
+          "overBudget": false,
+          "failed": false
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.neighbor-assembly-total",
+        "durationMs": 2.5999999046325684,
+        "atMs": 8223.599999904633,
+        "details": {
+          "elements": 81
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.indexeddb-read",
+        "durationMs": 0.6000001430511475,
+        "atMs": 8224.400000095367,
+        "details": {}
+      },
+      {
+        "type": "timing",
+        "name": "city.fetch-to-headers",
+        "durationMs": 26.100000143051147,
+        "atMs": 8235.200000047684,
+        "details": {
+          "source": "api",
+          "status": 200,
+          "attempt": 1
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.json-body-and-parse",
+        "durationMs": 11.799999952316284,
+        "atMs": 8247,
+        "details": {
+          "source": "api",
+          "attempt": 1
+        }
+      },
+      {
+        "type": "mark",
+        "name": "city-cache-miss",
+        "atMs": 8248.400000095367,
+        "details": {
+          "source": "api"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.enrichment",
+        "durationMs": 0,
+        "atMs": 8248.400000095367,
+        "details": {}
+      },
+      {
+        "type": "timing",
+        "name": "city.cell-load",
+        "durationMs": 63.10000014305115,
+        "atMs": 8265.200000047684,
+        "details": {}
+      },
+      {
+        "type": "timing",
+        "name": "city.consumer-copy",
+        "durationMs": 0,
+        "atMs": 8265.200000047684,
+        "details": {
+          "elements": 4524,
+          "readonly": true
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.neighbor-clip",
+        "durationMs": 0.7000000476837158,
+        "atMs": 8265.900000095367,
+        "details": {
+          "inputElements": 4524
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.worker-queue",
+        "durationMs": 0,
+        "atMs": 8266.700000047684,
+        "details": {
+          "elements": 17
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.worker-input-pack",
+        "durationMs": 0.09999990463256836,
+        "atMs": 8266.799999952316,
+        "details": {
+          "elements": 17,
+          "terrainTiles": 9,
+          "copiedHeightBytes": 152100
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.worker-post-message",
+        "durationMs": 0.20000004768371582,
+        "atMs": 8267,
+        "details": {
+          "elements": 17,
+          "terrainTiles": 9
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 2.3999998569488525,
+        "atMs": 8269.799999952316,
+        "details": {
+          "qualityTier": "high"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.fetch-to-headers",
+        "durationMs": 45.89999985694885,
+        "atMs": 8270.299999952316,
+        "details": {
+          "source": "api",
+          "status": 200,
+          "attempt": 1
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.worker-roundtrip",
+        "durationMs": 3.4000000953674316,
+        "atMs": 8270.400000095367,
+        "details": {
+          "elements": 17,
+          "outputBufferBytes": 36248
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.worker-compute",
+        "durationMs": 0.7000000476837158,
+        "atMs": 8270.400000095367,
+        "details": {
+          "elements": 17
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.neighbor-geometry-total",
+        "durationMs": 3.8000001907348633,
+        "atMs": 8270.400000095367,
+        "details": {
+          "elements": 17
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.road-canvas-paint",
+        "durationMs": 0.20000004768371582,
+        "atMs": 8271.299999952316,
+        "details": {
+          "tiles": 9,
+          "roads": 0,
+          "buildings": 8,
+          "crossings": 0,
+          "budgetYields": 0
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.assembly-chunk",
+        "durationMs": 1.5,
+        "atMs": 8272.099999904633,
+        "details": {
+          "cellKey": "wtw_city6_41.885_12.487",
+          "assemblyKind": "neighbor",
+          "budgetMs": 8,
+          "yieldThresholdMs": 6,
+          "chunkIndex": 0,
+          "operationCount": 46,
+          "stages": [
+            "footprints",
+            "walls",
+            "roof-caps",
+            "flat-surfaces",
+            "tree-instances",
+            "road-mask",
+            "road-bounds",
+            "building-ring-bounds",
+            "road-canvas-tile",
+            "rails",
+            "waterways",
+            "bridges",
+            "stations",
+            "overture",
+            "props",
+            "prop-merge",
+            "barriers",
+            "power-lines"
+          ],
+          "yielded": false,
+          "asyncWait": false,
+          "overBudget": false,
+          "failed": false
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.neighbor-assembly-total",
+        "durationMs": 1.5999999046325684,
+        "atMs": 8272.099999904633,
+        "details": {
+          "elements": 17
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.json-body-and-parse",
+        "durationMs": 13.799999952316284,
+        "atMs": 8284.099999904633,
+        "details": {
+          "source": "api",
+          "attempt": 1
+        }
+      },
+      {
+        "type": "mark",
+        "name": "city-cache-miss",
+        "atMs": 8285.5,
+        "details": {
+          "source": "api"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.enrichment",
+        "durationMs": 0,
+        "atMs": 8285.5,
+        "details": {}
+      },
+      {
+        "type": "timing",
+        "name": "city.cell-load",
+        "durationMs": 77.40000009536743,
+        "atMs": 8301.200000047684,
+        "details": {}
+      },
+      {
+        "type": "timing",
+        "name": "city.consumer-copy",
+        "durationMs": 0,
+        "atMs": 8301.200000047684,
+        "details": {
+          "elements": 4524,
+          "readonly": true
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.neighbor-clip",
+        "durationMs": 0.7000000476837158,
+        "atMs": 8302,
+        "details": {
+          "inputElements": 4524
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 3.1000001430511475,
+        "atMs": 8306.900000095367,
+        "details": {
+          "qualityTier": "high"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.indexeddb-read",
+        "durationMs": 39.10000014305115,
+        "atMs": 8311.400000095367,
+        "details": {}
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 2.0999999046325684,
+        "atMs": 8315.599999904633,
+        "details": {
+          "qualityTier": "high"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.fetch-to-headers",
+        "durationMs": 20.5,
+        "atMs": 8331.900000095367,
+        "details": {
+          "source": "api",
+          "status": 200,
+          "attempt": 1
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.json-body-and-parse",
+        "durationMs": 10.799999952316284,
+        "atMs": 8342.700000047684,
+        "details": {
+          "source": "api",
+          "attempt": 1
+        }
+      },
+      {
+        "type": "mark",
+        "name": "city-cache-miss",
+        "atMs": 8343.599999904633,
+        "details": {
+          "source": "api"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.enrichment",
+        "durationMs": 0,
+        "atMs": 8343.599999904633,
+        "details": {}
+      },
+      {
+        "type": "timing",
+        "name": "city.cell-load",
+        "durationMs": 85.79999995231628,
+        "atMs": 8358.099999904633,
+        "details": {}
+      },
+      {
+        "type": "timing",
+        "name": "city.consumer-copy",
+        "durationMs": 0,
+        "atMs": 8358.200000047684,
+        "details": {
+          "elements": 4524,
+          "readonly": true
+        }
+      },
+      {
+        "type": "timing",
+        "name": "city.neighbor-clip",
+        "durationMs": 0.5,
+        "atMs": 8358.700000047684,
+        "details": {
+          "inputElements": 4524
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 2,
+        "atMs": 8393.400000095367,
+        "details": {
+          "qualityTier": "high"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 1.7999999523162842,
+        "atMs": 8474.099999904633,
+        "details": {
+          "qualityTier": "high"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 1.7999999523162842,
+        "atMs": 8491.700000047684,
+        "details": {
+          "qualityTier": "high"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 1.7999999523162842,
+        "atMs": 8517.200000047684,
+        "details": {
+          "qualityTier": "high"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 1.8999998569488525,
+        "atMs": 8527.799999952316,
+        "details": {
+          "qualityTier": "high"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 1.7999999523162842,
+        "atMs": 8564.200000047684,
+        "details": {
+          "qualityTier": "high"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 1.8999998569488525,
+        "atMs": 8573.799999952316,
+        "details": {
+          "qualityTier": "high"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 1.7000000476837158,
+        "atMs": 8606.5,
+        "details": {
+          "qualityTier": "high"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 1.8999998569488525,
+        "atMs": 8630.299999952316,
+        "details": {
+          "qualityTier": "high"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 2,
+        "atMs": 8652.400000095367,
+        "details": {
+          "qualityTier": "high"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 1.6000001430511475,
+        "atMs": 8676.200000047684,
+        "details": {
+          "qualityTier": "high"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 1.6999998092651367,
+        "atMs": 8699.599999904633,
+        "details": {
+          "qualityTier": "high"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 2.200000047683716,
+        "atMs": 8717.400000095367,
+        "details": {
+          "qualityTier": "high"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 1.8999998569488525,
+        "atMs": 8742.599999904633,
+        "details": {
+          "qualityTier": "high"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 2.299999952316284,
+        "atMs": 8766.700000047684,
+        "details": {
+          "qualityTier": "high"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 1.9000000953674316,
+        "atMs": 8787.700000047684,
+        "details": {
+          "qualityTier": "high"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 1.6999998092651367,
+        "atMs": 8808.599999904633,
+        "details": {
+          "qualityTier": "high"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 1.8000001907348633,
+        "atMs": 8821.900000095367,
+        "details": {
+          "qualityTier": "high"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 3,
+        "atMs": 8855.599999904633,
+        "details": {
+          "qualityTier": "high"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 1.7999999523162842,
+        "atMs": 8876.799999952316,
+        "details": {
+          "qualityTier": "high"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 1.7000000476837158,
+        "atMs": 8887.700000047684,
+        "details": {
+          "qualityTier": "high"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 1.7000000476837158,
+        "atMs": 8919,
+        "details": {
+          "qualityTier": "high"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 1.7000000476837158,
+        "atMs": 8942.299999952316,
+        "details": {
+          "qualityTier": "high"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 1.7999999523162842,
+        "atMs": 8963,
+        "details": {
+          "qualityTier": "high"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 1.7999999523162842,
+        "atMs": 8976.5,
+        "details": {
+          "qualityTier": "high"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 1.7999999523162842,
+        "atMs": 9008.599999904633,
+        "details": {
+          "qualityTier": "high"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 1.5999999046325684,
+        "atMs": 9030.299999952316,
+        "details": {
+          "qualityTier": "high"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 1.5999999046325684,
+        "atMs": 9050.599999904633,
+        "details": {
+          "qualityTier": "high"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 1.6999998092651367,
+        "atMs": 9072.599999904633,
+        "details": {
+          "qualityTier": "high"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 1.8999998569488525,
+        "atMs": 9095.099999904633,
+        "details": {
+          "qualityTier": "high"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 1.6999998092651367,
+        "atMs": 9117.099999904633,
+        "details": {
+          "qualityTier": "high"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 1.7000000476837158,
+        "atMs": 9140.200000047684,
+        "details": {
+          "qualityTier": "high"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 1.7000000476837158,
+        "atMs": 9162.299999952316,
+        "details": {
+          "qualityTier": "high"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 2.200000047683716,
+        "atMs": 9182.5,
+        "details": {
+          "qualityTier": "high"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 1.6000001430511475,
+        "atMs": 9203.700000047684,
+        "details": {
+          "qualityTier": "high"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 1.5999999046325684,
+        "atMs": 9226.599999904633,
+        "details": {
+          "qualityTier": "high"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 1.7999999523162842,
+        "atMs": 9249.700000047684,
+        "details": {
+          "qualityTier": "high"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 1.7000000476837158,
+        "atMs": 9259.200000047684,
+        "details": {
+          "qualityTier": "high"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 1.5,
+        "atMs": 9293.400000095367,
+        "details": {
+          "qualityTier": "high"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 1.5999999046325684,
+        "atMs": 9313.799999952316,
+        "details": {
+          "qualityTier": "high"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 1.7000000476837158,
+        "atMs": 9336.5,
+        "details": {
+          "qualityTier": "high"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 1.4000000953674316,
+        "atMs": 9357.700000047684,
+        "details": {
+          "qualityTier": "high"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 1.8999998569488525,
+        "atMs": 9381.599999904633,
+        "details": {
+          "qualityTier": "high"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 2,
+        "atMs": 9404.400000095367,
+        "details": {
+          "qualityTier": "high"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 1.7000000476837158,
+        "atMs": 9425.900000095367,
+        "details": {
+          "qualityTier": "high"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 1.9000000953674316,
+        "atMs": 9447.400000095367,
+        "details": {
+          "qualityTier": "high"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 1.8000001907348633,
+        "atMs": 9468.900000095367,
+        "details": {
+          "qualityTier": "high"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 1.7999999523162842,
+        "atMs": 9490,
+        "details": {
+          "qualityTier": "high"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 1.5999999046325684,
+        "atMs": 9512.799999952316,
+        "details": {
+          "qualityTier": "high"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 1.8999998569488525,
+        "atMs": 9534.599999904633,
+        "details": {
+          "qualityTier": "high"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 1.6000001430511475,
+        "atMs": 9557.900000095367,
+        "details": {
+          "qualityTier": "high"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 1.5999999046325684,
+        "atMs": 9579,
+        "details": {
+          "qualityTier": "high"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 1.5,
+        "atMs": 9601,
+        "details": {
+          "qualityTier": "high"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 1.7999999523162842,
+        "atMs": 9623.599999904633,
+        "details": {
+          "qualityTier": "high"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 1.9000000953674316,
+        "atMs": 9643.5,
+        "details": {
+          "qualityTier": "high"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 1.7000000476837158,
+        "atMs": 9669.200000047684,
+        "details": {
+          "qualityTier": "high"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 1.5,
+        "atMs": 9686.200000047684,
+        "details": {
+          "qualityTier": "high"
+        }
+      },
+      {
+        "type": "timing",
+        "name": "renderer.postfx-cpu-submit",
+        "durationMs": 1.7999999523162842,
+        "atMs": 9710.099999904633,
+        "details": {
+          "qualityTier": "high"
+        }
+      }
+    ],
+    "timingHistory": {
+      "sampleCount": 276,
+      "capacity": 4096,
+      "wrapped": false
+    },
+    "metadata": {
+      "qualityTier": "high",
+      "pixelRatio": 1.0000000149011612,
+      "shadowMapEnabled": true,
+      "postFxActive": true,
+      "hour": 21,
+      "weather": 90,
+      "precipitationMode": "rain",
+      "ktx2": {
+        "transcodeFormats": {
+          "facade-basecolor": 36492,
+          "facade-emissive": 36492
+        },
+        "transferBytes": 194691,
+        "transferMs": 21.200000047683716,
+        "decoderBytes": 584862,
+        "mipLevels": {
+          "facade-basecolor": 11,
+          "facade-emissive": 11
+        },
+        "workerLimit": 2,
+        "estimatedGpuBytes": 1398176,
+        "estimatedTotalGpuBytes": 1398176,
+        "textureCountDelta": 2
+      },
+      "ktx2High": {
+        "transcodeFormats": {
+          "facade-near-basecolor": 36492,
+          "facade-near-normal": 36492,
+          "facade-near-roughness": 36492,
+          "facade-near-emissive": 36492
+        },
+        "transferBytes": 6269713,
+        "transferMs": 57.30000019073486,
+        "decoderBytes": 584862,
+        "mipLevels": {
+          "facade-near-basecolor": 12,
+          "facade-near-normal": 12,
+          "facade-near-roughness": 12,
+          "facade-near-emissive": 12
+        },
+        "workerLimit": 2,
+        "estimatedGpuBytes": 17889344,
+        "estimatedTotalGpuBytes": 19287520,
+        "textureCountDelta": 4
+      }
+    },
+    "settings": {
+      "qualityTier": "high",
+      "pixelRatio": 1.0000000149011612,
+      "shadowMapEnabled": true,
+      "postFxActive": true,
+      "hour": 21,
+      "weather": 90,
+      "precipitationMode": "rain",
+      "ktx2": {
+        "transcodeFormats": {
+          "facade-basecolor": 36492,
+          "facade-emissive": 36492
+        },
+        "transferBytes": 194691,
+        "transferMs": 21.200000047683716,
+        "decoderBytes": 584862,
+        "mipLevels": {
+          "facade-basecolor": 11,
+          "facade-emissive": 11
+        },
+        "workerLimit": 2,
+        "estimatedGpuBytes": 1398176,
+        "estimatedTotalGpuBytes": 1398176,
+        "textureCountDelta": 2
+      },
+      "ktx2High": {
+        "transcodeFormats": {
+          "facade-near-basecolor": 36492,
+          "facade-near-normal": 36492,
+          "facade-near-roughness": 36492,
+          "facade-near-emissive": 36492
+        },
+        "transferBytes": 6269713,
+        "transferMs": 57.30000019073486,
+        "decoderBytes": 584862,
+        "mipLevels": {
+          "facade-near-basecolor": 12,
+          "facade-near-normal": 12,
+          "facade-near-roughness": 12,
+          "facade-near-emissive": 12
+        },
+        "workerLimit": 2,
+        "estimatedGpuBytes": 17889344,
+        "estimatedTotalGpuBytes": 19287520,
+        "textureCountDelta": 4
+      }
+    },
+    "cityBuilder": {
+      "closed": false,
+      "workerCount": 2,
+      "activeCount": 0,
+      "queuedCount": 0,
+      "queueLimit": 8,
+      "pendingCount": 0
+    },
+    "cityDataCopyMode": "readonly",
+    "streetLighting": {
+      "pool": 4,
+      "on": 2,
+      "assigned": 2,
+      "lampMarkers": 17,
+      "qualityTier": "high",
+      "nightAmount": 0.85
+    },
+    "resourceCounts": {
+      "geometries": 195,
+      "textures": 49,
+      "programs": 60,
+      "ktx2EstimatedGpuBytes": 19287520,
+      "ktx2SharedEstimatedGpuBytes": 1398176,
+      "ktx2HighEstimatedGpuBytes": 17889344
+    },
+    "materialInventory": {
+      "meshCount": 417,
+      "uniqueGeometryCount": 417,
+      "instancedMeshCount": 10,
+      "instanceCount": 350,
+      "uniqueMaterialCount": 144,
+      "uniqueTextureCount": 42,
+      "textureRoleBindings": [
+        {
+          "role": "emissiveMap",
+          "materialBindings": 1,
+          "meshBindings": 6,
+          "uniqueTextures": 1
+        },
+        {
+          "role": "map",
+          "materialBindings": 39,
+          "meshBindings": 46,
+          "uniqueTextures": 35
+        },
+        {
+          "role": "normalMap",
+          "materialBindings": 13,
+          "meshBindings": 25,
+          "uniqueTextures": 3
+        },
+        {
+          "role": "roughnessMap",
+          "materialBindings": 12,
+          "meshBindings": 24,
+          "uniqueTextures": 3
+        }
+      ],
+      "materialFamilies": [
+        {
+          "family": "MeshStandardMaterial|unmapped|no-vertex-color|opaque|side-2",
+          "materialCount": 3,
+          "meshUses": 101,
+          "colorVariantCount": 3
+        },
+        {
+          "family": "MeshStandardMaterial|unmapped|no-vertex-color|opaque|side-0",
+          "materialCount": 13,
+          "meshUses": 88,
+          "colorVariantCount": 13
+        },
+        {
+          "family": "MeshStandardMaterial|unmapped|no-vertex-color|transparent|side-2",
+          "materialCount": 1,
+          "meshUses": 84,
+          "colorVariantCount": 1
+        },
+        {
+          "family": "MeshBasicMaterial|unmapped|no-vertex-color|opaque|side-0",
+          "materialCount": 35,
+          "meshUses": 35,
+          "colorVariantCount": 8
+        },
+        {
+          "family": "MeshLambertMaterial|unmapped|no-vertex-color|opaque|side-0",
+          "materialCount": 22,
+          "meshUses": 22,
+          "colorVariantCount": 6
+        },
+        {
+          "family": "MeshBasicMaterial|map|no-vertex-color|transparent|side-2",
+          "materialCount": 19,
+          "meshUses": 19,
+          "colorVariantCount": 1
+        },
+        {
+          "family": "MeshLambertMaterial|unmapped|no-vertex-color|transparent|side-0",
+          "materialCount": 15,
+          "meshUses": 15,
+          "colorVariantCount": 1
+        },
+        {
+          "family": "MeshStandardMaterial|map|no-vertex-color|opaque|side-0",
+          "materialCount": 9,
+          "meshUses": 9,
+          "colorVariantCount": 1
+        },
+        {
+          "family": "MeshBasicMaterial|unmapped|no-vertex-color|opaque|side-2",
+          "materialCount": 9,
+          "meshUses": 9,
+          "colorVariantCount": 1
+        },
+        {
+          "family": "MeshStandardMaterial|map+normalMap+roughnessMap|no-vertex-color|opaque|side-0",
+          "materialCount": 7,
+          "meshUses": 9,
+          "colorVariantCount": 7
+        },
+        {
+          "family": "MeshStandardMaterial|normalMap+roughnessMap|no-vertex-color|opaque|side-0",
+          "materialCount": 3,
+          "meshUses": 8,
+          "colorVariantCount": 3
+        },
+        {
+          "family": "MeshStandardMaterial|unmapped|vertex-color|opaque|side-0",
+          "materialCount": 2,
+          "meshUses": 7,
+          "colorVariantCount": 1
+        },
+        {
+          "family": "MeshStandardMaterial|map+normalMap+roughnessMap+emissiveMap|vertex-color|opaque|side-0",
+          "materialCount": 1,
+          "meshUses": 6,
+          "colorVariantCount": 1
+        },
+        {
+          "family": "MeshBasicMaterial|unmapped|no-vertex-color|transparent|side-2",
+          "materialCount": 1,
+          "meshUses": 1,
+          "colorVariantCount": 1
+        },
+        {
+          "family": "MeshStandardMaterial|map+normalMap|no-vertex-color|opaque|side-2",
+          "materialCount": 1,
+          "meshUses": 1,
+          "colorVariantCount": 1
+        },
+        {
+          "family": "MeshStandardMaterial|map+normalMap+roughnessMap|no-vertex-color|opaque|side-2",
+          "materialCount": 1,
+          "meshUses": 1,
+          "colorVariantCount": 1
+        },
+        {
+          "family": "MeshBasicMaterial|map|no-vertex-color|transparent|side-0",
+          "materialCount": 1,
+          "meshUses": 1,
+          "colorVariantCount": 1
+        },
+        {
+          "family": "MeshPhongMaterial|unmapped|no-vertex-color|opaque|side-0",
+          "materialCount": 1,
+          "meshUses": 1,
+          "colorVariantCount": 1
+        }
+      ],
+      "materials": [
+        {
+          "uuid": "b1befe41-b5dd-4e47-86fa-131d83a6f1bf",
+          "name": "",
+          "type": "MeshBasicMaterial",
+          "color": "ffd54a",
+          "vertexColors": false,
+          "transparent": true,
+          "side": 2,
+          "roughness": null,
+          "metalness": null,
+          "shared": false,
+          "roles": [],
+          "meshUses": 1
+        },
+        {
+          "uuid": "e40fff12-9eb2-4ddd-a2a3-9acc645a9100",
+          "name": "",
+          "type": "MeshStandardMaterial",
+          "color": "ffffff",
+          "vertexColors": false,
+          "transparent": false,
+          "side": 0,
+          "roughness": 0.95,
+          "metalness": 0,
+          "shared": false,
+          "roles": [
+            "map"
+          ],
+          "meshUses": 1
+        },
+        {
+          "uuid": "90e307ad-dfb6-43ab-9ed5-d68620dea84c",
+          "name": "",
+          "type": "MeshBasicMaterial",
+          "color": "97927f",
+          "vertexColors": false,
+          "transparent": false,
+          "side": 2,
+          "roughness": null,
+          "metalness": null,
+          "shared": false,
+          "roles": [],
+          "meshUses": 1
+        },
+        {
+          "uuid": "3f1f0f87-5475-452f-bb02-174927f9bd7c",
+          "name": "",
+          "type": "MeshStandardMaterial",
+          "color": "3f4a5c",
+          "vertexColors": false,
+          "transparent": false,
+          "side": 0,
+          "roughness": 0.8,
+          "metalness": 0,
+          "shared": true,
+          "roles": [],
+          "meshUses": 2
+        },
+        {
+          "uuid": "8e0a403d-80f8-4faa-a286-55b51958be4a",
+          "name": "",
+          "type": "MeshStandardMaterial",
+          "color": "6d84a8",
+          "vertexColors": false,
+          "transparent": false,
+          "side": 0,
+          "roughness": 0.75,
+          "metalness": 0,
+          "shared": true,
+          "roles": [],
+          "meshUses": 3
+        },
+        {
+          "uuid": "32d5aeb5-3843-430c-8d4b-9c7eeb0eead5",
+          "name": "",
+          "type": "MeshStandardMaterial",
+          "color": "d9c2a8",
+          "vertexColors": false,
+          "transparent": false,
+          "side": 0,
+          "roughness": 0.65,
+          "metalness": 0,
+          "shared": true,
+          "roles": [],
+          "meshUses": 1
+        },
+        {
+          "uuid": "27c9aae4-3b51-41ac-b05d-d05bf369874d",
+          "name": "",
+          "type": "MeshStandardMaterial",
+          "color": "ffffff",
+          "vertexColors": true,
+          "transparent": false,
+          "side": 0,
+          "roughness": 1,
+          "metalness": 0.02,
+          "shared": true,
+          "roles": [
+            "map",
+            "normalMap",
+            "roughnessMap",
+            "emissiveMap"
+          ],
+          "meshUses": 6
+        },
+        {
+          "uuid": "17f7fca2-aabd-479f-82b9-0d71d5479e19",
+          "name": "",
+          "type": "MeshStandardMaterial",
+          "color": "8f8d86",
+          "vertexColors": false,
+          "transparent": false,
+          "side": 0,
+          "roughness": 1,
+          "metalness": 0.05,
+          "shared": true,
+          "roles": [
+            "normalMap",
+            "roughnessMap"
+          ],
+          "meshUses": 6
+        },
+        {
+          "uuid": "dfdbc164-7849-49ab-b878-d436851de747",
+          "name": "",
+          "type": "MeshStandardMaterial",
+          "color": "9a5340",
+          "vertexColors": false,
+          "transparent": false,
+          "side": 0,
+          "roughness": 1,
+          "metalness": 0.05,
+          "shared": true,
+          "roles": [
+            "normalMap",
+            "roughnessMap"
+          ],
+          "meshUses": 1
+        },
+        {
+          "uuid": "e53e6aab-4825-498d-b68b-d250e7520ee1",
+          "name": "",
+          "type": "MeshStandardMaterial",
+          "color": "b8bcc2",
+          "vertexColors": false,
+          "transparent": false,
+          "side": 0,
+          "roughness": 0.8,
+          "metalness": 0,
+          "shared": true,
+          "roles": [],
+          "meshUses": 5
+        },
+        {
+          "uuid": "afcb1cf2-85f7-4a06-b950-7c2b79554b6a",
+          "name": "",
+          "type": "MeshStandardMaterial",
+          "color": "ffffff",
+          "vertexColors": true,
+          "transparent": false,
+          "side": 0,
+          "roughness": 0.75,
+          "metalness": 0,
+          "shared": true,
+          "roles": [],
+          "meshUses": 1
+        },
+        {
+          "uuid": "5ac8625d-d6d5-4c2d-b1a7-fff935e3beb9",
+          "name": "",
+          "type": "MeshStandardMaterial",
+          "color": "9a9484",
+          "vertexColors": false,
+          "transparent": false,
+          "side": 0,
+          "roughness": 0.20799999999999996,
+          "metalness": 0,
+          "shared": true,
+          "roles": [
+            "map",
+            "normalMap",
+            "roughnessMap"
+          ],
+          "meshUses": 1
+        },
+        {
+          "uuid": "52f0ebcb-3bc4-4f7e-b2d5-158c429fe1e7",
+          "name": "",
+          "type": "MeshStandardMaterial",
+          "color": "a89a72",
+          "vertexColors": false,
+          "transparent": false,
+          "side": 0,
+          "roughness": 0.20799999999999996,
+          "metalness": 0,
+          "shared": true,
+          "roles": [
+            "map",
+            "normalMap",
+            "roughnessMap"
+          ],
+          "meshUses": 2
+        },
+        {
+          "uuid": "4703562b-b236-40da-9542-a292d3056365",
+          "name": "",
+          "type": "MeshStandardMaterial",
+          "color": "aeafb2",
+          "vertexColors": false,
+          "transparent": false,
+          "side": 0,
+          "roughness": 0.20799999999999996,
+          "metalness": 0,
+          "shared": true,
+          "roles": [
+            "map",
+            "normalMap",
+            "roughnessMap"
+          ],
+          "meshUses": 1
+        },
+        {
+          "uuid": "aeea315e-384b-4870-a75c-2c5b0c15a296",
+          "name": "",
+          "type": "MeshStandardMaterial",
+          "color": "b3b5b8",
+          "vertexColors": false,
+          "transparent": false,
+          "side": 0,
+          "roughness": 0.20799999999999996,
+          "metalness": 0,
+          "shared": true,
+          "roles": [
+            "map",
+            "normalMap",
+            "roughnessMap"
+          ],
+          "meshUses": 2
+        },
+        {
+          "uuid": "82a3de6e-3b6a-4b87-bf65-2be7145a8941",
+          "name": "",
+          "type": "MeshStandardMaterial",
+          "color": "b8babd",
+          "vertexColors": false,
+          "transparent": false,
+          "side": 0,
+          "roughness": 0.20799999999999996,
+          "metalness": 0,
+          "shared": true,
+          "roles": [
+            "map",
+            "normalMap",
+            "roughnessMap"
+          ],
+          "meshUses": 1
+        },
+        {
+          "uuid": "441ee2d0-ad25-4d9c-ae95-086f217665f9",
+          "name": "",
+          "type": "MeshStandardMaterial",
+          "color": "b0b2b5",
+          "vertexColors": false,
+          "transparent": false,
+          "side": 0,
+          "roughness": 0.20799999999999996,
+          "metalness": 0,
+          "shared": true,
+          "roles": [
+            "map",
+            "normalMap",
+            "roughnessMap"
+          ],
+          "meshUses": 1
+        },
+        {
+          "uuid": "76884359-c8f6-4dc9-a859-b8b317b4d23d",
+          "name": "",
+          "type": "MeshStandardMaterial",
+          "color": "aeb9c6",
+          "vertexColors": false,
+          "transparent": false,
+          "side": 0,
+          "roughness": 0.20799999999999996,
+          "metalness": 0,
+          "shared": true,
+          "roles": [
+            "map",
+            "normalMap",
+            "roughnessMap"
+          ],
+          "meshUses": 1
+        },
+        {
+          "uuid": "889e4312-5121-49f4-80bc-182ea9111af0",
+          "name": "",
+          "type": "MeshStandardMaterial",
+          "color": "93bd7f",
+          "vertexColors": false,
+          "transparent": false,
+          "side": 0,
+          "roughness": 0.85,
+          "metalness": 0,
+          "shared": true,
+          "roles": [],
+          "meshUses": 50
+        },
+        {
+          "uuid": "3e4e4ca0-7d7d-4951-8901-c14e00937c3f",
+          "name": "",
+          "type": "MeshStandardMaterial",
+          "color": "4f9e5d",
+          "vertexColors": false,
+          "transparent": false,
+          "side": 0,
+          "roughness": 0.85,
+          "metalness": 0,
+          "shared": true,
+          "roles": [],
+          "meshUses": 8
+        },
+        {
+          "uuid": "44f12349-425d-41f5-93d3-054fd9b05fbb",
+          "name": "",
+          "type": "MeshStandardMaterial",
+          "color": "4b9fd1",
+          "vertexColors": false,
+          "transparent": false,
+          "side": 0,
+          "roughness": 0.85,
+          "metalness": 0,
+          "shared": true,
+          "roles": [],
+          "meshUses": 5
+        },
+        {
+          "uuid": "6fe6bfaf-dfc6-42f4-b2e6-bbec4e833868",
+          "name": "",
+          "type": "MeshStandardMaterial",
+          "color": "8a9098",
+          "vertexColors": false,
+          "transparent": false,
+          "side": 0,
+          "roughness": 0.85,
+          "metalness": 0,
+          "shared": true,
+          "roles": [],
+          "meshUses": 6
+        },
+        {
+          "uuid": "48fd039e-a1dc-4999-bc7e-719ffb9541b5",
+          "name": "",
+          "type": "MeshStandardMaterial",
+          "color": "ffffff",
+          "vertexColors": true,
+          "transparent": false,
+          "side": 0,
+          "roughness": 0.9,
+          "metalness": 0,
+          "shared": true,
+          "roles": [],
+          "meshUses": 6
+        },
+        {
+          "uuid": "b9aa8f1b-99d3-45dd-a53f-ef1e1383c576",
+          "name": "",
+          "type": "MeshStandardMaterial",
+          "color": "ffffff",
+          "vertexColors": false,
+          "transparent": false,
+          "side": 2,
+          "roughness": 0.85,
+          "metalness": 0.15,
+          "shared": false,
+          "roles": [
+            "map",
+            "normalMap"
+          ],
+          "meshUses": 1
+        },
+        {
+          "uuid": "6f274f6a-2a81-42ac-8ced-dc1034c807cf",
+          "name": "",
+          "type": "MeshStandardMaterial",
+          "color": "b3b5b8",
+          "vertexColors": false,
+          "transparent": false,
+          "side": 2,
+          "roughness": 0.20799999999999996,
+          "metalness": 0,
+          "shared": false,
+          "roles": [
+            "map",
+            "normalMap",
+            "roughnessMap"
+          ],
+          "meshUses": 1
+        },
+        {
+          "uuid": "5a38db83-7ede-4da2-9e32-7ebb163b8158",
+          "name": "",
+          "type": "MeshStandardMaterial",
+          "color": "8b939e",
+          "vertexColors": false,
+          "transparent": false,
+          "side": 2,
+          "roughness": 0.7,
+          "metalness": 0.2,
+          "shared": true,
+          "roles": [],
+          "meshUses": 1
+        },
+        {
+          "uuid": "cae9a070-9725-485b-82e4-7bd0a798b5a8",
+          "name": "",
+          "type": "MeshStandardMaterial",
+          "color": "4a5058",
+          "vertexColors": false,
+          "transparent": false,
+          "side": 0,
+          "roughness": 0.8,
+          "metalness": 0,
+          "shared": true,
+          "roles": [],
+          "meshUses": 1
+        },
+        {
+          "uuid": "3447616d-3029-456b-9995-30671bd90795",
+          "name": "",
+          "type": "MeshStandardMaterial",
+          "color": "9aa0a8",
+          "vertexColors": false,
+          "transparent": false,
+          "side": 0,
+          "roughness": 0.85,
+          "metalness": 0,
+          "shared": true,
+          "roles": [],
+          "meshUses": 1
+        },
+        {
+          "uuid": "952ef157-033c-4c10-b85c-938dd989507e",
+          "name": "",
+          "type": "MeshStandardMaterial",
+          "color": "b9b2a4",
+          "vertexColors": false,
+          "transparent": false,
+          "side": 0,
+          "roughness": 0.85,
+          "metalness": 0,
+          "shared": true,
+          "roles": [],
+          "meshUses": 1
+        },
+        {
+          "uuid": "c5123b95-54b8-4aff-af5c-3d077a865fbc",
+          "name": "",
+          "type": "MeshStandardMaterial",
+          "color": "7c4a3a",
+          "vertexColors": false,
+          "transparent": false,
+          "side": 0,
+          "roughness": 1,
+          "metalness": 0.05,
+          "shared": true,
+          "roles": [
+            "normalMap",
+            "roughnessMap"
+          ],
+          "meshUses": 1
+        },
+        {
+          "uuid": "a65df4ec-590c-41f2-af06-ee10336d8053",
+          "name": "",
+          "type": "MeshStandardMaterial",
+          "color": "555b64",
+          "vertexColors": false,
+          "transparent": false,
+          "side": 0,
+          "roughness": 0.7,
+          "metalness": 0.15,
+          "shared": true,
+          "roles": [],
+          "meshUses": 4
+        },
+        {
+          "uuid": "1a4079c3-433c-4e59-a429-9aa4f1977167",
+          "name": "",
+          "type": "MeshBasicMaterial",
+          "color": "ffffff",
+          "vertexColors": false,
+          "transparent": true,
+          "side": 2,
+          "roughness": null,
+          "metalness": null,
+          "shared": false,
+          "roles": [
+            "map"
+          ],
+          "meshUses": 1
+        },
+        {
+          "uuid": "e42f18f7-c6fa-4b05-b9b4-ba21760bc077",
+          "name": "",
+          "type": "MeshLambertMaterial",
+          "color": "555b64",
+          "vertexColors": false,
+          "transparent": false,
+          "side": 0,
+          "roughness": null,
+          "metalness": null,
+          "shared": false,
+          "roles": [],
+          "meshUses": 1
+        },
+        {
+          "uuid": "41ac6cea-507d-4adc-a869-461109479d6d",
+          "name": "",
+          "type": "MeshLambertMaterial",
+          "color": "3a3f47",
+          "vertexColors": false,
+          "transparent": false,
+          "side": 0,
+          "roughness": null,
+          "metalness": null,
+          "shared": false,
+          "roles": [],
+          "meshUses": 1
+        },
+        {
+          "uuid": "267d12e5-3e34-4669-ab94-2bb0ea92da66",
+          "name": "",
+          "type": "MeshBasicMaterial",
+          "color": "d94040",
+          "vertexColors": false,
+          "transparent": false,
+          "side": 0,
+          "roughness": null,
+          "metalness": null,
+          "shared": false,
+          "roles": [],
+          "meshUses": 1
+        },
+        {
+          "uuid": "590075a5-63c3-4278-ba84-cac59798b80f",
+          "name": "",
+          "type": "MeshBasicMaterial",
+          "color": "e8c33a",
+          "vertexColors": false,
+          "transparent": false,
+          "side": 0,
+          "roughness": null,
+          "metalness": null,
+          "shared": false,
+          "roles": [],
+          "meshUses": 1
+        },
+        {
+          "uuid": "cec493b6-13d5-4eea-ad3f-fadb6422ba57",
+          "name": "",
+          "type": "MeshBasicMaterial",
+          "color": "43b05c",
+          "vertexColors": false,
+          "transparent": false,
+          "side": 0,
+          "roughness": null,
+          "metalness": null,
+          "shared": false,
+          "roles": [],
+          "meshUses": 1
+        },
+        {
+          "uuid": "252a9c86-a186-47ec-911f-f679b9361328",
+          "name": "",
+          "type": "MeshLambertMaterial",
+          "color": "8fb2c9",
+          "vertexColors": false,
+          "transparent": true,
+          "side": 0,
+          "roughness": null,
+          "metalness": null,
+          "shared": false,
+          "roles": [],
+          "meshUses": 1
+        },
+        {
+          "uuid": "0c9011f5-bf42-406a-9c0e-e77117dbeea7",
+          "name": "",
+          "type": "MeshLambertMaterial",
+          "color": "8fb2c9",
+          "vertexColors": false,
+          "transparent": true,
+          "side": 0,
+          "roughness": null,
+          "metalness": null,
+          "shared": false,
+          "roles": [],
+          "meshUses": 1
+        },
+        {
+          "uuid": "8e1f126b-c259-4042-8f93-348fe5297e6e",
+          "name": "",
+          "type": "MeshLambertMaterial",
+          "color": "8fb2c9",
+          "vertexColors": false,
+          "transparent": true,
+          "side": 0,
+          "roughness": null,
+          "metalness": null,
+          "shared": false,
+          "roles": [],
+          "meshUses": 1
+        },
+        {
+          "uuid": "c1e1557a-34a3-49d3-b048-7ff8ed5a43b9",
+          "name": "",
+          "type": "MeshLambertMaterial",
+          "color": "8fb2c9",
+          "vertexColors": false,
+          "transparent": true,
+          "side": 0,
+          "roughness": null,
+          "metalness": null,
+          "shared": false,
+          "roles": [],
+          "meshUses": 1
+        },
+        {
+          "uuid": "9ceb7895-5f15-4935-9014-704e8d3463c9",
+          "name": "",
+          "type": "MeshLambertMaterial",
+          "color": "8fb2c9",
+          "vertexColors": false,
+          "transparent": true,
+          "side": 0,
+          "roughness": null,
+          "metalness": null,
+          "shared": false,
+          "roles": [],
+          "meshUses": 1
+        },
+        {
+          "uuid": "676f38f4-e9e2-4660-b693-11f9ca963235",
+          "name": "",
+          "type": "MeshLambertMaterial",
+          "color": "8fb2c9",
+          "vertexColors": false,
+          "transparent": true,
+          "side": 0,
+          "roughness": null,
+          "metalness": null,
+          "shared": false,
+          "roles": [],
+          "meshUses": 1
+        },
+        {
+          "uuid": "c529277a-9021-41a3-8f2f-758e519d3235",
+          "name": "",
+          "type": "MeshBasicMaterial",
+          "color": "d94040",
+          "vertexColors": false,
+          "transparent": false,
+          "side": 0,
+          "roughness": null,
+          "metalness": null,
+          "shared": false,
+          "roles": [],
+          "meshUses": 1
+        },
+        {
+          "uuid": "55ce4353-dd6a-4095-a6ea-e1683748dd36",
+          "name": "",
+          "type": "MeshBasicMaterial",
+          "color": "e8c33a",
+          "vertexColors": false,
+          "transparent": false,
+          "side": 0,
+          "roughness": null,
+          "metalness": null,
+          "shared": false,
+          "roles": [],
+          "meshUses": 1
+        },
+        {
+          "uuid": "5fe696c3-043f-42cb-b94a-dc374a9bd5e9",
+          "name": "",
+          "type": "MeshBasicMaterial",
+          "color": "43b05c",
+          "vertexColors": false,
+          "transparent": false,
+          "side": 0,
+          "roughness": null,
+          "metalness": null,
+          "shared": false,
+          "roles": [],
+          "meshUses": 1
+        },
+        {
+          "uuid": "24081e16-d67e-4203-b714-89e050763232",
+          "name": "",
+          "type": "MeshBasicMaterial",
+          "color": "d94040",
+          "vertexColors": false,
+          "transparent": false,
+          "side": 0,
+          "roughness": null,
+          "metalness": null,
+          "shared": false,
+          "roles": [],
+          "meshUses": 1
+        },
+        {
+          "uuid": "2386b6fb-90df-493f-bc61-29323e1e6aa5",
+          "name": "",
+          "type": "MeshBasicMaterial",
+          "color": "e8c33a",
+          "vertexColors": false,
+          "transparent": false,
+          "side": 0,
+          "roughness": null,
+          "metalness": null,
+          "shared": false,
+          "roles": [],
+          "meshUses": 1
+        },
+        {
+          "uuid": "9c9b9ea5-2617-4b93-a0cb-aef89cb541e1",
+          "name": "",
+          "type": "MeshBasicMaterial",
+          "color": "43b05c",
+          "vertexColors": false,
+          "transparent": false,
+          "side": 0,
+          "roughness": null,
+          "metalness": null,
+          "shared": false,
+          "roles": [],
+          "meshUses": 1
+        },
+        {
+          "uuid": "ce791a40-8cc8-4401-8d75-f2d6040cda9e",
+          "name": "",
+          "type": "MeshBasicMaterial",
+          "color": "2255cc",
+          "vertexColors": false,
+          "transparent": false,
+          "side": 0,
+          "roughness": null,
+          "metalness": null,
+          "shared": false,
+          "roles": [],
+          "meshUses": 1
+        },
+        {
+          "uuid": "24fd54f1-3516-47b5-8da5-ab55005b0ba9",
+          "name": "",
+          "type": "MeshLambertMaterial",
+          "color": "8fb2c9",
+          "vertexColors": false,
+          "transparent": true,
+          "side": 0,
+          "roughness": null,
+          "metalness": null,
+          "shared": false,
+          "roles": [],
+          "meshUses": 1
+        },
+        {
+          "uuid": "ea4d1ebe-152b-4a5f-8eb8-27eb41492618",
+          "name": "",
+          "type": "MeshLambertMaterial",
+          "color": "8fb2c9",
+          "vertexColors": false,
+          "transparent": true,
+          "side": 0,
+          "roughness": null,
+          "metalness": null,
+          "shared": false,
+          "roles": [],
+          "meshUses": 1
+        },
+        {
+          "uuid": "fac10c3d-ce89-4dfe-8d9f-3ec26df5aedb",
+          "name": "",
+          "type": "MeshLambertMaterial",
+          "color": "8fb2c9",
+          "vertexColors": false,
+          "transparent": true,
+          "side": 0,
+          "roughness": null,
+          "metalness": null,
+          "shared": false,
+          "roles": [],
+          "meshUses": 1
+        },
+        {
+          "uuid": "38922d8f-c673-4693-905b-69df1c215628",
+          "name": "",
+          "type": "MeshLambertMaterial",
+          "color": "8fb2c9",
+          "vertexColors": false,
+          "transparent": true,
+          "side": 0,
+          "roughness": null,
+          "metalness": null,
+          "shared": false,
+          "roles": [],
+          "meshUses": 1
+        },
+        {
+          "uuid": "6d9de13a-99c8-4ed8-bdf3-19d476902466",
+          "name": "",
+          "type": "MeshLambertMaterial",
+          "color": "8fb2c9",
+          "vertexColors": false,
+          "transparent": true,
+          "side": 0,
+          "roughness": null,
+          "metalness": null,
+          "shared": false,
+          "roles": [],
+          "meshUses": 1
+        },
+        {
+          "uuid": "bb322fd0-12ca-49b4-841a-2e85605f29c7",
+          "name": "",
+          "type": "MeshLambertMaterial",
+          "color": "8fb2c9",
+          "vertexColors": false,
+          "transparent": true,
+          "side": 0,
+          "roughness": null,
+          "metalness": null,
+          "shared": false,
+          "roles": [],
+          "meshUses": 1
+        },
+        {
+          "uuid": "96ed43b6-a579-4ab4-bc8d-b32a6fa3eb40",
+          "name": "",
+          "type": "MeshLambertMaterial",
+          "color": "8fb2c9",
+          "vertexColors": false,
+          "transparent": true,
+          "side": 0,
+          "roughness": null,
+          "metalness": null,
+          "shared": false,
+          "roles": [],
+          "meshUses": 1
+        },
+        {
+          "uuid": "161bcba6-2ee5-4795-8c7e-937465271f33",
+          "name": "",
+          "type": "MeshBasicMaterial",
+          "color": "d94040",
+          "vertexColors": false,
+          "transparent": false,
+          "side": 0,
+          "roughness": null,
+          "metalness": null,
+          "shared": false,
+          "roles": [],
+          "meshUses": 1
+        },
+        {
+          "uuid": "aa0e405c-77a5-4806-9909-6380dbc81dbe",
+          "name": "",
+          "type": "MeshBasicMaterial",
+          "color": "e8c33a",
+          "vertexColors": false,
+          "transparent": false,
+          "side": 0,
+          "roughness": null,
+          "metalness": null,
+          "shared": false,
+          "roles": [],
+          "meshUses": 1
+        },
+        {
+          "uuid": "05a94c1b-511b-4b66-bfb2-0ecc073cf04c",
+          "name": "",
+          "type": "MeshBasicMaterial",
+          "color": "43b05c",
+          "vertexColors": false,
+          "transparent": false,
+          "side": 0,
+          "roughness": null,
+          "metalness": null,
+          "shared": false,
+          "roles": [],
+          "meshUses": 1
+        },
+        {
+          "uuid": "99e1951d-4ecc-43a9-8dad-eedbf53cba7a",
+          "name": "",
+          "type": "MeshBasicMaterial",
+          "color": "d94040",
+          "vertexColors": false,
+          "transparent": false,
+          "side": 0,
+          "roughness": null,
+          "metalness": null,
+          "shared": false,
+          "roles": [],
+          "meshUses": 1
+        },
+        {
+          "uuid": "dddefe74-c0f4-4d20-a109-72fc8fb9a57c",
+          "name": "",
+          "type": "MeshBasicMaterial",
+          "color": "e8c33a",
+          "vertexColors": false,
+          "transparent": false,
+          "side": 0,
+          "roughness": null,
+          "metalness": null,
+          "shared": false,
+          "roles": [],
+          "meshUses": 1
+        },
+        {
+          "uuid": "7e52b2cf-f348-44d5-9590-71465a67a702",
+          "name": "",
+          "type": "MeshBasicMaterial",
+          "color": "43b05c",
+          "vertexColors": false,
+          "transparent": false,
+          "side": 0,
+          "roughness": null,
+          "metalness": null,
+          "shared": false,
+          "roles": [],
+          "meshUses": 1
+        },
+        {
+          "uuid": "c730893d-584b-4c0f-9125-d52d19dc32da",
+          "name": "",
+          "type": "MeshBasicMaterial",
+          "color": "d94040",
+          "vertexColors": false,
+          "transparent": false,
+          "side": 0,
+          "roughness": null,
+          "metalness": null,
+          "shared": false,
+          "roles": [],
+          "meshUses": 1
+        },
+        {
+          "uuid": "f8bd93e3-0ad6-4bb1-84c4-0edae4b8862c",
+          "name": "",
+          "type": "MeshBasicMaterial",
+          "color": "e8c33a",
+          "vertexColors": false,
+          "transparent": false,
+          "side": 0,
+          "roughness": null,
+          "metalness": null,
+          "shared": false,
+          "roles": [],
+          "meshUses": 1
+        },
+        {
+          "uuid": "992c8fb7-7ca9-49ce-bf8c-9fe6a4ea0d59",
+          "name": "",
+          "type": "MeshBasicMaterial",
+          "color": "43b05c",
+          "vertexColors": false,
+          "transparent": false,
+          "side": 0,
+          "roughness": null,
+          "metalness": null,
+          "shared": false,
+          "roles": [],
+          "meshUses": 1
+        },
+        {
+          "uuid": "2dab9f4f-a7c7-467c-a144-7995007f4b2d",
+          "name": "",
+          "type": "MeshLambertMaterial",
+          "color": "e8e6e0",
+          "vertexColors": false,
+          "transparent": false,
+          "side": 0,
+          "roughness": null,
+          "metalness": null,
+          "shared": false,
+          "roles": [],
+          "meshUses": 1
+        },
+        {
+          "uuid": "91ff7d58-5b37-4fd1-a89b-47acb80d8b8c",
+          "name": "",
+          "type": "MeshBasicMaterial",
+          "color": "5fb3e8",
+          "vertexColors": false,
+          "transparent": false,
+          "side": 0,
+          "roughness": null,
+          "metalness": null,
+          "shared": false,
+          "roles": [],
+          "meshUses": 1
+        },
+        {
+          "uuid": "9f9f3c70-3acc-4ade-bde8-185e56789c1e",
+          "name": "",
+          "type": "MeshLambertMaterial",
+          "color": "8fb2c9",
+          "vertexColors": false,
+          "transparent": true,
+          "side": 0,
+          "roughness": null,
+          "metalness": null,
+          "shared": false,
+          "roles": [],
+          "meshUses": 1
+        },
+        {
+          "uuid": "d2429c10-7bef-49bb-a3b4-31516a34c643",
+          "name": "",
+          "type": "MeshLambertMaterial",
+          "color": "8fb2c9",
+          "vertexColors": false,
+          "transparent": true,
+          "side": 0,
+          "roughness": null,
+          "metalness": null,
+          "shared": false,
+          "roles": [],
+          "meshUses": 1
+        },
+        {
+          "uuid": "5bda88f7-b24d-4d51-8500-0449997941d2",
+          "name": "",
+          "type": "MeshBasicMaterial",
+          "color": "1a1c20",
+          "vertexColors": false,
+          "transparent": false,
+          "side": 0,
+          "roughness": null,
+          "metalness": null,
+          "shared": false,
+          "roles": [],
+          "meshUses": 1
+        },
+        {
+          "uuid": "0b529955-3eed-4a3b-9fae-a9eb2336c251",
+          "name": "",
+          "type": "MeshBasicMaterial",
+          "color": "d94040",
+          "vertexColors": false,
+          "transparent": false,
+          "side": 0,
+          "roughness": null,
+          "metalness": null,
+          "shared": false,
+          "roles": [],
+          "meshUses": 1
+        },
+        {
+          "uuid": "67feeaf6-b8b5-4bc0-b6e4-aa1537804a50",
+          "name": "",
+          "type": "MeshBasicMaterial",
+          "color": "e8c33a",
+          "vertexColors": false,
+          "transparent": false,
+          "side": 0,
+          "roughness": null,
+          "metalness": null,
+          "shared": false,
+          "roles": [],
+          "meshUses": 1
+        },
+        {
+          "uuid": "b92195ec-c42f-42da-bf81-1c8c6eecf4d6",
+          "name": "",
+          "type": "MeshBasicMaterial",
+          "color": "43b05c",
+          "vertexColors": false,
+          "transparent": false,
+          "side": 0,
+          "roughness": null,
+          "metalness": null,
+          "shared": false,
+          "roles": [],
+          "meshUses": 1
+        },
+        {
+          "uuid": "3856da0e-5c51-40fa-a204-24c69a714319",
+          "name": "",
+          "type": "MeshLambertMaterial",
+          "color": "7a5c3e",
+          "vertexColors": false,
+          "transparent": false,
+          "side": 0,
+          "roughness": null,
+          "metalness": null,
+          "shared": false,
+          "roles": [],
+          "meshUses": 1
+        },
+        {
+          "uuid": "9ff9b845-d0a4-459c-85f1-f18677eef2d1",
+          "name": "",
+          "type": "MeshBasicMaterial",
+          "color": "2255cc",
+          "vertexColors": false,
+          "transparent": false,
+          "side": 0,
+          "roughness": null,
+          "metalness": null,
+          "shared": false,
+          "roles": [],
+          "meshUses": 1
+        },
+        {
+          "uuid": "b3ef5d32-16f5-4a3a-bc8a-32c22406e103",
+          "name": "",
+          "type": "MeshBasicMaterial",
+          "color": "2255cc",
+          "vertexColors": false,
+          "transparent": false,
+          "side": 0,
+          "roughness": null,
+          "metalness": null,
+          "shared": false,
+          "roles": [],
+          "meshUses": 1
+        },
+        {
+          "uuid": "f003b7a5-b363-4e1c-b305-6c7f7f06768c",
+          "name": "",
+          "type": "MeshBasicMaterial",
+          "color": "2255cc",
+          "vertexColors": false,
+          "transparent": false,
+          "side": 0,
+          "roughness": null,
+          "metalness": null,
+          "shared": false,
+          "roles": [],
+          "meshUses": 1
+        },
+        {
+          "uuid": "e22db4f5-875a-4ac9-ab4f-79c6bfcc6230",
+          "name": "",
+          "type": "MeshBasicMaterial",
+          "color": "58b7d8",
+          "vertexColors": false,
+          "transparent": false,
+          "side": 0,
+          "roughness": null,
+          "metalness": null,
+          "shared": false,
+          "roles": [],
+          "meshUses": 1
+        },
+        {
+          "uuid": "d0d07368-8d57-41bb-a832-45e17130555d",
+          "name": "",
+          "type": "MeshLambertMaterial",
+          "color": "b3402f",
+          "vertexColors": false,
+          "transparent": false,
+          "side": 0,
+          "roughness": null,
+          "metalness": null,
+          "shared": false,
+          "roles": [],
+          "meshUses": 1
+        },
+        {
+          "uuid": "54043cce-5d4e-4001-98cb-540e2a3c29db",
+          "name": "",
+          "type": "MeshBasicMaterial",
+          "color": "ffffff",
+          "vertexColors": false,
+          "transparent": true,
+          "side": 0,
+          "roughness": null,
+          "metalness": null,
+          "shared": false,
+          "roles": [
+            "map"
+          ],
+          "meshUses": 1
+        },
+        {
+          "uuid": "297ea5f5-4dca-4967-9441-c626605122e8",
+          "name": "",
+          "type": "MeshStandardMaterial",
+          "color": "8a7f6e",
+          "vertexColors": false,
+          "transparent": true,
+          "side": 2,
+          "roughness": 0.8,
+          "metalness": 0,
+          "shared": true,
+          "roles": [],
+          "meshUses": 84
+        },
+        {
+          "uuid": "22099c32-0a36-4c7f-aec2-a5bb077b563f",
+          "name": "",
+          "type": "MeshStandardMaterial",
+          "color": "b0a894",
+          "vertexColors": false,
+          "transparent": false,
+          "side": 2,
+          "roughness": 0.9,
+          "metalness": 0,
+          "shared": true,
+          "roles": [],
+          "meshUses": 88
+        },
+        {
+          "uuid": "431befe6-cde6-4050-99d1-91c6f7e43ea1",
+          "name": "",
+          "type": "MeshStandardMaterial",
+          "color": "4b7a45",
+          "vertexColors": false,
+          "transparent": false,
+          "side": 2,
+          "roughness": 0.95,
+          "metalness": 0,
+          "shared": true,
+          "roles": [],
+          "meshUses": 12
+        },
+        {
+          "uuid": "44ee42e1-3be1-41a8-a78c-5d34d955f26c",
+          "name": "",
+          "type": "MeshStandardMaterial",
+          "color": "ffffff",
+          "vertexColors": false,
+          "transparent": false,
+          "side": 0,
+          "roughness": 0.95,
+          "metalness": 0,
+          "shared": false,
+          "roles": [
+            "map"
+          ],
+          "meshUses": 1
+        },
+        {
+          "uuid": "ea3598b0-39fe-4ae2-b621-b044f3b1f2cc",
+          "name": "",
+          "type": "MeshBasicMaterial",
+          "color": "97927f",
+          "vertexColors": false,
+          "transparent": false,
+          "side": 2,
+          "roughness": null,
+          "metalness": null,
+          "shared": false,
+          "roles": [],
+          "meshUses": 1
+        },
+        {
+          "uuid": "1f5240a3-3568-4096-a825-a40320017c47",
+          "name": "",
+          "type": "MeshStandardMaterial",
+          "color": "ffffff",
+          "vertexColors": false,
+          "transparent": false,
+          "side": 0,
+          "roughness": 0.95,
+          "metalness": 0,
+          "shared": false,
+          "roles": [
+            "map"
+          ],
+          "meshUses": 1
+        },
+        {
+          "uuid": "44ba48fc-ce77-4faf-a1b6-0ff1267c8e39",
+          "name": "",
+          "type": "MeshBasicMaterial",
+          "color": "97927f",
+          "vertexColors": false,
+          "transparent": false,
+          "side": 2,
+          "roughness": null,
+          "metalness": null,
+          "shared": false,
+          "roles": [],
+          "meshUses": 1
+        },
+        {
+          "uuid": "a6e12611-f5fa-47b0-b830-948b0dd25356",
+          "name": "",
+          "type": "MeshStandardMaterial",
+          "color": "ffffff",
+          "vertexColors": false,
+          "transparent": false,
+          "side": 0,
+          "roughness": 0.95,
+          "metalness": 0,
+          "shared": false,
+          "roles": [
+            "map"
+          ],
+          "meshUses": 1
+        },
+        {
+          "uuid": "8d13047c-49d7-4518-85f0-f184e6002bd2",
+          "name": "",
+          "type": "MeshBasicMaterial",
+          "color": "97927f",
+          "vertexColors": false,
+          "transparent": false,
+          "side": 2,
+          "roughness": null,
+          "metalness": null,
+          "shared": false,
+          "roles": [],
+          "meshUses": 1
+        },
+        {
+          "uuid": "d1492b00-4797-4176-8de9-18a046734e44",
+          "name": "",
+          "type": "MeshStandardMaterial",
+          "color": "ffffff",
+          "vertexColors": false,
+          "transparent": false,
+          "side": 0,
+          "roughness": 0.95,
+          "metalness": 0,
+          "shared": false,
+          "roles": [
+            "map"
+          ],
+          "meshUses": 1
+        },
+        {
+          "uuid": "ffc70e7b-b3dc-4e2c-8dbc-bdb1ba7ebb2e",
+          "name": "",
+          "type": "MeshBasicMaterial",
+          "color": "97927f",
+          "vertexColors": false,
+          "transparent": false,
+          "side": 2,
+          "roughness": null,
+          "metalness": null,
+          "shared": false,
+          "roles": [],
+          "meshUses": 1
+        },
+        {
+          "uuid": "d1b491c2-2eeb-4d3c-a29e-5621d831870b",
+          "name": "",
+          "type": "MeshStandardMaterial",
+          "color": "ffffff",
+          "vertexColors": false,
+          "transparent": false,
+          "side": 0,
+          "roughness": 0.95,
+          "metalness": 0,
+          "shared": false,
+          "roles": [
+            "map"
+          ],
+          "meshUses": 1
+        },
+        {
+          "uuid": "59f17397-46a3-4acd-a7fb-666371a84bb9",
+          "name": "",
+          "type": "MeshBasicMaterial",
+          "color": "97927f",
+          "vertexColors": false,
+          "transparent": false,
+          "side": 2,
+          "roughness": null,
+          "metalness": null,
+          "shared": false,
+          "roles": [],
+          "meshUses": 1
+        },
+        {
+          "uuid": "e45af0a8-be13-45a0-b448-40475b9830c6",
+          "name": "",
+          "type": "MeshStandardMaterial",
+          "color": "ffffff",
+          "vertexColors": false,
+          "transparent": false,
+          "side": 0,
+          "roughness": 0.95,
+          "metalness": 0,
+          "shared": false,
+          "roles": [
+            "map"
+          ],
+          "meshUses": 1
+        },
+        {
+          "uuid": "058726a8-a82a-4a9f-a0a9-29720f71e32a",
+          "name": "",
+          "type": "MeshBasicMaterial",
+          "color": "97927f",
+          "vertexColors": false,
+          "transparent": false,
+          "side": 2,
+          "roughness": null,
+          "metalness": null,
+          "shared": false,
+          "roles": [],
+          "meshUses": 1
+        },
+        {
+          "uuid": "d25ea984-1f37-4688-8d14-b49d7d6c3d44",
+          "name": "",
+          "type": "MeshStandardMaterial",
+          "color": "ffffff",
+          "vertexColors": false,
+          "transparent": false,
+          "side": 0,
+          "roughness": 0.95,
+          "metalness": 0,
+          "shared": false,
+          "roles": [
+            "map"
+          ],
+          "meshUses": 1
+        },
+        {
+          "uuid": "2cbb6550-df88-4a94-a30d-fbc5073054e1",
+          "name": "",
+          "type": "MeshBasicMaterial",
+          "color": "97927f",
+          "vertexColors": false,
+          "transparent": false,
+          "side": 2,
+          "roughness": null,
+          "metalness": null,
+          "shared": false,
+          "roles": [],
+          "meshUses": 1
+        },
+        {
+          "uuid": "5d11a350-8df4-47bf-93e4-e041a2a72cbb",
+          "name": "",
+          "type": "MeshStandardMaterial",
+          "color": "ffffff",
+          "vertexColors": false,
+          "transparent": false,
+          "side": 0,
+          "roughness": 0.95,
+          "metalness": 0,
+          "shared": false,
+          "roles": [
+            "map"
+          ],
+          "meshUses": 1
+        },
+        {
+          "uuid": "d06ae7c0-c863-4963-9d07-05fbd56e0ebb",
+          "name": "",
+          "type": "MeshBasicMaterial",
+          "color": "97927f",
+          "vertexColors": false,
+          "transparent": false,
+          "side": 2,
+          "roughness": null,
+          "metalness": null,
+          "shared": false,
+          "roles": [],
+          "meshUses": 1
+        },
+        {
+          "uuid": "6e32783f-f4c1-43f4-aa20-987b0606b684",
+          "name": "",
+          "type": "MeshPhongMaterial",
+          "color": "ffffff",
+          "vertexColors": false,
+          "transparent": false,
+          "side": 0,
+          "roughness": null,
+          "metalness": null,
+          "shared": false,
+          "roles": [],
+          "meshUses": 1
+        },
+        {
+          "uuid": "23ec6554-cffe-4e5c-b2da-5136d1daa781",
+          "name": "",
+          "type": "MeshLambertMaterial",
+          "color": "ffffff",
+          "vertexColors": false,
+          "transparent": false,
+          "side": 0,
+          "roughness": null,
+          "metalness": null,
+          "shared": false,
+          "roles": [],
+          "meshUses": 1
+        },
+        {
+          "uuid": "414b208f-4981-474b-bd5b-c91b64ec0333",
+          "name": "",
+          "type": "MeshBasicMaterial",
+          "color": "2c2f36",
+          "vertexColors": false,
+          "transparent": false,
+          "side": 0,
+          "roughness": null,
+          "metalness": null,
+          "shared": false,
+          "roles": [],
+          "meshUses": 1
+        },
+        {
+          "uuid": "a058893a-5f07-4d14-bdc1-26695bbc2725",
+          "name": "",
+          "type": "MeshBasicMaterial",
+          "color": "ffffff",
+          "vertexColors": false,
+          "transparent": true,
+          "side": 2,
+          "roughness": null,
+          "metalness": null,
+          "shared": false,
+          "roles": [
+            "map"
+          ],
+          "meshUses": 1
+        },
+        {
+          "uuid": "7ddafb64-6c9c-4d68-88e4-f4b9a272429f",
+          "name": "",
+          "type": "MeshBasicMaterial",
+          "color": "ffffff",
+          "vertexColors": false,
+          "transparent": true,
+          "side": 2,
+          "roughness": null,
+          "metalness": null,
+          "shared": false,
+          "roles": [
+            "map"
+          ],
+          "meshUses": 1
+        },
+        {
+          "uuid": "7ec2f63a-e2e9-4179-b613-86fe32a99577",
+          "name": "",
+          "type": "MeshBasicMaterial",
+          "color": "ffffff",
+          "vertexColors": false,
+          "transparent": true,
+          "side": 2,
+          "roughness": null,
+          "metalness": null,
+          "shared": false,
+          "roles": [
+            "map"
+          ],
+          "meshUses": 1
+        },
+        {
+          "uuid": "8b4631f9-d6ca-475a-8e7e-9fa3f7f88223",
+          "name": "",
+          "type": "MeshBasicMaterial",
+          "color": "ffffff",
+          "vertexColors": false,
+          "transparent": true,
+          "side": 2,
+          "roughness": null,
+          "metalness": null,
+          "shared": false,
+          "roles": [
+            "map"
+          ],
+          "meshUses": 1
+        },
+        {
+          "uuid": "20de3464-63d4-437a-9340-c5089ee635bc",
+          "name": "",
+          "type": "MeshBasicMaterial",
+          "color": "ffffff",
+          "vertexColors": false,
+          "transparent": true,
+          "side": 2,
+          "roughness": null,
+          "metalness": null,
+          "shared": false,
+          "roles": [
+            "map"
+          ],
+          "meshUses": 1
+        },
+        {
+          "uuid": "fa1c3561-4e4a-48e0-b216-23c4e593d00b",
+          "name": "",
+          "type": "MeshBasicMaterial",
+          "color": "ffffff",
+          "vertexColors": false,
+          "transparent": true,
+          "side": 2,
+          "roughness": null,
+          "metalness": null,
+          "shared": false,
+          "roles": [
+            "map"
+          ],
+          "meshUses": 1
+        },
+        {
+          "uuid": "39aeca83-aab0-46e3-9179-2a831f608445",
+          "name": "",
+          "type": "MeshBasicMaterial",
+          "color": "ffffff",
+          "vertexColors": false,
+          "transparent": true,
+          "side": 2,
+          "roughness": null,
+          "metalness": null,
+          "shared": false,
+          "roles": [
+            "map"
+          ],
+          "meshUses": 1
+        },
+        {
+          "uuid": "c23a6ef5-f069-4962-aea9-8048c87f3ede",
+          "name": "",
+          "type": "MeshBasicMaterial",
+          "color": "ffffff",
+          "vertexColors": false,
+          "transparent": true,
+          "side": 2,
+          "roughness": null,
+          "metalness": null,
+          "shared": false,
+          "roles": [
+            "map"
+          ],
+          "meshUses": 1
+        },
+        {
+          "uuid": "3ef129b4-f6ba-4566-b643-2c1226bcc827",
+          "name": "",
+          "type": "MeshBasicMaterial",
+          "color": "ffffff",
+          "vertexColors": false,
+          "transparent": true,
+          "side": 2,
+          "roughness": null,
+          "metalness": null,
+          "shared": false,
+          "roles": [
+            "map"
+          ],
+          "meshUses": 1
+        },
+        {
+          "uuid": "1b728a8b-b925-4b31-afe4-549c012c0d17",
+          "name": "",
+          "type": "MeshBasicMaterial",
+          "color": "ffffff",
+          "vertexColors": false,
+          "transparent": true,
+          "side": 2,
+          "roughness": null,
+          "metalness": null,
+          "shared": false,
+          "roles": [
+            "map"
+          ],
+          "meshUses": 1
+        },
+        {
+          "uuid": "7b59c48c-2b9d-4885-a55b-a436a7abd246",
+          "name": "",
+          "type": "MeshBasicMaterial",
+          "color": "ffffff",
+          "vertexColors": false,
+          "transparent": true,
+          "side": 2,
+          "roughness": null,
+          "metalness": null,
+          "shared": false,
+          "roles": [
+            "map"
+          ],
+          "meshUses": 1
+        },
+        {
+          "uuid": "31a1015d-7cc3-4c23-b270-936f69a01e8a",
+          "name": "",
+          "type": "MeshBasicMaterial",
+          "color": "ffffff",
+          "vertexColors": false,
+          "transparent": true,
+          "side": 2,
+          "roughness": null,
+          "metalness": null,
+          "shared": false,
+          "roles": [
+            "map"
+          ],
+          "meshUses": 1
+        },
+        {
+          "uuid": "bcc46305-2d71-4de1-a808-dd416a4030cc",
+          "name": "",
+          "type": "MeshBasicMaterial",
+          "color": "ffffff",
+          "vertexColors": false,
+          "transparent": true,
+          "side": 2,
+          "roughness": null,
+          "metalness": null,
+          "shared": false,
+          "roles": [
+            "map"
+          ],
+          "meshUses": 1
+        },
+        {
+          "uuid": "05985c86-3c02-4e0c-81b8-038b98de845c",
+          "name": "",
+          "type": "MeshBasicMaterial",
+          "color": "ffffff",
+          "vertexColors": false,
+          "transparent": true,
+          "side": 2,
+          "roughness": null,
+          "metalness": null,
+          "shared": false,
+          "roles": [
+            "map"
+          ],
+          "meshUses": 1
+        },
+        {
+          "uuid": "7b5bc9c5-941f-47e8-9c6d-30b50c16c596",
+          "name": "",
+          "type": "MeshBasicMaterial",
+          "color": "ffffff",
+          "vertexColors": false,
+          "transparent": true,
+          "side": 2,
+          "roughness": null,
+          "metalness": null,
+          "shared": false,
+          "roles": [
+            "map"
+          ],
+          "meshUses": 1
+        },
+        {
+          "uuid": "92d690ad-ce23-455f-b61e-8c282ddca2cf",
+          "name": "",
+          "type": "MeshBasicMaterial",
+          "color": "ffffff",
+          "vertexColors": false,
+          "transparent": true,
+          "side": 2,
+          "roughness": null,
+          "metalness": null,
+          "shared": false,
+          "roles": [
+            "map"
+          ],
+          "meshUses": 1
+        },
+        {
+          "uuid": "88f634c2-2974-4312-8323-9713f455b515",
+          "name": "",
+          "type": "MeshBasicMaterial",
+          "color": "ffffff",
+          "vertexColors": false,
+          "transparent": true,
+          "side": 2,
+          "roughness": null,
+          "metalness": null,
+          "shared": false,
+          "roles": [
+            "map"
+          ],
+          "meshUses": 1
+        },
+        {
+          "uuid": "73790e9b-1413-4d71-918b-9b40c3d7fb48",
+          "name": "",
+          "type": "MeshBasicMaterial",
+          "color": "ffffff",
+          "vertexColors": false,
+          "transparent": true,
+          "side": 2,
+          "roughness": null,
+          "metalness": null,
+          "shared": false,
+          "roles": [
+            "map"
+          ],
+          "meshUses": 1
+        },
+        {
+          "uuid": "f3e40d11-df33-4eb2-9ab6-7023d6d4f140",
+          "name": "",
+          "type": "MeshLambertMaterial",
+          "color": "555b64",
+          "vertexColors": false,
+          "transparent": false,
+          "side": 0,
+          "roughness": null,
+          "metalness": null,
+          "shared": false,
+          "roles": [],
+          "meshUses": 1
+        },
+        {
+          "uuid": "dbbf5ff4-3e24-43fb-b24b-b1149f165cbc",
+          "name": "",
+          "type": "MeshLambertMaterial",
+          "color": "e8e6e0",
+          "vertexColors": false,
+          "transparent": false,
+          "side": 0,
+          "roughness": null,
+          "metalness": null,
+          "shared": false,
+          "roles": [],
+          "meshUses": 1
+        },
+        {
+          "uuid": "df5941d7-6e7b-4b29-a9a9-dd61c89d9181",
+          "name": "",
+          "type": "MeshBasicMaterial",
+          "color": "58b7d8",
+          "vertexColors": false,
+          "transparent": false,
+          "side": 0,
+          "roughness": null,
+          "metalness": null,
+          "shared": false,
+          "roles": [],
+          "meshUses": 1
+        },
+        {
+          "uuid": "57859fd0-9053-44a4-9267-631f393574b4",
+          "name": "",
+          "type": "MeshLambertMaterial",
+          "color": "b3402f",
+          "vertexColors": false,
+          "transparent": false,
+          "side": 0,
+          "roughness": null,
+          "metalness": null,
+          "shared": false,
+          "roles": [],
+          "meshUses": 1
+        },
+        {
+          "uuid": "a1ed5e9f-1569-43c2-9cd4-b2d4373f7a9d",
+          "name": "",
+          "type": "MeshBasicMaterial",
+          "color": "58b7d8",
+          "vertexColors": false,
+          "transparent": false,
+          "side": 0,
+          "roughness": null,
+          "metalness": null,
+          "shared": false,
+          "roles": [],
+          "meshUses": 1
+        },
+        {
+          "uuid": "7dac6089-aa22-45f1-9c81-a22a3ec226d7",
+          "name": "",
+          "type": "MeshBasicMaterial",
+          "color": "58b7d8",
+          "vertexColors": false,
+          "transparent": false,
+          "side": 0,
+          "roughness": null,
+          "metalness": null,
+          "shared": false,
+          "roles": [],
+          "meshUses": 1
+        },
+        {
+          "uuid": "e4acb6e5-6031-49f4-8073-5681d5701fdc",
+          "name": "",
+          "type": "MeshLambertMaterial",
+          "color": "555b64",
+          "vertexColors": false,
+          "transparent": false,
+          "side": 0,
+          "roughness": null,
+          "metalness": null,
+          "shared": false,
+          "roles": [],
+          "meshUses": 1
+        },
+        {
+          "uuid": "bcdacfaa-4f6d-4e6e-954b-1891f9adfe7a",
+          "name": "",
+          "type": "MeshLambertMaterial",
+          "color": "e8e6e0",
+          "vertexColors": false,
+          "transparent": false,
+          "side": 0,
+          "roughness": null,
+          "metalness": null,
+          "shared": false,
+          "roles": [],
+          "meshUses": 1
+        },
+        {
+          "uuid": "6b59aee7-c983-4305-b394-07655bae1c45",
+          "name": "",
+          "type": "MeshBasicMaterial",
+          "color": "5fb3e8",
+          "vertexColors": false,
+          "transparent": false,
+          "side": 0,
+          "roughness": null,
+          "metalness": null,
+          "shared": false,
+          "roles": [],
+          "meshUses": 1
+        },
+        {
+          "uuid": "baec6637-eff8-49db-aadc-34855fe45332",
+          "name": "",
+          "type": "MeshLambertMaterial",
+          "color": "7a5c3e",
+          "vertexColors": false,
+          "transparent": false,
+          "side": 0,
+          "roughness": null,
+          "metalness": null,
+          "shared": false,
+          "roles": [],
+          "meshUses": 1
+        },
+        {
+          "uuid": "670418fa-3ffe-40aa-b6f0-0315aca99a0a",
+          "name": "",
+          "type": "MeshLambertMaterial",
+          "color": "3a3f47",
+          "vertexColors": false,
+          "transparent": false,
+          "side": 0,
+          "roughness": null,
+          "metalness": null,
+          "shared": false,
+          "roles": [],
+          "meshUses": 1
+        },
+        {
+          "uuid": "a67e8669-641e-438b-9e69-d76db8cea498",
+          "name": "",
+          "type": "MeshStandardMaterial",
+          "color": "d3c89e",
+          "vertexColors": false,
+          "transparent": false,
+          "side": 0,
+          "roughness": 0.85,
+          "metalness": 0,
+          "shared": true,
+          "roles": [],
+          "meshUses": 1
+        },
+        {
+          "uuid": "f2f56acf-69e2-4bb8-a36d-9600816d2b13",
+          "name": "",
+          "type": "MeshLambertMaterial",
+          "color": "555b64",
+          "vertexColors": false,
+          "transparent": false,
+          "side": 0,
+          "roughness": null,
+          "metalness": null,
+          "shared": false,
+          "roles": [],
+          "meshUses": 1
+        },
+        {
+          "uuid": "f69b265d-6dd2-410b-8128-82a85fa1e9d7",
+          "name": "",
+          "type": "MeshLambertMaterial",
+          "color": "3a3f47",
+          "vertexColors": false,
+          "transparent": false,
+          "side": 0,
+          "roughness": null,
+          "metalness": null,
+          "shared": false,
+          "roles": [],
+          "meshUses": 1
+        },
+        {
+          "uuid": "0d5dfb61-3bd7-4869-bbd0-2c85d8723479",
+          "name": "",
+          "type": "MeshLambertMaterial",
+          "color": "7a5c3e",
+          "vertexColors": false,
+          "transparent": false,
+          "side": 0,
+          "roughness": null,
+          "metalness": null,
+          "shared": false,
+          "roles": [],
+          "meshUses": 1
+        },
+        {
+          "uuid": "d8b14e2e-b123-45c6-89f1-952c6a71141d",
+          "name": "",
+          "type": "MeshLambertMaterial",
+          "color": "e8e6e0",
+          "vertexColors": false,
+          "transparent": false,
+          "side": 0,
+          "roughness": null,
+          "metalness": null,
+          "shared": false,
+          "roles": [],
+          "meshUses": 1
+        },
+        {
+          "uuid": "03f2d043-4a52-46c1-a113-9c7f04886597",
+          "name": "",
+          "type": "MeshBasicMaterial",
+          "color": "58b7d8",
+          "vertexColors": false,
+          "transparent": false,
+          "side": 0,
+          "roughness": null,
+          "metalness": null,
+          "shared": false,
+          "roles": [],
+          "meshUses": 1
+        },
+        {
+          "uuid": "e875cdd1-211c-47eb-8e5b-760d96808ab0",
+          "name": "",
+          "type": "MeshLambertMaterial",
+          "color": "b3402f",
+          "vertexColors": false,
+          "transparent": false,
+          "side": 0,
+          "roughness": null,
+          "metalness": null,
+          "shared": false,
+          "roles": [],
+          "meshUses": 1
+        },
+        {
+          "uuid": "8a8beeaa-d9ec-456b-b7fb-5b86d1fb7ccf",
+          "name": "",
+          "type": "MeshBasicMaterial",
+          "color": "58b7d8",
+          "vertexColors": false,
+          "transparent": false,
+          "side": 0,
+          "roughness": null,
+          "metalness": null,
+          "shared": false,
+          "roles": [],
+          "meshUses": 1
+        },
+        {
+          "uuid": "25f6dd03-1798-4d7a-999e-995929dbeeca",
+          "name": "",
+          "type": "MeshLambertMaterial",
+          "color": "3a3f47",
+          "vertexColors": false,
+          "transparent": false,
+          "side": 0,
+          "roughness": null,
+          "metalness": null,
+          "shared": false,
+          "roles": [],
+          "meshUses": 1
+        },
+        {
+          "uuid": "a6fe33d0-aa67-411e-b9f1-3dbae6f59352",
+          "name": "",
+          "type": "MeshLambertMaterial",
+          "color": "555b64",
+          "vertexColors": false,
+          "transparent": false,
+          "side": 0,
+          "roughness": null,
+          "metalness": null,
+          "shared": false,
+          "roles": [],
+          "meshUses": 1
+        },
+        {
+          "uuid": "a16a326e-8d31-4bf5-ad2e-c41b1a17c2de",
+          "name": "",
+          "type": "MeshLambertMaterial",
+          "color": "7a5c3e",
+          "vertexColors": false,
+          "transparent": false,
+          "side": 0,
+          "roughness": null,
+          "metalness": null,
+          "shared": false,
+          "roles": [],
+          "meshUses": 1
+        },
+        {
+          "uuid": "469e3395-bf87-4540-9b8a-8d07f1437ee7",
+          "name": "",
+          "type": "MeshLambertMaterial",
+          "color": "3a3f47",
+          "vertexColors": false,
+          "transparent": false,
+          "side": 0,
+          "roughness": null,
+          "metalness": null,
+          "shared": false,
+          "roles": [],
+          "meshUses": 1
+        }
+      ],
+      "textures": [
+        {
+          "uuid": "50fb8f23-ae1f-409d-a8c9-6a1226241bed",
+          "width": 2048,
+          "height": 2048,
+          "colorSpace": "srgb",
+          "roles": [
+            "map"
+          ]
+        },
+        {
+          "uuid": "07d1b0a6-716d-42a1-91df-f276b9c3910e",
+          "width": 1600,
+          "height": 2096,
+          "colorSpace": "srgb",
+          "roles": [
+            "map"
+          ]
+        },
+        {
+          "uuid": "1600bc66-924d-46e8-96ff-dc85ce7723e4",
+          "width": 1600,
+          "height": 2096,
+          "colorSpace": "",
+          "roles": [
+            "normalMap"
+          ]
+        },
+        {
+          "uuid": "51dc75c8-7556-42ef-b86b-171fb290c7f2",
+          "width": 1600,
+          "height": 2096,
+          "colorSpace": "",
+          "roles": [
+            "roughnessMap"
+          ]
+        },
+        {
+          "uuid": "4c114d51-ed41-4393-9ca1-1db814fd701d",
+          "width": 1600,
+          "height": 2096,
+          "colorSpace": "srgb",
+          "roles": [
+            "emissiveMap"
+          ]
+        },
+        {
+          "uuid": "9215f559-eb75-4594-9cb9-5c10eece6686",
+          "width": 128,
+          "height": 128,
+          "colorSpace": "",
+          "roles": [
+            "normalMap"
+          ]
+        },
+        {
+          "uuid": "d59ed5f3-bbfd-4295-841f-a226f68fbeee",
+          "width": 64,
+          "height": 64,
+          "colorSpace": "",
+          "roles": [
+            "roughnessMap"
+          ]
+        },
+        {
+          "uuid": "7676fd89-d3d5-4358-bba5-5801b16595ba",
+          "width": 128,
+          "height": 256,
+          "colorSpace": "srgb",
+          "roles": [
+            "map"
+          ]
+        },
+        {
+          "uuid": "517b56b1-b621-48b4-8930-01f0549cd1ff",
+          "width": 128,
+          "height": 128,
+          "colorSpace": "",
+          "roles": [
+            "normalMap"
+          ]
+        },
+        {
+          "uuid": "43bc6f82-27c9-49d4-95c2-2034145f6bf3",
+          "width": 64,
+          "height": 64,
+          "colorSpace": "",
+          "roles": [
+            "roughnessMap"
+          ]
+        },
+        {
+          "uuid": "cbc9b186-8363-4171-b19e-b1489bd19499",
+          "width": 128,
+          "height": 256,
+          "colorSpace": "srgb",
+          "roles": [
+            "map"
+          ]
+        },
+        {
+          "uuid": "8c70d100-af93-4e26-869e-dbe9f82d757b",
+          "width": 128,
+          "height": 256,
+          "colorSpace": "srgb",
+          "roles": [
+            "map"
+          ]
+        },
+        {
+          "uuid": "1c4fceb2-8b7e-4af2-a2d6-ea8b355b44eb",
+          "width": 128,
+          "height": 256,
+          "colorSpace": "srgb",
+          "roles": [
+            "map"
+          ]
+        },
+        {
+          "uuid": "df89bfe3-8b6b-4f93-b713-d79f257c8cc6",
+          "width": 64,
+          "height": 64,
+          "colorSpace": "srgb",
+          "roles": [
+            "map"
+          ]
+        },
+        {
+          "uuid": "14e817b4-f79b-490e-8eca-3d67d2d74e55",
+          "width": 293,
+          "height": 96,
+          "colorSpace": "srgb",
+          "roles": [
+            "map"
+          ]
+        },
+        {
+          "uuid": "146eb5ad-3904-43ed-9967-b8318b7fc43e",
+          "width": 128,
+          "height": 128,
+          "colorSpace": "srgb",
+          "roles": [
+            "map"
+          ]
+        },
+        {
+          "uuid": "68b5817d-c795-4a08-9a2a-58c64b8005aa",
+          "width": 1024,
+          "height": 1024,
+          "colorSpace": "srgb",
+          "roles": [
+            "map"
+          ]
+        },
+        {
+          "uuid": "d8a61b12-6d48-4173-87aa-76d5c121aa9c",
+          "width": 1024,
+          "height": 1024,
+          "colorSpace": "srgb",
+          "roles": [
+            "map"
+          ]
+        },
+        {
+          "uuid": "2eb8b944-e753-44dc-a521-97b95b51f7e1",
+          "width": 1024,
+          "height": 1024,
+          "colorSpace": "srgb",
+          "roles": [
+            "map"
+          ]
+        },
+        {
+          "uuid": "86c8e927-5c55-4da3-a199-9c383d65e363",
+          "width": 1024,
+          "height": 1024,
+          "colorSpace": "srgb",
+          "roles": [
+            "map"
+          ]
+        },
+        {
+          "uuid": "3941156e-0ba4-411a-9e49-91611ff16e44",
+          "width": 1024,
+          "height": 1024,
+          "colorSpace": "srgb",
+          "roles": [
+            "map"
+          ]
+        },
+        {
+          "uuid": "d76b0393-66bd-4aee-a61c-59d73092c954",
+          "width": 1024,
+          "height": 1024,
+          "colorSpace": "srgb",
+          "roles": [
+            "map"
+          ]
+        },
+        {
+          "uuid": "3f052c60-7fd3-432e-8e4e-756dbefd6a7e",
+          "width": 1024,
+          "height": 1024,
+          "colorSpace": "srgb",
+          "roles": [
+            "map"
+          ]
+        },
+        {
+          "uuid": "e165830e-ffd2-4d9f-b0e6-855fa163fc3f",
+          "width": 1024,
+          "height": 1024,
+          "colorSpace": "srgb",
+          "roles": [
+            "map"
+          ]
+        },
+        {
+          "uuid": "e1b8d8e8-bbb8-4a2c-b1f2-65321a982be4",
+          "width": 273,
+          "height": 56,
+          "colorSpace": "srgb",
+          "roles": [
+            "map"
+          ]
+        },
+        {
+          "uuid": "0fa4cd72-4692-42f6-a751-568bc0d6ff88",
+          "width": 640,
+          "height": 56,
+          "colorSpace": "srgb",
+          "roles": [
+            "map"
+          ]
+        },
+        {
+          "uuid": "9932072f-14d2-490c-ba0b-1938e9d5ff70",
+          "width": 338,
+          "height": 56,
+          "colorSpace": "srgb",
+          "roles": [
+            "map"
+          ]
+        },
+        {
+          "uuid": "5f5c8d66-6fb0-4e24-94fa-cfeda33316ee",
+          "width": 251,
+          "height": 56,
+          "colorSpace": "srgb",
+          "roles": [
+            "map"
+          ]
+        },
+        {
+          "uuid": "b19db174-befd-478e-a2fb-9bf4ee8f8e86",
+          "width": 307,
+          "height": 56,
+          "colorSpace": "srgb",
+          "roles": [
+            "map"
+          ]
+        },
+        {
+          "uuid": "d6ab7826-4fba-421d-bc7e-63e1fedbe75d",
+          "width": 214,
+          "height": 56,
+          "colorSpace": "srgb",
+          "roles": [
+            "map"
+          ]
+        },
+        {
+          "uuid": "e5227d7c-6100-4dae-a6fa-ebbc74c79edf",
+          "width": 315,
+          "height": 56,
+          "colorSpace": "srgb",
+          "roles": [
+            "map"
+          ]
+        },
+        {
+          "uuid": "6057a67b-f158-4210-948f-3da605a54d0c",
+          "width": 408,
+          "height": 56,
+          "colorSpace": "srgb",
+          "roles": [
+            "map"
+          ]
+        },
+        {
+          "uuid": "23209779-220f-48d9-b037-192d89bacd01",
+          "width": 237,
+          "height": 56,
+          "colorSpace": "srgb",
+          "roles": [
+            "map"
+          ]
+        },
+        {
+          "uuid": "8312167a-d930-44bf-8ba4-257fc1151155",
+          "width": 229,
+          "height": 56,
+          "colorSpace": "srgb",
+          "roles": [
+            "map"
+          ]
+        },
+        {
+          "uuid": "3587ae85-4488-49f2-b838-491531dfe805",
+          "width": 253,
+          "height": 56,
+          "colorSpace": "srgb",
+          "roles": [
+            "map"
+          ]
+        },
+        {
+          "uuid": "930b072f-b37a-4e4b-b966-27727bf106c1",
+          "width": 155,
+          "height": 56,
+          "colorSpace": "srgb",
+          "roles": [
+            "map"
+          ]
+        },
+        {
+          "uuid": "e26d0328-1d61-48e6-bf77-9d8f80749f38",
+          "width": 238,
+          "height": 56,
+          "colorSpace": "srgb",
+          "roles": [
+            "map"
+          ]
+        },
+        {
+          "uuid": "99e5b8b4-e516-44a7-aa5d-5cdf54263bcb",
+          "width": 444,
+          "height": 56,
+          "colorSpace": "srgb",
+          "roles": [
+            "map"
+          ]
+        },
+        {
+          "uuid": "75aceb56-9b39-4569-b0ba-92ddcffbf721",
+          "width": 216,
+          "height": 56,
+          "colorSpace": "srgb",
+          "roles": [
+            "map"
+          ]
+        },
+        {
+          "uuid": "e8fc8d5a-31b6-471b-9cbf-ac34c6802472",
+          "width": 261,
+          "height": 56,
+          "colorSpace": "srgb",
+          "roles": [
+            "map"
+          ]
+        },
+        {
+          "uuid": "d06cac13-c079-4637-8473-be4b7574dd74",
+          "width": 289,
+          "height": 56,
+          "colorSpace": "srgb",
+          "roles": [
+            "map"
+          ]
+        },
+        {
+          "uuid": "c5c60957-6096-4316-a659-35a09a271b9a",
+          "width": 150,
+          "height": 56,
+          "colorSpace": "srgb",
+          "roles": [
+            "map"
+          ]
+        }
+      ],
+      "factoryCache": {
+        "factories": {
+          "building": [
+            {
+              "key": "16777215|",
+              "uuid": "27c9aae4-3b51-41ac-b05d-d05bf369874d",
+              "type": "MeshStandardMaterial"
+            }
+          ],
+          "roof": [
+            {
+              "key": "9407878|false",
+              "uuid": "17f7fca2-aabd-479f-82b9-0d71d5479e19",
+              "type": "MeshStandardMaterial"
+            },
+            {
+              "key": "10113856|true",
+              "uuid": "dfdbc164-7849-49ab-b878-d436851de747",
+              "type": "MeshStandardMaterial"
+            },
+            {
+              "key": "8145466|true",
+              "uuid": "c5123b95-54b8-4aff-af5c-3d077a865fbc",
+              "type": "MeshStandardMaterial"
+            }
+          ],
+          "road": [
+            {
+              "key": "path|10130564",
+              "uuid": "5ac8625d-d6d5-4c2d-b1a7-fff935e3beb9",
+              "type": "MeshStandardMaterial"
+            },
+            {
+              "key": "path|11049586",
+              "uuid": "52f0ebcb-3bc4-4f7e-b2d5-158c429fe1e7",
+              "type": "MeshStandardMaterial"
+            },
+            {
+              "key": "arterial|6120300",
+              "uuid": "4703562b-b236-40da-9542-a292d3056365",
+              "type": "MeshStandardMaterial"
+            },
+            {
+              "key": "residential|7172988",
+              "uuid": "aeea315e-384b-4870-a75c-2c5b0c15a296",
+              "type": "MeshStandardMaterial"
+            },
+            {
+              "key": "plain|8028296",
+              "uuid": "82a3de6e-3b6a-4b87-bf65-2be7145a8941",
+              "type": "MeshStandardMaterial"
+            },
+            {
+              "key": "arterial|6580851",
+              "uuid": "441ee2d0-ad25-4d9c-ae95-086f217665f9",
+              "type": "MeshStandardMaterial"
+            },
+            {
+              "key": "plain|6258076",
+              "uuid": "76884359-c8f6-4dc9-a859-b8b317b4d23d",
+              "type": "MeshStandardMaterial"
+            }
+          ],
+          "simple": [
+            {
+              "key": "7177384|false|1|0.75|0|false|false|0|0",
+              "uuid": "8e0a403d-80f8-4faa-a286-55b51958be4a",
+              "type": "MeshStandardMaterial"
+            },
+            {
+              "key": "4147804|false|1|0.8|0|false|false|0|0",
+              "uuid": "3f1f0f87-5475-452f-bb02-174927f9bd7c",
+              "type": "MeshStandardMaterial"
+            },
+            {
+              "key": "14271144|false|1|0.65|0|false|false|0|0",
+              "uuid": "32d5aeb5-3843-430c-8d4b-9c7eeb0eead5",
+              "type": "MeshStandardMaterial"
+            },
+            {
+              "key": "12106946|false|1|0.8|0|false|false|0|0",
+              "uuid": "e53e6aab-4825-498d-b68b-d250e7520ee1",
+              "type": "MeshStandardMaterial"
+            },
+            {
+              "key": "16777215|false|1|0.75|0|true|false|0|0",
+              "uuid": "afcb1cf2-85f7-4a06-b950-7c2b79554b6a",
+              "type": "MeshStandardMaterial"
+            },
+            {
+              "key": "9682303|false|1|0.85|0|false|false|0|0",
+              "uuid": "889e4312-5121-49f4-80bc-182ea9111af0",
+              "type": "MeshStandardMaterial"
+            },
+            {
+              "key": "5217885|false|1|0.85|0|false|false|0|0",
+              "uuid": "3e4e4ca0-7d7d-4951-8901-c14e00937c3f",
+              "type": "MeshStandardMaterial"
+            },
+            {
+              "key": "4956113|false|1|0.85|0|false|false|0|0",
+              "uuid": "44f12349-425d-41f5-93d3-054fd9b05fbb",
+              "type": "MeshStandardMaterial"
+            },
+            {
+              "key": "9080984|false|1|0.85|0|false|false|0|0",
+              "uuid": "6fe6bfaf-dfc6-42f4-b2e6-bbec4e833868",
+              "type": "MeshStandardMaterial"
+            },
+            {
+              "key": "16777215|false|1|0.9|0|true|true|0|0",
+              "uuid": "48fd039e-a1dc-4999-bc7e-719ffb9541b5",
+              "type": "MeshStandardMaterial"
+            },
+            {
+              "key": "9147294|false|1|0.7|0.2|false|false|2|0",
+              "uuid": "5a38db83-7ede-4da2-9e32-7ebb163b8158",
+              "type": "MeshStandardMaterial"
+            },
+            {
+              "key": "10133672|false|1|0.85|0|false|false|0|0",
+              "uuid": "3447616d-3029-456b-9995-30671bd90795",
+              "type": "MeshStandardMaterial"
+            },
+            {
+              "key": "4870232|false|1|0.8|0|false|false|0|0",
+              "uuid": "cae9a070-9725-485b-82e4-7bd0a798b5a8",
+              "type": "MeshStandardMaterial"
+            },
+            {
+              "key": "12169892|false|1|0.85|0|false|false|0|0",
+              "uuid": "952ef157-033c-4c10-b85c-938dd989507e",
+              "type": "MeshStandardMaterial"
+            },
+            {
+              "key": "5593956|false|1|0.7|0.15|false|false|0|0",
+              "uuid": "a65df4ec-590c-41f2-af06-ee10336d8053",
+              "type": "MeshStandardMaterial"
+            },
+            {
+              "key": "11577492|false|1|0.9|0|false|false|2|0",
+              "uuid": "22099c32-0a36-4c7f-aec2-a5bb077b563f",
+              "type": "MeshStandardMaterial"
+            },
+            {
+              "key": "11049600|false|1|0.9|0|false|false|2|0",
+              "uuid": "af81360b-2acf-4f4f-95f5-0c0e8280ae48",
+              "type": "MeshStandardMaterial"
+            },
+            {
+              "key": "9076590|true|0.75|0.8|0|false|false|2|0",
+              "uuid": "297ea5f5-4dca-4967-9441-c626605122e8",
+              "type": "MeshStandardMaterial"
+            },
+            {
+              "key": "4946501|false|1|0.95|0|false|false|2|0",
+              "uuid": "431befe6-cde6-4050-99d1-91c6f7e43ea1",
+              "type": "MeshStandardMaterial"
+            },
+            {
+              "key": "13879454|false|1|0.85|0|false|false|0|0",
+              "uuid": "a67e8669-641e-438b-9e69-d76db8cea498",
+              "type": "MeshStandardMaterial"
+            }
+          ]
+        },
+        "roadMaterialCount": 13,
+        "sharedTextureCount": 17,
+        "textureFamilies": {
+          "normals": [
+            "plaster",
+            "concrete",
+            "asphalt"
+          ],
+          "roughness": [
+            "plaster",
+            "roof",
+            "asphalt"
+          ],
+          "roads": [
+            "path",
+            "arterial",
+            "residential",
+            "plain"
+          ],
+          "facade": true,
+          "litWindows": true,
+          "highFacadeAtlases": true,
+          "rail": true
+        }
+      }
+    },
+    "unavailableMeasurements": [
+      {
+        "name": "estimatedGpuMemoryBytes",
+        "reason": "WebGL does not expose reliable allocated VRAM bytes; geometry and texture object counts are reported instead."
+      },
+      {
+        "name": "ktx2GpuUploadCompletionMs",
+        "reason": "WebGL exposes synchronous upload submission but not a portable completion timestamp; GPU residency is estimated from transcoded compressed mip payloads."
+      },
+      {
+        "name": "ktx2WasmCompileMs",
+        "reason": "Three.js 0.170.0 compiles Basis WASM inside KTX2Loader workers; its public API does not expose compile and transcode timings separately."
+      }
+    ],
+    "validationErrors": [],
+    "hostTelemetry": {
+      "available": false,
+      "reason": "Disabled by --skip-host-telemetry"
+    },
+    "environment": {
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36",
+      "platform": "Win32",
+      "hardwareConcurrency": 20,
+      "deviceMemoryGb": 16,
+      "visibilityState": "visible",
+      "viewport": {
+        "width": 1280,
+        "height": 720,
+        "devicePixelRatio": 1.0000000149011612
+      },
+      "webgl": {
+        "version": "WebGL 2.0 (OpenGL ES 3.0 Chromium)",
+        "vendor": "Google Inc. (Intel)",
+        "renderer": "ANGLE (Intel, Intel(R) UHD Graphics (0x0000A78B) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+        "webgl2": true,
+        "debugRendererInfoAvailable": true
+      },
+      "hasFocus": true,
+      "focusLossCount": 0,
+      "visibilityLossCount": 0
+    },
+    "triangles": 170,
+    "reactRenders": 24,
+    "minimapDraws": 52,
+    "hudUpdates": 1
+  },
+  "globe": {
+    "skipped": true
+  },
+  "error": null,
+  "hostTelemetry": {
+    "available": false,
+    "reason": "Disabled by --skip-host-telemetry"
+  },
+  "diagnostics": {
+    "consoleErrors": [],
+    "pageErrors": [],
+    "assetFailures": []
+  }
+}

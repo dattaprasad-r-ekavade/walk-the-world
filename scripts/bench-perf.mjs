@@ -656,6 +656,7 @@ async function benchStreet(page) {
         z: window.__streetDebug.player.z,
       } : null,
       vehicleActive: window.__streetDebug?.vehicle?.active === true,
+      streetLighting: window.__streetDebug?.streetLightStats?.() || null,
       environment: {
         ...(counters?.environment || {}),
         visibilityState: document.visibilityState,
@@ -798,6 +799,7 @@ async function benchStreet(page) {
     settings: metrics.perf?.settings || {},
     cityBuilder: metrics.cityBuilder,
     cityDataCopyMode: metrics.cityDataCopyMode,
+    streetLighting: metrics.streetLighting,
     resourceCounts: metrics.perf?.resourceCounts || {},
     materialInventory,
     unavailableMeasurements: metrics.perf?.unavailableMeasurements || [],
