@@ -317,7 +317,7 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false, demo
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.12;
     renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = THREE.PCFShadowMap; // cheaper than PCFSoft (fewer taps per fragment)
+    renderer.shadowMap.type = THREE.PCFShadowMap; // soft PCF mode in r182+
     // PERF: three.js re-renders the whole shadow map EVERY frame by default.
     // With a 2048 map over ~2000 buildings that is a second full scene pass
     // per frame — the single biggest FPS cost. Drive it manually instead:
