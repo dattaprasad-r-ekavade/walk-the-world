@@ -694,9 +694,9 @@ release gates. Avoid bulk library imports.
 Files: materials.js, env-map.js, post-fx.js, street-lights.js, ground-tiles.js,
 street/assemble-city.js and StreetEngine.js.
 
-- [ ] 4.1 Fix reference poses for showcase day/dusk/night/rain. Tune exposure,
+- [x] 4.1 Fix reference poses for showcase day/dusk/night/rain. Tune exposure,
   sky/fog and palettes before more effects; preserve geography/night legibility.
-- [ ] 4.2 Refine existing road ribbon scale, roughness, normals, markings and
+- [x] 4.2 Refine existing road ribbon scale, roughness, normals, markings and
   terrain fit. Remove duplicate layers/z-fighting before more decals. Keep far
   painted coverage and reserve detail for useful near views.
 - [ ] 4.3 Tune existing wetness and validate late-created road materials inherit
@@ -904,15 +904,17 @@ for Cesium, imagery and model resources. SSR, volumetrics, displacement, dense
 skeletal crowds and shadowed lamp arrays require separate high-tier budgets.
 None is a prerequisite for this sequence.
 
-**Next bounded work:** Stage 3.7 GLB optimization and Stage 3.8 content-addressed
-runtime assets, revision-aware caching and post-input-ready KTX streaming are
-implemented. Proceed to Stage 4.1: fix reference poses for the showcase
-day/dusk/night/rain conditions and tune exposure, sky/fog and palettes before
-adding effects. Stage 0.8 dense live-city cold/warm walk/drive, Stage 1 mobile
-assembly and input latency, Stage 1.3 low-core worker plus KTX2
-contention/memory, and lower-memory/mobile high-atlas checks remain release
-gates. Recorded Rome replay is client/streaming evidence, not live Overpass
-evidence.
+**Next bounded work:** Stages 3.7 and 3.8 and Stage 4.1 are implemented; Stage
+4.2 road ribbons are refined and documented in
+[the road-ribbon review](benchmarks/results/stage4/road-ribbons.md). Proceed to
+Stage 4.3: tune existing wetness and verify newly streamed road materials
+inherit current weather, including real-GPU reflection and visual review. The
+Rome night capture still shows very dark asphalt on unlit road, so reassess it
+with wetness and nearby light pools. Stage 0.8 dense live-city cold/warm
+walk/drive, Stage 1 mobile assembly and input latency, Stage 1.3 low-core worker
+plus KTX2 contention/memory, and lower-memory/mobile high-atlas checks remain
+release gates. Recorded Rome replay is client/streaming evidence, not live
+Overpass evidence.
 
 **Open acceptance gate:** Stage 0.8 still needs matched dense live-city cold/
 warm and walk/drive boundary measurements. The 28 October Manhattan retries

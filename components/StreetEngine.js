@@ -529,7 +529,7 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false }) {
     // ---- settings hooks (time of day / weather / quality) ----
     const daySky = new THREE.Color(0x9cc4e8);
     const duskSky = new THREE.Color(0xd8926a);
-    const nightSky = new THREE.Color(0x05080f); // near-black: darkness sells lamps
+    const nightSky = new THREE.Color(0x121b2d); // deep blue: keep the horizon readable
     let weatherAmt = 0;
     const sunDir = new THREE.Vector3(300, 500, -200);
     const applySky = (hour) => {
@@ -539,8 +539,9 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false }) {
       sunDir.set(Math.cos(t) * 500, Math.max(elev, 0.08) * 500, -200);
       sun.position.set(sunDir.x, sunDir.y, sunDir.z);
       sun.intensity = Math.max(0, elev) * 1.6 + 0.05;
-      // keep hemi low — PMREM env map carries most of the ambient/reflections
-      hemi.intensity = 0.12 + Math.max(0, elev) * 0.28;
+      // Soft fill follows the sun; the PMREM environment carries reflections.
+      // The higher night floor keeps unlit street surfaces from collapsing to black.
+      hemi.intensity = 0.38 + Math.max(0, elev) * 0.08;
       envCtrl.apply(scene, hour, weatherAmt);
       // windows light up as the sun sets (elev < ~0.08 → fully lit)
       const winGlow = Math.max(0, Math.min(1, (0.08 - elev) * 9)) * 0.85;
@@ -554,18 +555,21 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false }) {
       if (elev > 0.25) sky.copy(daySky);
       else if (elev > -0.05) sky.lerpColors(duskSky, daySky, (elev + 0.05) / 0.3);
       else sky.copy(nightSky);
-      sky.lerp(new THREE.Color(0x8a8f96), weatherAmt * 0.7); // overcast grey
+      const overcastSky = elev > 0.25 ? 0x8a8f96 : elev > -0.05 ? 0x766d74 : 0x37414f;
+      const weatherBlend = weatherAmt * (elev > 0.25 ? 0.7 : elev > -0.05 ? 0.55 : 0.5);
+      sky.lerp(new THREE.Color(overcastSky), weatherBlend);
       scene.background = sky;
       scene.fog.color.copy(sky);
       // denser fog in weather + height-ish mood: dawn/dusk thicker, noon clearer
       const duskMood = 1 - Math.abs(elev); // 0 at noon, 1 at horizon
-      // night: thicker fog so unlit distance falls to black instead of grey mush
-      const nightDens = winGlow * 0.00055;
-      const baseDens = 0.00038 + duskMood * 0.00035 + weatherAmt * 0.0011 + nightDens;
+      // Keep distant streets atmospheric without letting night/rain erase the route.
+      const nightDens = winGlow * 0.00018;
+      const weatherDens = weatherAmt * (elev > 0.25 ? 0.00065 : elev > -0.05 ? 0.00048 : 0.00028);
+      const baseDens = 0.00032 + duskMood * 0.00018 + weatherDens + nightDens;
       scene.fog.density = baseDens;
       // exposure: warmer/brighter dusk, cooler night
       renderer.toneMappingExposure =
-        elev > 0.2 ? 1.15 : elev > 0 ? 1.28 : 0.92 + winGlow * 0.25;
+        elev > 0.2 ? 1.08 : elev > 0 ? 1.2 : 0.92 + winGlow * 0.25;
       postFx?.setNightBloom(winGlow);
       renderer.shadowMap.needsUpdate = true; // sun moved → re-bake shadows
       // 21.0 night grade: commit to darkness. Bloom on at night for medium+,
