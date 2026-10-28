@@ -409,6 +409,7 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false }) {
     // 16.2: SSAO high-only; bloom also at night on medium (21.0)
     let qualityTier = "medium";
     let postFx = null;
+    let postFxOverride = null;
     let applyQuality = () => {};
     let streetLights = null;
     let streetLightWorldReady = false;
@@ -523,7 +524,7 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false }) {
         });
         markPerf("ktx2-high-textures-released", { estimatedGpuBytes: sharedKtx2GpuBytes });
       }
-      const postFxState = getPostFxPassState(quality, currentStreetLightNight);
+      const postFxState = postFxOverride || getPostFxPassState(quality, currentStreetLightNight);
       postFx.setEnabled(postFxState.active, postFxState.ssao);
       setPerfMetadata({
         qualityTier: quality,
@@ -586,7 +587,7 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false }) {
       renderer.shadowMap.needsUpdate = true; // sun moved → re-bake shadows
       // 21.0 night grade: commit to darkness. Bloom on at night for medium+,
       // sky/fog go deep blue-black, non-emissive fill drops so lamps read.
-      const postFxState = getPostFxPassState(qualityTier, winGlow);
+      const postFxState = postFxOverride || getPostFxPassState(qualityTier, winGlow);
       postFx.setEnabled(postFxState.active, postFxState.ssao);
       setPerfMetadata({
         hour,
@@ -1751,6 +1752,18 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false }) {
         spawnFraming: () => runtime.current.spawnFraming || null,
         cellStream: () => runtime.current.cellStreamer?.debugState?.() || null,
         cityBuilder: () => cityBuilder.debugState(),
+        setPostFxState: ({ active, ssao }) => {
+          if (!postFx) return null;
+          postFxOverride = { active: active === true, ssao: ssao === true };
+          postFx.setEnabled(active === true, ssao === true);
+          const state = {
+            postFxActive: postFx.active,
+            ssaoActive: postFx.ssaoActive,
+            bloomActive: postFx.bloomActive,
+          };
+          setPerfMetadata(state);
+          return state;
+        },
         vehicle,
         population: () => population,
         tickPopulation: () => population?.update?.(1 / 60, player, runtimeHour, false),

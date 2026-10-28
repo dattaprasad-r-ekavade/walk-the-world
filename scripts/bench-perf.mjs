@@ -12,7 +12,7 @@ import { fileURLToPath } from 'url';
 import { CELL_STEP, cityCacheKey } from '../lib/city-contract.js';
 import { EARTH_R } from '../lib/engine/geo.js';
 import { parseBenchmarkEnvironment } from './bench-environment.mjs';
-import { selectRecordedCityPayload } from './bench-fixtures.mjs';
+import { recordedCityKeyForUrl, selectRecordedCityPayload } from './bench-fixtures.mjs';
 import {
   orderedFrameIntervals,
   orderedGpuFrameTimes,
@@ -56,6 +56,7 @@ const fixturePath = isAbsolute(fixtureOption) ? fixtureOption : resolve(ROOT, fi
 const cacheMode = option('--cache-mode', ['live', 'recorded'].includes(dataMode) ? 'cold' : 'none');
 const route = option('--route', '/street');
 const qualityPreset = option('--preset', 'medium');
+const ssaoMode = option('--ssao-mode', 'preset');
 const rendererMode = option('--renderer-mode', 'software');
 const browserChannel = option('--browser-channel', 'bundled');
 const walkDurationMs = Number(option('--walk-ms', '12000'));
@@ -91,6 +92,10 @@ if (suppliedPoseOptions.length > 0) {
   if (driving || crossCell) throw new Error('Fixed-pose options cannot be combined with --drive or --cross-cell');
 }
 if (!['low', 'medium', 'high'].includes(qualityPreset)) throw new Error('--preset must be low, medium, or high');
+if (!['preset', 'on', 'off'].includes(ssaoMode)) throw new Error('--ssao-mode must be preset, on, or off');
+if (ssaoMode !== 'preset' && qualityPreset !== 'high') {
+  throw new Error('--ssao-mode on/off controls the high-tier SSAO pass and requires --preset high');
+}
 if (!['software', 'browser-default'].includes(rendererMode)) throw new Error('--renderer-mode must be software or browser-default');
 if (!['bundled', 'chrome'].includes(browserChannel)) throw new Error('--browser-channel must be bundled or chrome');
 if (!['fixture', 'recorded', 'live'].includes(dataMode)) throw new Error('--data-mode must be fixture, recorded, or live');
@@ -553,6 +558,12 @@ async function benchStreet(page) {
   await hostTelemetryMonitor.ready;
   await page.bringToFront();
   await page.evaluate(() => window.focus());
+  if (ssaoMode !== 'preset') {
+    const state = await page.evaluate((ssao) => window.__streetDebug?.setPostFxState?.({ active: true, ssao }), ssaoMode === 'on');
+    if (!state || state.postFxActive !== true || state.bloomActive !== true || state.ssaoActive !== (ssaoMode === 'on')) {
+      throw new Error(`Could not apply the requested high-tier SSAO state (${ssaoMode})`);
+    }
+  }
   await page.evaluate((resourceSoak) => {
     const counters = window.__perfCounters;
     if (counters) {
@@ -926,7 +937,7 @@ async function main() {
   mkdirSync(dirname(outPath), { recursive: true });
 
   console.log(`  Fixture: ${fixturePath}`);
-  console.log(`  Route: ${route}; data: ${dataMode}; cache: ${cacheMode}; preset: ${qualityPreset}; geometry workers: ${geometryWorkers}; city data copy: ${cityDataCopyMode}; road query: ${roadQueryMode}; browser: ${browserChannel}; renderer: ${rendererMode}; hour: ${benchmarkEnvironment.hour}; weather: ${benchmarkEnvironment.weather}; walk: ${walkDurationMs}ms${crossCell ? '; crossing a cell boundary' : ''}${resourceSoakEnabled ? '; resource soak' : ''}${streamLifecycleEnabled ? '; streamed lamp lifecycle' : ''}`);
+  console.log(`  Route: ${route}; data: ${dataMode}; cache: ${cacheMode}; preset: ${qualityPreset}; SSAO: ${ssaoMode}; geometry workers: ${geometryWorkers}; city data copy: ${cityDataCopyMode}; road query: ${roadQueryMode}; browser: ${browserChannel}; renderer: ${rendererMode}; hour: ${benchmarkEnvironment.hour}; weather: ${benchmarkEnvironment.weather}; walk: ${walkDurationMs}ms${crossCell ? '; crossing a cell boundary' : ''}${resourceSoakEnabled ? '; resource soak' : ''}${streamLifecycleEnabled ? '; streamed lamp lifecycle' : ''}`);
 
   const launchOptions = {
     headless: !headed,
@@ -937,8 +948,8 @@ async function main() {
   const context = await browser.newContext();
   const baseOrigin = new URL(baseUrl).origin;
   if (dataMode === 'recorded') {
-    await context.route((url) => url.origin === baseOrigin && /^\/api\/city\//.test(url.pathname), (routeRequest) => {
-      const cityKey = decodeURIComponent(new URL(routeRequest.request().url()).pathname.split('/').at(-1));
+    await context.route((url) => recordedCityKeyForUrl(url, baseOrigin) !== null, (routeRequest) => {
+      const cityKey = recordedCityKeyForUrl(routeRequest.request().url(), baseOrigin);
       const cityPayload = selectRecordedCityPayload(BENCH_FIXTURE, cityKey);
       return routeRequest.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(cityPayload) });
     });
@@ -1095,6 +1106,7 @@ async function main() {
       latitude: location.lat,
       longitude: location.lon,
       qualityPreset,
+      ssaoMode,
       hour: benchmarkEnvironment.hour,
       weather: benchmarkEnvironment.weather,
       precipitationMode: benchmarkEnvironment.precipitationMode,
@@ -1142,6 +1154,12 @@ async function main() {
     result.networkTelemetry = await networkRecorder.summary();
     if (result.street.settings?.hour !== benchmarkEnvironment.hour || result.street.settings?.weather !== benchmarkEnvironment.weather) {
       throw new Error(`Applied scene environment did not match the requested benchmark: ${JSON.stringify(result.street.settings)}`);
+    }
+    if (ssaoMode !== 'preset' && (
+      result.street.settings?.ssaoActive !== (ssaoMode === 'on') ||
+      result.street.settings?.bloomActive !== true
+    )) {
+      throw new Error(`Captured post-processing state did not match --ssao-mode ${ssaoMode}: ${JSON.stringify(result.street.settings)}`);
     }
     result.hostTelemetry = result.street.hostTelemetry;
     if (screenshotPath) {

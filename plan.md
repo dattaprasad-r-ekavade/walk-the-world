@@ -29,7 +29,7 @@ facade PBR maps. The RTX 4060 smoke estimates 19.3 MB compressed mip residency
 when high is active; low-memory and mobile texture checks remain open. Work is
 consolidated on `main`. The latest checkpoint also adds deterministic procedural
 surface maps, reversible wet-road color tuning, corrected bloom/SSAO transitions,
-and per-cell lamp lifecycle validation. The latest unit suite passes 130 tests
+and per-cell lamp lifecycle validation. The latest unit suite passes 131 tests
 across 19 files and the production build passes. Wet-road visual acceptance,
 controlled post-FX comparison and real-mobile checks remain open.
 
@@ -168,6 +168,9 @@ scripts/bench-perf.mjs and benchmarks/fixtures/.
   - [x] Snapshot frame/GPU/renderer counters at key release; reject incomplete,
     saturated, hidden or unfocused windows. Record in-window host coverage and
     offer `--skip-host-telemetry` as a sampler-overhead control.
+  - [x] Route per-cell recorded fixtures by city key for both the local city API
+    and public-cache JSON requests. This keeps replay data deterministic and
+    avoids falling through to an external cache during a recorded run.
 - [x] 0.7 Prove street movement via player displacement. The runner focuses the
   Street page and requires measurable displacement.
   - [x] Require displacement for walking and add a seeded driving run that
@@ -778,13 +781,18 @@ street/assemble-city.js and StreetEngine.js.
     earlier metadata had reported Medium night post-FX off even when the runtime
     had enabled bloom, so older Medium-night metadata must not be used to judge
     the pass policy. The policy tests and production build passed with 127 tests.
-  - [ ] A 28 October same-pose Medium/High comparison was captured, but is not a
-    valid A/B: Medium recorded 34 ms frame-p95 / 15.06 ms GPU-p95 with 67.53%
-    system CPU and 1,252 MB minimum free memory; High recorded 83.3 ms / 36.47 ms
-    while system CPU reached 100% and free memory fell to 854 MB. Both runs had
-    no browser/page/asset errors and the refreshed metadata correctly showed
-    Medium night bloom-only and High SSAO+bloom. Repeat under controlled host
-    load before tuning pass settings or claiming a performance difference.
+  - [x] Repeat the Medium/High tier comparison five times per tier and isolate
+    the High SSAO pass with five same-tier runs on/off. High SSAO+bloom GPU timer
+    p95 median was 33.81 ms versus 15.65 ms with bloom only; the ranges did not
+    overlap. Frame p95 median also fell from 50.8 to 33.5 ms, but ranges and host
+    CPU load varied, so do not use it as a device-wide estimate. Matched day and
+    night views show subtle contact darkening with SSAO on and no large overall
+    lighting change. Keep the shipping default unchanged pending close-up and
+    mobile visual acceptance. See the [pass-isolated checkpoint and captures](benchmarks/results/stage4/postfx-ssao-checkpoint.md).
+  - [ ] Finish close-up bloom halo review and compare a lower-cost contact-shading
+    option on target hardware before changing the High default. The runner accepts
+    `--ssao-mode on|off` with `--preset high` and verifies the actual saved pass
+    state; raw 12-second captures remain local.
 - [ ] 4.6 Retain quantized PMREM/shadow updates. Measure small-object shadow
   pruning and contact approximations without losing essential silhouette shadows.
   Do not regenerate environments every frame.
@@ -966,6 +974,10 @@ report. `--renderer-mode software` is integration-only and never hardware
 performance evidence. Complete five repetitions per scenario; a short smoke
 does not replace the full matrix.
 
+For same-tier post-FX diagnostics, `--ssao-mode on|off` requires `--preset high`
+and keeps bloom active while toggling only SSAO. Saved metadata and the run fail
+if the requested pass state did not persist through the measurement.
+
 Proposed evidence locations:
 
     benchmarks/fixtures/<city-or-stress-case>.json
@@ -986,14 +998,14 @@ None is a prerequisite for this sequence.
 
 **Next bounded work:** Stages 3.7 and 3.8 and Stages 4.1–4.2 are implemented;
 road-ribbon evidence is in [the road-ribbon review](benchmarks/results/stage4/road-ribbons.md).
-Stage 4.3 now has a valid current-code performance and material-inheritance
-checkpoint and deterministic procedural maps, but its close-up wet-road
-appearance still needs review. Stage 4.4 now has production UI evidence for
-quality/time transitions and a verified crossing, but still needs a meaningful
-streamed/evicted marker check is now passing; measure the shading policy for
-visible zero-intensity lights. Stage 4.5's live pass-state metadata is correct,
-but its tier comparison was contaminated by 100% host CPU and needs a clean
-repeat. The latest unit run passed 130 tests across 19 files.
+Stage 4.3 has current-code performance and material-inheritance evidence plus
+deterministic procedural maps, but its close-up wet-road appearance still needs
+review. Stage 4.4's production UI transitions and streamed/evicted lamp markers
+pass; measure the shading cost of visible zero-intensity lights. Stage 4.5 has
+five-run tier and same-tier SSAO results: High SSAO adds a large GPU cost, while
+the matched views show only subtle contact shading. Keep the High default until
+close-up and mobile visuals are accepted; bloom halo review and cheaper contact
+shading remain open. The latest unit run passed 131 tests across 19 files.
 Stage 0.8 dense live-city
 cold/warm walk/drive, Stage 1 mobile assembly and input latency, Stage 1.3
 low-core worker plus KTX2 contention/memory, and lower-memory/mobile high-atlas

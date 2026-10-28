@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { selectRecordedCityPayload } from '../scripts/bench-fixtures.mjs';
+import { recordedCityKeyForUrl, selectRecordedCityPayload } from '../scripts/bench-fixtures.mjs';
 
 describe('recorded benchmark cell fixtures', () => {
   it('keeps legacy single-payload fixtures unchanged', () => {
@@ -21,5 +21,13 @@ describe('recorded benchmark cell fixtures', () => {
     expect(selectRecordedCityPayload({ cellPayloads: { origin }, defaultPayloadKey: 'origin' }, 'missing')).toBe(origin);
     expect(selectRecordedCityPayload({ cellPayloads: {}, defaultPayload: fallback }, 'missing')).toBe(fallback);
     expect(selectRecordedCityPayload({ cellPayloads: {} }, 'missing')).toEqual({ elements: [] });
+  });
+
+  it('routes recorded local API and public cache URLs by city key', () => {
+    const key = 'wtw_city6_41.890_12.492';
+    expect(recordedCityKeyForUrl(`http://127.0.0.1:3456/api/city/${key}`, 'http://127.0.0.1:3456')).toBe(key);
+    expect(recordedCityKeyForUrl(`https://cache.example.test/${key}.json`, 'http://127.0.0.1:3456')).toBe(key);
+    expect(recordedCityKeyForUrl(`http://127.0.0.1:3456/api/assets`, 'http://127.0.0.1:3456')).toBeNull();
+    expect(recordedCityKeyForUrl('not a URL', 'http://127.0.0.1:3456')).toBeNull();
   });
 });
