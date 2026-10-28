@@ -45,7 +45,9 @@ Demo-track items:
   new shell-cache revision, so a deploy never serves an old shell.
 - [ ] **D7 — Demo rehearsal checklist.** After each demo-track change, load all
   four cities on the live deployment, confirm all 36 demo cells are warm
-  (`npm run seed:demo`), and record time-to-ready and one screenshot per city.
+  (`npm run seed:direct` seeds Overpass straight into R2 from a local machine,
+  without the API route's 85 s limit), and record time-to-ready and one
+  screenshot per city with `npm run rehearse`.
 - [ ] **D8 — Facade and storefront variation (from 4.7).** Ground-floor shopfronts,
   entrances and roof silhouettes at the four demo start points.
 

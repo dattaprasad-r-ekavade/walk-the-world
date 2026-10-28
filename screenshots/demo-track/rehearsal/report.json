@@ -1,0 +1,78 @@
+{
+  "base": "https://walk-the-world-delta.vercel.app",
+  "r2": "https://myjyotishai.in",
+  "headed": false,
+  "at": "2026-10-28T10:23:32.267Z",
+  "places": [
+    {
+      "name": "Pune",
+      "cells": {
+        "total": 9,
+        "warm": 9,
+        "missing": []
+      },
+      "browser": {
+        "ready": true,
+        "readyMs": 10769,
+        "consoleErrors": 0,
+        "p50": 16.7,
+        "p95": 34,
+        "shot": "screenshots\\demo-track\\rehearsal\\pune.jpg",
+        "note": ""
+      }
+    },
+    {
+      "name": "Edinburgh",
+      "cells": {
+        "total": 9,
+        "warm": 9,
+        "missing": []
+      },
+      "browser": {
+        "ready": true,
+        "readyMs": 6003,
+        "consoleErrors": 0,
+        "p50": 16.7,
+        "p95": 16.8,
+        "shot": "screenshots\\demo-track\\rehearsal\\edinburgh.jpg",
+        "note": ""
+      }
+    },
+    {
+      "name": "Tokyo",
+      "cells": {
+        "total": 9,
+        "warm": 9,
+        "missing": []
+      },
+      "browser": {
+        "ready": true,
+        "readyMs": 4889,
+        "consoleErrors": 0,
+        "p50": 16.7,
+        "p95": 16.8,
+        "shot": "screenshots\\demo-track\\rehearsal\\tokyo.jpg",
+        "note": ""
+      }
+    },
+    {
+      "name": "New York",
+      "cells": {
+        "total": 9,
+        "warm": 8,
+        "missing": [
+          "wtw_city6_40.764_-73.986"
+        ]
+      },
+      "browser": {
+        "ready": true,
+        "readyMs": 4462,
+        "consoleErrors": 0,
+        "p50": 16.7,
+        "p95": 16.8,
+        "shot": "screenshots\\demo-track\\rehearsal\\new-york.jpg",
+        "note": ""
+      }
+    }
+  ]
+}
