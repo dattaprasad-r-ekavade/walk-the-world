@@ -198,10 +198,23 @@ Decisions taken from the research:
   Headless host variance remains visible in both modes. The four-height-tile
   phase still takes 1.82–2.10 s cold; hashing takes 6.8–9 ms. Unit tests now
   cover editor-change fallback, cancellation of an in-flight prebuilt request,
-  and eviction/revisit through the prebuilt path. B1 remains open pending
-  terrain-download cost, full browser/device parity, and measured upload/total-
-  load costs. See [the B1 decision](benchmarks/results/stage8/b1-matched-2026-10-29/decision.md);
-  detailed JSON and screenshots are local ignored artifacts.
+  and eviction/revisit through the prebuilt path. A 29 October matched visible-
+  Chrome comparison on an NVIDIA RTX 4060 Laptop GPU reached ready at 3.302 s
+  cold / 1.992 s warm raw and 3.440 s / 1.827 s prebuilt medians. Prebuilt was
+  4.2% slower cold, 8.3% faster warm and transferred 7.3% fewer bytes. The
+  four-height-tile validation took 1.58–2.01 s (1.72 s median); hashing took
+  6.8–9.7 ms. Both paths settled at eight resident cells, with the same failed
+  neighbor, zero deferred cells and known local errors. The WebGL2 renderer was
+  ANGLE/D3D11 on the RTX 4060; GPU timer and frame samples were captured, but
+  startup spikes make those short p95 windows diagnostic rather than acceptance.
+  WebGL does not expose reliable VRAM totals or per-geometry upload bytes.
+  Visual spot checks matched after baking at the exact Tokyo demo origin; the
+  rounded-key bake clipped 1,569 features versus 1,644 raw, while exact-origin
+  baking matched the raw clip count. B1 remains open pending controlled frame/
+  upload measurement, integrated/mobile parity, cold terrain-gate work and
+  browser editor/failure acceptance. See [the B1 decision](benchmarks/results/stage8/b1-matched-2026-10-29/decision.md);
+  the detailed visible-Chrome JSON and screenshots remain ignored local
+  artifacts under `benchmarks/results/stage8/b1-visible-chrome-2026-10-29/`.
   Artifacts remain local; production R2 publication needs its own release task.
 - [ ] **B2 — Overpass independence (M).** Self-hosted Overpass on a small VPS
   for target regions behind a Cloudflare Worker, or a custom Planetiler

@@ -8,10 +8,14 @@ avoids those transfers. The baker records only the terrain tiles sampled while
 building each artifact, and runtime preflight loads their height grids without
 building terrain visuals or requesting imagery. The latest matched headless
 run was 4.7% slower cold and 5.8% faster warm than raw, with 7.4% less payload.
-The remaining 1.82–2.10 s cold height-tile load and host variance keep this
-short of target-device acceptance; upload/submit cost and full browser parity
-remain unmeasured. Unit tests now cover editor-change fallback, prebuilt-fetch
-cancellation, and eviction/revisit through the prebuilt path.
+The visible Chrome comparison below confirms the path on this host's NVIDIA
+RTX 4060 Laptop GPU: 4.2% slower cold, 8.3% faster warm and 7.3% less payload.
+Cold height validation still has a 1.58–2.01 s range (1.72 s median). Startup
+frame/GPU samples are too bursty to establish steady-state frame acceptance;
+WebGL does not expose reliable allocated VRAM or direct upload-byte totals.
+Lower-tier device parity and browser editor/failure acceptance remain open.
+Unit tests cover editor-change fallback, prebuilt-fetch cancellation, and
+eviction/revisit through the prebuilt path.
 
 ## Setup
 
@@ -110,6 +114,42 @@ includes the current terrain loader, unlike the preceding `b1-sampled-terrain`
 comparison. The sampled-key implementation also cuts validation-only work and
 retains the one-tile bake margin for edge samples.
 
+## Visible Chrome hardware comparison — 29 October 2026
+
+This matched run used the same frozen Tokyo source snapshot and production
+settings on both builds. Chrome 156.0.8078.49 ran headed, visible and focused;
+the WebGL2 renderer was ANGLE on the NVIDIA GeForce RTX 4060 Laptop GPU using
+D3D11. Each mode had three cold/warm repetitions, with service workers blocked
+and browser HTTP cache enabled. All six cold runs and all six warm visits
+reached ready and settled at eight resident cells, one failed neighbor and no
+deferred cells. The same local `/api/assets` 501 and geometry-merge warning
+appeared in both modes.
+
+The prebuilt spawn artifact was rebaked at the exact Tokyo demo origin
+(`35.6595, 139.7005`). Baking at the rounded cache-key origin had clipped 1,569
+features versus 1,644 on the raw runtime path and visibly changed the near
+facade. The exact-origin artifact contains 1,644 clipped features; the matched
+captures now show the same spawn facade and street framing.
+
+| Mode | Cold ready times | Cold median | Warm ready times | Warm median | Cold payload | Settled state |
+|---|---|---:|---|---:|---:|---|
+| Raw | 6,945 / 3,302 / 3,131 ms | 3,302 ms | 2,049 / 1,992 / 1,757 ms | 1,992 ms | 15,473,747 B raw | 8 loaded, 1 failed, 0 deferred |
+| Prebuilt, exact origin | 5,796 / 3,370 / 3,440 ms | 3,440 ms | 1,845 / 1,827 / 1,800 ms | 1,827 ms | 13,583,369 B raw + 761,437 B baked = 14,344,806 B | 8 loaded, 1 failed, 0 deferred |
+
+On this host, prebuilt was 4.2% slower cold and 8.3% faster warm, with 7.3%
+less cold payload. Height-only validation for the four sampled terrain tiles
+took 1,579.7–2,013.9 ms (1,722.6 ms median); hashing took 6.8–9.7 ms. GPU timer
+queries were supported and renderer/frame/GPU samples plus resource counts were
+captured at engine-ready and stream-settled. The small startup windows include
+large first-run spikes, so their p95 values are diagnostic only. WebGL exposes
+neither a reliable VRAM allocation total nor direct per-geometry upload bytes.
+The total-ready comparison includes terrain gating, decode, build, assembly and
+shader warm-up, but does not isolate GPU upload submission. The limited
+comparative result on one discrete GPU does not close B1.
+
+Full reports and screenshots are retained in the ignored local directory
+`benchmarks/results/stage8/b1-visible-chrome-2026-10-29/`.
+
 ## Evidence and remaining gates
 
 The initial and follow-up JSON reports and cold-run screenshots are retained
@@ -118,9 +158,9 @@ locally under `raw/`, `prebuilt/`, `b1-validation-overlap-2026-10-29/`,
 ignored by Git. This tracked note
 contains the reviewable measurements so the raw traces need not be committed.
 
-Before adopting B1, measure target-device readiness and upload costs, determine
-whether terrain tiles can be validated without delaying spawn, verify editor/
-failure/cancellation/eviction behavior in the browser, and confirm the overlap
-index stays bounded as bake coverage grows. Local
-artifacts remain unpublished; production R2 publication is a separate release
-task.
+Before adopting B1, measure a controlled steady frame window and GPU upload
+submission cost; repeat on the intended integrated/mobile tiers; investigate
+the cold terrain-validation gate; verify editor/failure/cancellation/eviction
+behavior in the browser; and confirm the overlap index stays bounded as bake
+coverage grows. Local artifacts remain unpublished; production R2 publication
+is a separate release task.
