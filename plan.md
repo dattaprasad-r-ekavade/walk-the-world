@@ -1,7 +1,7 @@
 # Walk the World — Performance and Visuals Implementation Plan
 
-Updated: 29 October 2026. Reviewed base: `d1bc537` on `main`; current work
-closes demo gates D1–D7. D3's hardware acceptance uses the local production
+Updated: 29 October 2026. Reviewed base: `9056faf` on `origin/main`; current work
+closes demo gates D1–D8. D3's hardware acceptance uses the local production
 preview described below.
 This is the active plan. The [previous detailed checkpoint](docs/PLAN-CHECKPOINT-2026-10-28-BEFORE-REVIEW.md)
 preserves the full experiment history; its status is historical.
@@ -176,8 +176,22 @@ Decisions taken from the research:
   settled 8 resident cells with one existing failed neighbor; the two console
   errors were the known local assets 501 and geometry-merge warning. The 16.8 ms
   p95 is headless only, not hardware acceptance. See the [B1 smoke evidence](screenshots/demo-track/rehearsal-2026-10-29-b1-prebuilt-smoke/).
-  Keep B1 open for a matched raw-versus-prebuilt cold/warm comparison, upload and
-  total-load costs, editor/failure/cancel/eviction parity, and device validation.
+  A matched 29 October headless comparison used the same frozen nine-cell Tokyo
+  snapshot, Three.js 0.186 build and three cold/warm repetitions. Raw mode reached
+  ready at 3.515 s cold / 1.846 s warm median and transferred 15,473,747 B. The
+  prebuilt path took 4.486 s / 1.967 s and transferred 20,313,264 B: eight raw
+  neighbors (13,583,369 B) plus nine baked artifacts (6,729,895 B), 31.3% more
+  payload. Both modes settled at eight resident cells, one same failed neighbor
+  and zero deferred cells; both showed the known local assets 501 and geometry
+  merge warning. Streamed baked cells can overlap feature IDs already owned by
+  spawn or another cell, so they now fall back to raw building; a regression
+  test covers that path. The candidate artifact is still downloaded before its
+  overlap is known. The matched result is slower in this headless setup (27.6%
+  cold, 6.6% warm), so B1 remains open with adoption unproven. See [the matched
+  B1 decision](benchmarks/results/stage8/b1-matched-2026-10-29/decision.md);
+  detailed JSON and screenshots are local ignored artifacts. Still required:
+  avoid unnecessary artifact fetches, isolate GPU upload/submit and total-load
+  costs, verify editor/failure/cancel/eviction parity, and validate on devices.
   Artifacts remain local; production R2 publication needs its own release task.
 - [ ] **B2 — Overpass independence (M).** Self-hosted Overpass on a small VPS
   for target regions behind a Cloudflare Worker, or a custom Planetiler
@@ -226,16 +240,17 @@ mobile, offline and several visual gates remain open.
 | 3 Assets | 3.1–3.8 implemented; compressed maps and optimized props | Offline/failure browser checks, lower-memory/mobile residency and far mip seams |
 | 4 Roads/lights | 4.1, 4.2 and desktop 4.4 complete | Wetness, bloom/contact shading, shadows and facade variation |
 | 5 Detail/weather | Planned | LOD, spatial instances, vegetation and analytic precipitation |
-| 6–8 Alternatives | B1 prebuilt-cell runtime and local bake prototype underway; Stage 6/7 deferred | Matched adoption measurement, editor/fallback/streaming parity and device acceptance |
+| 6–8 Alternatives | B1 prebuilt-cell runtime and local bake prototype measured; Stage 6/7 deferred | Fix artifact ownership/fetch strategy, editor/failure/cancel/eviction parity and device acceptance |
 | 9 Integration | Open | Full regression, hardware/visual acceptance and release records |
 
-Latest validation: all 194 tests across 32 files and the production build pass,
+Latest validation: all 195 tests across 32 files and the production build pass,
 including the B1 codec, frame transform, terrain revision and streamed-cell
-checks. The four-city production rehearsal loaded all 36 nearby cells and had
-zero console errors. The B1 local production-preview smoke loaded the baked
-Tokyo spawn cell and settled its neighbor stream. This review still does not
-rerun the full device performance matrix or prove release readiness. Existing
-tests do not cover the ownership failures below.
+overlap fallback checks. The four-city production rehearsal loaded all 36 nearby
+cells and had zero console errors. The B1 local production-preview smoke loaded
+the baked Tokyo spawn cell and settled its neighbor stream. This review does not
+rerun the full device performance matrix or prove release readiness. The new
+regression covers the reproduced streamed prebuilt ownership conflict; device,
+editor and lifecycle acceptance remain open.
 
 ### Priority issues found in this review
 
@@ -711,11 +726,11 @@ matched settings, tested hardware, thresholds and remaining gates.
 
 ## 15. Next action and deferred choices
 
-1. Finish B1's matched raw-versus-prebuilt cold/warm evaluation and editor,
-   fallback, cancellation, eviction and device checks. Keep local artifacts
-   private unless a separate release task authorizes publication. Then work
-   through B2 (Overpass independence), B3 (procedural landuse ground) and B4
-   (Overture attribute gap fill).
+1. Resolve B1's measured artifact-fetch and ownership costs, then complete
+   editor, fallback, cancellation, eviction and device checks before deciding
+   whether to adopt it. Keep local artifacts private unless a separate release
+   task authorizes publication. Then work through B2 (Overpass independence),
+   B3 (procedural landuse ground) and B4 (Overture attribute gap fill).
 2. Consider C1–C3 only after the data foundation, and only when a measured
    viewer-visible benefit justifies their cost. The remaining release gates
    include 0.8 live dense-city baselines, 1.3 physical low-core validation,

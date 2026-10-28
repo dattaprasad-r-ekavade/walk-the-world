@@ -26,5 +26,6 @@ warm-state.json
 # benchmark run artefacts (reports *.md stay tracked; already-tracked files remain tracked)
 benchmarks/results/**/*.json
 benchmarks/results/**/*.png
+benchmarks/results/**/*.jpg
 benchmarks/results.json
 !benchmarks/results/**/*.md

@@ -182,6 +182,44 @@ describe('stream lifecycle',()=>{
     expect(streamer.debugState().loadedKeys).toContain(targetKey);
     streamer.dispose();
   });
+  it('falls back to raw building when a prebuilt neighbor overlaps already-owned feature IDs',async()=>{
+    vi.spyOn(console,'warn').mockImplementation(()=>{}); vi.spyOn(console,'info').mockImplementation(()=>{});
+    vi.stubGlobal('fetch',vi.fn(async()=>({ok:true,json:async()=>({})})));
+    const targetLat=1+CELL_STEP,targetLon=2,targetKey=cityCacheKey(targetLat,targetLon);
+    const geometry=[
+      {lat:targetLat+0.0001,lon:targetLon+0.0001},
+      {lat:targetLat+0.0002,lon:targetLon+0.0001},
+      {lat:targetLat+0.0001,lon:targetLon+0.0002},
+    ];
+    fetchPrebuiltCell.mockImplementation(async(key)=>key===targetKey?({
+      kind:'prebuilt',
+      metadata:{origin:{lat:targetLat,lon:targetLon},clippedElementCount:2,featureIds:['way/42','way/43']},
+      result:{walls:[],roofCaps:[],pitchedRoofs:[],roadDecals:[],flats:[],meta:{}},
+    }):null);
+    fetchCityDataForStream.mockImplementation(async(la,lo)=>({
+      lat:la,lon:lo,cacheKey:cityCacheKey(la,lo),
+      data:{elements:cityCacheKey(la,lo)===targetKey?[
+        {type:'way',id:42,tags:{building:'yes'},geometry},
+        {type:'way',id:43,tags:{building:'yes'},geometry},
+      ]:[]},
+    }));
+    const buildCity=vi.fn(async({elements})=>({elements}));
+    const validatePrebuiltCell=vi.fn(async()=>true);
+    const streamer=createCellStreamer({
+      scene:new THREE.Scene(),lat0:1,lon0:2,terrainTiles:new Map(),engineRef:{current:{}},buildCity,
+      validatePrebuiltCell,
+    });
+    streamer.markLoaded(cityCacheKey(1,2),1,2);
+    streamer.noteSpawnIds(['way/42']);
+    streamer.tick(1,2);
+    await vi.waitFor(()=>expect(streamer.debugState().loadedKeys).toContain(targetKey));
+    expect(fetchCityDataForStream).toHaveBeenCalledWith(targetLat,targetLon,expect.objectContaining({signal:expect.any(AbortSignal)}));
+    expect(validatePrebuiltCell).not.toHaveBeenCalled();
+    expect(buildCity).toHaveBeenCalledOnce();
+    expect(buildCity.mock.calls[0][0].elements.map((element)=>element.id)).toEqual([43]);
+    expect(streamer.debugState().deferredKeys).not.toContain(targetKey);
+    streamer.dispose();
+  });
   it('keeps a shared texture alive until its last scene owner is removed',()=>{
     const scene=new THREE.Scene(), texture=new THREE.Texture();const dispose=vi.spyOn(texture,'dispose');
     const a=new THREE.Mesh(new THREE.BoxGeometry(),new THREE.MeshBasicMaterial({map:texture}));

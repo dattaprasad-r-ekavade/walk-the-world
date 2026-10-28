@@ -31,6 +31,7 @@
     "seed:list": "node scripts/warm-cities.mjs --list",
     "seed:local": "node scripts/warm-cities.mjs http://localhost:3000 --state=warm-state.json --conc=1",
     "rehearse": "node scripts/rehearse-demo.mjs",
+    "bench:prebuilt-cells": "node scripts/bench-prebuilt-cells.mjs",
     "cells:bake": "node scripts/build-prebuilt-cells.mjs"
   },
   "dependencies": {
