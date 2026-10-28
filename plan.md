@@ -1,6 +1,6 @@
 # Walk the World — Performance and Visuals Implementation Plan
 
-Updated: 29 October 2026. Reviewed base: `8782533` on `origin/main`; current work
+Updated: 29 October 2026. Reviewed base: `9ad177e` on `origin/main`; current work
 closes demo gates D1–D8. D3's hardware acceptance uses the local production
 preview described below.
 This is the active plan. The [previous detailed checkpoint](docs/PLAN-CHECKPOINT-2026-10-28-BEFORE-REVIEW.md)
@@ -196,9 +196,11 @@ Decisions taken from the research:
   deferred cells, with the same known local assets 501 and geometry-merge
   warning. Prebuilt was 4.7% slower cold and 5.8% faster warm in this run.
   Headless host variance remains visible in both modes. The four-height-tile
-  phase still takes 1.82–2.10 s cold; hashing takes 6.8–9 ms. B1 remains open
-  pending terrain-download cost and device validation, editor/failure/cancel/
-  eviction parity, and measured upload/total-load costs. See [the B1 decision](benchmarks/results/stage8/b1-matched-2026-10-29/decision.md);
+  phase still takes 1.82–2.10 s cold; hashing takes 6.8–9 ms. Unit tests now
+  cover editor-change fallback, cancellation of an in-flight prebuilt request,
+  and eviction/revisit through the prebuilt path. B1 remains open pending
+  terrain-download cost, full browser/device parity, and measured upload/total-
+  load costs. See [the B1 decision](benchmarks/results/stage8/b1-matched-2026-10-29/decision.md);
   detailed JSON and screenshots are local ignored artifacts.
   Artifacts remain local; production R2 publication needs its own release task.
 - [ ] **B2 — Overpass independence (M).** Self-hosted Overpass on a small VPS
@@ -248,10 +250,10 @@ mobile, offline and several visual gates remain open.
 | 3 Assets | 3.1–3.8 implemented; compressed maps and optimized props | Offline/failure browser checks, lower-memory/mobile residency and far mip seams |
 | 4 Roads/lights | 4.1, 4.2 and desktop 4.4 complete | Wetness, bloom/contact shading, shadows and facade variation |
 | 5 Detail/weather | Planned | LOD, spatial instances, vegetation and analytic precipitation |
-| 6–8 Alternatives | B1 overlap filtering, sampled terrain keys and height-only preflight measured; Stage 6/7 deferred | B1 terrain-download cost, device, editor/failure/cancel/eviction and upload-cost acceptance |
+| 6–8 Alternatives | B1 overlap filtering, sampled terrain keys and height-only preflight measured; Stage 6/7 deferred | B1 terrain-download cost, browser/device parity and upload-cost acceptance |
 | 9 Integration | Open | Full regression, hardware/visual acceptance and release records |
 
-Latest validation: all 202 tests across 33 files and the production build pass,
+Latest validation: all 206 tests across 33 files and the production build pass,
 including the B1 codec, frame transform, terrain revision and streamed-cell
 overlap-index fallback checks. Raw and prebuilt production builds both pass.
 The four-city production rehearsal loaded all 36 nearby

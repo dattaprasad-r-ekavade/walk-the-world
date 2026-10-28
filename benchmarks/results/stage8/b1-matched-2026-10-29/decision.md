@@ -9,8 +9,9 @@ building each artifact, and runtime preflight loads their height grids without
 building terrain visuals or requesting imagery. The latest matched headless
 run was 4.7% slower cold and 5.8% faster warm than raw, with 7.4% less payload.
 The remaining 1.82–2.10 s cold height-tile load and host variance keep this
-short of target-device acceptance; upload/submit cost plus editor and lifecycle
-parity remain unmeasured.
+short of target-device acceptance; upload/submit cost and full browser parity
+remain unmeasured. Unit tests now cover editor-change fallback, prebuilt-fetch
+cancellation, and eviction/revisit through the prebuilt path.
 
 ## Setup
 
@@ -118,8 +119,8 @@ ignored by Git. This tracked note
 contains the reviewable measurements so the raw traces need not be committed.
 
 Before adopting B1, measure target-device readiness and upload costs, determine
-whether terrain tiles can be validated without delaying spawn, verify
-editor/failure/cancellation/eviction parity, and confirm the overlap index stays
-bounded as bake coverage grows. Local
+whether terrain tiles can be validated without delaying spawn, verify editor/
+failure/cancellation/eviction behavior in the browser, and confirm the overlap
+index stays bounded as bake coverage grows. Local
 artifacts remain unpublished; production R2 publication is a separate release
 task.

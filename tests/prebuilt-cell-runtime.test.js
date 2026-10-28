@@ -179,4 +179,38 @@ describe("prebuilt cell runtime loader", () => {
     expect(validateEntry).not.toHaveBeenCalled();
   });
 
+  it("propagates cancellation while the indexed artifact request is in flight", async () => {
+    const controller = new AbortController();
+    const artifactIndex = {
+      format: "walk-the-world-prebuilt-cell-index",
+      version: 1,
+      builderRevision: "b".repeat(64),
+      materialRevision: "c".repeat(16),
+      cells: { [key]: entry },
+    };
+    let artifactSignal = null;
+    const fetchImpl = vi.fn((url, { signal } = {}) => {
+      if (url.endsWith("index.json")) return Promise.resolve(response(artifactIndex));
+      artifactSignal = signal;
+      return new Promise((_resolve, reject) => {
+        signal.addEventListener("abort", () => reject(signal.reason), { once: true });
+      });
+    });
+    const decode = vi.fn(async () => ({ metadata, result }));
+    const pending = fetchPrebuiltCell(key, {
+      expectedBuilderRevision: "b".repeat(64),
+      expectedMaterialRevision: "c".repeat(16),
+      fetchImpl,
+      decode,
+      signal: controller.signal,
+    });
+
+    await vi.waitFor(() => expect(fetchImpl).toHaveBeenCalledTimes(2));
+    const reason = new Error("prebuilt request obsolete");
+    controller.abort(reason);
+    await expect(pending).rejects.toBe(reason);
+    expect(artifactSignal.aborted).toBe(true);
+    expect(decode).not.toHaveBeenCalled();
+  });
+
 });

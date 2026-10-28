@@ -255,6 +255,72 @@ describe('stream lifecycle',()=>{
     expect(streamer.debugState().deferredKeys).not.toContain(targetKey);
     streamer.dispose();
   });
+  it('uses raw geometry when editor changes make a prebuilt cell incompatible',async()=>{
+    vi.spyOn(console,'warn').mockImplementation(()=>{}); vi.spyOn(console,'info').mockImplementation(()=>{});
+    const targetLat=1+CELL_STEP,targetLon=2,targetKey=cityCacheKey(targetLat,targetLon);
+    const geometry=[
+      {lat:targetLat+0.0001,lon:targetLon+0.0001},
+      {lat:targetLat+0.0002,lon:targetLon+0.0001},
+      {lat:targetLat+0.0001,lon:targetLon+0.0002},
+    ];
+    vi.stubGlobal('fetch',vi.fn(async(url)=>({
+      ok:true,
+      json:async()=>String(url).endsWith(targetKey)?{hidden:['way/42']}:null,
+    })));
+    fetchCityDataForStream.mockImplementation(async(la,lo)=>({
+      lat:la,lon:lo,cacheKey:cityCacheKey(la,lo),
+      data:{elements:cityCacheKey(la,lo)===targetKey?[
+        {type:'way',id:42,tags:{building:'yes'},geometry},
+        {type:'way',id:43,tags:{building:'yes'},geometry},
+      ]:[]},
+    }));
+    const buildCity=vi.fn(async({elements})=>({elements}));
+    const streamer=createCellStreamer({
+      scene:new THREE.Scene(),lat0:1,lon0:2,terrainTiles:new Map(),engineRef:{current:{}},buildCity,
+    });
+    streamer.markLoaded(cityCacheKey(1,2),1,2);
+    streamer.tick(1,2);
+    await vi.waitFor(()=>expect(streamer.debugState().loadedKeys).toContain(targetKey));
+
+    expect(fetchPrebuiltCell.mock.calls.map(([key])=>key)).not.toContain(targetKey);
+    expect(buildCity.mock.calls.find(([args])=>args.elements.some((element)=>element.id===43))[0].elements.map((element)=>element.id))
+      .toEqual([43]);
+    streamer.dispose();
+  });
+  it('aborts an in-flight prebuilt request when its cell leaves the neighborhood',async()=>{
+    vi.spyOn(console,'warn').mockImplementation(()=>{});
+    const targetLat=1+CELL_STEP,targetLon=2,targetKey=cityCacheKey(targetLat,targetLon);
+    vi.stubGlobal('fetch',vi.fn(async()=>({ok:true,json:async()=>({})})));
+    let prebuiltSignal=null,abortObserved=false;
+    fetchPrebuiltCell.mockImplementation((key,{signal}={})=>{
+      if(key!==targetKey) return Promise.resolve(null);
+      prebuiltSignal=signal;
+      return new Promise((resolve,reject)=>{
+        signal.addEventListener('abort',()=>{
+          abortObserved=true;
+          reject(signal.reason);
+        },{once:true});
+      });
+    });
+    fetchCityDataForStream.mockImplementation(async(la,lo)=>({
+      lat:la,lon:lo,cacheKey:cityCacheKey(la,lo),data:{elements:[]},
+    }));
+    const buildCity=vi.fn(async()=>({}));
+    const streamer=createCellStreamer({
+      scene:new THREE.Scene(),lat0:1,lon0:2,terrainTiles:new Map(),engineRef:{current:{}},buildCity,
+    });
+    streamer.markLoaded(cityCacheKey(1,2),1,2);
+    streamer.tick(1,2);
+    await vi.waitFor(()=>expect(prebuiltSignal).toBeInstanceOf(AbortSignal));
+
+    streamer.tick(1,2+CELL_STEP*6);
+    expect(prebuiltSignal.aborted).toBe(true);
+    await vi.waitFor(()=>expect(streamer.debugState().activeJobKeys).not.toContain(targetKey));
+    expect(abortObserved).toBe(true);
+    expect(fetchCityDataForStream.mock.calls.map(([la,lo])=>cityCacheKey(la,lo))).not.toContain(targetKey);
+    expect(buildCity).not.toHaveBeenCalled();
+    streamer.dispose();
+  });
   it('keeps a shared texture alive until its last scene owner is removed',()=>{
     const scene=new THREE.Scene(), texture=new THREE.Texture();const dispose=vi.spyOn(texture,'dispose');
     const a=new THREE.Mesh(new THREE.BoxGeometry(),new THREE.MeshBasicMaterial({map:texture}));
@@ -365,6 +431,51 @@ describe('stream eviction',()=>{
       expect.objectContaining({id:84}),
     ]);
     expect(streamer.debugState().loadedKeys).toContain(targetKey);
+    streamer.dispose();
+  });
+  it('reuses a prebuilt cell after eviction and revisit without raw geometry work',async()=>{
+    vi.spyOn(console,'warn').mockImplementation(()=>{}); vi.spyOn(console,'info').mockImplementation(()=>{});
+    vi.stubGlobal('fetch',vi.fn(async()=>({ok:true,json:async()=>({})})));
+    const targetLat=1+CELL_STEP,targetLon=2,targetKey=cityCacheKey(targetLat,targetLon);
+    const geometry=[
+      {lat:targetLat,lon:targetLon},
+      {lat:targetLat+0.0001,lon:targetLon},
+      {lat:targetLat+0.0001,lon:targetLon+0.0001},
+    ];
+    const result={
+      walls:[],roofCaps:[],pitchedRoofs:[],roadDecals:[],flats:[],
+      meta:{roadPaths:[{id:84,pts:geometry}]},
+    };
+    fetchPrebuiltCell.mockImplementation(async(key)=>key===targetKey?({
+      kind:'prebuilt',
+      metadata:{origin:{lat:targetLat,lon:targetLon},clippedElementCount:1,featureIds:['way/84']},
+      result,
+    }):null);
+    fetchCityDataForStream.mockImplementation(async(la,lo)=>({
+      lat:la,lon:lo,cacheKey:cityCacheKey(la,lo),
+      data:{elements:cityCacheKey(la,lo)===targetKey?[{type:'way',id:84,tags:{highway:'residential'},geometry}]:[]},
+    }));
+    const buildCity=vi.fn(async()=>({}));
+    const streamer=createCellStreamer({
+      scene:new THREE.Scene(),lat0:1,lon0:2,terrainTiles:new Map(),engineRef:{current:{}},
+      buildCity,maxCells:1,validatePrebuiltCell:vi.fn(async()=>true),
+    });
+    streamer.markLoaded(cityCacheKey(1,2),1,2);
+    streamer.tick(1,2);
+    await vi.waitFor(()=>expect(assembleCityFromBuild).toHaveBeenCalledTimes(1));
+    expect(streamer.debugState().loadedKeys).toContain(targetKey);
+
+    streamer.tick(1+CELL_STEP*6,2);
+    await vi.waitFor(()=>expect(streamer.debugState().loadedKeys).not.toContain(targetKey));
+    streamer.tick(targetLat,targetLon);
+    await vi.waitFor(()=>expect(assembleCityFromBuild).toHaveBeenCalledTimes(2));
+
+    expect(fetchPrebuiltCell.mock.calls.filter(([key])=>key===targetKey)).toHaveLength(2);
+    expect(fetchCityDataForStream.mock.calls.map(([la,lo])=>cityCacheKey(la,lo))).not.toContain(targetKey);
+    expect(buildCity).not.toHaveBeenCalled();
+    expect(assembleCityFromBuild.mock.calls[1][0].meta.roadPaths).toEqual([
+      expect.objectContaining({id:84}),
+    ]);
     streamer.dispose();
   });
   it('evicts empty cells as the loaded ring advances and preserves its capacity bound',async()=>{
