@@ -1731,9 +1731,11 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false }) {
             pool: 0,
             on: 0,
             assigned: 0,
+            visible: 0,
             lampMarkers: lampMarkers.length,
             qualityTier,
             nightAmount: currentStreetLightNight,
+            keepInactiveVisible: null,
           };
           const g = scene.getObjectByName("streetLights");
           const lights = g ? g.children.filter((c) => c.isSpotLight) : [];
@@ -1741,9 +1743,24 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false }) {
             pool: lights.length,
             on: lights.filter((l) => l.visible && l.intensity > 0).length,
             assigned: lights.filter((l) => l.userData.assigned).length,
+            visible: lights.filter((l) => l.visible).length,
             lampMarkers: lampMarkers.length,
             qualityTier,
             nightAmount: currentStreetLightNight,
+            keepInactiveVisible: sl.keepInactiveVisible,
+          };
+        },
+        setInactiveStreetLightsVisible: (visible) => {
+          const sl = runtime.current.streetLights;
+          if (!sl) return null;
+          sl.setKeepInactiveVisible(visible === true);
+          const g = scene.getObjectByName("streetLights");
+          const lights = g ? g.children.filter((c) => c.isSpotLight) : [];
+          return {
+            pool: lights.length,
+            on: lights.filter((l) => l.visible && l.intensity > 0).length,
+            visible: lights.filter((l) => l.visible).length,
+            keepInactiveVisible: sl.keepInactiveVisible,
           };
         },
         nameplates: () => population?.getNameplateStats?.(player) || [],

@@ -8,6 +8,7 @@ describe('pooled street lights', () => {
     const lights = createStreetLights(scene, { maxLights: 2, radius: 40 });
     const pool = scene.getObjectByName('streetLights').children.filter((child) => child.isSpotLight);
 
+    expect(pool.every((light) => light.visible)).toBe(true);
     lights.setLamps([
       { kind: 'lamp', x: 20, z: 0 },
       { kind: 'lamp', x: 10, z: 0 },
@@ -47,6 +48,24 @@ describe('pooled street lights', () => {
     lights.setLamps([]);
     lights.update({ x: 12, z: 0 });
     expect(pool.every((light) => light.intensity === 0 && !light.userData.assigned)).toBe(true);
+    lights.dispose();
+  });
+
+  it('can hide only inactive lights while keeping assigned night lights visible', () => {
+    const scene = new THREE.Scene();
+    const lights = createStreetLights(scene, { maxLights: 2, radius: 40, keepInactiveVisible: false });
+    const pool = scene.getObjectByName('streetLights').children.filter((child) => child.isSpotLight);
+
+    expect(pool.every((light) => !light.visible)).toBe(true);
+    lights.setLamps([{ kind: 'lamp', x: 10, z: 0 }]);
+    lights.setNight(1);
+    lights.update({ x: 0, z: 0 });
+    expect(pool.map((light) => light.visible)).toEqual([true, false]);
+
+    lights.setNight(0);
+    expect(pool.every((light) => !light.visible && light.intensity === 0)).toBe(true);
+    expect(lights.setKeepInactiveVisible(true)).toBe(true);
+    expect(pool.every((light) => light.visible)).toBe(true);
     lights.dispose();
   });
 });

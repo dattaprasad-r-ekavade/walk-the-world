@@ -29,9 +29,13 @@ facade PBR maps. The RTX 4060 smoke estimates 19.3 MB compressed mip residency
 when high is active; low-memory and mobile texture checks remain open. Work is
 consolidated on `main`. The latest checkpoint also adds deterministic procedural
 surface maps, reversible wet-road color tuning, corrected bloom/SSAO transitions,
-and per-cell lamp lifecycle validation. The latest unit suite passes 131 tests
-across 19 files and the production build passes. Wet-road visual acceptance,
-controlled post-FX comparison and real-mobile checks remain open.
+and per-cell lamp lifecycle validation. The latest unit suite passes 132 tests
+across 19 files and the production build passes. A five-run-per-condition
+inactive-light A/B shows a lower GPU timer median when zero-intensity lights are
+hidden, but the ranges overlap and frame-time results vary by refresh bucket.
+Keep the runtime policy unchanged until day/night shader-transition cost is
+measured. Wet-road visual acceptance, close-up post-FX and real-mobile checks
+remain open.
 
 ## 1. Verified baseline and scope
 
@@ -769,8 +773,22 @@ street/assemble-city.js and StreetEngine.js.
     valid capture window but is functional evidence, not a performance A/B
     (49.9 ms frame p95). No browser, page or local-asset errors occurred. See
     [the passing lifecycle report](benchmarks/results/stage4/lamp-stream-lifecycle.md).
-    The separate cost of keeping zero-intensity pool objects visible remains
+    The steady-state cost of keeping zero-intensity pool objects visible remains
     open.
+  - [x] Add a benchmark-only inactive-light visibility switch and isolate the
+    pool cost with post-processing disabled. Five visible-Chrome runs per
+    condition used the recorded Rome fixture at 12:00, High, 1280×720/DPR 1,
+    with four pooled lights at zero intensity. All ten measured windows and
+    host-telemetry windows were valid, with no browser/network validation
+    errors. Hiding the four inactive lights reduced median GPU timer p95 from
+    13.18 ms to 10.68 ms (4/5 paired runs were lower); the ranges overlap
+    (visible 11.92–13.69 ms, hidden 8.26–13.87 ms). Median frame p95 was
+    33.4 ms visible and 17.2 ms hidden, but hidden runs split between roughly
+    17 ms and 33 ms refresh buckets, so this is not a stable frame-time claim.
+    Keep the shipped visible-light behavior until the shader-variant compile
+    cost at day/night transitions is measured. See the [inactive-light
+    checkpoint](benchmarks/results/stage4/inactive-light-policy-checkpoint.md).
+    Transition cost and mobile behavior remain open.
 - [ ] 4.5 Tune existing half-resolution bloom before selective masking; compare
   extra passes if masking is needed. Compare optional SSAO with vertex/baked
   contact shading; inspect halos and washed-out daytime surfaces.
@@ -1001,11 +1019,13 @@ road-ribbon evidence is in [the road-ribbon review](benchmarks/results/stage4/ro
 Stage 4.3 has current-code performance and material-inheritance evidence plus
 deterministic procedural maps, but its close-up wet-road appearance still needs
 review. Stage 4.4's production UI transitions and streamed/evicted lamp markers
-pass; measure the shading cost of visible zero-intensity lights. Stage 4.5 has
-five-run tier and same-tier SSAO results: High SSAO adds a large GPU cost, while
-the matched views show only subtle contact shading. Keep the High default until
-close-up and mobile visuals are accepted; bloom halo review and cheaper contact
-shading remain open. The latest unit run passed 131 tests across 19 files.
+pass, and inactive-light shader cost has five valid runs per policy; measure the
+day/night shader-variant compile before adopting the faster hidden policy. Stage
+4.5 has five-run tier and same-tier SSAO results: High SSAO adds a large GPU
+cost, while the matched views show only subtle contact shading. Keep the High
+default until close-up and mobile visuals are accepted; bloom halo review and
+cheaper contact shading remain open. The latest unit run passed 132 tests across
+19 files.
 Stage 0.8 dense live-city
 cold/warm walk/drive, Stage 1 mobile assembly and input latency, Stage 1.3
 low-core worker plus KTX2 contention/memory, and lower-memory/mobile high-atlas

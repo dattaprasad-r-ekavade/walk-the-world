@@ -57,6 +57,8 @@ const cacheMode = option('--cache-mode', ['live', 'recorded'].includes(dataMode)
 const route = option('--route', '/street');
 const qualityPreset = option('--preset', 'medium');
 const ssaoMode = option('--ssao-mode', 'preset');
+const postFxMode = option('--postfx-mode', 'preset');
+const inactiveLightsMode = option('--inactive-lights', 'visible');
 const rendererMode = option('--renderer-mode', 'software');
 const browserChannel = option('--browser-channel', 'bundled');
 const walkDurationMs = Number(option('--walk-ms', '12000'));
@@ -95,6 +97,16 @@ if (!['low', 'medium', 'high'].includes(qualityPreset)) throw new Error('--prese
 if (!['preset', 'on', 'off'].includes(ssaoMode)) throw new Error('--ssao-mode must be preset, on, or off');
 if (ssaoMode !== 'preset' && qualityPreset !== 'high') {
   throw new Error('--ssao-mode on/off controls the high-tier SSAO pass and requires --preset high');
+}
+if (!['preset', 'off'].includes(postFxMode)) throw new Error('--postfx-mode must be preset or off');
+if (postFxMode !== 'preset' && ssaoMode !== 'preset') {
+  throw new Error('--postfx-mode off cannot be combined with a custom --ssao-mode');
+}
+if (!['visible', 'hidden'].includes(inactiveLightsMode)) {
+  throw new Error('--inactive-lights must be visible or hidden');
+}
+if (inactiveLightsMode === 'hidden' && qualityPreset !== 'high') {
+  throw new Error('--inactive-lights hidden requires --preset high');
 }
 if (!['software', 'browser-default'].includes(rendererMode)) throw new Error('--renderer-mode must be software or browser-default');
 if (!['bundled', 'chrome'].includes(browserChannel)) throw new Error('--browser-channel must be bundled or chrome');
@@ -554,15 +566,35 @@ async function benchStreet(page) {
   // after the first real host sample is available.
   await page.waitForTimeout(500);
   const hostTelemetryLimit = resourceSoakEnabled ? 1800 : 600;
-  const hostTelemetryMonitor = startHostTelemetry(Math.min(hostTelemetryLimit, Math.max(1, Math.ceil(walkDurationMs / 1000) + 3)));
+  // Keep sampling well past the measured walk so startup jitter cannot leave
+  // the browser window without a final host sample.
+  const hostTelemetryMonitor = startHostTelemetry(Math.min(hostTelemetryLimit, Math.max(1, Math.ceil(walkDurationMs / 1000) + 8)));
   await hostTelemetryMonitor.ready;
   await page.bringToFront();
   await page.evaluate(() => window.focus());
-  if (ssaoMode !== 'preset') {
+  if (postFxMode === 'off') {
+    const state = await page.evaluate(() => window.__streetDebug?.setPostFxState?.({ active: false, ssao: false }));
+    if (!state || state.postFxActive !== false || state.bloomActive !== false || state.ssaoActive !== false) {
+      throw new Error(`Could not disable post-processing passes: ${JSON.stringify(state)}`);
+    }
+  } else if (ssaoMode !== 'preset') {
     const state = await page.evaluate((ssao) => window.__streetDebug?.setPostFxState?.({ active: true, ssao }), ssaoMode === 'on');
     if (!state || state.postFxActive !== true || state.bloomActive !== true || state.ssaoActive !== (ssaoMode === 'on')) {
       throw new Error(`Could not apply the requested high-tier SSAO state (${ssaoMode})`);
     }
+  }
+  if (qualityPreset === 'high') {
+    const inactiveLightState = await page.evaluate((visible) =>
+      window.__streetDebug?.setInactiveStreetLightsVisible?.(visible) || null,
+    inactiveLightsMode === 'visible');
+    if (inactiveLightsMode === 'hidden' && (!inactiveLightState || inactiveLightState.pool < 1)) {
+      throw new Error('--inactive-lights hidden requires a loaded street-light pool');
+    }
+    if (inactiveLightState &&
+        inactiveLightState.keepInactiveVisible !== (inactiveLightsMode === 'visible')) {
+      throw new Error(`Could not apply --inactive-lights ${inactiveLightsMode}: ${JSON.stringify(inactiveLightState)}`);
+    }
+    if (inactiveLightState) await page.waitForTimeout(500);
   }
   await page.evaluate((resourceSoak) => {
     const counters = window.__perfCounters;
@@ -637,6 +669,24 @@ async function benchStreet(page) {
       window.__BENCH_RESOURCE_SOAK_NAV = route;
     }
   }, resourceSoakEnabled);
+  // Let renderer/program changes settle before the measured window, then clear
+  // any long transition interval produced by the first frame after the change.
+  await page.evaluate(() => new Promise((resolve) => {
+    requestAnimationFrame(() => requestAnimationFrame(() => setTimeout(resolve, 0)));
+  }));
+  await page.evaluate(() => {
+    const counters = window.__perfCounters;
+    if (!counters) return;
+    counters.frameIntervalsMs.length = 0;
+    counters.frameIntervalCursor = 0;
+    counters.rendererFrames.length = 0;
+    counters.rendererFrameCursor = 0;
+    counters.gpuFrameTimesMs.length = 0;
+    counters.gpuFrameTimeCursor = 0;
+    counters.fpsSamples.length = 0;
+    counters.resourceSamples.length = 0;
+    counters.resourceSampleCursor = 0;
+  });
   const measurementStartedAt = new Date().toISOString();
   const measurementStartedMonotonicMs = await page.evaluate(() => performance.now());
   await page.keyboard.down('w');
@@ -937,7 +987,7 @@ async function main() {
   mkdirSync(dirname(outPath), { recursive: true });
 
   console.log(`  Fixture: ${fixturePath}`);
-  console.log(`  Route: ${route}; data: ${dataMode}; cache: ${cacheMode}; preset: ${qualityPreset}; SSAO: ${ssaoMode}; geometry workers: ${geometryWorkers}; city data copy: ${cityDataCopyMode}; road query: ${roadQueryMode}; browser: ${browserChannel}; renderer: ${rendererMode}; hour: ${benchmarkEnvironment.hour}; weather: ${benchmarkEnvironment.weather}; walk: ${walkDurationMs}ms${crossCell ? '; crossing a cell boundary' : ''}${resourceSoakEnabled ? '; resource soak' : ''}${streamLifecycleEnabled ? '; streamed lamp lifecycle' : ''}`);
+  console.log(`  Route: ${route}; data: ${dataMode}; cache: ${cacheMode}; preset: ${qualityPreset}; post FX: ${postFxMode}; SSAO: ${ssaoMode}; inactive lights: ${inactiveLightsMode}; geometry workers: ${geometryWorkers}; city data copy: ${cityDataCopyMode}; road query: ${roadQueryMode}; browser: ${browserChannel}; renderer: ${rendererMode}; hour: ${benchmarkEnvironment.hour}; weather: ${benchmarkEnvironment.weather}; walk: ${walkDurationMs}ms${crossCell ? '; crossing a cell boundary' : ''}${resourceSoakEnabled ? '; resource soak' : ''}${streamLifecycleEnabled ? '; streamed lamp lifecycle' : ''}`);
 
   const launchOptions = {
     headless: !headed,
@@ -1107,6 +1157,8 @@ async function main() {
       longitude: location.lon,
       qualityPreset,
       ssaoMode,
+      postFxMode,
+      inactiveLightsMode,
       hour: benchmarkEnvironment.hour,
       weather: benchmarkEnvironment.weather,
       precipitationMode: benchmarkEnvironment.precipitationMode,
@@ -1155,11 +1207,30 @@ async function main() {
     if (result.street.settings?.hour !== benchmarkEnvironment.hour || result.street.settings?.weather !== benchmarkEnvironment.weather) {
       throw new Error(`Applied scene environment did not match the requested benchmark: ${JSON.stringify(result.street.settings)}`);
     }
-    if (ssaoMode !== 'preset' && (
+    if (postFxMode === 'off' && (
+      result.street.settings?.postFxActive !== false ||
+      result.street.settings?.ssaoActive !== false ||
+      result.street.settings?.bloomActive !== false
+    )) {
+      throw new Error(`Captured post-processing state did not match --postfx-mode off: ${JSON.stringify(result.street.settings)}`);
+    }
+    if (postFxMode === 'preset' && ssaoMode !== 'preset' && (
       result.street.settings?.ssaoActive !== (ssaoMode === 'on') ||
       result.street.settings?.bloomActive !== true
     )) {
       throw new Error(`Captured post-processing state did not match --ssao-mode ${ssaoMode}: ${JSON.stringify(result.street.settings)}`);
+    }
+    if (qualityPreset === 'high' && inactiveLightsMode === 'hidden' && !result.street.streetLighting?.pool) {
+      throw new Error('Captured high-tier scene did not contain the street-light pool for the hidden-light comparison');
+    }
+    if (qualityPreset === 'high' && result.street.streetLighting?.pool > 0) {
+      const lights = result.street.streetLighting;
+      const expectedVisible = inactiveLightsMode === 'visible' ? lights?.pool : lights?.on;
+      if (!lights || lights.pool < 1 ||
+          lights.keepInactiveVisible !== (inactiveLightsMode === 'visible') ||
+          lights.visible !== expectedVisible) {
+        throw new Error(`Captured street-light state did not match --inactive-lights ${inactiveLightsMode}: ${JSON.stringify(lights)}`);
+      }
     }
     result.hostTelemetry = result.street.hostTelemetry;
     if (screenshotPath) {
