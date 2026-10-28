@@ -3,11 +3,13 @@
 ## Decision
 
 B1 remains open. The first matched run found that overlapping neighbor
-artifacts were downloaded before fallback. An exact cell-overlap index now
-avoids those transfers. The baker records only the terrain tiles sampled while
-building each artifact, and runtime preflight loads their height grids without
-building terrain visuals or requesting imagery. The latest matched headless
-run was 4.7% slower cold and 5.8% faster warm than raw, with 7.4% less payload.
+artifacts were downloaded before fallback. Bounded positive overlap hints now
+avoid those transfers when the conflict is known; decoded-ID checks preserve
+the raw fallback when a hint is omitted. The baker records only the terrain
+tiles sampled while building each artifact; runtime preflight loads their
+height grids without building terrain visuals or requesting imagery. The latest
+matched headless run was 4.7% slower cold and 5.8% faster warm than raw, with
+7.4% less payload.
 The visible Chrome comparison below confirms the path on this host's NVIDIA
 RTX 4060 Laptop GPU: 4.2% slower cold, 8.3% faster warm and 7.3% less payload.
 That first visible run's cold height validation took 1.58–2.01 s (1.72 s
@@ -180,8 +182,8 @@ upload submission or VRAM.
 The benchmark and raw reports/screenshots are retained locally under
 `benchmarks/results/stage8/b1-steady-visible-chrome-2026-10-29/` and are
 ignored by Git. B1 remains open for lower-tier device parity, editor
-hide/save/reload acceptance, cold terrain-cache work, upload-cost investigation,
-and overlap-index growth bounds.
+hide/save/reload acceptance, cold terrain-cache work, and upload-cost
+investigation.
 
 ## Cold terrain-validation breakdown — 29 October 2026
 
@@ -202,6 +204,17 @@ The run's valid reports are in the ignored local directory
 The next useful terrain work is to evaluate a revision-aware cache or another
 way to avoid cold image refetch while preserving the terrain mismatch fallback.
 Changing the hash implementation alone is not justified by these timings.
+
+## Bounded overlap hints — 29 October 2026
+
+The baker now caps each cell's `featureOverlapKeys` at 64 and stops retaining
+more than 65 owners for a single shared feature. For a batch of N cells, the
+serialized hint count is at most 64N. A 1,024-cell stress test with one feature
+in every cell produced at most 64 hints per entry and 4,160 total directed
+links; later entries omit hints after the cap. Omitted hints can cause an extra
+artifact download, but the existing decoded-feature ID conflict check still
+falls back to raw JSON before using overlapping baked geometry. The overlap
+index is bounded without weakening the geometry ownership check.
 
 ## Browser edit and artifact-failure fallback smoke — 29 October 2026
 
@@ -231,6 +244,5 @@ Before adopting B1, repeat the fixed-window comparison on the intended
 integrated/mobile tiers and investigate GPU upload submission cost, which the
 current window does not isolate. Evaluate revision-safe caching for the cold
 terrain image gate; verify editor Hide/save/reload behavior alongside existing
-cancellation/eviction tests; and confirm the overlap index stays bounded as
-bake coverage grows. Local artifacts remain unpublished; production R2
+cancellation/eviction tests. Local artifacts remain unpublished; production R2
 publication is a separate release task.

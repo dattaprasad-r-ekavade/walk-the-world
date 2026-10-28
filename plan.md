@@ -179,9 +179,11 @@ Decisions taken from the research:
   The first matched 29 October headless run showed the baked path fetching nine
   artifacts before discovering neighbor ID overlaps: 20,313,264 B total and
   4.486 s cold median, versus 15,473,747 B and 3.515 s raw. The baker now writes
-  exact cell-to-cell overlap hints in the index, and the streamer skips known
-  conflicts before artifact fetch while retaining its decoded-ID check for old
-  or incomplete indexes. The nine-cell Tokyo index is now 9.5 KB; all eight
+  verified cell-to-cell overlap hints in the index, and the streamer skips known
+  conflicts before artifact fetch while retaining its decoded-ID check for old,
+  incomplete or capped indexes. Each entry now stores at most 64 overlap keys;
+  the 1,024-cell stress test with one shared feature produced 4,160 directed
+  links total. The nine-cell Tokyo index is now 9.5 KB; all eight
   neighbors share IDs with spawn. The baker records only the terrain tiles
   actually sampled by geometry, while loading a one-tile safety margin to keep
   edge samples covered. The spawn uses four tiles (the other Tokyo cells use
@@ -218,8 +220,8 @@ Decisions taken from the research:
   steady window does not isolate per-geometry upload submission. In this run,
   raw/prebuilt cold medians were 3.431/3.590 s and warm medians were
   1.765/1.868 s; prebuilt transferred 7.3% fewer cold bytes. B1 remains open
-  for integrated/mobile parity and editor Hide/save/reload acceptance,
-  upload-cost investigation and overlap-index growth bounds. A phase-level
+  for integrated/mobile parity, editor Hide/save/reload acceptance and
+  upload-cost investigation. A phase-level
   terrain trace found four cold sampled-tile image loads at 1.21–2.22 s each;
   canvas reads took 0.9–2.0 ms and 65×65 downsampling 0.0–0.6 ms per tile.
   Hash packing took 6.9–8.4 ms and SHA-256 completion 0.4–0.6 ms. The cold
@@ -277,7 +279,7 @@ mobile, offline and several visual gates remain open.
 | 3 Assets | 3.1–3.8 implemented; compressed maps and optimized props | Offline/failure browser checks, lower-memory/mobile residency and far mip seams |
 | 4 Roads/lights | 4.1, 4.2 and desktop 4.4 complete | Wetness, bloom/contact shading, shadows and facade variation |
 | 5 Detail/weather | Planned | LOD, spatial instances, vegetation and analytic precipitation |
-| 6–8 Alternatives | B1 overlap filtering, sampled terrain keys, height-only preflight, steady-window diagnostics, and browser edit/503 fallback smoke measured; Stage 6/7 deferred | B1 revision-safe cold-terrain caching, integrated/mobile parity, editor save/reload and upload-cost acceptance |
+| 6–8 Alternatives | B1 overlap filtering with 64-key cap, sampled terrain keys, height-only preflight, steady-window diagnostics, and browser edit/503 fallback smoke measured; Stage 6/7 deferred | B1 revision-safe cold-terrain caching, integrated/mobile parity, editor save/reload and upload-cost acceptance |
 | 9 Integration | Open | Full regression, hardware/visual acceptance and release records |
 
 Latest validation: all 206 tests across 33 files and the production build pass,
@@ -766,8 +768,8 @@ matched settings, tested hardware, thresholds and remaining gates.
 
 1. Complete B1's integrated/mobile parity and browser editor Hide/save/reload
    acceptance; evaluate whether a revision-aware cache can safely avoid cold
-   terrain image fetches, and bound overlap-index growth. Continue investigating
-   upload cost because the visible steady window does not expose per-geometry
+   terrain image fetches. Continue investigating upload cost because the visible
+   steady window does not expose per-geometry
    submission time. Keep local artifacts private unless a separate release task
    authorizes publication. Then work through B2 (Overpass
    independence), B3 (procedural landuse ground) and B4 (Overture attribute gap

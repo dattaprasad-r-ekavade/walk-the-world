@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { buildPrebuiltCellOverlapIndex, prebuiltCellOverlapsOwnedCell } from "@/lib/engine/prebuilt-cell-overlap-index";
+import {
+  buildPrebuiltCellOverlapIndex,
+  MAX_PREBUILT_CELL_OVERLAP_KEYS,
+  prebuiltCellOverlapsOwnedCell,
+} from "@/lib/engine/prebuilt-cell-overlap-index";
 
 describe("prebuilt cell overlap index", () => {
   it("builds symmetric exact overlap hints from feature ownership", () => {
@@ -15,6 +19,21 @@ describe("prebuilt cell overlap index", () => {
     expect(overlaps.get(a)).toEqual([b]);
     expect(overlaps.get(b)).toEqual([a]);
     expect(overlaps.get(c)).toEqual([]);
+  });
+
+  it("bounds overlap hints when a feature spans many cells", () => {
+    const rows = Array.from({ length: 1024 }, (_, index) => ({
+      key: `cell-${index}`,
+      featureIds: ["way/999"],
+    }));
+    const overlaps = buildPrebuiltCellOverlapIndex(rows);
+    const lists = [...overlaps.values()];
+    const edgeCount = lists.reduce((sum, values) => sum + values.length, 0);
+
+    expect(overlaps.size).toBe(rows.length);
+    expect(Math.max(...lists.map((values) => values.length))).toBe(MAX_PREBUILT_CELL_OVERLAP_KEYS);
+    expect(edgeCount).toBe((MAX_PREBUILT_CELL_OVERLAP_KEYS + 1) * MAX_PREBUILT_CELL_OVERLAP_KEYS);
+    expect(overlaps.get("cell-1023")).toEqual([]);
   });
 
   it("skips only when a valid indexed overlap is currently owned", () => {
