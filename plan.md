@@ -5,6 +5,59 @@ rendering fixes and the benchmark-only wet-road prototype are in this checkpoint
 This is the active plan. The [previous detailed checkpoint](docs/PLAN-CHECKPOINT-2026-10-28-BEFORE-REVIEW.md)
 preserves the full experiment history; its status is historical.
 
+## 0. Demo track — priority 0
+
+The product goal is a smooth, good-looking live demo of four cities:
+Pune, Edinburgh, Tokyo and New York (`DEMO_PLACES` in [lib/geo.js](lib/geo.js)).
+Work in this section comes before R1–R5 and Stages 4–9. A Stage 0–9 item
+moves ahead of the demo track only when it fixes a problem a demo viewer can see
+or feel.
+
+Acceptance for demo-track items (lighter than section 3):
+
+- A before/after screenshot at the same position, time and weather in each of
+  the four demo cities, saved under `screenshots/demo-track/`.
+- `npm test` and `npm run build` pass.
+- One visible-Chrome performance smoke in one demo city shows no frame-time p95
+  regression above 5%. The five-repetition matrix is not required.
+
+Demo-track items:
+
+- [ ] **D1 — Ground and sidewalks near the player.** At street level the ground
+  reads as a flat white/beige smear and road markings are hard to see. Make the
+  first 60 m read as asphalt with markings, kerbs and paved sidewalks. Prefer a
+  world-space detail texture faded with distance over a larger ground canvas.
+- [ ] **D2 — Per-city demo presets.** Each demo place opens at a chosen time and
+  weather (not the live local time; New York opened dark at 06:00) and a curated
+  start position and heading (Pune spawned facing an empty lot). Live time and
+  weather stay the default outside the demo places.
+- [ ] **D3 — Facade textures visible on demo hardware.** Prefetch the shared KTX2
+  set and Basis decoder while the menu is open. Allow the near facade set on the
+  medium tier on desktop GPUs that support compressed formats. Low tier and
+  mobile stay unchanged.
+- [ ] **D4 — Benchmark mode cannot reach live visitors.** `?bench=1` only works
+  in builds with `NEXT_PUBLIC_ENABLE_BENCH=1` or in development.
+- [ ] **D5 — Remove dead deploy weight.** Delete the unhashed KTX2 and Basis
+  decoder copies in `public/` (about 7 MB); the runtime uses only hashed paths.
+  Stop the asset script from recreating them. Ignore raw benchmark JSON/PNG
+  results in git; keep committed decision reports.
+- [ ] **D6 — Service-worker revision on every build.** `npm run build` stamps a
+  new shell-cache revision, so a deploy never serves an old shell.
+- [ ] **D7 — Demo rehearsal checklist.** After each demo-track change, load all
+  four cities on the live deployment, confirm all 36 demo cells are warm
+  (`npm run seed:demo`), and record time-to-ready and one screenshot per city.
+- [ ] **D8 — Facade and storefront variation (from 4.7).** Ground-floor shopfronts,
+  entrances and roof silhouettes at the four demo start points.
+
+Process rules for every stage:
+
+- Visual and demo fixes need matched screenshots plus one performance smoke.
+  Keep the five-repetition rule only for changing defaults or quality tiers.
+- At most one benchmark-only or report-only commit for every two commits that
+  change what a viewer sees or feels. Raw benchmark output stays out of git.
+- Update this plan in place. Do not add new root plan files; archive superseded
+  plans under `docs/archive/`.
+
 ## 1. Progress and code review
 
 The project has working profiling, bounded streaming, material families, compressed
@@ -132,9 +185,10 @@ browser validation gates are listed below. Preserve gameplay and fallbacks.
 ## 2. Scope and current working draft
 
 Keep Next.js/React, Cesium globe travel, Three.js street rendering and existing
-editor/reconstruction behavior. [PERFORMANCE-VISUALS-PLAN.md](PERFORMANCE-VISUALS-PLAN.md)
-holds research and alternatives; [plan2.md](plan2.md) holds broader product goals.
-[The legacy roadmap](docs/PLAN-LEGACY-2026-10-27.md) is historical.
+editor/reconstruction behavior. [docs/PERFORMANCE-VISUALS-RESEARCH.md](docs/PERFORMANCE-VISUALS-RESEARCH.md)
+holds research and alternatives. Superseded plans ([plan2.md](docs/archive/plan2.md),
+[ROADMAP.md](docs/archive/ROADMAP.md), [the legacy roadmap](docs/PLAN-LEGACY-2026-10-27.md))
+are historical.
 
 The current wet-road roughness prototype is enabled only by the benchmark; the
 product keeps the baseline map. A short paired
@@ -489,14 +543,13 @@ matched settings, tested hardware, thresholds and remaining gates.
 
 ## 15. Next action and deferred choices
 
-1. Complete the remaining R1–R4 browser and device checks, including repeated
-   environment/engine lifecycle checks and failure fallback.
-2. Reconcile R6 hardware metadata, then evaluate the current wet-map draft under
-   4.3; finish 4.5 close-up bloom/contact shading and 4.6 shadow measurements.
-3. Retry the live dense-city baseline when complete API cells are available.
-   Complete physical low-core, mobile controls/thermal and offline asset checks.
-4. Continue remaining Stage 4/5 work; revisit conditional Stage 6–8 experiments only
-   when their measured prerequisite passes, then complete Stage 9 acceptance.
+1. Finish the section 0 demo track (D1–D8) and run the D7 rehearsal.
+2. Then 4.7 facade variation beyond the demo start points, and 4.5 bloom/contact
+   shading close-ups.
+3. Then the remaining R1–R4 browser and device checks.
+4. Deprioritized: R5 and 4.3 wet-road tuning (captures show little visible
+   gain), the 0.8 Manhattan live baseline, and the conditional Stage 6–8
+   experiments. Revisit them only when a demo viewer would notice the result.
 
 Rust/Wasm/SIMD remains deferred: an earlier synthetic trace measured worker
 compute at 25.9 ms median versus 729.4 ms roundtrip. That trace does not establish

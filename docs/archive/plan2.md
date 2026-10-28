@@ -3,7 +3,7 @@
 ## Implementation checkpoint — 2026-07-13
 
 The first portfolio transformation pass is implemented and documented in
-[`BEFORE-AFTER.md`](BEFORE-AFTER.md). It includes the brand/icon system, guided demo
+[`BEFORE-AFTER.md`](../../BEFORE-AFTER.md). It includes the brand/icon system, guided demo
 entry, responsive HUD cleanup, explicit streaming states, hidden developer controls,
 improved instanced vegetation, PWA metadata, local tests, portfolio README/case study,
 performance and release criteria, and the evidence-bound AI World Repair audit with

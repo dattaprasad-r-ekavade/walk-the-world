@@ -12,6 +12,7 @@ import { useReverseGeocode } from '@/hooks/use-reverse-geocode';
 import { useGameStore } from '@/stores/game-store';
 import { trackRender } from '@/lib/perf';
 import { fetchCityData } from '@/lib/engine/cityData';
+import { streetUrl } from '@/lib/geo';
 import { dailyDestination, whereAmIRound } from '@/lib/daily';
 import { copyText, streetShareUrl } from '@/lib/share';
 import { BrandMark } from '@/components/Brand';
@@ -96,13 +97,33 @@ export default function Home() {
     });
   };
 
-  const fly = (lat, lon) => {
+  const fly = (lat, lon, demo = false) => {
     setScreen('play');
     setPanel(null);
     setPhotoMode(false);
     if (globeEnabled && globeReady) controllerRef.current?.flyToStreet(lat, lon);
-    else router.push(`/street?lat=${lat}&lon=${lon}`);
+    else router.push(streetUrl(lat, lon, { demo }));
   };
+
+  // Warm the HTTP/SW cache with the shared KTX2 facade set + Basis decoder
+  // (no decode) once the menu is idle, so walking starts with real facades.
+  useEffect(() => {
+    if (!ready) return undefined;
+    let cancelled = false;
+    const run = () => {
+      if (cancelled) return;
+      import('@/lib/engine/ktx2-policy').then((m) => {
+        if (!cancelled) m.prefetchKtx2Assets();
+      }).catch(() => {});
+    };
+    const ric = typeof window !== 'undefined' && window.requestIdleCallback;
+    const id = ric ? window.requestIdleCallback(run, { timeout: 4000 }) : setTimeout(run, 2000);
+    return () => {
+      cancelled = true;
+      if (ric) window.cancelIdleCallback?.(id);
+      else clearTimeout(id);
+    };
+  }, [ready]);
 
   // Preload the street route while the visitor chooses a destination.
   useEffect(() => {
@@ -165,7 +186,7 @@ export default function Home() {
     setScreen('play');
     setPanel(null);
     fetchCityData(35.6595, 139.7005).catch(() => {});
-    router.push('/street?lat=35.6595&lon=139.7005');
+    router.push(streetUrl(35.6595, 139.7005, { demo: true }));
   };
 
   useGameKeyboard(
@@ -268,7 +289,7 @@ export default function Home() {
                     Free explore the globe
                   </button>
                   {todayWalk && (
-                    <button type="button" className={menuBtn} disabled={!ready} onClick={() => fly(todayWalk.lat, todayWalk.lon)} title={`${todayWalk.lat.toFixed(4)}, ${todayWalk.lon.toFixed(4)}`}>
+                    <button type="button" className={menuBtn} disabled={!ready} onClick={() => fly(todayWalk.lat, todayWalk.lon, true)} title={`${todayWalk.lat.toFixed(4)}, ${todayWalk.lon.toFixed(4)}`}>
                       Today&apos;s walk · {todayWalk.name}
                     </button>
                   )}
@@ -305,7 +326,7 @@ export default function Home() {
         place={place}
         settings={settings}
         onSettingChange={applySettings}
-        onTravel={fly}
+        onTravel={(la, lo, demo) => fly(la, lo, demo)}
         savedPlaces={savedPlaces}
         onSavePlace={() => {
           const lat = hudStatus.lat ?? lastPosition?.lat;

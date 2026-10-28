@@ -93,7 +93,7 @@ export function TravelPanel({
           </div>
         ))}
         {DEMO_PLACES.map((p) => (
-          <button key={p.name} type="button" className={travelBtn} onClick={() => onTravel(p.lat, p.lon)}>
+          <button key={p.name} type="button" className={travelBtn} onClick={() => onTravel(p.lat, p.lon, true)}>
             <span className="mr-1">📍</span>
             {p.name}
           </button>

@@ -21,3 +21,9 @@ pat.txt
 
 warm-state.json
 .playwright-mcp/
+
+# benchmark run artefacts (reports *.md stay tracked; already-tracked files remain tracked)
+benchmarks/results/**/*.json
+benchmarks/results/**/*.png
+benchmarks/results.json
+!benchmarks/results/**/*.md

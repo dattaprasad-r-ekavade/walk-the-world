@@ -8,6 +8,7 @@ import {
   pitchedRoofColor,
   wantsPitchedRoof,
 } from '../lib/engine/styles.js';
+import { DEMO_PLACES, demoPlaceNear, demoPresetNear, streetUrl } from '../lib/geo.js';
 import { dailyDestination, allDestinations } from '../lib/daily.js';
 import { streetShareUrl, photoFilename } from '../lib/share.js';
 
@@ -492,5 +493,30 @@ describe('cell-clip ownership', () => {
     forgetElementIds(first.ids, seen);
     const afterForget = takeUnseenElements(owned, seen);
     expect(afterForget.elements.length).toBe(2);
+  });
+});
+
+describe('demo presets', () => {
+  it('every demo place has a pleasant clear preset', () => {
+    for (const p of DEMO_PLACES) {
+      expect(p.preset.hour).toBeGreaterThanOrEqual(17);
+      expect(p.preset.hour).toBeLessThanOrEqual(19);
+      expect(p.preset.weather).toBe(0);
+    }
+  });
+  it('looks up the nearest demo place within 300 m only', () => {
+    expect(demoPresetNear(40.758, -73.9855)).toEqual({ hour: 18, weather: 0 });
+    expect(demoPlaceNear(35.6597, 139.7007).name).toBe('Tokyo');
+    expect(demoPresetNear(35.67, 139.7005)).toBeNull();
+    expect(demoPresetNear(NaN, 0)).toBeNull();
+  });
+  it('Pune start stays within 200 m of Koregaon Park', () => {
+    const p = DEMO_PLACES.find((d) => d.name === 'Pune');
+    const d = Math.hypot((p.lat - 18.540913) * 110540, (p.lon - 73.895553) * 111320 * Math.cos(18.54 * Math.PI / 180));
+    expect(d).toBeLessThan(200);
+  });
+  it('builds street URLs with optional demo flag', () => {
+    expect(streetUrl(1, 2)).toBe('/street?lat=1&lon=2');
+    expect(streetUrl(1, 2, { demo: true })).toBe('/street?lat=1&lon=2&demo=1');
   });
 });

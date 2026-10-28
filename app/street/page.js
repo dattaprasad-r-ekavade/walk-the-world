@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { EngineErrorBoundary } from "@/components/EngineErrorBoundary";
 import { validCoordinates } from "@/lib/city-contract";
+import { demoPresetNear } from "@/lib/geo";
 import { useGameStore } from "@/stores/game-store";
 
 const StreetEngine = dynamic(() => import("@/components/StreetEngine"), {
@@ -30,11 +31,13 @@ function StreetContent() {
   // creeps a little further every session (lib/engine/street/spawn.js).
   const resumedPosition = !hasUrlCoords && !!lastPosition;
 
-  if (bench && typeof window !== "undefined") {
+  // Bench hooks are inert on production builds unless built with NEXT_PUBLIC_ENABLE_BENCH=1 (npm run build:bench).
+  const benchAllowed = process.env.NEXT_PUBLIC_ENABLE_BENCH === "1" || process.env.NODE_ENV !== "production";
+  if (bench && benchAllowed && typeof window !== "undefined") {
     window.__BENCH_MODE = true;
   }
 
-  return <StreetEngine lat0={lat} lon0={lon} resumedPosition={resumedPosition} />;
+  return <StreetEngine lat0={lat} lon0={lon} resumedPosition={resumedPosition} demoPreset={params.get("demo") === "1" ? demoPresetNear(lat, lon) : null} />;
 }
 
 export default function StreetPage() {

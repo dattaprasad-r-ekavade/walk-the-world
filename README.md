@@ -137,6 +137,10 @@ contract. Production runs must use the same browser, GPU mode, fixture, quality,
 viewport, and cache state. See [`PERFORMANCE-BUDGETS.md`](PERFORMANCE-BUDGETS.md)
 and [`BENCHMARK-PERF.md`](BENCHMARK-PERF.md).
 
+Benchmark hooks (`?bench=1`) are disabled on production builds. To benchmark a
+production build run `npm run build:bench` (sets `NEXT_PUBLIC_ENABLE_BENCH=1`),
+then `npm run start -- -p 3456` and `npm run bench`. `npm run dev` needs no flag.
+
 ## What I built
 
 - the product interaction model and guided portfolio journey;
@@ -154,8 +158,9 @@ is separately identified by its runtime provenance.
 
 - [`CASE-STUDY.md`](CASE-STUDY.md) — engineering narrative
 - [`plan.md`](plan.md) — detailed active implementation plan
-- [`plan2.md`](plan2.md) — 10/10 transformation plan
-- [`PERFORMANCE-VISUALS-PLAN.md`](PERFORMANCE-VISUALS-PLAN.md) — researched performance, Rust/Wasm/SIMD, shaders, textures, and visual-quality stages
+- [`plan.md`](plan.md) — active plan (demo track first, then performance/visual stages)
+- [`docs/PERFORMANCE-VISUALS-RESEARCH.md`](docs/PERFORMANCE-VISUALS-RESEARCH.md) — researched performance, Rust/Wasm/SIMD, shaders, textures, and visual-quality stages
+- [`docs/archive/`](docs/archive/) — superseded plans (plan2, roadmap, early benchmark)
 - [`RELEASE-CHECKLIST.md`](RELEASE-CHECKLIST.md) — launch gate
 - [`CREDITS.md`](CREDITS.md) — data, libraries, and assets
 

@@ -36,6 +36,7 @@ import { disposeSceneGroup } from "@/lib/engine/street/resources";
 import { createHudRef } from "@/lib/engine/street/hud-ref";
 import { GameShell } from "@/components/game-shell/GameShell";
 import { useRouter } from "next/navigation";
+import { streetUrl } from "@/lib/geo";
 import { useGameStore } from "@/stores/game-store";
 import { useGameKeyboard } from "@/hooks/use-game-keyboard";
 import { touchInputRef, readTouchMovement, applyTouchLook } from "@/lib/touch-input";
@@ -60,7 +61,7 @@ const { EYE, WALK_SPEED, RUN_MULT, TERRAIN_Z: Z, COLLISION_GRID: GRID } = STREET
 
 
 
-export default function StreetEngine({ lat0, lon0, resumedPosition = false }) {
+export default function StreetEngine({ lat0, lon0, resumedPosition = false, demoPreset = null }) {
   trackRender();
   const router = useRouter();
   const hudDomRef = useRef(null);
@@ -512,9 +513,9 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false }) {
       postFx.setSize(mount.clientWidth, mount.clientHeight);
       // remember the tier; applySky re-evaluates so night can turn bloom on
       qualityTier = quality;
-      setBuildingTextureQuality(quality);
-      ktx2TextureLoader.setQuality(quality);
-      if (quality !== "high" && highKtx2GpuBytes > 0) {
+      const nearTextures = ktx2TextureLoader.setQuality(quality);
+      setBuildingTextureQuality(nearTextures ? "high" : quality);
+      if (!nearTextures && highKtx2GpuBytes > 0) {
         highKtx2GpuBytes = 0;
         setPerfResourceCounts({
           textures: renderer.info.memory.textures,
@@ -704,7 +705,7 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false }) {
       }
       if (qualityTier === "high" && !streetLights && streetLampMarkers.length) {
         const benchHideInactiveLights =
-          typeof window !== "undefined" && window.__BENCH_HIDE_INACTIVE_STREET_LIGHTS === true;
+          typeof window !== "undefined" && window.__BENCH_MODE === true && window.__BENCH_HIDE_INACTIVE_STREET_LIGHTS === true;
         streetLights = createStreetLights(scene, {
           maxLights: 4,
           keepInactiveVisible: !benchHideInactiveLights,
@@ -1432,12 +1433,20 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false }) {
       markPerf("terrain-ready", { loadedTiles: terrainTiles.size, flatFallback: terrainTiles.size === 0 });
 
       const initialSettings = useGameStore.getState().settings || settings || {};
-      const initialHour = Number.isFinite(initialSettings.hour)
-        ? Math.max(0, Math.min(24, initialSettings.hour))
-        : 12;
-      const initialWeather = Number.isFinite(initialSettings.weather)
-        ? Math.max(0, Math.min(100, initialSettings.weather))
-        : 0;
+      // Demo arrival (?demo=1): apply the city's preset once instead of live
+      // local time/weather; the user can still change both in settings afterwards.
+      const demoApplied = !!demoPreset && window.__BENCH_MODE !== true;
+      const initialHour = demoApplied && Number.isFinite(demoPreset.hour)
+        ? Math.max(0, Math.min(24, demoPreset.hour))
+        : Number.isFinite(initialSettings.hour)
+          ? Math.max(0, Math.min(24, initialSettings.hour))
+          : 12;
+      const initialWeather = demoApplied && Number.isFinite(demoPreset.weather)
+        ? Math.max(0, Math.min(100, demoPreset.weather))
+        : Number.isFinite(initialSettings.weather)
+          ? Math.max(0, Math.min(100, initialSettings.weather))
+          : 0;
+      if (demoApplied) changeSettingStore({ hour: initialHour, weather: initialWeather });
       runtime.current.setTime(initialHour);
       runtime.current.setWeather(initialWeather);
       runtime.current.setPrecip(initialWeather >= 85 ? "rain" : null);
@@ -1715,7 +1724,7 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false }) {
         } catch { return null; }
       };
       // soft-sync HUD status strip once (non-blocking)
-      if (window.__BENCH_MODE !== true) {
+      if (window.__BENCH_MODE !== true && !demoApplied) {
         runtime.current.applyRealWeather?.().then((r) => {
           if (!r || disposed) return;
           changeSettingStore({ hour: r.hour, weather: r.weather });
@@ -2012,7 +2021,7 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false }) {
           place={whereAmI && !whereAmI.revealed ? null : place}
           settings={settings}
           onSettingChange={changeSetting}
-          onTravel={(la, lo) => router.push(`/street?lat=${la}&lon=${lo}`)}
+          onTravel={(la, lo, demo) => router.push(streetUrl(la, lo, { demo: !!demo }))}
           savedPlaces={savedPlaces}
           onSavePlace={() => {
             const cur = posRef.current || { lat: lat0, lon: lon0 };

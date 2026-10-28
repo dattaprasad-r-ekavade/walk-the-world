@@ -63,4 +63,4 @@ before making a frame-rate claim.
 - Deploy the public URL and run the real-device/browser matrix.
 - Populate the 30-cell AI evaluation set and conduct five first-time-user sessions.
 - Complete the deeper engine decomposition, LOD, pre-baked geometry, and 15-minute
-  memory/frame-pacing work described in `plan2.md`.
+  memory/frame-pacing work described in `docs/archive/plan2.md`.
