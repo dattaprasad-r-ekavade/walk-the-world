@@ -1,0 +1,176 @@
+{
+  "base": "https://walk-the-world-delta.vercel.app",
+  "r2": "https://myjyotishai.in",
+  "headed": true,
+  "at": "2026-10-28T15:52:34.507Z",
+  "places": [
+    {
+      "name": "Pune",
+      "preset": {
+        "hour": 17,
+        "weather": 0,
+        "headingDeg": 270
+      },
+      "cells": {
+        "total": 9,
+        "warm": 9,
+        "missing": []
+      },
+      "browser": {
+        "ready": true,
+        "readyMs": 6061,
+        "consoleErrors": 0,
+        "p50": 7.1,
+        "p95": 14,
+        "spawn": {
+          "framing": {
+            "mode": "arrival",
+            "cls": "residential",
+            "movedM": 7,
+            "score": 0.81,
+            "coverage": 0.81,
+            "openness": 1,
+            "headingSource": "demo-preset",
+            "headingDeg": 270
+          },
+          "headingRadians": 4.71238898038469,
+          "headingDegrees": 270,
+          "expectedHeadingDeg": 270,
+          "headingMatchesPreset": true,
+          "localPosition": {
+            "x": -4.9,
+            "z": -0.3
+          }
+        },
+        "shot": "screenshots\\demo-track\\rehearsal-2026-10-28-post-heading\\pune.jpg",
+        "note": ""
+      }
+    },
+    {
+      "name": "Edinburgh",
+      "preset": {
+        "hour": 17.5,
+        "weather": 0,
+        "headingDeg": 349
+      },
+      "cells": {
+        "total": 9,
+        "warm": 9,
+        "missing": []
+      },
+      "browser": {
+        "ready": true,
+        "readyMs": 5304,
+        "consoleErrors": 0,
+        "p50": 13.9,
+        "p95": 20.8,
+        "spawn": {
+          "framing": {
+            "mode": "arrival",
+            "cls": "pedestrian",
+            "movedM": 58,
+            "score": 1,
+            "coverage": 1,
+            "openness": 1,
+            "headingSource": "demo-preset",
+            "headingDeg": 349
+          },
+          "headingRadians": 6.09119908946021,
+          "headingDegrees": 349,
+          "expectedHeadingDeg": 349,
+          "headingMatchesPreset": true,
+          "localPosition": {
+            "x": -45.3,
+            "z": 31.1
+          }
+        },
+        "shot": "screenshots\\demo-track\\rehearsal-2026-10-28-post-heading\\edinburgh.jpg",
+        "note": ""
+      }
+    },
+    {
+      "name": "Tokyo",
+      "preset": {
+        "hour": 19,
+        "weather": 0,
+        "headingDeg": 317
+      },
+      "cells": {
+        "total": 9,
+        "warm": 9,
+        "missing": []
+      },
+      "browser": {
+        "ready": true,
+        "readyMs": 6358,
+        "consoleErrors": 0,
+        "p50": 13.9,
+        "p95": 14.1,
+        "spawn": {
+          "framing": {
+            "mode": "arrival",
+            "cls": "pedestrian",
+            "movedM": 29,
+            "score": 1,
+            "coverage": 1,
+            "openness": 1,
+            "headingSource": "demo-preset",
+            "headingDeg": 317
+          },
+          "headingRadians": 5.532693728822025,
+          "headingDegrees": 317,
+          "expectedHeadingDeg": 317,
+          "headingMatchesPreset": true,
+          "localPosition": {
+            "x": -15.7,
+            "z": -25
+          }
+        },
+        "shot": "screenshots\\demo-track\\rehearsal-2026-10-28-post-heading\\tokyo.jpg",
+        "note": ""
+      }
+    },
+    {
+      "name": "New York",
+      "preset": {
+        "hour": 18,
+        "weather": 0,
+        "headingDeg": 292
+      },
+      "cells": {
+        "total": 9,
+        "warm": 9,
+        "missing": []
+      },
+      "browser": {
+        "ready": true,
+        "readyMs": 4155,
+        "consoleErrors": 0,
+        "p50": 13.9,
+        "p95": 20.8,
+        "spawn": {
+          "framing": {
+            "mode": "arrival",
+            "cls": "footway",
+            "movedM": 11,
+            "score": 0.905,
+            "coverage": 0.905,
+            "openness": 1,
+            "headingSource": "demo-preset",
+            "headingDeg": 292
+          },
+          "headingRadians": 5.096361415823442,
+          "headingDegrees": 292,
+          "expectedHeadingDeg": 292,
+          "headingMatchesPreset": true,
+          "localPosition": {
+            "x": -5.6,
+            "z": -11.2
+          }
+        },
+        "shot": "screenshots\\demo-track\\rehearsal-2026-10-28-post-heading\\new-york.jpg",
+        "note": ""
+      }
+    }
+  ]
+}

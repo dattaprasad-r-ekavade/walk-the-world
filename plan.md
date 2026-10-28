@@ -1,7 +1,7 @@
 # Walk the World — Performance and Visuals Implementation Plan
 
-Updated: 28 October 2026. Reviewed base: `d1bc537` on `main`; current work adds
-explicit per-city demo headings and closes demo deployment gates D4–D6.
+Updated: 28 October 2026. Reviewed base: `d1bc537` on `main`; current `main`
+adds explicit per-city demo headings and closes demo deployment gates D2, D4–D7.
 This is the active plan. The [previous detailed checkpoint](docs/PLAN-CHECKPOINT-2026-10-28-BEFORE-REVIEW.md)
 preserves the full experiment history; its status is historical.
 
@@ -29,14 +29,14 @@ Demo-track items:
   sidewalks remain open. Make the first 60 m read as asphalt with markings,
   kerbs and paved sidewalks. Prefer world-space detail faded with distance over
   a larger ground canvas.
-- [ ] **D2 — Per-city demo presets.** Each demo place now has a fixed start
+- [x] **D2 — Per-city demo presets.** Each demo place now has a fixed start
   coordinate, time, weather and explicit heading. Pune's 270° heading replaces
   the empty-lot view; other headings match the captured street-framing angles.
   `StreetEngine` applies the preset heading after safe street placement. The
-  [Pune angle preview](screenshots/demo-track/rehearsal-2026-10-28/pune-heading-270-candidate.jpg)
-  is a browser-side comparison, not a post-change app capture. Unit tests and
-  the production build pass; close D2 after a post-deploy matched screenshot and
-  visible-Chrome smoke.
+  [post-deploy visible-Chrome captures](screenshots/demo-track/rehearsal-2026-10-28-post-heading/)
+  confirm the expected heading at each city start. Pune is framed down the
+  street rather than across the open lot. Unit tests and the production build
+  pass; live smoke p95 was 14.0 ms in Pune.
 - [ ] **D3 — Facade textures visible on demo hardware.** Prefetch the shared KTX2
   set and Basis decoder while the menu is open. Allow the near facade set on the
   medium tier on desktop GPUs that support compressed formats. Low tier and
@@ -50,11 +50,12 @@ Demo-track items:
 - [x] **D6 — Service-worker revision on every build.** `npm run build` invoked
   `prebuild` and stamped `CACHE_REVISION` from package, commit and texture
   revisions before Next.js built.
-- [ ] **D7 — Demo rehearsal checklist.** The 28 October
-  [visible-Chrome baseline](screenshots/demo-track/rehearsal-2026-10-28/report.json)
-  confirms 36/36 cells warm, all four cities ready and zero console errors.
-  Rerun after the D2 heading change is deployed; keep the four screenshots and
-  the per-city time-to-ready, heading and frame-time report.
+- [x] **D7 — Demo rehearsal checklist.** The post-deploy 28 October
+  [visible-Chrome report and captures](screenshots/demo-track/rehearsal-2026-10-28-post-heading/)
+  confirm 36/36 cells warm, all four cities ready, zero console errors and
+  matching preset headings. Time-to-ready was Pune 6.1 s, Edinburgh 5.3 s,
+  Tokyo 6.4 s and New York 4.2 s. Frame-time p95 was 14.0, 20.8, 14.1 and
+  20.8 ms respectively. Timings represent this host.
 - [x] **D8 — Facade and storefront variation (from 4.7).** Done: wider
   storefront rule, per-building window band/U shift and tint. Ground-floor shopfronts,
   entrances and roof silhouettes at the four demo start points.
