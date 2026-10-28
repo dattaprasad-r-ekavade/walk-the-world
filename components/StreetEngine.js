@@ -17,7 +17,7 @@ import { createCityBuilderPool } from "@/lib/engine/city-builder";
 import { assembleCityFromBuild, primeStationLabelMetrics } from "@/lib/engine/street/assemble-city";
 import { createCellStreamer } from "@/lib/engine/street/cell-stream";
 import { clipElementsToCell } from "@/lib/engine/cell-clip";
-import { getSimpleStandard, installBuildingTextureMaps, installBuildingNearTextureMaps, clearBuildingNearTextureMaps, setBuildingTextureQuality, setRoadWetness, sharedMaterialTextures, materialFactoryInventory, disposeMaterialCache } from "@/lib/engine/materials";
+import { getSimpleStandard, installBuildingTextureMaps, installBuildingNearTextureMaps, clearBuildingNearTextureMaps, setBuildingTextureQuality, setRoadWetness, setRoadEnvironment, setWetRoadMapCandidate, wetRoadMapStats, sharedMaterialTextures, materialFactoryInventory, disposeMaterialCache } from "@/lib/engine/materials";
 import { createKtx2BuildingTextureLoader } from "@/lib/engine/ktx2-textures";
 import { createVehicleController } from "@/lib/engine/street/vehicle";
 import { createPostFx, getPostFxPassState } from "@/lib/engine/post-fx";
@@ -555,6 +555,7 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false }) {
       // The higher night floor keeps unlit street surfaces from collapsing to black.
       hemi.intensity = 0.38 + Math.max(0, elev) * 0.08;
       envCtrl.apply(scene, hour, weatherAmt);
+      setRoadEnvironment(scene.environment);
       // windows light up as the sun sets (elev < ~0.08 → fully lit)
       const winGlow = Math.max(0, Math.min(1, (0.08 - elev) * 9)) * 0.85;
       for (const bm of runtime.current.buildingMats || []) bm.emissiveIntensity = winGlow;
@@ -1724,6 +1725,8 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false }) {
 
       window.__streetDebug = {
         player,
+        setWetRoadMapCandidate: (enabled) => window.__BENCH_MODE === true ? setWetRoadMapCandidate(enabled) : null,
+        wetRoadMapStats: () => window.__BENCH_MODE === true ? wetRoadMapStats() : null,
         cityDataCopyMode: readOnlyCityData ? "readonly" : "clone",
         insideBuilding,
         groundHeight,
@@ -1960,6 +1963,7 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false }) {
       postFx?.dispose();
       editorTools.dispose();
       ambience.dispose();
+      setRoadEnvironment(null);
       envCtrl.dispose();
       runtime.current.cellStreamer?.dispose?.();
       ktx2TextureLoader.dispose();

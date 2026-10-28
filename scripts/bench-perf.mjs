@@ -59,6 +59,7 @@ const qualityPreset = option('--preset', 'medium');
 const ssaoMode = option('--ssao-mode', 'preset');
 const postFxMode = option('--postfx-mode', 'preset');
 const inactiveLightsMode = option('--inactive-lights', 'visible');
+const wetRoadMapMode = option('--wet-road-map', 'baseline');
 const rendererMode = option('--renderer-mode', 'software');
 const browserChannel = option('--browser-channel', 'bundled');
 const walkDurationMs = Number(option('--walk-ms', '12000'));
@@ -79,6 +80,7 @@ const crossCell = args.includes('--cross-cell');
 const resourceSoakEnabled = args.includes('--resource-soak');
 const streamLifecycleEnabled = args.includes('--stream-lifecycle');
 const lightTransitionEnabled = args.includes('--light-transition');
+const environmentAuditEnabled = args.includes('--environment-audit');
 const LIGHT_TRANSITION_SAMPLE_MS = 2500;
 const poseOptionNames = ['--pose-x', '--pose-z', '--heading'];
 const suppliedPoseOptions = poseOptionNames.filter((name) => args.includes(name));
@@ -107,6 +109,8 @@ if (postFxMode !== 'preset' && ssaoMode !== 'preset') {
 if (!['visible', 'hidden'].includes(inactiveLightsMode)) {
   throw new Error('--inactive-lights must be visible or hidden');
 }
+if (!['baseline', 'candidate'].includes(wetRoadMapMode)) throw new Error('--wet-road-map must be baseline or candidate');
+if (wetRoadMapMode === 'candidate' && benchmarkEnvironment.weather < 30) throw new Error('--wet-road-map candidate requires weather >= 30');
 if (inactiveLightsMode === 'hidden' && qualityPreset !== 'high') {
   throw new Error('--inactive-lights hidden requires --preset high');
 }
@@ -148,6 +152,9 @@ if (lightTransitionEnabled && (dataMode !== 'recorded' || benchmarkEnvironment.h
 }
 if (lightTransitionEnabled && (driving || crossCell || resourceSoakEnabled || streamLifecycleEnabled)) {
   throw new Error('--light-transition requires a stationary, non-streaming pedestrian setup');
+}
+if (environmentAuditEnabled && (dataMode !== 'recorded' || benchmarkEnvironment.hour !== 21 || benchmarkEnvironment.weather !== 90 || driving || crossCell)) {
+  throw new Error('--environment-audit requires recorded, stationary pedestrian data at 21:00 and weather 90');
 }
 const READY_TIMEOUT = 180_000;
 const HOST_TELEMETRY_READY_MARKER = '__BENCH_HOST_TELEMETRY_READY__';
@@ -471,6 +478,44 @@ function startHostTelemetry(sampleSeconds) {
 
 async function benchStreet(page) {
   const t0 = Date.now();
+  if (environmentAuditEnabled) {
+    await page.addInitScript(() => {
+      const framebuffers = new Set(), renderbuffers = new Set(), names = new WeakMap(), values = new Set();
+      const prototypes = [WebGLRenderingContext.prototype];
+      if (typeof WebGL2RenderingContext !== 'undefined') prototypes.push(WebGL2RenderingContext.prototype);
+      for (const proto of prototypes) {
+        for (const [type, live] of [['Framebuffer', framebuffers], ['Renderbuffer', renderbuffers]]) {
+          for (const action of ['create', 'delete']) {
+            const name = action + type;
+            if (!Object.hasOwn(proto, name)) continue;
+            const original = proto[name];
+            proto[name] = function (...args) {
+              const result = original.apply(this, args);
+              if (action === 'create' && result) live.add(result);
+              if (action === 'delete' && args[0]) live.delete(args[0]);
+              return result;
+            };
+          }
+        }
+        if (Object.hasOwn(proto, 'getUniformLocation')) {
+          const original = proto.getUniformLocation;
+          proto.getUniformLocation = function (program, name) {
+            const result = original.call(this, program, name);
+            if (result && name === 'envMapIntensity') names.set(result, name);
+            return result;
+          };
+        }
+        if (Object.hasOwn(proto, 'uniform1f')) {
+          const original = proto.uniform1f;
+          proto.uniform1f = function (location, value) {
+            if (names.has(location) && Number.isFinite(value)) values.add(Math.round(value * 10000) / 10000);
+            return original.call(this, location, value);
+          };
+        }
+      }
+      window.__environmentAudit = () => ({ framebuffers: framebuffers.size, renderbuffers: renderbuffers.size, envMapIntensityValues: [...values].sort((a, b) => a - b) });
+    });
+  }
   if (lightTransitionEnabled && inactiveLightsMode === 'hidden') {
     await page.addInitScript(() => {
       window.__BENCH_HIDE_INACTIVE_STREET_LIGHTS = true;
@@ -517,6 +562,34 @@ async function benchStreet(page) {
   if (!playerStart) throw new Error('Street player debug state is unavailable');
   await page.bringToFront();
   await page.evaluate(() => window.focus());
+  const roadMapState = await page.evaluate((enabled) => window.__streetDebug?.setWetRoadMapCandidate?.(enabled), wetRoadMapMode === 'candidate');
+  if (!roadMapState || (wetRoadMapMode === 'candidate' && roadMapState.materialCount < 1) || roadMapState.enabled !== (wetRoadMapMode === 'candidate') ||
+      roadMapState.candidateCount !== (wetRoadMapMode === 'candidate' ? roadMapState.materialCount : 0)) {
+    throw new Error(`Could not apply --wet-road-map ${wetRoadMapMode}: ${JSON.stringify(roadMapState)}`);
+  }
+  if (wetRoadMapMode === 'candidate') await page.waitForTimeout(500);
+  let environmentAudit = null;
+  if (environmentAuditEnabled) {
+    await page.waitForFunction(() => window.__streetDebug?.cellStream?.()?.pendingCount === 0, null, { timeout: READY_TIMEOUT });
+    environmentAudit = await page.evaluate(async () => {
+      const debug = window.__streetDebug;
+      const frame = () => new Promise((resolve) => requestAnimationFrame(resolve));
+      for (const hour of [12, 21, 12]) { debug.setTime(hour); await frame(); }
+      const snapshots = [window.__environmentAudit()];
+      for (let i = 0; i < 6; i++) {
+        debug.setTime(21); await frame();
+        debug.setTime(12); await frame();
+        snapshots.push(window.__environmentAudit());
+      }
+      debug.setTime(21); await frame();
+      return { snapshots, final: window.__environmentAudit() };
+    });
+    const first = environmentAudit.snapshots[0];
+    environmentAudit.stable = first.framebuffers > 0 && first.renderbuffers > 0 &&
+      environmentAudit.snapshots.every((sample) => sample.framebuffers === first.framebuffers && sample.renderbuffers === first.renderbuffers);
+    environmentAudit.wetIntensityObserved = environmentAudit.final.envMapIntensityValues.some((value) => Math.abs(value - 2.71) < 0.001);
+    if (!environmentAudit.stable || !environmentAudit.wetIntensityObserved) throw new Error(`Environment audit failed: ${JSON.stringify(environmentAudit)}`);
+  }
   if (driving) {
     await page.keyboard.press('c');
     await page.waitForFunction(() => window.__streetDebug?.vehicle?.active === true, null, { timeout: 5000 });
@@ -819,6 +892,7 @@ async function benchStreet(page) {
       } : null,
       vehicleActive: window.__streetDebug?.vehicle?.active === true,
       streetLighting: window.__streetDebug?.streetLightStats?.() || null,
+      wetRoadMap: window.__streetDebug?.wetRoadMapStats?.() || null,
       environment: {
         ...(counters?.environment || {}),
         visibilityState: document.visibilityState,
@@ -1015,6 +1089,7 @@ async function benchStreet(page) {
     frameSummary,
     measurementWindow,
     lightTransitions: lightTransitionDiagnostics,
+    environmentAudit,
     resourceSoak,
     resourceSamples: resourceSoakEnabled ? resourceSamples : undefined,
     frameIntervalsMs,
@@ -1035,6 +1110,7 @@ async function benchStreet(page) {
     cityBuilder: metrics.cityBuilder,
     cityDataCopyMode: metrics.cityDataCopyMode,
     streetLighting: metrics.streetLighting,
+    wetRoadMap: metrics.wetRoadMap,
     resourceCounts: metrics.perf?.resourceCounts || {},
     materialInventory,
     unavailableMeasurements: metrics.perf?.unavailableMeasurements || [],
@@ -1247,7 +1323,9 @@ async function main() {
       ssaoMode,
       postFxMode,
       inactiveLightsMode,
+      wetRoadMapMode,
       lightTransitionEnabled,
+      environmentAuditEnabled,
       hour: benchmarkEnvironment.hour,
       weather: benchmarkEnvironment.weather,
       precipitationMode: benchmarkEnvironment.precipitationMode,
@@ -1302,6 +1380,11 @@ async function main() {
       result.street.settings?.bloomActive !== false
     )) {
       throw new Error(`Captured post-processing state did not match --postfx-mode off: ${JSON.stringify(result.street.settings)}`);
+    }
+    const wetRoadMap = result.street.wetRoadMap;
+    if (!wetRoadMap || (wetRoadMapMode === 'candidate' && wetRoadMap.materialCount < 1) || wetRoadMap.enabled !== (wetRoadMapMode === 'candidate') ||
+        wetRoadMap.candidateCount !== (wetRoadMapMode === 'candidate' ? wetRoadMap.materialCount : 0)) {
+      throw new Error(`Captured road-map state did not match --wet-road-map ${wetRoadMapMode}: ${JSON.stringify(wetRoadMap)}`);
     }
     if (postFxMode === 'preset' && ssaoMode !== 'preset' && (
       result.street.settings?.ssaoActive !== (ssaoMode === 'on') ||
