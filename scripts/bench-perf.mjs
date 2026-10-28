@@ -78,6 +78,8 @@ const driving = args.includes('--drive');
 const crossCell = args.includes('--cross-cell');
 const resourceSoakEnabled = args.includes('--resource-soak');
 const streamLifecycleEnabled = args.includes('--stream-lifecycle');
+const lightTransitionEnabled = args.includes('--light-transition');
+const LIGHT_TRANSITION_SAMPLE_MS = 2500;
 const poseOptionNames = ['--pose-x', '--pose-z', '--heading'];
 const suppliedPoseOptions = poseOptionNames.filter((name) => args.includes(name));
 let fixedPose = null;
@@ -139,6 +141,14 @@ if (resourceSoakEnabled && !crossCell) throw new Error('--resource-soak requires
 if (resourceSoakEnabled && driving) throw new Error('--resource-soak is a pedestrian walk and cannot be combined with --drive');
 if (streamLifecycleEnabled && !crossCell) throw new Error('--stream-lifecycle requires --cross-cell');
 if (streamLifecycleEnabled && dataMode !== 'recorded') throw new Error('--stream-lifecycle requires --data-mode recorded');
+if (lightTransitionEnabled && qualityPreset !== 'high') throw new Error('--light-transition requires --preset high');
+if (lightTransitionEnabled && postFxMode !== 'off') throw new Error('--light-transition requires --postfx-mode off');
+if (lightTransitionEnabled && (dataMode !== 'recorded' || benchmarkEnvironment.hour !== 12 || benchmarkEnvironment.weather !== 0)) {
+  throw new Error('--light-transition requires recorded data at 12:00 with clear weather');
+}
+if (lightTransitionEnabled && (driving || crossCell || resourceSoakEnabled || streamLifecycleEnabled)) {
+  throw new Error('--light-transition requires a stationary, non-streaming pedestrian setup');
+}
 const READY_TIMEOUT = 180_000;
 const HOST_TELEMETRY_READY_MARKER = '__BENCH_HOST_TELEMETRY_READY__';
 
@@ -461,6 +471,11 @@ function startHostTelemetry(sampleSeconds) {
 
 async function benchStreet(page) {
   const t0 = Date.now();
+  if (lightTransitionEnabled && inactiveLightsMode === 'hidden') {
+    await page.addInitScript(() => {
+      window.__BENCH_HIDE_INACTIVE_STREET_LIGHTS = true;
+    });
+  }
   await page.goto(streetUrl(), {
     waitUntil: 'domcontentloaded',
     timeout: 60_000,
@@ -568,7 +583,13 @@ async function benchStreet(page) {
   const hostTelemetryLimit = resourceSoakEnabled ? 1800 : 600;
   // Keep sampling well past the measured walk so startup jitter cannot leave
   // the browser window without a final host sample.
-  const hostTelemetryMonitor = startHostTelemetry(Math.min(hostTelemetryLimit, Math.max(1, Math.ceil(walkDurationMs / 1000) + 8)));
+  const transitionPaddingSeconds = lightTransitionEnabled
+    ? Math.ceil((2 * LIGHT_TRANSITION_SAMPLE_MS) / 1000)
+    : 0;
+  const hostTelemetryMonitor = startHostTelemetry(Math.min(
+    hostTelemetryLimit,
+    Math.max(1, Math.ceil(walkDurationMs / 1000) + 8 + transitionPaddingSeconds),
+  ));
   await hostTelemetryMonitor.ready;
   await page.bringToFront();
   await page.evaluate(() => window.focus());
@@ -669,6 +690,72 @@ async function benchStreet(page) {
       window.__BENCH_RESOURCE_SOAK_NAV = route;
     }
   }, resourceSoakEnabled);
+  let lightTransitionDiagnostics = null;
+  if (lightTransitionEnabled) {
+    lightTransitionDiagnostics = [];
+    for (const toHour of [21, 12]) {
+      await page.evaluate(() => {
+        const counters = window.__perfCounters;
+        if (counters) {
+          counters.frameIntervalsMs.length = 0;
+          counters.frameIntervalCursor = 0;
+        }
+      });
+      const before = await page.evaluate((hour) => {
+        const debug = window.__streetDebug;
+        const lighting = debug?.streetLightStats?.() || null;
+        if (!lighting?.pool) throw new Error('Street-light pool is unavailable for transition measurement');
+        const programCount = debug.shaderProgramCount?.() ?? null;
+        const startedAtMs = performance.now();
+        debug.setTime(hour);
+        return { startedAtMs, fromHour: hour === 21 ? 12 : 21, lighting, programCount };
+      }, toHour);
+      await page.waitForTimeout(LIGHT_TRANSITION_SAMPLE_MS);
+      // Capture the first rendered frame after the change. If shader linking
+      // stalls the main thread, this waits for that frame instead of ending
+      // the sample while the compile is still in progress.
+      await page.evaluate(() => new Promise((resolve) => {
+        requestAnimationFrame(() => setTimeout(resolve, 0));
+      }));
+      const after = await page.evaluate(({ startedAtMs }) => {
+        const debug = window.__streetDebug;
+        return {
+          endedAtMs: performance.now(),
+          frameIntervalsMs: window.__perfCounters?.frameIntervalsMs?.slice() || [],
+          lighting: debug?.streetLightStats?.() || null,
+          programCount: debug?.shaderProgramCount?.() ?? null,
+        };
+      }, before);
+      const frameSummary = summarizeFrameIntervals(after.frameIntervalsMs);
+      const expectedOn = toHour === 21 ? after.lighting?.on > 0 : after.lighting?.on === 0;
+      const expectedVisibility = inactiveLightsMode === 'visible'
+        ? after.lighting?.visible === after.lighting?.pool
+        : after.lighting?.visible === after.lighting?.on;
+      const expectedBeforeOn = toHour === 21
+        ? before.lighting.on === 0
+        : before.lighting.on > 0;
+      const valid = frameSummary.sampleCount >= 2 &&
+        after.endedAtMs - before.startedAtMs >= LIGHT_TRANSITION_SAMPLE_MS &&
+        before.lighting.pool === after.lighting?.pool &&
+        expectedBeforeOn && expectedOn && expectedVisibility &&
+        after.lighting?.keepInactiveVisible === (inactiveLightsMode === 'visible');
+      const phase = {
+        fromHour: before.fromHour,
+        toHour,
+        durationMs: after.endedAtMs - before.startedAtMs,
+        frameSummary,
+        framesOver50Ms: after.frameIntervalsMs.filter((ms) => ms > 50).length,
+        framesOver100Ms: after.frameIntervalsMs.filter((ms) => ms > 100).length,
+        lightingBefore: before.lighting,
+        lightingAfter: after.lighting,
+        shaderProgramCountBefore: before.programCount,
+        shaderProgramCountAfter: after.programCount,
+        validated: valid,
+      };
+      if (!valid) throw new Error(`Street-light ${before.fromHour}:00 → ${toHour}:00 transition was not captured correctly: ${JSON.stringify(phase)}`);
+      lightTransitionDiagnostics.push(phase);
+    }
+  }
   // Let renderer/program changes settle before the measured window, then clear
   // any long transition interval produced by the first frame after the change.
   await page.evaluate(() => new Promise((resolve) => {
@@ -927,6 +1014,7 @@ async function benchStreet(page) {
     fpsSamples: samples,
     frameSummary,
     measurementWindow,
+    lightTransitions: lightTransitionDiagnostics,
     resourceSoak,
     resourceSamples: resourceSoakEnabled ? resourceSamples : undefined,
     frameIntervalsMs,
@@ -987,7 +1075,7 @@ async function main() {
   mkdirSync(dirname(outPath), { recursive: true });
 
   console.log(`  Fixture: ${fixturePath}`);
-  console.log(`  Route: ${route}; data: ${dataMode}; cache: ${cacheMode}; preset: ${qualityPreset}; post FX: ${postFxMode}; SSAO: ${ssaoMode}; inactive lights: ${inactiveLightsMode}; geometry workers: ${geometryWorkers}; city data copy: ${cityDataCopyMode}; road query: ${roadQueryMode}; browser: ${browserChannel}; renderer: ${rendererMode}; hour: ${benchmarkEnvironment.hour}; weather: ${benchmarkEnvironment.weather}; walk: ${walkDurationMs}ms${crossCell ? '; crossing a cell boundary' : ''}${resourceSoakEnabled ? '; resource soak' : ''}${streamLifecycleEnabled ? '; streamed lamp lifecycle' : ''}`);
+  console.log(`  Route: ${route}; data: ${dataMode}; cache: ${cacheMode}; preset: ${qualityPreset}; post FX: ${postFxMode}; SSAO: ${ssaoMode}; inactive lights: ${inactiveLightsMode}; light transition: ${lightTransitionEnabled}; geometry workers: ${geometryWorkers}; city data copy: ${cityDataCopyMode}; road query: ${roadQueryMode}; browser: ${browserChannel}; renderer: ${rendererMode}; hour: ${benchmarkEnvironment.hour}; weather: ${benchmarkEnvironment.weather}; walk: ${walkDurationMs}ms${crossCell ? '; crossing a cell boundary' : ''}${resourceSoakEnabled ? '; resource soak' : ''}${streamLifecycleEnabled ? '; streamed lamp lifecycle' : ''}`);
 
   const launchOptions = {
     headless: !headed,
@@ -1159,6 +1247,7 @@ async function main() {
       ssaoMode,
       postFxMode,
       inactiveLightsMode,
+      lightTransitionEnabled,
       hour: benchmarkEnvironment.hour,
       weather: benchmarkEnvironment.weather,
       precipitationMode: benchmarkEnvironment.precipitationMode,
@@ -1231,6 +1320,12 @@ async function main() {
           lights.visible !== expectedVisible) {
         throw new Error(`Captured street-light state did not match --inactive-lights ${inactiveLightsMode}: ${JSON.stringify(lights)}`);
       }
+    }
+    if (lightTransitionEnabled && (
+      result.street.lightTransitions?.length !== 2 ||
+      result.street.lightTransitions.some((phase) => !phase.validated)
+    )) {
+      throw new Error(`The day/night light-transition capture is incomplete: ${JSON.stringify(result.street.lightTransitions)}`);
     }
     result.hostTelemetry = result.street.hostTelemetry;
     if (screenshotPath) {

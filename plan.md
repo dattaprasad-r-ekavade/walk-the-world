@@ -33,9 +33,10 @@ and per-cell lamp lifecycle validation. The latest unit suite passes 132 tests
 across 19 files and the production build passes. A five-run-per-condition
 inactive-light A/B shows a lower GPU timer median when zero-intensity lights are
 hidden, but the ranges overlap and frame-time results vary by refresh bucket.
-Keep the runtime policy unchanged until day/night shader-transition cost is
-measured. Wet-road visual acceptance, close-up post-FX and real-mobile checks
-remain open.
+Two additional paired day/night transition runs reproduced a roughly 2.7-second
+first-night shader hitch with hidden inactive lights; the visible-light policy
+kept its shader program count stable. Keep inactive lights visible. Wet-road
+visual acceptance, close-up post-FX and real-mobile checks remain open.
 
 ## 1. Verified baseline and scope
 
@@ -745,7 +746,7 @@ street/assemble-city.js and StreetEngine.js.
      a performance A/B. The screenshot difference in road reflections is still
      subtle, so Stage 4.3 stays open. See [clear](benchmarks/results/stage4/wet-albedo-night-clear-2s.png)
      and [rain](benchmarks/results/stage4/wet-albedo-night-rain-2s.png).
-- [ ] 4.4 Verify existing four-light high-tier pool reassignment, newly streamed/
+- [x] 4.4 Verify existing four-light high-tier pool reassignment, newly streamed/
   evicted lamp markers and quality transitions. Stable light counts avoid shader
   churn, but visible zero-intensity lights can still cost shading; measure policy.
   Do not add a second pool or shadow map for every lamp.
@@ -773,8 +774,8 @@ street/assemble-city.js and StreetEngine.js.
     valid capture window but is functional evidence, not a performance A/B
     (49.9 ms frame p95). No browser, page or local-asset errors occurred. See
     [the passing lifecycle report](benchmarks/results/stage4/lamp-stream-lifecycle.md).
-    The steady-state cost of keeping zero-intensity pool objects visible remains
-    open.
+    The steady-state cost of keeping zero-intensity pool objects visible remained
+    open at that checkpoint.
   - [x] Add a benchmark-only inactive-light visibility switch and isolate the
     pool cost with post-processing disabled. Five visible-Chrome runs per
     condition used the recorded Rome fixture at 12:00, High, 1280×720/DPR 1,
@@ -785,10 +786,15 @@ street/assemble-city.js and StreetEngine.js.
     (visible 11.92–13.69 ms, hidden 8.26–13.87 ms). Median frame p95 was
     33.4 ms visible and 17.2 ms hidden, but hidden runs split between roughly
     17 ms and 33 ms refresh buckets, so this is not a stable frame-time claim.
-    Keep the shipped visible-light behavior until the shader-variant compile
-    cost at day/night transitions is measured. See the [inactive-light
+    Desktop day/night shader-transition cost is now measured in two valid paired
+    runs per policy, with High, recorded Rome, clear weather, post-processing off,
+    and a stationary player. Both hidden runs stalled for 2.72–2.87 seconds on
+    the first noon-to-night activation and added 18 shader programs; night-to-day
+    added two more. Both visible runs kept the shader-program count unchanged
+    (87 → 87), with no comparable stall. Keep inactive lights visible in the
+    product. This completes the desktop policy decision on the Intel UHD 630;
+    mobile portability remains a Stage 4 exit gate. See the [inactive-light
     checkpoint](benchmarks/results/stage4/inactive-light-policy-checkpoint.md).
-    Transition cost and mobile behavior remain open.
 - [ ] 4.5 Tune existing half-resolution bloom before selective masking; compare
   extra passes if masking is needed. Compare optional SSAO with vertex/baked
   contact shading; inspect halos and washed-out daytime surfaces.
@@ -1018,10 +1024,10 @@ None is a prerequisite for this sequence.
 road-ribbon evidence is in [the road-ribbon review](benchmarks/results/stage4/road-ribbons.md).
 Stage 4.3 has current-code performance and material-inheritance evidence plus
 deterministic procedural maps, but its close-up wet-road appearance still needs
-review. Stage 4.4's production UI transitions and streamed/evicted lamp markers
-pass, and inactive-light shader cost has five valid runs per policy; measure the
-day/night shader-variant compile before adopting the faster hidden policy. Stage
-4.5 has five-run tier and same-tier SSAO results: High SSAO adds a large GPU
+review. Stage 4.4's production UI transitions, streamed/evicted lamp markers,
+five-run steady-state A/B and two-run shader-transition comparison are complete;
+the measured first-night hitch rules out hiding inactive lights in the product.
+Stage 4.5 has five-run tier and same-tier SSAO results: High SSAO adds a large GPU
 cost, while the matched views show only subtle contact shading. Keep the High
 default until close-up and mobile visuals are accepted; bloom halo review and
 cheaper contact shading remain open. The latest unit run passed 132 tests across

@@ -2,10 +2,11 @@
 
 Date: 28 October 2026
 
-Base revision: `a8a28f518c28ef7869e2edc6f77ee1fc275a9e94`
+App base revision: `73316d4e8f9052265d1bd9b5328bfce94b96e3fc`
 
-Status: steady-state cost measured on one integrated GPU; runtime policy stays
-unchanged until day/night shader-variant transitions are measured.
+Status: steady-state and day/night transition costs measured on one integrated
+GPU; keep the shipped visible-light policy because hiding inactive lights causes
+a repeatable first-night shader-compilation stall.
 
 ## Question and method
 
@@ -51,18 +52,40 @@ utilization varied during the captures. Median host GPU-engine utilization was
 66.6% hidden and 69.7% visible; it is contextual telemetry, not an attribution
 to the four lights.
 
+## Day/night transition check
+
+Two valid visible/hidden pairs used the same recorded Rome, High, noon/clear,
+post-processing-off setup. Before each transition, the frame-interval history was
+cleared. The measurement waited through the requested 2.5-second window and then
+captured the first rendered frame after any main-thread stall. Both transitions
+in each run validated the expected active-light state and visibility policy.
+
+| Policy | Pair | Noon → night frame p95 | >100 ms frames | Shader programs | Night → noon frame p95 | Shader programs |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| Visible | 1 | 33.4 ms | 0 | 87 → 87 | 33.4 ms | 87 → 87 |
+| Visible | 2 | 33.4 ms | 0 | 87 → 87 | 33.5 ms | 87 → 87 |
+| Hidden | 1 | 2716.3 ms | 1 | 65 → 83 | 17.1 ms | 83 → 85 |
+| Hidden | 2 | 2866.3 ms | 1 | 65 → 83 | 17.2 ms | 83 → 85 |
+
+The visible transition samples contained 126 and 131 intervals for noon-to-night;
+the hidden samples contained only four and three intervals because the first
+night activation blocked the render thread for about 2.7–2.9 seconds. On both
+hidden runs, returning to day added two more shader programs without a long
+stall. The second pair independently reproduced the same program-count changes
+and hitch. Raw transition captures remain local as
+`light-transition-{visible,hidden}-{retest,pair2}.json`.
+
 ## Decision and remaining gate
 
-Keep inactive lights visible in the shipped runtime for now. Hiding them changes
-the light count in material shader programs; when a light becomes active, the
-engine must use or compile a different shader variant. This experiment settles
-the static daytime rendering cost but does not measure the first night
-activation, returning to day, or user-triggered time changes. Measure those
-transition stalls and shader-cache behavior before changing the policy. The
-current implementation exposes the hidden behavior to benchmarks, with unit
-coverage that verifies active lights remain visible and inactive lights follow
-the selected policy.
+Keep inactive lights visible in the shipped runtime. Hiding them has a lower
+median daytime GPU timer p95 in this small sample, but it causes a repeatable
+2.7–2.9 second first-night shader stall and adds 18 shader programs on this
+Intel UHD 630 laptop. Visible lights keep the program count stable across both
+time changes. The benchmark-only hidden setting remains available for future
+device-specific checks; the product default is unchanged. These transition
+measurements cover one integrated GPU and do not establish mobile behavior.
 
 Validation after the implementation: `npm test` passed 132 tests across 19
 files; `npm run build` passed. The benchmark runner validates requested
-post-processing and inactive-light states in the saved result.
+post-processing, inactive-light states, both transition captures, and shader
+program counts in the saved result.

@@ -702,7 +702,12 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false }) {
         streetLights?.setLamps(streetLampMarkers, groundHeight);
       }
       if (qualityTier === "high" && !streetLights && streetLampMarkers.length) {
-        streetLights = createStreetLights(scene, { maxLights: 4 });
+        const benchHideInactiveLights =
+          typeof window !== "undefined" && window.__BENCH_HIDE_INACTIVE_STREET_LIGHTS === true;
+        streetLights = createStreetLights(scene, {
+          maxLights: 4,
+          keepInactiveVisible: !benchHideInactiveLights,
+        });
         runtime.current.streetLights = streetLights;
         streetLightEnabledTier = null;
         streetLights.setLamps(streetLampMarkers, groundHeight);
@@ -1750,6 +1755,7 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false }) {
             keepInactiveVisible: sl.keepInactiveVisible,
           };
         },
+        shaderProgramCount: () => renderer.info.programs?.length ?? null,
         setInactiveStreetLightsVisible: (visible) => {
           const sl = runtime.current.streetLights;
           if (!sl) return null;
