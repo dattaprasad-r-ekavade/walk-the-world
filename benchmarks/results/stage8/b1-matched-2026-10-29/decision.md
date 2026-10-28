@@ -150,6 +150,37 @@ comparative result on one discrete GPU does not close B1.
 Full reports and screenshots are retained in the ignored local directory
 `benchmarks/results/stage8/b1-visible-chrome-2026-10-29/`.
 
+## Fixed post-settle visible Chrome window — 29 October 2026
+
+The benchmark now starts a fixed five-second frame/GPU sampling window after
+the cell stream settles. It clears only its diagnostic ring buffers after a
+250 ms pre-window delay, leaving startup and terrain timings intact. This matched run used
+the same frozen Tokyo snapshot and the visible, focused Chrome 156 session on
+the RTX 4060; service workers were blocked and each visit produced about 300
+frame and GPU samples. All visits settled at eight resident cells, with the
+same failed neighbor and no deferred cells.
+
+| Mode | Cold ready times | Cold median | Warm ready times | Warm median | Cold payload |
+|---|---|---:|---|---:|---:|
+| Raw | 5,723 / 3,431 / 3,074 ms | 3,431 ms | 1,867 / 1,694 / 1,765 ms | 1,765 ms | 15,473,747 B |
+| Prebuilt | 6,416 / 3,590 / 3,414 ms | 3,590 ms | 1,870 / 1,868 / 1,745 ms | 1,868 ms | 13,583,369 B raw + 761,437 B baked = 14,344,806 B |
+
+In this run prebuilt was 4.6% slower cold and 5.8% slower warm by median ready
+time, while transferring 7.3% fewer cold bytes. Every five-second frame-interval
+p95 was 16.8–16.9 ms in both modes. GPU-time p95 values were 4.85–6.84 ms for
+raw cold and 6.97–16.82 ms for raw warm; prebuilt ranged 4.95–16.87 ms cold
+and 6.10–16.91 ms warm. A p95 near the display interval appeared in raw warm,
+prebuilt cold and prebuilt warm; raw cold had no such outlier. The GPU samples
+remain noisy diagnostics, not a reliable comparative acceptance result. The
+steady window measures frame rendering but does not isolate per-geometry GPU
+upload submission or VRAM.
+
+The benchmark and raw reports/screenshots are retained locally under
+`benchmarks/results/stage8/b1-steady-visible-chrome-2026-10-29/` and are
+ignored by Git. B1 remains open for lower-tier device parity, browser editor and
+failure-path acceptance, cold terrain-gate work, upload-cost investigation,
+and overlap-index growth bounds.
+
 ## Evidence and remaining gates
 
 The initial and follow-up JSON reports and cold-run screenshots are retained

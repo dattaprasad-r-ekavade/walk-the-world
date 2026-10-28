@@ -1,9 +1,10 @@
 #!/usr/bin/env node
 /**
- * Matched raw/prebuilt Tokyo startup comparison. Each repetition measures a
- * fresh-context cold visit, then a second visit in the same browser context to
- * exercise IndexedDB and HTTP cache reuse. Use --headed --browser-channel=chrome
- * for visible hardware acceptance; reports include the actual WebGL renderer.
+ * Matched raw/prebuilt Tokyo comparison. Each repetition measures a fresh-
+ * context cold visit, then a second visit in the same context to exercise
+ * IndexedDB and HTTP cache reuse. A fixed post-settle window samples steady
+ * frame and GPU timing. Use --headed --browser-channel=chrome for visible
+ * hardware runs; reports include the actual WebGL renderer.
  *
  * Build with NEXT_PUBLIC_R2_PUBLIC_BASE=http://127.0.0.1:3457 and select
  * NEXT_PUBLIC_PREBUILT_CELL_BASE=/prebuilt-cells/no-cells (raw) or /prebuilt-cells.
@@ -28,7 +29,7 @@ const DEFAULT_OUT = "benchmarks/results/stage8/b1-matched-2026-10-29";
 function parseArgs(argv) {
   const args = { mode: "", base: DEFAULT_BASE, snapshotDir: DEFAULT_SNAPSHOT, out: DEFAULT_OUT,
     city: "Tokyo", repetitions: 3, proxyPort: 3457, readyTimeoutMs: 90000, settleTimeoutMs: 45000,
-    headed: false, browserChannel: "bundled" };
+    steadyWindowMs: 5000, headed: false, browserChannel: "bundled" };
   for (const value of argv) {
     if (value.startsWith("--mode=")) args.mode = value.slice(7).trim();
     else if (value.startsWith("--base-url=")) args.base = value.slice(11).trim();
@@ -39,6 +40,7 @@ function parseArgs(argv) {
     else if (value.startsWith("--proxy-port=")) args.proxyPort = Number.parseInt(value.slice(13), 10);
     else if (value.startsWith("--ready-timeout-ms=")) args.readyTimeoutMs = Number.parseInt(value.slice(19), 10);
     else if (value.startsWith("--settle-timeout-ms=")) args.settleTimeoutMs = Number.parseInt(value.slice(20), 10);
+    else if (value.startsWith("--steady-window-ms=")) args.steadyWindowMs = Number.parseInt(value.slice(19), 10);
     else if (value.startsWith("--browser-channel=")) args.browserChannel = value.slice(18).trim();
     else if (value === "--headed") args.headed = true;
     else if (value === "--help" || value === "-h") args.help = true;
@@ -50,6 +52,9 @@ function parseArgs(argv) {
   }
   if (!Number.isInteger(args.proxyPort) || args.proxyPort < 1 || args.proxyPort > 65535) {
     throw new Error("--proxy-port must be a valid TCP port");
+  }
+  if (!Number.isInteger(args.steadyWindowMs) || args.steadyWindowMs < 0 || args.steadyWindowMs > 30000) {
+    throw new Error("--steady-window-ms must be an integer from 0 to 30000");
   }
   if (!["bundled", "chrome"].includes(args.browserChannel)) {
     throw new Error("--browser-channel must be bundled or chrome");
@@ -153,10 +158,19 @@ async function captureVisitState(page) {
         decodedBodySize: Number.isFinite(entry.decodedBodySize) ? entry.decodedBodySize : null,
       }));
     const timeline = Array.isArray(perf.timeline) ? perf.timeline : [];
+    const steadyWindowStartAtMs = Number.isFinite(window.__BENCH_STEADY_WINDOW_START_AT)
+      ? window.__BENCH_STEADY_WINDOW_START_AT : null;
     const timings = timeline.filter((event) => event.type === "timing" && /^(city\.(?:initial-data-consumer|cell-load|indexeddb-read|fetch-to-headers|json-body-and-parse|enrichment|consumer-copy|spawn-clip|spawn-geometry-total|spawn-assembly-total|prebuilt-terrain-revision|prebuilt-terrain-tiles|prebuilt-terrain-hash|prebuilt-frame-rebase|prebuilt-shader-warmup))$/u.test(event.name))
+      .filter((event) => steadyWindowStartAtMs === null || event.atMs >= steadyWindowStartAtMs)
       .map(({ name, durationMs, details }) => ({ name, durationMs: +durationMs.toFixed(1), details }));
+    const steadyWindow = window.__BENCH_STEADY_WINDOW || null;
     return {
       capturedAtMs: Math.round(performance.now()),
+      steadyWindow: steadyWindow ? {
+        ...steadyWindow,
+        endedAtMs: Math.round(performance.now()),
+        actualDurationMs: Math.round(performance.now() - steadyWindow.startedAtMs),
+      } : null,
       browserEnvironment: {
         userAgent: navigator.userAgent,
         platform: navigator.platform || null,
@@ -198,6 +212,27 @@ async function captureVisitState(page) {
   });
 }
 
+async function measureSteadyWindow(page, windowMs) {
+  // Let pre-window GPU timer queries drain before clearing the ring buffers.
+  await page.waitForTimeout(250);
+  await page.evaluate((requestedDurationMs) => {
+    const counters = window.__perfCounters;
+    if (counters) {
+      counters.frameIntervalsMs = [];
+      counters.frameIntervalCursor = 0;
+      counters.rendererFrames = [];
+      counters.rendererFrameCursor = 0;
+      counters.gpuFrameTimesMs = [];
+      counters.gpuFrameTimeCursor = 0;
+    }
+    const startedAtMs = performance.now();
+    window.__BENCH_STEADY_WINDOW_START_AT = startedAtMs;
+    window.__BENCH_STEADY_WINDOW = { startedAtMs: Math.round(startedAtMs), requestedDurationMs };
+  }, windowMs);
+  await page.waitForTimeout(windowMs);
+  return captureVisitState(page);
+}
+
 function summarizeVisitState(snapshot) {
   if (!snapshot) return null;
   const diagnostics = snapshot.diagnostics || {};
@@ -206,6 +241,7 @@ function summarizeVisitState(snapshot) {
   const gpuFrameTimes = diagnostics.gpuFrameTimesMs || [];
   return {
     capturedAtMs: snapshot.capturedAtMs,
+    steadyWindow: snapshot.steadyWindow || null,
     browserEnvironment: snapshot.browserEnvironment,
     webgl: snapshot.environment?.webgl || null,
     settings: snapshot.settings,
@@ -257,6 +293,7 @@ async function measureVisit(context, args, repetition, cacheMode, screenshotPath
     pendingBodies.push(response.body().then((body) => { record.bytes = body.byteLength; }).catch(() => {}));
   });
   let outcome = { ready: false, readyMs: null, settled: false };
+  let steadySnapshot = null;
   let note = "";
   try {
     outcome = await waitForReadyAndSettle(page, args);
@@ -264,6 +301,10 @@ async function measureVisit(context, args, repetition, cacheMode, screenshotPath
     if (!outcome.ready) note = `engine did not become ready within ${args.readyTimeoutMs} ms`;
     if (outcome.ready && !outcome.settled) note = `cell stream did not settle within ${args.settleTimeoutMs} ms`;
     if (screenshotPath && outcome.ready) await page.screenshot({ path: screenshotPath, type: "png" });
+    if (outcome.settled && args.steadyWindowMs > 0) {
+      steadySnapshot = await measureSteadyWindow(page, args.steadyWindowMs);
+      console.log(`  ${args.mode} repetition ${repetition} ${cacheMode}: steady window ${steadySnapshot.steadyWindow?.actualDurationMs ?? "unknown"} ms`);
+    }
   } catch (error) {
     note = String(error?.message || error).split("\n")[0];
   }
@@ -309,6 +350,8 @@ async function measureVisit(context, args, repetition, cacheMode, screenshotPath
     browserEnvironment: state?.browserEnvironment || null,
     readyMetrics: readyState,
     settledMetrics: settledState,
+    steadyWindowMs: args.steadyWindowMs,
+    steadyMetrics: summarizeVisitState(steadySnapshot),
     diagnosticsEnabled: state?.diagnostics?.enabled ?? false,
     errors,
     note,
@@ -318,7 +361,7 @@ async function measureVisit(context, args, repetition, cacheMode, screenshotPath
 async function main(argv = process.argv.slice(2)) {
   const args = parseArgs(argv);
   if (args.help) {
-    console.log("Usage: node scripts/bench-prebuilt-cells.mjs --mode=raw|prebuilt [--base-url=URL] [--snapshot-dir=DIR] [--out=DIR] [--repetitions=3] [--headed] [--browser-channel=bundled|chrome]");
+    console.log("Usage: node scripts/bench-prebuilt-cells.mjs --mode=raw|prebuilt [--base-url=URL] [--snapshot-dir=DIR] [--out=DIR] [--repetitions=3] [--steady-window-ms=5000] [--headed] [--browser-channel=bundled|chrome]");
     return 0;
   }
   if (!fs.existsSync(args.snapshotDir)) throw new Error(`Snapshot directory does not exist: ${args.snapshotDir}`);
@@ -360,7 +403,8 @@ async function main(argv = process.argv.slice(2)) {
         httpCache: "enabled",
       },
       repetitions: args.repetitions,
-      coldWarmProtocol: "Each repetition uses a fresh browser context. Cold visit loads first; warm visit opens a new page in the same context after cold has settled.",
+      steadyWindowMs: args.steadyWindowMs,
+      coldWarmProtocol: "Each repetition uses a fresh browser context. Cold visit loads first; warm visit opens a new page in the same context after cold has settled. A fixed steady window starts after the stream settles and a 250 ms GPU-query drain.",
       at: new Date().toISOString(),
       runs: [],
     };
@@ -391,12 +435,30 @@ async function main(argv = process.argv.slice(2)) {
       warmHasExpectedModeEvidence: report.runs.every((run) => args.mode === "raw"
         ? !run.warm.originRawRequested && run.warm.originCacheTier === "indexeddb"
         : !run.warm.originRawRequested && run.warm.prebuiltArtifactResponses.some((response) => response.status === 200)),
+      steadyWindowsComplete: args.steadyWindowMs === 0 || report.runs.every((run) => [run.cold, run.warm].every((visit) =>
+        visit.steadyMetrics?.steadyWindow?.actualDurationMs >= args.steadyWindowMs)),
+      steadyColdFrameP95Ms: report.runs.map((run) => run.cold.steadyMetrics?.diagnostics?.frameIntervals?.p95FrameTimeMs ?? null),
+      steadyWarmFrameP95Ms: report.runs.map((run) => run.warm.steadyMetrics?.diagnostics?.frameIntervals?.p95FrameTimeMs ?? null),
+      steadyColdGpuP95Ms: report.runs.map((run) => run.cold.steadyMetrics?.diagnostics?.gpuFrameTimes?.p95Ms ?? null),
+      steadyWarmGpuP95Ms: report.runs.map((run) => run.warm.steadyMetrics?.diagnostics?.gpuFrameTimes?.p95Ms ?? null),
+      steadyGpuTimerSupported: args.steadyWindowMs === 0 || report.runs.every((run) => [run.cold, run.warm].every((visit) =>
+        visit.steadyMetrics?.gpuTimer?.supported === true)),
+      steadyFrameSamplesPresent: args.steadyWindowMs === 0 || report.runs.every((run) => [run.cold, run.warm].every((visit) =>
+        (visit.steadyMetrics?.diagnostics?.frameIntervals?.sampleCount || 0) > 0)),
+      steadyGpuSamplesPresent: args.steadyWindowMs === 0 || report.runs.every((run) => [run.cold, run.warm].every((visit) =>
+        (visit.steadyMetrics?.diagnostics?.gpuFrameTimes?.sampleCount || 0) > 0)),
+      steadyVisibleAndFocused: !args.headed || report.runs.every((run) => [run.cold, run.warm].every((visit) =>
+        visit.steadyMetrics?.browserEnvironment?.visibilityState === "visible" &&
+        visit.steadyMetrics?.browserEnvironment?.pageHasFocus === true)),
     };
     fs.writeFileSync(path.join(args.out, "report.json"), JSON.stringify(report, null, 2));
     console.log(JSON.stringify(report.summary, null, 2));
     return report.summary.coldAllReady && report.summary.warmAllReady &&
       report.summary.coldNoDeferredCells && report.summary.warmNoDeferredCells &&
-      report.summary.coldHasExpectedModeEvidence && report.summary.warmHasExpectedModeEvidence ? 0 : 1;
+      report.summary.coldHasExpectedModeEvidence && report.summary.warmHasExpectedModeEvidence &&
+      report.summary.steadyWindowsComplete && report.summary.steadyGpuTimerSupported &&
+      report.summary.steadyFrameSamplesPresent && report.summary.steadyGpuSamplesPresent &&
+      report.summary.steadyVisibleAndFocused ? 0 : 1;
   } finally {
     if (browser) await browser.close();
     await new Promise((resolve) => proxy.close(resolve));

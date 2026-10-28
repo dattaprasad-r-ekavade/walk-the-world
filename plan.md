@@ -210,11 +210,19 @@ Decisions taken from the research:
   WebGL does not expose reliable VRAM totals or per-geometry upload bytes.
   Visual spot checks matched after baking at the exact Tokyo demo origin; the
   rounded-key bake clipped 1,569 features versus 1,644 raw, while exact-origin
-  baking matched the raw clip count. B1 remains open pending controlled frame/
-  upload measurement, integrated/mobile parity, cold terrain-gate work and
-  browser editor/failure acceptance. See [the B1 decision](benchmarks/results/stage8/b1-matched-2026-10-29/decision.md);
-  the detailed visible-Chrome JSON and screenshots remain ignored local
-  artifacts under `benchmarks/results/stage8/b1-visible-chrome-2026-10-29/`.
+  baking matched the raw clip count. A fixed five-second post-settle visible-
+  Chrome rerun captured about 300 frame and GPU samples per visit: frame p95
+  remained 16.8–16.9 ms in both modes, while GPU p95 ranged from 4.85 to 16.91
+  ms with a near-refresh-interval outlier in raw warm, prebuilt cold and
+  prebuilt warm windows. This
+  steady window does not isolate per-geometry upload submission. In this run,
+  raw/prebuilt cold medians were 3.431/3.590 s and warm medians were
+  1.765/1.868 s; prebuilt transferred 7.3% fewer cold bytes. B1 remains open
+  for integrated/mobile parity, browser editor and failure acceptance, cold
+  terrain-gate work, upload-cost investigation and overlap-index growth bounds.
+  See [the B1 decision](benchmarks/results/stage8/b1-matched-2026-10-29/decision.md);
+  detailed reports and screenshots remain ignored under
+  `benchmarks/results/stage8/b1-steady-visible-chrome-2026-10-29/`.
   Artifacts remain local; production R2 publication needs its own release task.
 - [ ] **B2 — Overpass independence (M).** Self-hosted Overpass on a small VPS
   for target regions behind a Cloudflare Worker, or a custom Planetiler
@@ -750,10 +758,11 @@ matched settings, tested hardware, thresholds and remaining gates.
 
 ## 15. Next action and deferred choices
 
-1. Complete B1's target-device, editor, fallback, cancellation, eviction and
-   upload-cost checks before deciding whether to adopt it. Investigate terrain
-   revision validation on device. Keep local artifacts private unless a
-   separate release task authorizes publication. Then work through B2 (Overpass
+1. Complete B1's integrated/mobile parity and browser editor/failure acceptance;
+   measure the cold terrain gate and bound overlap-index growth. Continue
+   investigating upload cost because the visible steady window does not expose
+   per-geometry submission time. Keep local artifacts private unless a separate
+   release task authorizes publication. Then work through B2 (Overpass
    independence), B3 (procedural landuse ground) and B4 (Overture attribute gap
    fill).
 2. Consider C1–C3 only after the data foundation, and only when a measured
