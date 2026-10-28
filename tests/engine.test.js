@@ -439,7 +439,46 @@ describe('city builder core (19.1)', () => {
     expect(result.walls.length).toBeGreaterThan(0);
     expect(result.walls[0].geo.position.array).toBeInstanceOf(Float32Array);
     expect(result.meta.roadPaths.length).toBe(1);
+    const roadGeo = result.roadDecals[0].geo;
+    const roadPositions = roadGeo.position.array;
+    const roadIndices = roadGeo.index;
+    const a = roadIndices[0] * 3, b = roadIndices[1] * 3, c = roadIndices[2] * 3;
+    const abx = roadPositions[b] - roadPositions[a];
+    const abz = roadPositions[b + 2] - roadPositions[a + 2];
+    const acx = roadPositions[c] - roadPositions[a];
+    const acz = roadPositions[c + 2] - roadPositions[a + 2];
+    expect(abz * acx - abx * acz).toBeGreaterThan(0);
     expect(transfers.length).toBeGreaterThan(0);
+  });
+});
+
+describe('near street treatment', () => {
+  it('adds bounded sidewalks and kerbs around nearby walkable roads only', async () => {
+    const { buildNearStreetTreatmentGeometry } = await import('../lib/engine/street/near-street-treatment.js');
+    const result = await buildNearStreetTreatmentGeometry({
+      player: { x: 0, z: 0 },
+      roadPaths: [
+        {
+          width: 7,
+          tags: { highway: 'residential' },
+          pts: [{ x: -120, y: 0 }, { x: 120, y: 0 }],
+        },
+        {
+          width: 7,
+          tags: { highway: 'residential' },
+          pts: [{ x: -120, y: 160 }, { x: 120, y: 160 }],
+        },
+      ],
+      groundHeight: () => 0,
+    });
+    expect(result.sidewalks?.getAttribute('position').count).toBeGreaterThan(0);
+    expect(result.curbs?.getAttribute('position').count).toBeGreaterThan(0);
+    const sidewalkPositions = result.sidewalks.getAttribute('position');
+    for (let i = 0; i < sidewalkPositions.count; i++) {
+      const x = sidewalkPositions.getX(i);
+      const z = sidewalkPositions.getZ(i);
+      expect(Math.hypot(x, z)).toBeLessThan(86);
+    }
   });
 });
 

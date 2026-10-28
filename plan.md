@@ -1,7 +1,8 @@
 # Walk the World — Performance and Visuals Implementation Plan
 
-Updated: 28 October 2026. Reviewed base: `d1bc537` on `main`; current `main`
-adds explicit per-city demo headings and closes demo deployment gates D2, D4–D7.
+Updated: 28 October 2026. Reviewed base: `d1bc537` on `main`; current work
+closes demo gates D1–D7. D3's hardware acceptance uses the local production
+preview described below.
 This is the active plan. The [previous detailed checkpoint](docs/PLAN-CHECKPOINT-2026-10-28-BEFORE-REVIEW.md)
 preserves the full experiment history; its status is historical.
 
@@ -23,12 +24,15 @@ Acceptance for demo-track items (lighter than section 3):
 
 Demo-track items:
 
-- [ ] **D1 — Ground and sidewalks near the player (partial).** Raster darkening,
-  near-player detail grain and stronger zebras are implemented. Current live
-  captures still show a broad flat pale foreground; lane decals, kerbs and paved
-  sidewalks remain open. Make the first 60 m read as asphalt with markings,
-  kerbs and paved sidewalks. Prefer world-space detail faded with distance over
-  a larger ground canvas.
+- [x] **D1 — Ground and sidewalks near the player.** Fixed the downward road
+  ribbon winding that culled asphalt and lane markings from above. The initial
+  street now adds 70 m of sidewalk and 15 cm kerb geometry on local vehicular
+  roads, honoring explicit OSM sidewalk tags. Pedestrian-only ways keep their
+  paved path surface. Matched four-city captures and the settled visible-Chrome
+  smoke are in [the local production rehearsal](screenshots/demo-track/rehearsal-2026-10-28-d1-d3-local-production/).
+  The settled 300-frame Pune p95 was 14 ms, matching its 14 ms pre-change smoke;
+  the broader open ground beyond mapped roads remains terrain imagery and is a
+  B3 landuse-ground follow-up.
 - [x] **D2 — Per-city demo presets.** Each demo place now has a fixed start
   coordinate, time, weather and explicit heading. Pune's 270° heading replaces
   the empty-lot view; other headings match the captured street-framing angles.
@@ -37,10 +41,14 @@ Demo-track items:
   confirm the expected heading at each city start. Pune is framed down the
   street rather than across the open lot. Unit tests and the production build
   pass; live smoke p95 was 14.0 ms in Pune.
-- [ ] **D3 — Facade textures visible on demo hardware.** Prefetch the shared KTX2
-  set and Basis decoder while the menu is open. Allow the near facade set on the
-  medium tier on desktop GPUs that support compressed formats. Low tier and
-  mobile stay unchanged.
+- [x] **D3 — Facade textures visible on demo hardware.** The home menu prefetches
+  the two shared KTX2 maps and Basis decoder while idle; it does not prefetch the
+  larger near set. A visible-Chrome production preview on Intel UHD loaded the
+  near facade maps at medium tier with compressed texture support; the factory
+  reports `highFacadeAtlases: true`. The 5.98 MiB transfer decoded to an estimated
+  17.1 MiB of GPU mip payloads, with 9.5 ms upload submission. Low-tier and
+  mobile eligibility remains disabled by policy and covered by unit checks.
+  See the [four-city production rehearsal](screenshots/demo-track/rehearsal-2026-10-28-d1-d3-local-production/report.json).
 - [x] **D4 — Benchmark mode cannot reach live visitors.** A normal production
   build opened at `/street?bench=1` with `window.__BENCH_MODE` false; only
   `NEXT_PUBLIC_ENABLE_BENCH=1` builds and development enable it.
@@ -182,8 +190,10 @@ mobile, offline and several visual gates remain open.
 | 6–8 Alternatives | Conditional, deferred | Only prototype Rust/Wasm, SIMD or prebuilt cells after their measured prerequisite passes |
 | 9 Integration | Open | Full regression, hardware/visual acceptance and release records |
 
-Latest validation: all 167 tests across 26 files and the production build pass,
-including the new demo-heading normalization case. This review still does not
+Latest validation: all 168 tests across 26 files and the production build pass,
+including the road ribbon winding and bounded sidewalk geometry checks. The
+four-city production rehearsal loaded all 36 nearby cells and had zero console
+errors. This review still does not
 rerun the full device performance matrix or prove release readiness. Existing
 tests do not cover the ownership failures below.
 

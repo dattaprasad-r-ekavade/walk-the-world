@@ -1,0 +1,352 @@
+{
+  "base": "http://localhost:3001",
+  "r2": "https://myjyotishai.in",
+  "headed": true,
+  "at": "2026-10-28T16:13:36.468Z",
+  "menuPrefetch": [
+    "http://localhost:3001/textures/ktx2/facade-basecolor.5950247682023a5b.ktx2",
+    "http://localhost:3001/textures/ktx2/facade-emissive.7a1e700c9f969d57.ktx2",
+    "http://localhost:3001/decoders/basis/27d64d5307fe00de/basis_transcoder.js",
+    "http://localhost:3001/decoders/basis/27d64d5307fe00de/basis_transcoder.wasm"
+  ],
+  "device": "ANGLE (Intel, Intel(R) UHD Graphics (0x0000A78B) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+  "qualityTier": "medium",
+  "places": [
+    {
+      "name": "Pune",
+      "preset": {
+        "hour": 17,
+        "weather": 0,
+        "headingDeg": 270
+      },
+      "cells": {
+        "total": 9,
+        "warm": 9
+      },
+      "ready": true,
+      "streamIdle": true,
+      "readyMs": 12503,
+      "heading": 270,
+      "headingMatch": true,
+      "spawn": {
+        "mode": "arrival",
+        "cls": "residential",
+        "movedM": 7,
+        "score": 0.81,
+        "coverage": 0.81,
+        "openness": 1,
+        "headingSource": "demo-preset",
+        "headingDeg": 270
+      },
+      "qualityTier": "medium",
+      "renderer": "ANGLE (Intel, Intel(R) UHD Graphics (0x0000A78B) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+      "highTexturesReady": true,
+      "highTextures": {
+        "transcodeFormats": {
+          "facade-near-basecolor": 36492,
+          "facade-near-normal": 36492,
+          "facade-near-roughness": 36492,
+          "facade-near-emissive": 36492
+        },
+        "transferBytes": 6269843,
+        "transferMs": 62.299999952316284,
+        "decoderBytes": 263400,
+        "mipLevels": {
+          "facade-near-basecolor": 12,
+          "facade-near-normal": 12,
+          "facade-near-roughness": 12,
+          "facade-near-emissive": 12
+        },
+        "workerLimit": 2,
+        "estimatedGpuBytes": 17889344,
+        "estimatedTotalGpuBytes": 19287520,
+        "textureCountDelta": 4
+      },
+      "stream": {
+        "center": {
+          "lat": 18.540913,
+          "lon": 73.895553,
+          "key": "wtw_city6_18.541_73.896"
+        },
+        "loadedKeys": [
+          "wtw_city6_18.535_73.890",
+          "wtw_city6_18.535_73.896",
+          "wtw_city6_18.535_73.901",
+          "wtw_city6_18.541_73.890",
+          "wtw_city6_18.541_73.896",
+          "wtw_city6_18.541_73.901",
+          "wtw_city6_18.546_73.890",
+          "wtw_city6_18.546_73.896",
+          "wtw_city6_18.546_73.901"
+        ],
+        "loadingKeys": [],
+        "queuedKeys": [],
+        "activeJobKeys": [],
+        "obsoleteJobKeys": [],
+        "failedKeys": [],
+        "deferredKeys": [],
+        "reservationCount": 0,
+        "queueLimit": 9,
+        "residentCellCount": 9,
+        "maxCells": 10,
+        "pendingCount": 0
+      },
+      "frameP50": 7,
+      "frameP95": 14,
+      "consoleErrors": [],
+      "shot": "screenshots\\demo-track\\rehearsal-2026-10-28-d1-d3-local-production\\pune.jpg"
+    },
+    {
+      "name": "Edinburgh",
+      "preset": {
+        "hour": 17.5,
+        "weather": 0,
+        "headingDeg": 349
+      },
+      "cells": {
+        "total": 9,
+        "warm": 9
+      },
+      "ready": true,
+      "streamIdle": true,
+      "readyMs": 12559,
+      "heading": 349,
+      "headingMatch": true,
+      "spawn": {
+        "mode": "arrival",
+        "cls": "pedestrian",
+        "movedM": 58,
+        "score": 1,
+        "coverage": 1,
+        "openness": 1,
+        "headingSource": "demo-preset",
+        "headingDeg": 349
+      },
+      "qualityTier": "medium",
+      "renderer": "ANGLE (Intel, Intel(R) UHD Graphics (0x0000A78B) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+      "highTexturesReady": true,
+      "highTextures": {
+        "transcodeFormats": {
+          "facade-near-basecolor": 36492,
+          "facade-near-normal": 36492,
+          "facade-near-roughness": 36492,
+          "facade-near-emissive": 36492
+        },
+        "transferBytes": 6269843,
+        "transferMs": 250.59999990463257,
+        "decoderBytes": 263400,
+        "mipLevels": {
+          "facade-near-basecolor": 12,
+          "facade-near-normal": 12,
+          "facade-near-roughness": 12,
+          "facade-near-emissive": 12
+        },
+        "workerLimit": 2,
+        "estimatedGpuBytes": 17889344,
+        "estimatedTotalGpuBytes": 19287520,
+        "textureCountDelta": 4
+      },
+      "stream": {
+        "center": {
+          "lat": 55.9505,
+          "lon": -3.1875,
+          "key": "wtw_city6_55.950_-3.188"
+        },
+        "loadedKeys": [
+          "wtw_city6_55.945_-3.182",
+          "wtw_city6_55.945_-3.188",
+          "wtw_city6_55.945_-3.193",
+          "wtw_city6_55.950_-3.182",
+          "wtw_city6_55.950_-3.188",
+          "wtw_city6_55.950_-3.193",
+          "wtw_city6_55.956_-3.182",
+          "wtw_city6_55.956_-3.188",
+          "wtw_city6_55.956_-3.193"
+        ],
+        "loadingKeys": [],
+        "queuedKeys": [],
+        "activeJobKeys": [],
+        "obsoleteJobKeys": [],
+        "failedKeys": [],
+        "deferredKeys": [],
+        "reservationCount": 0,
+        "queueLimit": 9,
+        "residentCellCount": 9,
+        "maxCells": 10,
+        "pendingCount": 0
+      },
+      "frameP50": 13.9,
+      "frameP95": 20.8,
+      "consoleErrors": [],
+      "shot": "screenshots\\demo-track\\rehearsal-2026-10-28-d1-d3-local-production\\edinburgh.jpg"
+    },
+    {
+      "name": "Tokyo",
+      "preset": {
+        "hour": 19,
+        "weather": 0,
+        "headingDeg": 317
+      },
+      "cells": {
+        "total": 9,
+        "warm": 9
+      },
+      "ready": true,
+      "streamIdle": true,
+      "readyMs": 15755,
+      "heading": 317,
+      "headingMatch": true,
+      "spawn": {
+        "mode": "arrival",
+        "cls": "pedestrian",
+        "movedM": 29,
+        "score": 1,
+        "coverage": 1,
+        "openness": 1,
+        "headingSource": "demo-preset",
+        "headingDeg": 317
+      },
+      "qualityTier": "medium",
+      "renderer": "ANGLE (Intel, Intel(R) UHD Graphics (0x0000A78B) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+      "highTexturesReady": true,
+      "highTextures": {
+        "transcodeFormats": {
+          "facade-near-basecolor": 36492,
+          "facade-near-normal": 36492,
+          "facade-near-roughness": 36492,
+          "facade-near-emissive": 36492
+        },
+        "transferBytes": 6269843,
+        "transferMs": 80.29999995231628,
+        "decoderBytes": 263400,
+        "mipLevels": {
+          "facade-near-basecolor": 12,
+          "facade-near-normal": 12,
+          "facade-near-roughness": 12,
+          "facade-near-emissive": 12
+        },
+        "workerLimit": 2,
+        "estimatedGpuBytes": 17889344,
+        "estimatedTotalGpuBytes": 19287520,
+        "textureCountDelta": 4
+      },
+      "stream": {
+        "center": {
+          "lat": 35.6595,
+          "lon": 139.7005,
+          "key": "wtw_city6_35.660_139.701"
+        },
+        "loadedKeys": [
+          "wtw_city6_35.654_139.695",
+          "wtw_city6_35.654_139.701",
+          "wtw_city6_35.654_139.706",
+          "wtw_city6_35.660_139.695",
+          "wtw_city6_35.660_139.701",
+          "wtw_city6_35.660_139.706",
+          "wtw_city6_35.665_139.695",
+          "wtw_city6_35.665_139.701",
+          "wtw_city6_35.665_139.706"
+        ],
+        "loadingKeys": [],
+        "queuedKeys": [],
+        "activeJobKeys": [],
+        "obsoleteJobKeys": [],
+        "failedKeys": [],
+        "deferredKeys": [],
+        "reservationCount": 0,
+        "queueLimit": 9,
+        "residentCellCount": 9,
+        "maxCells": 10,
+        "pendingCount": 0
+      },
+      "frameP50": 13.9,
+      "frameP95": 27.9,
+      "consoleErrors": [],
+      "shot": "screenshots\\demo-track\\rehearsal-2026-10-28-d1-d3-local-production\\tokyo.jpg"
+    },
+    {
+      "name": "New York",
+      "preset": {
+        "hour": 18,
+        "weather": 0,
+        "headingDeg": 292
+      },
+      "cells": {
+        "total": 9,
+        "warm": 9
+      },
+      "ready": true,
+      "streamIdle": true,
+      "readyMs": 12320,
+      "heading": 292,
+      "headingMatch": true,
+      "spawn": {
+        "mode": "arrival",
+        "cls": "footway",
+        "movedM": 11,
+        "score": 0.905,
+        "coverage": 0.905,
+        "openness": 1,
+        "headingSource": "demo-preset",
+        "headingDeg": 292
+      },
+      "qualityTier": "medium",
+      "renderer": "ANGLE (Intel, Intel(R) UHD Graphics (0x0000A78B) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+      "highTexturesReady": true,
+      "highTextures": {
+        "transcodeFormats": {
+          "facade-near-basecolor": 36492,
+          "facade-near-normal": 36492,
+          "facade-near-roughness": 36492,
+          "facade-near-emissive": 36492
+        },
+        "transferBytes": 6269843,
+        "transferMs": 67,
+        "decoderBytes": 263400,
+        "mipLevels": {
+          "facade-near-basecolor": 12,
+          "facade-near-normal": 12,
+          "facade-near-roughness": 12,
+          "facade-near-emissive": 12
+        },
+        "workerLimit": 2,
+        "estimatedGpuBytes": 17889344,
+        "estimatedTotalGpuBytes": 19287520,
+        "textureCountDelta": 4
+      },
+      "stream": {
+        "center": {
+          "lat": 40.758,
+          "lon": -73.9855,
+          "key": "wtw_city6_40.758_-73.986"
+        },
+        "loadedKeys": [
+          "wtw_city6_40.752_-73.980",
+          "wtw_city6_40.752_-73.986",
+          "wtw_city6_40.752_-73.991",
+          "wtw_city6_40.758_-73.980",
+          "wtw_city6_40.758_-73.986",
+          "wtw_city6_40.758_-73.991",
+          "wtw_city6_40.764_-73.980",
+          "wtw_city6_40.764_-73.986",
+          "wtw_city6_40.764_-73.991"
+        ],
+        "loadingKeys": [],
+        "queuedKeys": [],
+        "activeJobKeys": [],
+        "obsoleteJobKeys": [],
+        "failedKeys": [],
+        "deferredKeys": [],
+        "reservationCount": 0,
+        "queueLimit": 9,
+        "residentCellCount": 9,
+        "maxCells": 10,
+        "pendingCount": 0
+      },
+      "frameP50": 13.9,
+      "frameP95": 20.8,
+      "consoleErrors": [],
+      "shot": "screenshots\\demo-track\\rehearsal-2026-10-28-d1-d3-local-production\\new-york.jpg"
+    }
+  ]
+}
