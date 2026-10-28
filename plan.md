@@ -22,8 +22,10 @@ time-aligned Windows host telemetry and capture-validity checks are implemented.
 Five visible-Chrome Intel UHD repetitions are recorded for each of day/clear,
 night/clear, day/rain and night/rain. These short synthetic runs are diagnostic,
 not release acceptance; cold/warm starts, real-city stress, dynamic cell
-crossing, mobile, long-walk thermal and release gates remain open. Work is
-consolidated on `main`.
+crossing, mobile, long-walk thermal and release gates remain open. Stage 3.4's
+offline KTX2 ETC1S/UASTC comparison now covers all nine shared and facade maps;
+runtime adoption and GPU residency checks remain open. Work is consolidated on
+`main`.
 
 ## 1. Verified baseline and scope
 
@@ -34,8 +36,9 @@ performance branch was removed after verifying its tip is in `main`; the
 remote topic refs were retained. The fixture and profiling checkpoint is
 commit `664b55f`; bounded cell streaming and boundary tests are commit `3235dd9`.
 The consolidated implementation and evidence are maintained on `main`.
-At the 28 October sync, `git pull --ff-only origin main` reported no incoming
-changes; local `main` was eight commits ahead of `origin/main`.
+At the latest 28 October `git fetch origin`, `origin/main` was
+`5c6f37228a62cceb07909ddfec1230dd1dff84eb`; local `main` at base commit
+`241fcf3` was 20 commits ahead with no incoming changes. No push was performed.
 
 This is the active implementation sequence for
 [PERFORMANCE-VISUALS-PLAN.md](PERFORMANCE-VISUALS-PLAN.md), which contains
@@ -603,10 +606,28 @@ scripts/build-assets.mjs and public/textures/.
     rectangles and output hashes are in [the manifest](assets/manifest.json);
     rebuild steps are in [the asset pipeline notes](assets/README.md). Outputs
     remain offline and are not yet loaded or approved in the game.
-- [ ] 3.4 Pin offline conversion tools. Compare KTX2 ETC1S/UASTC per map type,
+- [x] 3.4 Pin offline conversion tools. Compare KTX2 ETC1S/UASTC per map type,
   inspecting normals, window detail and masks. ORM packing saves files; stock
-  shaders may still sample each map separately. KTX2 encoder/transcoder versions
-  and per-map comparisons remain open.
+  shaders may still sample each map separately.
+  - KTX-Software v4.4.2 is pinned from the official stable release; the Windows
+    x64 installer SHA-256 is in [the asset manifest](assets/manifest.json).
+    `ktx create` encoded all nine shared/facade maps as ETC1S and UASTC; every
+    output passed `ktx validate --gltf-basisu`. `ktx extract` from the same
+    release decoded the maps for review. Tool commands and per-output hashes are
+    reproducible with `npm run assets:ktx2`.
+  - ETC1S uses BasisLZ quality 128 / compression level 1. UASTC uses quality 2,
+    Zstandard 18 and RDO lambda 1.0 (0.5 for normals). RGB normal channels and
+    facade alpha are retained. These are single-base-level comparisons; mip
+    generation remains in 3.6.
+  - The [comparison report](assets/processed/ktx2/comparison.md) records sizes,
+    decoded RGB PSNR and mask overlap. Across the nine maps, ETC1S files total
+    3.1 MB and UASTC files 21.5 MB; these are transfer sizes, not GPU residency.
+    UASTC better preserves facade wall/window detail. The emissive bright-window
+    mask IoU is 0.9976 for UASTC versus 0.9855 for ETC1S; the facade albedo alpha
+    mask IoU is 1.0000 for both. Reviewed maps are shown in the [atlas
+    comparison](assets/processed/ktx2/quality-review.png) and [facade detail
+    comparison](assets/processed/ktx2/quality-review-facade-detail.png). Runtime
+    codec choice still needs Stage 3.5 in-game visual and device-cost validation.
 - [ ] 3.5 Add one shared support-detected KTX2 loader, bounded decoder workers,
   self-hosted matching decoders and disposal. Preserve procedural fallback and
   measure transfer/compile/transcode/upload plus estimated GPU residency.
@@ -838,10 +859,11 @@ for Cesium, imagery and model resources. SSR, volumetrics, displacement, dense
 skeletal crowds and shadowed lamp arrays require separate high-tier budgets.
 None is a prerequisite for this sequence.
 
-**Next bounded work:** Stage 3.3 offline conversion is complete. Continue with
-Stage 3.4: pin KTX2 encoder/transcoder versions and compare ETC1S/UASTC per map
-type, checking the normal and window maps. Then integrate the best candidate
-through the runtime material factory and inspect it in the game. Stage 0.8
+**Next bounded work:** Stage 3.4's offline conversion comparison is complete.
+Continue with Stage 3.5: add a shared support-detected KTX2 loader with bounded
+decoder workers and self-hosted matching decoders, retaining the procedural
+fallback. Measure transfer, compile, transcode, upload, input-ready time and
+estimated GPU residency, then inspect runtime materials in the game. Stage 0.8
 dense live-city cold/warm walk/drive, Stage 1 mobile assembly and input latency, and Stage 1.3
 low-core worker plus KTX2 contention/memory checks remain release gates; runtime
 adoption must preserve the measured fallback and resource budgets. Recorded
@@ -860,5 +882,5 @@ thermal checks and direct thermal measurements remain open. Keep Rust/Wasm/SIMD 
 729.4 ms roundtrip on the earlier synthetic trace, so kernel acceleration is
 not yet the measured opportunity. The Stage 2.5 far-material experiment was
 completed and rejected; Stage 2.6 shader/shadow parity is complete. Stage 3.1
-and 3.2 curation plus 3.3 offline conversion are complete; 3.4 KTX2 comparison
-is the next content checkpoint.
+and 3.2 curation, 3.3 offline conversion and 3.4 KTX2 comparison are complete;
+runtime KTX2 adoption is the next content checkpoint.

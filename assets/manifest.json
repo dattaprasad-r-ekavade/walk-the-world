@@ -1121,7 +1121,7 @@
         "processedBoundsMeters": {
           "min": [
             -0.2,
-            0.0,
+            0,
             -0.2
           ],
           "max": [
@@ -1176,7 +1176,7 @@
         "processedBoundsMeters": {
           "min": [
             -0.451684,
-            0.0,
+            0,
             -0.750029
           ],
           "max": [
@@ -1232,7 +1232,7 @@
         "processedBoundsMeters": {
           "min": [
             -0.293727,
-            0.0,
+            0,
             -0.164702
           ],
           "max": [
@@ -1288,7 +1288,7 @@
         "processedBoundsMeters": {
           "min": [
             -0.24466,
-            0.0,
+            0,
             -0.319689
           ],
           "max": [
@@ -2328,6 +2328,573 @@
           "colorSpace": "sRGB"
         }
       }
+    }
+  },
+  "ktx2Pilot": {
+    "revision": "stage3.4-ktx2-pilot-r1",
+    "sourceRevision": "stage3-pipeline-r3",
+    "status": "complete",
+    "toolchain": {
+      "name": "KTX-Software",
+      "version": "v4.4.2",
+      "releaseUrl": "https://github.com/KhronosGroup/KTX-Software/releases/tag/v4.4.2",
+      "windowsX64InstallerSha256": "1f323b0fec19794f5e6c0425a61d4b1da396872a10be862d105f4f4b2d2957fe",
+      "encoder": "ktx create",
+      "comparisonTranscoder": "ktx extract"
+    },
+    "encoding": {
+      "etc1s": {
+        "codec": "basis-lz",
+        "compressionLevel": 1,
+        "qualityLevel": 128,
+        "threads": 1
+      },
+      "uastc": {
+        "codec": "uastc",
+        "qualityLevel": 2,
+        "rdo": true,
+        "rdoLambda": "1.0; 0.5 for normal maps",
+        "rdoMultithreading": false,
+        "zstdLevel": 18,
+        "threads": 1
+      },
+      "mipLevels": 1,
+      "textureOrigin": "top-left",
+      "normalRgbPreserved": true,
+      "runtimeAdoption": "deferred to Stage 3.5"
+    },
+    "images": [
+      {
+        "id": "material-basecolor",
+        "file": "processed/materials/basecolor-atlas.png",
+        "inputBytes": 10519475,
+        "inputSha256": "c515ac030062ab40490a3d7533c9dbd5f0ffbaf0ffb847151ee21022823bc7e0",
+        "colorSpace": "sRGB",
+        "channels": 3,
+        "format": "R8G8B8_SRGB",
+        "variants": {
+          "etc1s": {
+            "file": "processed/ktx2/etc1s/material-basecolor.ktx2",
+            "bytes": 683891,
+            "sha256": "c3947f68948761e517c6e314f4f8b545680057cfbd2258ac88d86d90076fc1c9",
+            "psnrMaxDb": 32.818954,
+            "settings": {
+              "encode": "basis-lz",
+              "clevel": 1,
+              "qlevel": 128,
+              "mipLevels": 1
+            }
+          },
+          "uastc": {
+            "file": "processed/ktx2/uastc/material-basecolor.ktx2",
+            "bytes": 4722851,
+            "sha256": "b86a8f50045c354692422dc1b0b4e834b90836808a2cdd1f7a49d01870391735",
+            "psnrMaxDb": 44.794674,
+            "settings": {
+              "encode": "uastc",
+              "quality": 2,
+              "rdoLambda": 1,
+              "rdoMultithreading": false,
+              "zstd": 18,
+              "mipLevels": 1
+            }
+          }
+        },
+        "qualityMetrics": {
+          "decodedRgba8": {
+            "etc1s": {
+              "channelsDb": {
+                "R": 31.9132,
+                "G": 32.5787,
+                "B": 28.6862
+              },
+              "meanRgbDb": 31.0594
+            },
+            "uastc": {
+              "channelsDb": {
+                "R": 42.3377,
+                "G": 43.5067,
+                "B": 41.5952
+              },
+              "meanRgbDb": 42.4799
+            }
+          }
+        }
+      },
+      {
+        "id": "material-normal",
+        "file": "processed/materials/normal-atlas.png",
+        "inputBytes": 12021537,
+        "inputSha256": "1620be34d4b6a99c29a7de87fcbd3e337fa8046befe8be6e42dd5d6939a168de",
+        "colorSpace": "linear",
+        "channels": 3,
+        "format": "R8G8B8_UNORM",
+        "variants": {
+          "etc1s": {
+            "file": "processed/ktx2/etc1s/material-normal.ktx2",
+            "bytes": 493964,
+            "sha256": "e0510faef0eeeebcb10c259c6648fd1e38b0fd240dd5199001a413afd7da1199",
+            "psnrMaxDb": 27.762686,
+            "settings": {
+              "encode": "basis-lz",
+              "clevel": 1,
+              "qlevel": 128,
+              "mipLevels": 1
+            }
+          },
+          "uastc": {
+            "file": "processed/ktx2/uastc/material-normal.ktx2",
+            "bytes": 5117023,
+            "sha256": "4765cddccdb6f3997a2818671ae8f8687ecb0cd706877f25582ba4a640f0da32",
+            "psnrMaxDb": 37.876171,
+            "settings": {
+              "encode": "uastc",
+              "quality": 2,
+              "rdoLambda": 0.5,
+              "rdoMultithreading": false,
+              "zstd": 18,
+              "mipLevels": 1
+            }
+          }
+        },
+        "qualityMetrics": {
+          "decodedRgba8": {
+            "etc1s": {
+              "channelsDb": {
+                "R": 24.7209,
+                "G": 24.5912,
+                "B": 28.6976
+              },
+              "meanRgbDb": 26.0032
+            },
+            "uastc": {
+              "channelsDb": {
+                "R": 35.3975,
+                "G": 35.3991,
+                "B": 34.4113
+              },
+              "meanRgbDb": 35.0693
+            }
+          }
+        }
+      },
+      {
+        "id": "material-roughness",
+        "file": "processed/materials/roughness-atlas.png",
+        "inputBytes": 4762369,
+        "inputSha256": "2f179290a0629909665906035d7923127b75d46531d152024cb19f3b13bc8a2a",
+        "colorSpace": "linear",
+        "channels": 3,
+        "format": "R8G8B8_UNORM",
+        "variants": {
+          "etc1s": {
+            "file": "processed/ktx2/etc1s/material-roughness.ktx2",
+            "bytes": 641763,
+            "sha256": "19219597d529e31c7cf2d71b3560d0209df957ba0ff7c03a1c353e2cb143b7ae",
+            "psnrMaxDb": 35.656109,
+            "settings": {
+              "encode": "basis-lz",
+              "clevel": 1,
+              "qlevel": 128,
+              "mipLevels": 1
+            }
+          },
+          "uastc": {
+            "file": "processed/ktx2/uastc/material-roughness.ktx2",
+            "bytes": 3809923,
+            "sha256": "d7fe4b9bb6ab725efa1ce3229000ec9931c1a4bc639b9874eb3f1c39aee93545",
+            "psnrMaxDb": 47.995163,
+            "settings": {
+              "encode": "uastc",
+              "quality": 2,
+              "rdoLambda": 1,
+              "rdoMultithreading": false,
+              "zstd": 18,
+              "mipLevels": 1
+            }
+          }
+        },
+        "qualityMetrics": {
+          "decodedRgba8": {
+            "etc1s": {
+              "channelsDb": {
+                "R": 35.6561,
+                "G": 35.6561,
+                "B": 35.6561
+              },
+              "meanRgbDb": 35.6561
+            },
+            "uastc": {
+              "channelsDb": {
+                "R": 47.9889,
+                "G": 47.9927,
+                "B": 47.9928
+              },
+              "meanRgbDb": 47.9915
+            }
+          }
+        }
+      },
+      {
+        "id": "material-ao",
+        "file": "processed/materials/ao-atlas.png",
+        "inputBytes": 3809472,
+        "inputSha256": "e2dc261a55a970e440558429bed1535f92050a661478c352e4ba447cb90da1f4",
+        "colorSpace": "linear",
+        "channels": 3,
+        "format": "R8G8B8_UNORM",
+        "variants": {
+          "etc1s": {
+            "file": "processed/ktx2/etc1s/material-ao.ktx2",
+            "bytes": 410960,
+            "sha256": "e7ddc47652b97ffc79bccd7d23567764ce841b095143e97bf403d86da9ea57ce",
+            "psnrMaxDb": 34.430698,
+            "settings": {
+              "encode": "basis-lz",
+              "clevel": 1,
+              "qlevel": 128,
+              "mipLevels": 1
+            }
+          },
+          "uastc": {
+            "file": "processed/ktx2/uastc/material-ao.ktx2",
+            "bytes": 2378476,
+            "sha256": "003cf751722a228bad8850803fd30cc8934b16dc4ca8d787b4b6632d39499beb",
+            "psnrMaxDb": 47.917561,
+            "settings": {
+              "encode": "uastc",
+              "quality": 2,
+              "rdoLambda": 1,
+              "rdoMultithreading": false,
+              "zstd": 18,
+              "mipLevels": 1
+            }
+          }
+        },
+        "qualityMetrics": {
+          "decodedRgba8": {
+            "etc1s": {
+              "channelsDb": {
+                "R": 34.4307,
+                "G": 34.4307,
+                "B": 34.4307
+              },
+              "meanRgbDb": 34.4307
+            },
+            "uastc": {
+              "channelsDb": {
+                "R": 47.9049,
+                "G": 47.9084,
+                "B": 47.9117
+              },
+              "meanRgbDb": 47.9083
+            }
+          }
+        }
+      },
+      {
+        "id": "facade-basecolor",
+        "file": "processed/facades/facade-pbr-basecolor-atlas.png",
+        "inputBytes": 4808050,
+        "inputSha256": "d4897e2dd160153acab544508c263a98e1d27a61286ebfd5f1a18fcf93990501",
+        "colorSpace": "sRGB",
+        "channels": 4,
+        "format": "R8G8B8A8_SRGB",
+        "variants": {
+          "etc1s": {
+            "file": "processed/ktx2/etc1s/facade-basecolor.ktx2",
+            "bytes": 276858,
+            "sha256": "c51d7786c6f60ffb03538dc05d27c34c9d30bd17105fbce4ef659f4f28b6c943",
+            "psnrMaxDb": 33.223259,
+            "settings": {
+              "encode": "basis-lz",
+              "clevel": 1,
+              "qlevel": 128,
+              "mipLevels": 1
+            }
+          },
+          "uastc": {
+            "file": "processed/ktx2/uastc/facade-basecolor.ktx2",
+            "bytes": 1553495,
+            "sha256": "ce7f936d3effa91cf278a741e933773776535b07c672d36a425545926c457734",
+            "psnrMaxDb": 42.786594,
+            "settings": {
+              "encode": "uastc",
+              "quality": 2,
+              "rdoLambda": 1,
+              "rdoMultithreading": false,
+              "zstd": 18,
+              "mipLevels": 1
+            }
+          }
+        },
+        "qualityMetrics": {
+          "decodedRgba8": {
+            "etc1s": {
+              "channelsDb": {
+                "R": 31.8256,
+                "G": 32.9775,
+                "B": 27.9131,
+                "A": 73.2795
+              },
+              "meanRgbDb": 30.9054,
+              "alphaMaskIoUAt128": 1
+            },
+            "uastc": {
+              "channelsDb": {
+                "R": 41.2806,
+                "G": 41.9106,
+                "B": 40.2453,
+                "A": 68.5625
+              },
+              "meanRgbDb": 41.1455,
+              "alphaMaskIoUAt128": 1
+            }
+          }
+        }
+      },
+      {
+        "id": "facade-normal",
+        "file": "processed/facades/facade-pbr-normal-atlas.png",
+        "inputBytes": 4582908,
+        "inputSha256": "d3d590108a1780d5e7560fd13cddc05239f16bb527192af614bd1e36fba72845",
+        "colorSpace": "linear",
+        "channels": 4,
+        "format": "R8G8B8A8_UNORM",
+        "variants": {
+          "etc1s": {
+            "file": "processed/ktx2/etc1s/facade-normal.ktx2",
+            "bytes": 155972,
+            "sha256": "9423e29cfda64719c66035ece5e2b9a357c01d7538d3f613e63e6059027b5ac6",
+            "psnrMaxDb": 30.072594,
+            "settings": {
+              "encode": "basis-lz",
+              "clevel": 1,
+              "qlevel": 128,
+              "mipLevels": 1
+            }
+          },
+          "uastc": {
+            "file": "processed/ktx2/uastc/facade-normal.ktx2",
+            "bytes": 1538954,
+            "sha256": "9ee8d438f2da241adb056d769f6991ff8bb903677c5f6183cc65bf22e4a8ee43",
+            "psnrMaxDb": 40.067677,
+            "settings": {
+              "encode": "uastc",
+              "quality": 2,
+              "rdoLambda": 0.5,
+              "rdoMultithreading": false,
+              "zstd": 18,
+              "mipLevels": 1
+            }
+          }
+        },
+        "qualityMetrics": {
+          "decodedRgba8": {
+            "etc1s": {
+              "channelsDb": {
+                "R": 27.4921,
+                "G": 26.8638,
+                "B": 30.524,
+                "A": null
+              },
+              "meanRgbDb": 28.2933
+            },
+            "uastc": {
+              "channelsDb": {
+                "R": 37.4518,
+                "G": 37.5528,
+                "B": 36.6056,
+                "A": null
+              },
+              "meanRgbDb": 37.2034
+            }
+          }
+        }
+      },
+      {
+        "id": "facade-roughness",
+        "file": "processed/facades/facade-pbr-roughness-atlas.png",
+        "inputBytes": 2749817,
+        "inputSha256": "ae3046c3da6d7cb4631b1e592ed3f3b42cfd832e9342d0ea9976322547cbf0fb",
+        "colorSpace": "linear",
+        "channels": 4,
+        "format": "R8G8B8A8_UNORM",
+        "variants": {
+          "etc1s": {
+            "file": "processed/ktx2/etc1s/facade-roughness.ktx2",
+            "bytes": 243946,
+            "sha256": "b91f677d0f011a713c47917b35f22431969e3e1673e39fd208188dd57be6e21e",
+            "psnrMaxDb": 32.673458,
+            "settings": {
+              "encode": "basis-lz",
+              "clevel": 1,
+              "qlevel": 128,
+              "mipLevels": 1
+            }
+          },
+          "uastc": {
+            "file": "processed/ktx2/uastc/facade-roughness.ktx2",
+            "bytes": 1446506,
+            "sha256": "1bc8caacfdeeb852607591725867049fc48a5ec2b088e7280cf12fabf5c6fb46",
+            "psnrMaxDb": 48.503632,
+            "settings": {
+              "encode": "uastc",
+              "quality": 2,
+              "rdoLambda": 1,
+              "rdoMultithreading": false,
+              "zstd": 18,
+              "mipLevels": 1
+            }
+          }
+        },
+        "qualityMetrics": {
+          "decodedRgba8": {
+            "etc1s": {
+              "channelsDb": {
+                "R": 32.6735,
+                "G": 32.6735,
+                "B": 32.6735,
+                "A": null
+              },
+              "meanRgbDb": 32.6735
+            },
+            "uastc": {
+              "channelsDb": {
+                "R": 48.5027,
+                "G": 48.5032,
+                "B": 48.5033,
+                "A": null
+              },
+              "meanRgbDb": 48.5031
+            }
+          }
+        }
+      },
+      {
+        "id": "facade-ao",
+        "file": "processed/facades/facade-pbr-ao-atlas.png",
+        "inputBytes": 1896565,
+        "inputSha256": "fa178d85ee2fdfefdaa33ac4402fb1e4436c0942760ab83c3a9aae63db844a49",
+        "colorSpace": "linear",
+        "channels": 4,
+        "format": "R8G8B8A8_UNORM",
+        "variants": {
+          "etc1s": {
+            "file": "processed/ktx2/etc1s/facade-ao.ktx2",
+            "bytes": 177398,
+            "sha256": "dbbddbd9c755bf5ffbc2626d02aea5d63c209a4d67c7f8866b99ccf6949bc0af",
+            "psnrMaxDb": 30.968691,
+            "settings": {
+              "encode": "basis-lz",
+              "clevel": 1,
+              "qlevel": 128,
+              "mipLevels": 1
+            }
+          },
+          "uastc": {
+            "file": "processed/ktx2/uastc/facade-ao.ktx2",
+            "bytes": 875192,
+            "sha256": "b84a1ff9def5e7c6174081ce179eb59ae8fd6d612a0fdf7ac87a3f9213a0c995",
+            "psnrMaxDb": 48.069424,
+            "settings": {
+              "encode": "uastc",
+              "quality": 2,
+              "rdoLambda": 1,
+              "rdoMultithreading": false,
+              "zstd": 18,
+              "mipLevels": 1
+            }
+          }
+        },
+        "qualityMetrics": {
+          "decodedRgba8": {
+            "etc1s": {
+              "channelsDb": {
+                "R": 30.9687,
+                "G": 30.9687,
+                "B": 30.9687,
+                "A": null
+              },
+              "meanRgbDb": 30.9687
+            },
+            "uastc": {
+              "channelsDb": {
+                "R": 48.068,
+                "G": 48.0681,
+                "B": 48.0687,
+                "A": null
+              },
+              "meanRgbDb": 48.0683
+            }
+          }
+        }
+      },
+      {
+        "id": "facade-emissive",
+        "file": "processed/facades/facade-pbr-emissive-atlas.png",
+        "inputBytes": 186240,
+        "inputSha256": "92243d6c5bcedcffa441ca2dd68bc16d60035cda7bc307fb2a9d53bd2f6e92f0",
+        "colorSpace": "sRGB",
+        "channels": 4,
+        "format": "R8G8B8A8_SRGB",
+        "variants": {
+          "etc1s": {
+            "file": "processed/ktx2/etc1s/facade-emissive.ktx2",
+            "bytes": 27084,
+            "sha256": "a55fcb87899c716f3820fbba058067256609949f1bdefed9128e42d4a0b671e0",
+            "psnrMaxDb": 45.452816,
+            "settings": {
+              "encode": "basis-lz",
+              "clevel": 1,
+              "qlevel": 128,
+              "mipLevels": 1
+            }
+          },
+          "uastc": {
+            "file": "processed/ktx2/uastc/facade-emissive.ktx2",
+            "bytes": 15888,
+            "sha256": "f3dd411fcb06a41819446e5c2d744563cf39ee038b3a56aa00eb38c49d64915b",
+            "psnrMaxDb": 51.980186,
+            "settings": {
+              "encode": "uastc",
+              "quality": 2,
+              "rdoLambda": 1,
+              "rdoMultithreading": false,
+              "zstd": 18,
+              "mipLevels": 1
+            }
+          }
+        },
+        "qualityMetrics": {
+          "decodedRgba8": {
+            "etc1s": {
+              "channelsDb": {
+                "R": 43.3057,
+                "G": 45.2519,
+                "B": 39.5863,
+                "A": null
+              },
+              "meanRgbDb": 42.7146,
+              "brightWindowMaskIoUAtRgbMax200": 0.985462
+            },
+            "uastc": {
+              "channelsDb": {
+                "R": 51.1616,
+                "G": 51.936,
+                "B": 53.272,
+                "A": null
+              },
+              "meanRgbDb": 52.1232,
+              "brightWindowMaskIoUAtRgbMax200": 0.997645
+            }
+          }
+        }
+      }
+    ],
+    "review": {
+      "allAtlases": "processed/ktx2/quality-review.png",
+      "facadeWindowAndMaskDetail": "processed/ktx2/quality-review-facade-detail.png"
     }
   }
 }
