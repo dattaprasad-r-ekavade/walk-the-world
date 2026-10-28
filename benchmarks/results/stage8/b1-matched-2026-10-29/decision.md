@@ -4,10 +4,13 @@
 
 B1 remains open. The first matched run found that overlapping neighbor
 artifacts were downloaded before fallback. An exact cell-overlap index now
-avoids those transfers, and terrain validation begins earlier to overlap startup.
-The latest matched headless run is near warm parity and transfers less total
-payload, but remains 8.2% slower cold. This is not target-device acceptance, and
-upload/submit cost plus editor and lifecycle parity remain unmeasured.
+avoids those transfers. The index also gives terrain validation the tile keys
+it needs before artifact decode; validation starts after successful artifact
+headers and overlaps body consumption. The latest matched headless run lagged
+raw mode by 17.8% cold and 10.9% warm, while transferring 7.4% less payload. An
+earlier matched follow-up was 8.2% slower cold and near warm parity, showing
+meaningful host variance. This is not target-device acceptance, and upload/
+submit cost plus editor and lifecycle parity remain unmeasured.
 
 ## Setup
 
@@ -56,15 +59,39 @@ local assets 501 and geometry-merge warning. Terrain revision validation took
 2.1–2.5 s per cold run, much of which now overlaps startup. The run did not
 isolate GPU upload submission by frame.
 
+## Latest run with index-level terrain prevalidation
+
+The bake index now contains `terrainZoom` and `terrainTileKeys`. After the baked
+artifact responds successfully, the runtime starts terrain validation while
+`arrayBuffer()` consumes the artifact body. A missing artifact skips terrain
+work. The Tokyo index is 10,927 B with nine cell entries and 68 directed
+overlap edges. The 16 terrain tile load/decode/build phase took 2.08–2.12 s
+across cold runs; the hash itself took 7.1–9.3 ms.
+
+| Mode | Ready median, cold | Ready median, warm | Cold payload | Cold settled state |
+|---|---:|---:|---:|---|
+| Raw | 3,045 ms | 1,690 ms | 15,473,747 B raw JSON | 8 loaded, 1 failed, 0 deferred |
+| Prebuilt with index prevalidation | 3,587 ms | 1,875 ms | 13,583,369 B raw + 745,576 B baked = 14,328,945 B | 8 loaded, 1 failed, 0 deferred |
+
+Prebuilt was 17.8% slower cold and 10.9% slower warm in this run, with 7.4%
+less cold payload. The exact cell-overlap check still limited baked downloads to
+the spawn artifact. All three runs settled with the same failed neighbor and no
+deferred cells. The initial-data-consumer timing includes about 2.08–2.12 s
+while terrain tiles are fetched and prepared; further work should examine the
+terrain loading gate, not optimize the 7–9 ms hash. The raw control used the
+same source except for a failure-path ordering tweak that does not run with its
+empty prebuilt index.
+
 ## Evidence and remaining gates
 
 The initial and follow-up JSON reports and cold-run screenshots are retained
-locally under `raw/`, `prebuilt/`, and `b1-validation-overlap-2026-10-29/`; they
-are ignored by Git. This tracked note contains the reviewable measurements so
-the raw traces need not be committed.
+locally under `raw/`, `prebuilt/`, `b1-validation-overlap-2026-10-29/`, and
+`b1-index-validation-2026-10-29/`; they are ignored by Git. This tracked note
+contains the reviewable measurements so the raw traces need not be committed.
 
-Before adopting B1, measure target-device readiness and upload costs, investigate
-terrain-revision validation, verify editor/failure/cancellation/eviction parity,
-and confirm the overlap index stays bounded as bake coverage grows. Local
+Before adopting B1, measure target-device readiness and upload costs, determine
+whether terrain tiles can be validated without delaying spawn, verify
+editor/failure/cancellation/eviction parity, and confirm the overlap index stays
+bounded as bake coverage grows. Local
 artifacts remain unpublished; production R2 publication is a separate release
 task.

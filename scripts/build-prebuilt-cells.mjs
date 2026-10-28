@@ -150,6 +150,8 @@ async function bakeOne({ key, inputDir, outputDir, terrainCacheDir, origin }, ap
     outputToSourceRatio: Number((bytes.byteLength / sourceBytes.byteLength).toFixed(3)),
     sourceHash: metadata.sourceHash,
     terrainRevision: metadata.terrainRevision,
+    terrainZoom,
+    terrainTileKeys: tileKeys,
     featureIds: metadata.featureIds,
     clippedElementCount: elements.length,
     buildingCount: result.buildingCount,
@@ -227,7 +229,7 @@ async function main(argv = process.argv.slice(2)) {
       threeVersion: api.threeVersion,
       builderRevision: api.builderRevision,
       materialRevision: api.materialRevision,
-      entries: rows.map(({ featureIds, ...row }) => row),
+      entries: rows.map(({ featureIds, terrainTileKeys, ...row }) => row),
     };
     writeFileSync(path.join(args.outputDir, "bake-report.json"), JSON.stringify(report, null, 2));
     const indexPath = path.join(args.outputDir, "index.json");
@@ -249,6 +251,8 @@ async function main(argv = process.argv.slice(2)) {
         builderRevision: row.builderRevision,
         materialRevision: row.materialRevision,
         terrainRevision: row.terrainRevision,
+        terrainZoom: row.terrainZoom,
+        terrainTileKeys: row.terrainTileKeys,
         editorRevision: row.editorRevision,
         origin: row.origin,
         featureOverlapKeys: overlapKeysByCell.get(row.key) || [],

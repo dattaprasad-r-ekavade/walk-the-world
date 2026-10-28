@@ -263,10 +263,22 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false, demo
       console.warn("[street] city data:", e?.message);
       return null;
     });
+    let prebuiltTerrainValidationPromise = null;
+    let validatePrebuiltTerrainEntry = null;
     const cityDataPromise = measurePerfAsync("city.initial-data-consumer", async () => {
       const edits = await editsPromise;
       if (window.__BENCH_MODE !== true && edits && !hasGeometryEdits(edits)) {
-        const prebuilt = await fetchPrebuiltCell(editsKey, { signal });
+        const prebuilt = await fetchPrebuiltCell(editsKey, {
+          signal,
+          validateEntry: (entry) => {
+            if (typeof validatePrebuiltTerrainEntry !== "function") return null;
+            prebuiltTerrainValidationPromise = measurePerfAsync(
+              "city.prebuilt-terrain-revision",
+              () => validatePrebuiltTerrainEntry(entry)
+            );
+            return prebuiltTerrainValidationPromise;
+          },
+        });
         if (prebuilt) return prebuilt;
       }
       return fetchRawCityData();
@@ -790,19 +802,27 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false, demo
     // ---- buildings + roads (Worker geometry + main-thread assemble) ----
     const validatePrebuiltTerrain = async (candidate) => {
       try {
-        const metadata = candidate?.metadata;
+        const metadata = candidate?.metadata || candidate;
         if (metadata?.terrainZoom !== Z || !Array.isArray(metadata.terrainTileKeys) || !metadata.terrainTileKeys.length) return false;
-        const ready = await terrain.ensureTiles(metadata.terrainTileKeys);
+        const ready = await measurePerfAsync(
+          "city.prebuilt-terrain-tiles",
+          () => terrain.ensureTiles(metadata.terrainTileKeys),
+          { tileCount: metadata.terrainTileKeys.length }
+        );
         if (!ready) return false;
-        const revision = await computeTerrainRevision(terrainTiles, metadata.terrainTileKeys);
+        const revision = await measurePerfAsync(
+          "city.prebuilt-terrain-hash",
+          () => computeTerrainRevision(terrainTiles, metadata.terrainTileKeys),
+          { tileCount: metadata.terrainTileKeys.length }
+        );
         return revision === metadata.terrainRevision;
       } catch {
         return false;
       }
     };
-    let prebuiltTerrainValidationPromise = null;
+    validatePrebuiltTerrainEntry = (entry) => validatePrebuiltTerrain(entry);
     const cityDataWithPrebuiltValidationPromise = cityDataPromise.then((data) => {
-      if (data?.kind === "prebuilt" && !disposed) {
+      if (data?.kind === "prebuilt" && !disposed && !prebuiltTerrainValidationPromise) {
         prebuiltTerrainValidationPromise = measurePerfAsync(
           "city.prebuilt-terrain-revision",
           () => validatePrebuiltTerrain(data)

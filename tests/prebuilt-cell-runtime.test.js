@@ -125,4 +125,58 @@ describe("prebuilt cell runtime loader", () => {
     expect(fetchImpl.mock.calls[0][0]).toBe("/prebuilt-cells/index.json");
   });
 
+  it("validates terrain from the index while the baked artifact is downloading", async () => {
+    const terrainEntry = { ...entry, terrainZoom: 14, terrainTileKeys: ["8724/5840"] };
+    const terrainMetadata = { ...metadata, terrainZoom: 14, terrainTileKeys: ["8724/5840"] };
+    let releaseValidation;
+    let validationStarted = false;
+    const validationGate = new Promise((resolve) => { releaseValidation = resolve; });
+    const fetchImpl = vi.fn()
+      .mockResolvedValueOnce(response({
+        format: "walk-the-world-prebuilt-cell-index",
+        version: 1,
+        builderRevision: "b".repeat(64),
+        materialRevision: "c".repeat(16),
+        cells: { [key]: terrainEntry },
+      }))
+      .mockResolvedValueOnce({ ok: true, arrayBuffer: async () => new Uint8Array([1]).buffer });
+    const pending = fetchPrebuiltCell(key, {
+      expectedBuilderRevision: "b".repeat(64),
+      expectedMaterialRevision: "c".repeat(16),
+      fetchImpl,
+      decode: async () => ({ metadata: terrainMetadata, result }),
+      validateEntry: (indexedEntry) => {
+        validationStarted = true;
+        expect(indexedEntry.terrainTileKeys).toEqual(["8724/5840"]);
+        return validationGate;
+      },
+    });
+
+    await vi.waitFor(() => expect(fetchImpl).toHaveBeenCalledTimes(2));
+    expect(validationStarted).toBe(true);
+    releaseValidation(true);
+    await expect(pending).resolves.toMatchObject({ kind: "prebuilt", terrainValidated: true });
+  });
+
+  it("does not load terrain when the indexed artifact is missing", async () => {
+    const fetchImpl = vi.fn()
+      .mockResolvedValueOnce(response({
+        format: "walk-the-world-prebuilt-cell-index",
+        version: 1,
+        builderRevision: "b".repeat(64),
+        materialRevision: "c".repeat(16),
+        cells: { [key]: { ...entry, terrainZoom: 14, terrainTileKeys: ["8724/5840"] } },
+      }))
+      .mockResolvedValueOnce({ ok: false });
+    const validateEntry = vi.fn(async () => true);
+
+    await expect(fetchPrebuiltCell(key, {
+      expectedBuilderRevision: "b".repeat(64),
+      expectedMaterialRevision: "c".repeat(16),
+      fetchImpl,
+      validateEntry,
+    })).resolves.toBeNull();
+    expect(validateEntry).not.toHaveBeenCalled();
+  });
+
 });

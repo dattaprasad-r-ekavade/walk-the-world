@@ -165,7 +165,7 @@ async function measureVisit(context, args, repetition, cacheMode, screenshotPath
         decodedBodySize: Number.isFinite(entry.decodedBodySize) ? entry.decodedBodySize : null,
       }));
     const timeline = Array.isArray(perf.timeline) ? perf.timeline : [];
-    const timings = timeline.filter((event) => event.type === "timing" && /^(city\.(?:initial-data-consumer|cell-load|indexeddb-read|fetch-to-headers|json-body-and-parse|enrichment|consumer-copy|spawn-clip|spawn-geometry-total|spawn-assembly-total|prebuilt-terrain-revision|prebuilt-frame-rebase|prebuilt-shader-warmup))$/u.test(event.name))
+    const timings = timeline.filter((event) => event.type === "timing" && /^(city\.(?:initial-data-consumer|cell-load|indexeddb-read|fetch-to-headers|json-body-and-parse|enrichment|consumer-copy|spawn-clip|spawn-geometry-total|spawn-assembly-total|prebuilt-terrain-revision|prebuilt-terrain-tiles|prebuilt-terrain-hash|prebuilt-frame-rebase|prebuilt-shader-warmup))$/u.test(event.name))
       .map(({ name, durationMs, details }) => ({ name, durationMs: +durationMs.toFixed(1), details }));
     return {
       originCacheTier: perf.marks?.["city-cache-hit"]?.details?.tier || null,
