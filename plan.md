@@ -1,6 +1,6 @@
 # Walk the World — Performance and Visuals Implementation Plan
 
-Updated: 28 October 2026. Reviewed base: `d1bc537` on `main`; current work
+Updated: 29 October 2026. Reviewed base: `d1bc537` on `main`; current work
 closes demo gates D1–D7. D3's hardware acceptance uses the local production
 preview described below.
 This is the active plan. The [previous detailed checkpoint](docs/PLAN-CHECKPOINT-2026-10-28-BEFORE-REVIEW.md)
@@ -163,6 +163,22 @@ Decisions taken from the research:
   browser skips Overpass JSON parsing and geometry building for baked cells.
   Add frame-sliced GPU uploads and renderer.compileAsync shader warm-up.
   Supersedes Stage 8 (8.1–8.5) and the Stage 6 prerequisite question.
+  The runtime and local artifact index are now connected. Builder/material
+  revisions gate loading; source, terrain-grid and edit revisions identify
+  immutable artifacts. Spawn and streamed cells reuse baked geometry only when
+  terrain and editor state match, otherwise they rebuild from raw JSON. Local
+  ENU rebasing, the existing frame-budgeted assembly and `compileAsync` are in
+  the path. A frozen Tokyo source cell baked to 761,486 B from 1,890,378 B raw
+  JSON (0.403×), with 1,644 clipped features, 16 terrain tiles, 121.5 ms builder
+  time and 135.7 ms encode time. A local production-preview smoke loaded the
+  baked spawn cell without requesting its raw JSON, then streamed the eight
+  neighboring cells from the frozen snapshot. It reached ready in 6.99 s and
+  settled 8 resident cells with one existing failed neighbor; the two console
+  errors were the known local assets 501 and geometry-merge warning. The 16.8 ms
+  p95 is headless only, not hardware acceptance. See the [B1 smoke evidence](screenshots/demo-track/rehearsal-2026-10-29-b1-prebuilt-smoke/).
+  Keep B1 open for a matched raw-versus-prebuilt cold/warm comparison, upload and
+  total-load costs, editor/failure/cancel/eviction parity, and device validation.
+  Artifacts remain local; production R2 publication needs its own release task.
 - [ ] **B2 — Overpass independence (M).** Self-hosted Overpass on a small VPS
   for target regions behind a Cloudflare Worker, or a custom Planetiler
   profile (Protomaps' basemap schema drops roof, lane and colour tags).
@@ -210,13 +226,14 @@ mobile, offline and several visual gates remain open.
 | 3 Assets | 3.1–3.8 implemented; compressed maps and optimized props | Offline/failure browser checks, lower-memory/mobile residency and far mip seams |
 | 4 Roads/lights | 4.1, 4.2 and desktop 4.4 complete | Wetness, bloom/contact shading, shadows and facade variation |
 | 5 Detail/weather | Planned | LOD, spatial instances, vegetation and analytic precipitation |
-| 6–8 Alternatives | Conditional, deferred | Only prototype Rust/Wasm, SIMD or prebuilt cells after their measured prerequisite passes |
+| 6–8 Alternatives | B1 prebuilt-cell runtime and local bake prototype underway; Stage 6/7 deferred | Matched adoption measurement, editor/fallback/streaming parity and device acceptance |
 | 9 Integration | Open | Full regression, hardware/visual acceptance and release records |
 
-Latest validation: all 168 tests across 26 files and the production build pass,
-including the road ribbon winding and bounded sidewalk geometry checks. The
-four-city production rehearsal loaded all 36 nearby cells and had zero console
-errors. This review still does not
+Latest validation: all 194 tests across 32 files and the production build pass,
+including the B1 codec, frame transform, terrain revision and streamed-cell
+checks. The four-city production rehearsal loaded all 36 nearby cells and had
+zero console errors. The B1 local production-preview smoke loaded the baked
+Tokyo spawn cell and settled its neighbor stream. This review still does not
 rerun the full device performance matrix or prove release readiness. Existing
 tests do not cover the ownership failures below.
 
@@ -694,10 +711,11 @@ matched settings, tested hardware, thresholds and remaining gates.
 
 ## 15. Next action and deferred choices
 
-1. Start B1 (prebuilt cell format), which replaces the conditional Stage 8
-   experiment and the Stage 6 prerequisite question. Then work through B2
-   (Overpass independence), B3 (procedural landuse ground) and B4 (Overture
-   attribute gap fill).
+1. Finish B1's matched raw-versus-prebuilt cold/warm evaluation and editor,
+   fallback, cancellation, eviction and device checks. Keep local artifacts
+   private unless a separate release task authorizes publication. Then work
+   through B2 (Overpass independence), B3 (procedural landuse ground) and B4
+   (Overture attribute gap fill).
 2. Consider C1–C3 only after the data foundation, and only when a measured
    viewer-visible benefit justifies their cost. The remaining release gates
    include 0.8 live dense-city baselines, 1.3 physical low-core validation,

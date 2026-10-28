@@ -5,6 +5,10 @@ import * as THREE from "three";
 import { LoadingScreen } from "@/components/hud/Panels";
 import { lon2tx, lat2ty, tx2lon, ty2lat, makeLocalFrame } from "@/lib/engine/geo";
 import { fetchCityData, cityCacheKey } from "@/lib/engine/cityData";
+import { fetchPrebuiltCell } from "@/lib/engine/prebuilt-cell-runtime";
+import { rebasePrebuiltCityResult } from "@/lib/engine/prebuilt-cell-transform";
+import { computeTerrainRevision } from "@/lib/engine/street/terrain-grid";
+import { applyCityFeatureEdits, hasGeometryEdits } from "@/lib/engine/city-edits";
 import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
 import { createStreetEditor } from "@/lib/engine/street/editor";
 import { createPopulation } from "@/lib/engine/population";
@@ -248,17 +252,28 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false, demo
     const assetListPromise = fetch("/api/assets", { signal })
       .then((r) => (r.ok ? r.json() : []))
       .catch(() => []);
-    const cityDataPromise = measurePerfAsync("city.initial-data-consumer", () => fetchCityData(lat0, lon0, {
+    const editsKey = cityCacheKey(lat0, lon0);
+    const editsPromise = fetch(`/api/edits/${editsKey}`, { signal })
+      .then((r) => (r.ok ? r.json() : null))
+      .catch(() => null);
+    const fetchRawCityData = () => fetchCityData(lat0, lon0, {
       signal,
       readonly: readOnlyCityData,
-    })).catch((e) => {
+    }).catch((e) => {
       console.warn("[street] city data:", e?.message);
       return null;
     });
-    const editsKey = cityCacheKey(lat0, lon0);
-    const editsPromise = fetch(`/api/edits/${editsKey}`, { signal })
-      .then((r) => (r.ok ? r.json() : {}))
-      .catch(() => ({}));
+    const cityDataPromise = measurePerfAsync("city.initial-data-consumer", async () => {
+      const edits = await editsPromise;
+      if (window.__BENCH_MODE !== true && edits && !hasGeometryEdits(edits)) {
+        const prebuilt = await fetchPrebuiltCell(editsKey, { signal });
+        if (prebuilt) return prebuilt;
+      }
+      return fetchRawCityData();
+    }).catch((e) => {
+      console.warn("[street] city data:", e?.message);
+      return null;
+    });
 
     // ---- local ENU conversion (lib/engine/geo) ----
     const { toLocal, toGeo } = makeLocalFrame(lat0, lon0);
@@ -773,33 +788,84 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false, demo
     const loadTerrain = terrain.load;
     const loadTerrainTile = terrain.loadTile;
     // ---- buildings + roads (Worker geometry + main-thread assemble) ----
+    const validatePrebuiltTerrain = async (candidate) => {
+      try {
+        const metadata = candidate?.metadata;
+        if (metadata?.terrainZoom !== Z || !Array.isArray(metadata.terrainTileKeys) || !metadata.terrainTileKeys.length) return false;
+        const ready = await terrain.ensureTiles(metadata.terrainTileKeys);
+        if (!ready) return false;
+        const revision = await computeTerrainRevision(terrainTiles, metadata.terrainTileKeys);
+        return revision === metadata.terrainRevision;
+      } catch {
+        return false;
+      }
+    };
+    let spawnCellUsedPrebuilt = false;
     const loadCity = async (data) => {
-      if (!data?.elements?.length || data.partial) return false;
+      spawnCellUsedPrebuilt = false;
+      const prebuilt = data?.kind === "prebuilt";
+      if (!prebuilt && (!data?.elements?.length || data.partial)) return false;
+      let prebuiltResult = null;
+      let elements = [];
+      let elementCount = data?.elements?.length || 0;
+      if (prebuilt) {
+        const metadata = data.metadata;
+        const revisionsMatch = metadata.terrainZoom === Z &&
+          metadata.editorRevision === "unmodified" && !hasGeometryEdits(runtime.current.edits);
+        const terrainMatches = revisionsMatch && await measurePerfAsync(
+          "city.prebuilt-terrain-revision",
+          () => validatePrebuiltTerrain(data)
+        );
+        if (!terrainMatches) {
+          markPerf("city-prebuilt-fallback", {
+            key: metadata.key,
+            reason: !revisionsMatch ? "edits-or-terrain-version" : "terrain-unavailable-or-revision-mismatch",
+          });
+          const raw = await fetchRawCityData();
+          if (!raw?.elements?.length || raw.partial) return false;
+          setWorldSummary(summarizeCityElements(raw.elements));
+          const edited = hasGeometryEdits(runtime.current.edits)
+            ? { ...raw, elements: applyCityFeatureEdits(raw.elements, runtime.current.edits) }
+            : raw;
+          return loadCity(edited);
+        }
+        spawnCellUsedPrebuilt = true;
+        elementCount = metadata.clippedElementCount;
+        prebuiltResult = measurePerf("city.prebuilt-frame-rebase", () =>
+          rebasePrebuiltCityResult(data.result, metadata.origin, { lat: lat0, lon: lon0 }), {
+            key: metadata.key,
+            clippedElements: metadata.clippedElementCount,
+          });
+        if (data.result.meta?.stations?.length) primeStationLabelMetrics();
+      } else {
       // Ownership clip: keep all corridors from the fetch; buildings/props
       // only inside the spawn tile so neighbors can own the rest.
-      const elements = measurePerf("city.spawn-clip", () => clipElementsToCell(data.elements, lat0, lon0), {
-        inputElements: data.elements.length,
-      });
-      if (!elements.length) return true;
-      setStage(`Building city (${elements.length} features)…`);
+        elements = measurePerf("city.spawn-clip", () => clipElementsToCell(data.elements, lat0, lon0), {
+          inputElements: data.elements.length,
+        });
+        if (!elements.length) return true;
+      }
+      setStage(prebuilt ? "Loading prebuilt city…" : `Building city (${elements.length} features)…`);
       setReadyPct((p) => Math.max(p, 60));
       const cityRoot = new THREE.Group();
       scene.add(cityRoot);
       try {
         if (disposed) return false;
-        const geometryPromise = measurePerfAsync("city.spawn-geometry-total", () => cityBuilder.build({
-          signal,
-          elements,
-          lat0,
-          lon0,
-          terrainTiles,
-          profileQueries: profileCityQueries,
-          roadQueryMode: benchmarkRoadQueryMode,
-          onProgress: (done, total) => {
-            setStage(`Building city (${done}/${total})…`);
-            setReadyPct((p) => Math.max(p, 60 + Math.floor((done / Math.max(1, total)) * 25)));
-          },
-        }), { elements: elements.length });
+        const geometryPromise = prebuilt
+          ? Promise.resolve(prebuiltResult)
+          : measurePerfAsync("city.spawn-geometry-total", () => cityBuilder.build({
+              signal,
+              elements,
+              lat0,
+              lon0,
+              terrainTiles,
+              profileQueries: profileCityQueries,
+              roadQueryMode: benchmarkRoadQueryMode,
+              onProgress: (done, total) => {
+                setStage(`Building city (${done}/${total})…`);
+                setReadyPct((p) => Math.max(p, 60 + Math.floor((done / Math.max(1, total)) * 25)));
+              },
+            }), { elements: elements.length });
         if (elements.some((element) =>
           element.type === "node" && element.tags?.railway === "station"
         )) primeStationLabelMetrics();
@@ -824,7 +890,14 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false, demo
           cellKey: cityCacheKey(lat0, lon0),
           resumedPosition,
           skipOverture: window.__BENCH_MODE === true,
-        }), { elements: elements.length });
+        }), { elements: elementCount, prebuilt });
+        if (prebuilt && typeof renderer.compileAsync === "function") {
+          try {
+            await measurePerfAsync("city.prebuilt-shader-warmup", () => renderer.compileAsync(cityRoot, camera, scene));
+          } catch (error) {
+            console.warn("[street] prebuilt shader warm-up failed:", error?.message || error);
+          }
+        }
         return true;
       } catch (e) {
         disposeSceneGroup(cityRoot, scene, sharedMaterialTextures());
@@ -1507,8 +1580,14 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false, demo
       markPerf("input-ready", { terrainTiles: terrainTiles.size });
       ktx2TextureLoader.setWalkingReady();
       const cityData = await cityDataPromise;
-      markPerf("city-data-ready", { elements: cityData?.elements?.length || 0, partial: !!cityData?.partial });
-      if (!disposed) setWorldSummary(summarizeCityElements(cityData?.elements || []));
+      markPerf("city-data-ready", {
+        elements: cityData?.metadata?.elementCount ?? cityData?.elements?.length ?? 0,
+        partial: !!cityData?.partial,
+        prebuilt: cityData?.kind === "prebuilt",
+      });
+      if (!disposed) setWorldSummary(cityData?.kind === "prebuilt"
+        ? cityData.metadata.summary
+        : summarizeCityElements(cityData?.elements || []));
       const edits = (await editsPromise) || {};
       runtime.current.edits = edits;
       runtime.current.editsKey = editsKey;
@@ -1520,7 +1599,9 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false, demo
         patchTerrain(c.x, c.z, tp.radius || 10, tp.height);
       }
       let cityDataForBuild = cityData;
-      if (cityData && readOnlyCityData) {
+      if (cityData?.kind === "prebuilt") {
+        // Prebuilt cells are selected only when geometry-affecting edits are absent.
+      } else if (cityData && readOnlyCityData) {
         let elements = cityData.elements || [];
         let changed = false;
         // hidden features: filter a new array without rewriting the shared cache entry
@@ -1613,6 +1694,15 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false, demo
         engineRef: runtime,
         player,
         terrainTiles,
+        ensureTerrainTiles: terrain.ensureTiles,
+        validatePrebuiltCell: validatePrebuiltTerrain,
+        applyTerrainEdits: (cellEdits) => {
+          for (const tp of cellEdits?.terrain || []) {
+            const c = toLocal(tp.lat, tp.lon);
+            patchTerrain(c.x, c.z, tp.radius || 10, tp.height);
+          }
+        },
+        warmPrebuiltCell: (group) => renderer.compileAsync?.(group, camera, scene),
         isDisposed: () => disposed,
         onLoading: (n) => {
           if (disposed) return;
@@ -1630,7 +1720,8 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false, demo
       });
       if (cityBuilt) {
         cellStreamer.markLoaded(cityCacheKey(lat0, lon0), lat0, lon0);
-        cellStreamer.noteSpawnElements?.(cityData?.elements);
+        if (spawnCellUsedPrebuilt) cellStreamer.noteSpawnIds?.(cityData?.metadata?.featureIds);
+        else cellStreamer.noteSpawnElements?.(cityData?.elements);
       }
       runtime.current.cellStreamer = cellStreamer;
       // Kick off the ring of neighbors immediately (don't wait 10s).

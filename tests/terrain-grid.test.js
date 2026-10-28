@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
+import { createHash, webcrypto } from "node:crypto";
 import {
+  computeTerrainRevision,
   decodeTerrariumHeightGrid,
+  terrainRevisionChunks,
   terrainTileKeysForCell,
   terrainTileLocalBounds,
 } from "@/lib/engine/street/terrain-grid";
@@ -25,5 +28,19 @@ describe("terrain grid helpers", () => {
   it("returns the covering tile lattice with an optional safety margin", () => {
     expect(terrainTileKeysForCell(0, 0, 0.0055, 0)).toEqual(["0/0"]);
     expect(terrainTileKeysForCell(0, 0, 0.0055, 0, 1)).toHaveLength(9);
+  });
+
+  it("hashes sorted height grids using the baker's canonical bytes", async () => {
+    const tiles = new Map([
+      ["2/1", { heights: new Float32Array([12.5, -3]) }],
+      ["1/1", { heights: new Float32Array([0, 44.25]) }],
+    ]);
+    const expected = createHash("sha256");
+    for (const chunk of terrainRevisionChunks([...tiles].map(([key, tile]) => ({ key, ...tile })))) {
+      expected.update(chunk);
+    }
+    await expect(computeTerrainRevision(tiles, ["2/1", "1/1"], webcrypto))
+      .resolves.toBe(expected.digest("hex"));
+    await expect(computeTerrainRevision(tiles, ["missing"], webcrypto)).resolves.toBeNull();
   });
 });

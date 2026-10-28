@@ -7,22 +7,12 @@ import { fileURLToPath } from "node:url";
 import sharp from "sharp";
 import { createServer } from "vite";
 import { encodePrebuiltCell } from "../lib/engine/prebuilt-cell-encoder.js";
+import { computePrebuiltBuilderRevision, readMaterialRevision } from "./prebuilt-cell-revision.mjs";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const DEFAULT_OUTPUT = path.join(ROOT, "public", "prebuilt-cells");
 const DEFAULT_TERRAIN_CACHE = path.join(os.tmpdir(), "walk-the-world-prebuilt-terrain-z14");
 const TERRAIN_URL = "https://s3.amazonaws.com/elevation-tiles-prod/terrarium";
-const BUILDER_INPUTS = [
-  "lib/engine/city-builder-core.js",
-  "lib/engine/road-markings.js",
-  "lib/engine/styles.js",
-  "lib/engine/geo.js",
-  "lib/engine/street/ground-height.js",
-  "lib/engine/street/terrain-grid.js",
-  "lib/engine/facade-uv.js",
-  "lib/engine/roof-geometry.js",
-  "lib/engine/cell-clip.js",
-];
 
 function parseArgs(argv) {
   const args = { inputDir: null, outputDir: DEFAULT_OUTPUT, terrainCacheDir: DEFAULT_TERRAIN_CACHE, key: null, origin: null, help: false };
@@ -47,15 +37,7 @@ function sha256(bytes) {
   return createHash("sha256").update(bytes).digest("hex");
 }
 
-function builderRevision(threeVersion) {
-  const hash = createHash("sha256").update(`three=${threeVersion}\n`);
-  for (const relative of BUILDER_INPUTS) {
-    hash.update(relative).update("\n").update(readFileSync(path.join(ROOT, relative)));
-  }
-  return hash.digest("hex");
-}
-
-async function readTerrainTile({ tx, ty, zoom, cacheDir, localFrame, decodeTerrainHeightGrid, terrainTileLocalBounds }) {
+async function readTerrainTile({ tx, ty, zoom, cacheDir, localFrame, decodeTerrariumHeightGrid, terrainTileLocalBounds }) {
   const cachePath = path.join(cacheDir, `${zoom}-${tx}-${ty}.png`);
   let bytes;
   if (existsSync(cachePath)) bytes = readFileSync(cachePath);
@@ -77,7 +59,7 @@ async function readTerrainTile({ tx, ty, zoom, cacheDir, localFrame, decodeTerra
   const { x0, z0, sizeX, sizeZ } = terrainTileLocalBounds(tx, ty, zoom, localFrame.toLocal);
   return {
     key: `${tx}/${ty}`,
-    heights: decodeTerrainHeightGrid(data, info.width, info.height),
+    heights: decodeTerrariumHeightGrid(data, info.width, info.height),
     n: 65,
     x0,
     z0,
@@ -90,7 +72,8 @@ async function readTerrainTile({ tx, ty, zoom, cacheDir, localFrame, decodeTerra
 async function bakeOne({ key, inputDir, outputDir, terrainCacheDir, origin }, api) {
   const { cityCacheKey, parseCityKey, validCityData, isCompleteCity, cellStep, terrainZoom,
     makeLocalFrame, terrainTileKeysForCell, terrainTileLocalBounds, decodeTerrariumHeightGrid,
-    clipElementsToCell, buildCityGeometry, summarizeCityElements, encodePrebuiltCell,
+    terrainRevisionChunks, clipElementsToCell, applyCellEnrichment, buildCityGeometry,
+    summarizeCityElements, encodePrebuiltCell,
   } = api;
   const coords = parseCityKey(key);
   if (!coords) throw new Error(`Invalid city key: ${key}`);
@@ -115,7 +98,8 @@ async function bakeOne({ key, inputDir, outputDir, terrainCacheDir, origin }, ap
     }));
   }
 
-  const elements = clipElementsToCell(source.elements, bakedOrigin.lat, bakedOrigin.lon);
+  const enriched = applyCellEnrichment(source);
+  const elements = clipElementsToCell(enriched.elements, bakedOrigin.lat, bakedOrigin.lon);
   if (!elements.length) throw new Error(`${key} has no features in the requested spawn cell`);
   const buildStartedAt = performance.now();
   const { result } = buildCityGeometry({
@@ -126,7 +110,8 @@ async function bakeOne({ key, inputDir, outputDir, terrainCacheDir, origin }, ap
   });
   const buildMs = performance.now() - buildStartedAt;
   const terrainHash = createHash("sha256");
-  for (const tile of terrainTiles) terrainHash.update(tile.key).update(tile.sourceBytes);
+  for (const chunk of terrainRevisionChunks(terrainTiles)) terrainHash.update(chunk);
+  const terrainRevision = terrainHash.digest("hex");
   const metadata = {
     key,
     origin: bakedOrigin,
@@ -135,22 +120,30 @@ async function bakeOne({ key, inputDir, outputDir, terrainCacheDir, origin }, ap
     builderRevision: api.builderRevision,
     threeVersion: api.threeVersion,
     materialRevision: api.materialRevision,
-    terrainRevision: terrainHash.digest("hex"),
+    terrainRevision,
+    terrainZoom,
+    terrainTileKeys: tileKeys,
     editorRevision: "unmodified",
-    elementCount: source.elements.length,
+    elementCount: enriched.elements.length,
     clippedElementCount: elements.length,
     featureIds: elements.map((element) => `${element.type}/${element.id}`),
-    summary: summarizeCityElements(source.elements),
+    summary: summarizeCityElements(enriched.elements),
   };
   const encodeStartedAt = performance.now();
   const bytes = await encodePrebuiltCell({ metadata, result });
   const encodeMs = performance.now() - encodeStartedAt;
-  const outputPath = path.join(outputDir, `${key}.wtwc.gz`);
+  const materialRevision = metadata.materialRevision || "none";
+  const output = `${key}.s${metadata.sourceHash.slice(0, 12)}.b${metadata.builderRevision.slice(0, 12)}.m${materialRevision.slice(0, 8)}.t${terrainRevision.slice(0, 12)}.e1.wtwc.gz`;
+  const outputPath = path.join(outputDir, output);
   mkdirSync(outputDir, { recursive: true });
   writeFileSync(outputPath, bytes);
   return {
     key,
-    output: `${key}.wtwc.gz`,
+    output,
+    origin: bakedOrigin,
+    materialRevision: metadata.materialRevision,
+    builderRevision: metadata.builderRevision,
+    editorRevision: metadata.editorRevision,
     sourceBytes: sourceBytes.byteLength,
     outputBytes: bytes.byteLength,
     outputToSourceRatio: Number((bytes.byteLength / sourceBytes.byteLength).toFixed(3)),
@@ -186,33 +179,33 @@ async function main(argv = process.argv.slice(2)) {
     logLevel: "error",
   });
   try {
-    const [contract, geo, terrain, clip, builder, worldRepair, encoder, threePackage] = await Promise.all([
+    const [contract, geo, terrain, clip, enrichment, builder, worldRepair, encoder, streetConstants, threePackage] = await Promise.all([
       vite.ssrLoadModule("/lib/city-contract.js"),
       vite.ssrLoadModule("/lib/engine/geo.js"),
       vite.ssrLoadModule("/lib/engine/street/terrain-grid.js"),
       vite.ssrLoadModule("/lib/engine/cell-clip.js"),
+      vite.ssrLoadModule("/lib/engine/cell-enrichment.js"),
       vite.ssrLoadModule("/lib/engine/city-builder-core.js"),
       vite.ssrLoadModule("/lib/world-repair.js"),
       vite.ssrLoadModule("/lib/engine/prebuilt-cell-encoder.js"),
+      vite.ssrLoadModule("/lib/engine/street/constants.js"),
       JSON.parse(readFileSync(path.join(ROOT, "node_modules", "three", "package.json"), "utf8")),
     ]);
-    const manifestPath = path.join(ROOT, "public", "textures", "ktx2", "runtime-manifest.json");
-    const materialRevision = existsSync(manifestPath)
-      ? JSON.parse(readFileSync(manifestPath, "utf8")).revision || ""
-      : "";
+    const materialRevision = readMaterialRevision(ROOT);
     const api = {
       ...contract,
       ...geo,
       ...terrain,
       ...clip,
+      ...enrichment,
       ...builder,
       ...worldRepair,
       ...encoder,
       cellStep: contract.CELL_STEP,
-      terrainZoom: 14,
+      terrainZoom: streetConstants.STREET.TERRAIN_Z,
       threeVersion: threePackage.version,
       materialRevision,
-      builderRevision: builderRevision(threePackage.version),
+      builderRevision: computePrebuiltBuilderRevision(ROOT, threePackage.version),
     };
     const keys = args.key
       ? [args.key]
@@ -235,6 +228,35 @@ async function main(argv = process.argv.slice(2)) {
       entries: rows,
     };
     writeFileSync(path.join(args.outputDir, "bake-report.json"), JSON.stringify(report, null, 2));
+    const indexPath = path.join(args.outputDir, "index.json");
+    let cells = {};
+    if (existsSync(indexPath)) {
+      try {
+        const previous = JSON.parse(readFileSync(indexPath, "utf8"));
+        if (previous?.format === "walk-the-world-prebuilt-cell-index" && previous.version === 1 &&
+            previous.builderRevision === api.builderRevision && previous.materialRevision === api.materialRevision) {
+          cells = previous.cells || {};
+        }
+      } catch { /* replace an invalid index with the current bake set */ }
+    }
+    for (const row of rows) {
+      cells[row.key] = {
+        file: row.output,
+        sourceHash: row.sourceHash,
+        builderRevision: row.builderRevision,
+        materialRevision: row.materialRevision,
+        terrainRevision: row.terrainRevision,
+        editorRevision: row.editorRevision,
+        origin: row.origin,
+      };
+    }
+    writeFileSync(indexPath, JSON.stringify({
+      format: "walk-the-world-prebuilt-cell-index",
+      version: 1,
+      builderRevision: api.builderRevision,
+      materialRevision: api.materialRevision,
+      cells,
+    }, null, 2));
     return 0;
   } finally {
     await vite.close();

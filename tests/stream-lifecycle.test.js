@@ -2,14 +2,19 @@ import { describe,it,expect,vi,afterEach } from 'vitest';
 import * as THREE from 'three';
 vi.mock('@/lib/engine/cityData',async()=>({ ...(await vi.importActual('@/lib/city-contract')), fetchCityDataForStream:vi.fn() }));
 vi.mock('@/lib/engine/street/assemble-city',()=>({assembleCityFromBuild:vi.fn(async()=>{})}));
+vi.mock('@/lib/engine/prebuilt-cell-runtime',()=>({fetchPrebuiltCell:vi.fn(async()=>null)}));
 import {fetchCityDataForStream} from '@/lib/engine/cityData';
 import {CELL_STEP,cityCacheKey} from '@/lib/city-contract';
 import {assembleCityFromBuild} from '@/lib/engine/street/assemble-city';
+import {fetchPrebuiltCell} from '@/lib/engine/prebuilt-cell-runtime';
 import {createCellStreamer} from '@/lib/engine/street/cell-stream';
 import {disposeSceneGroup} from '@/lib/engine/street/resources';
 import {createCityBuilderPool} from '@/lib/engine/city-builder';
 afterEach(()=>{
   vi.restoreAllMocks();
+  vi.unstubAllGlobals();
+  fetchCityDataForStream.mockReset();
+  fetchPrebuiltCell.mockReset().mockResolvedValue(null);
   assembleCityFromBuild.mockReset().mockImplementation(async()=>{});
 });
 function deferred(){let resolve,reject;const promise=new Promise((a,b)=>{resolve=a;reject=b;});return{promise,resolve,reject};}
@@ -75,6 +80,7 @@ describe('stream lifecycle',()=>{
     const streamer=createCellStreamer({scene:new THREE.Scene(),lat0:1,lon0:2,terrainTiles:new Map(),engineRef:{current:{}},buildCity});
     streamer.markLoaded('wtw_city6_1.000_2.000',1,2);
     streamer.tick(1,2);
+    await vi.waitFor(()=>expect(requests).toHaveLength(2));
     expect(requests).toHaveLength(2);
     expect(streamer.debugState().queueLimit).toBe(9);
     expect(streamer.loadingCount()).toBeLessThanOrEqual(9);
@@ -149,6 +155,31 @@ describe('stream lifecycle',()=>{
     expect(buildCity.mock.calls.filter((call)=>call[0].elements.some((element)=>element.id===42))).toHaveLength(2);
     expect(loaded).toContain(targetKey);
     expect(scene.children.some((child)=>child.name===targetKey)).toBe(true);
+    streamer.dispose();
+  });
+
+  it('assembles a compatible prebuilt neighbor without fetching or building raw geometry',async()=>{
+    vi.spyOn(console,'warn').mockImplementation(()=>{}); vi.spyOn(console,'info').mockImplementation(()=>{});
+    vi.stubGlobal('fetch',vi.fn(async()=>({ok:true,json:async()=>({})})));
+    const targetLat=1+CELL_STEP,targetLon=2,targetKey=cityCacheKey(targetLat,targetLon);
+    const result={walls:[],roofCaps:[],pitchedRoofs:[],roadDecals:[],flats:[],meta:{}};
+    fetchPrebuiltCell.mockImplementation(async(key)=>key===targetKey?({
+      kind:'prebuilt',
+      metadata:{origin:{lat:targetLat,lon:targetLon},clippedElementCount:1,featureIds:['way/42']},
+      result,
+    }):null);
+    fetchCityDataForStream.mockResolvedValue({lat:targetLat,lon:targetLon,cacheKey:targetKey,data:{elements:[]}});
+    const buildCity=vi.fn(async()=>({}));
+    const streamer=createCellStreamer({
+      scene:new THREE.Scene(),lat0:1,lon0:2,terrainTiles:new Map(),engineRef:{current:{}},buildCity,
+      validatePrebuiltCell:vi.fn(async()=>true),
+    });
+    streamer.markLoaded(cityCacheKey(1,2),1,2);
+    streamer.tick(1,2);
+    await vi.waitFor(()=>expect(assembleCityFromBuild).toHaveBeenCalledTimes(1));
+    expect(buildCity).not.toHaveBeenCalled();
+    expect(fetchCityDataForStream.mock.calls.map(([la,lo])=>[la,lo,cityCacheKey(la,lo)])).not.toContainEqual([targetLat,targetLon,targetKey]);
+    expect(streamer.debugState().loadedKeys).toContain(targetKey);
     streamer.dispose();
   });
   it('keeps a shared texture alive until its last scene owner is removed',()=>{
