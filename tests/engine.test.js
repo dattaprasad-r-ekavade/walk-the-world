@@ -6,6 +6,7 @@ import {
   buildingWallColor,
   buildingRoofColor,
   pitchedRoofColor,
+  roofShape,
   wantsPitchedRoof,
 } from '../lib/engine/styles.js';
 import { DEMO_PLACES, demoHeadingRadians, demoPlaceNear, demoPresetNear, streetUrl } from '../lib/geo.js';
@@ -130,6 +131,9 @@ describe('OSM appearance tags (17.3)', () => {
     expect(pitchedRoofColor({ 'roof:colour': '#224466' })).toBe(quantizeColor(0x224466));
     expect(wantsPitchedRoof({ 'roof:shape': 'gabled' }, 500, 40)).toBe(true);
     expect(wantsPitchedRoof({ 'roof:shape': 'flat' }, 80, 8)).toBe(false);
+    expect(roofShape({ 'roof:shape': 'skillion' }, 500, 40)).toBe('skillion');
+    expect(roofShape({ 'roof:shape': 'dome' }, 500, 40)).toBe('dome');
+    expect(roofShape({ 'roof:shape': 'pyramidal' }, 500, 40)).toBe('pyramidal');
     expect(wantsPitchedRoof({ building: 'house' }, 100, 8)).toBe(true);
     expect(wantsPitchedRoof({ building: 'office' }, 100, 8)).toBe(false);
   });
@@ -450,6 +454,35 @@ describe('city builder core (19.1)', () => {
     const acz = roadPositions[c + 2] - roadPositions[a + 2];
     expect(abz * acx - abx * acz).toBeGreaterThan(0);
     expect(transfers.length).toBeGreaterThan(0);
+  });
+
+  it('builds elevated building parts with their tagged roof shape and height', async () => {
+    const { buildCityGeometry } = await import('../lib/engine/city-builder-core.js');
+    const geometry = [
+      { lat: -0.00005, lon: -0.00008 },
+      { lat: -0.00005, lon: 0.00008 },
+      { lat: 0.00005, lon: 0.00008 },
+      { lat: 0.00005, lon: -0.00008 },
+      { lat: -0.00005, lon: -0.00008 },
+    ];
+    const { result } = buildCityGeometry({
+      elements: [
+        { type: 'way', id: 1, tags: { building: 'yes', height: '10.0 m' }, geometry },
+        { type: 'way', id: 2,
+          tags: { 'building:part': 'yes', height: '10.0 m', min_height: '3.0 m', 'roof:height': '2.0 m', 'roof:shape': 'gabled' },
+          geometry },
+      ],
+      lat0: 0,
+      lon0: 0,
+      terrainTiles: [],
+    });
+    expect(result.buildingCount).toBe(1);
+    expect(result.pitchedRoofs).toHaveLength(1);
+    const wallY = result.walls[0].geo.position.array.filter((_, index) => index % 3 === 1);
+    expect(Math.min(...wallY)).toBeCloseTo(1.5, 1);
+    expect(Math.max(...wallY)).toBeCloseTo(8.5, 1);
+    const roofY = result.pitchedRoofs[0].geo.position.array.filter((_, index) => index % 3 === 1);
+    expect(Math.max(...roofY)).toBeCloseTo(10.5, 1);
   });
 });
 

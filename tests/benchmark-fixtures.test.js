@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { gunzipSync } from 'node:zlib';
 import { describe, expect, it } from 'vitest';
+import { makeLocalFrame } from '../lib/engine/geo.js';
 
 const fixtureDirectory = new URL('../benchmarks/fixtures/', import.meta.url);
 const readFixture = (filename) => JSON.parse(readFileSync(new URL(filename, fixtureDirectory), 'utf8'));
@@ -35,7 +36,7 @@ describe('synthetic benchmark fixtures', () => {
     for (const fixture of [showcase, dense, sparse, difficult]) {
       for (const element of fixture.elements) {
         if (!element.geometry) continue;
-        expect(element.geometry.length).toBeGreaterThanOrEqual(element.tags?.building ? 3 : 2);
+        expect(element.geometry.length).toBeGreaterThanOrEqual(element.tags?.building || element.tags?.['building:part'] ? 3 : 2);
         for (const point of element.geometry) {
           expect(point.lat).toBeGreaterThanOrEqual(-90);
           expect(point.lat).toBeLessThanOrEqual(90);
@@ -69,10 +70,15 @@ describe('synthetic benchmark fixtures', () => {
         lat0: fixture.benchmarkFixture.center.lat,
         lon0: fixture.benchmarkFixture.center.lon,
       });
-      const expectedBuildings = fixture.elements.filter((element) => element.tags?.building).length;
+      const expectedBuildings = fixture.elements.filter((element) =>
+        element.tags?.building || element.tags?.['building:part']).length;
       expect(result.buildingCount).toBe(expectedBuildings);
       expect(result.tris).toBeGreaterThan(0);
       expect(result.walls.length).toBeGreaterThan(0);
+      for (const roof of result.pitchedRoofs) {
+        expect(Array.from(roof.geo.position.array).every(Number.isFinite)).toBe(true);
+        expect(Array.from(roof.geo.normal.array).every(Number.isFinite)).toBe(true);
+      }
       expect(transfers.length).toBeGreaterThan(0);
     }
   });
@@ -105,7 +111,15 @@ describe('synthetic benchmark fixtures', () => {
       lat0: rome.benchmarkFixture.center.lat,
       lon0: rome.benchmarkFixture.center.lon,
     });
-    expect(result.buildingCount).toBe(rome.benchmarkFixture.counts.uniqueBuildingFootprints);
+    const { toLocal } = makeLocalFrame(rome.benchmarkFixture.center.lat, rome.benchmarkFixture.center.lon);
+    const uniqueFootprints = new Set(rome.elements
+      .filter((element) => (element.tags?.building || element.tags?.['building:part']) && element.geometry?.length >= 3)
+      .map((element) => {
+        const first = toLocal(element.geometry[0].lat, element.geometry[0].lon);
+        return `${first.x.toFixed(1)},${first.z.toFixed(1)},${element.geometry.length}`;
+      }));
+    expect(result.buildingCount).toBe(uniqueFootprints.size);
+    expect(result.buildingCount).toBeGreaterThan(rome.benchmarkFixture.counts.uniqueBuildingFootprints);
     expect(result.tris).toBeGreaterThan(0);
     expect(result.roadDecals.length).toBeGreaterThan(0);
     expect(transfers.length).toBeGreaterThan(0);

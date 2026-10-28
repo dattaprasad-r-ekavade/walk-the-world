@@ -127,12 +127,13 @@ Decisions taken from the research:
   shim because the public bucket omits browser CORS headers; `/api/assets`
   returned its expected 501 without local R2 credentials. Details are in the
   [A4 acceptance note](screenshots/demo-track/rehearsal-2026-10-28-a4-after/a4-acceptance.md).
-- [ ] **A5 — Full roof shapes and building parts (M).** styles.js already reads
-  roof:shape for the pitched-roof heuristic. Add gabled, hipped, skillion,
-  pyramidal and dome roofs plus building:part/min_height. Candidate:
-  `straight-skeleton` npm (StrandedKitty, MIT wrapper over CGAL WASM; check
-  the CGAL licence before shipping). Prefer running it in the B1 baker with
-  gabled/hipped templates as runtime fallback.
+- [x] **A5 — Full roof shapes and building parts (M).** Runtime meshes now cover
+  gabled, hipped, skillion, pyramidal and dome roof tags. Overpass includes
+  `building:part`; parts use `min_height`, `height` and `roof:height`, and an
+  identical outline yields to its part. This stays dependency-free. If B1 later
+  uses `straight-skeleton` in the baker, review the CGAL licence before shipping.
+  Roof-shape and elevated-part geometry checks pass with the full unit suite and
+  production build.
 - [x] **A6 — Streamed cells rise in (S).** Done (street/cell-rise.js;
   shadows rebake when the last rise ends). New cells grow from the ground over
   ~0.6 s instead of popping in; transform-only so shared materials stay
