@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "manifestRevision": "stage3-source-r1",
-  "outputRevision": "source-only-r1",
-  "status": "curated; source files are hashed but no runtime outputs are built",
+  "outputRevision": "stage3-pipeline-r1",
+  "status": "source snapshots, PBR atlases and normalised prop GLBs built; facade/emissive integration and visual adoption remain pending",
   "sourceSelectionNotes": [
     "AmbientCG supplies the six selected PBR surfaces; its downloadable assets are CC0 1.0.",
     "Kenney City Kit Roads supplies the selected street props; the inspected package is version 2.2 and includes its CC0 license file.",
@@ -24,15 +24,141 @@
         "bytes": 8286805,
         "sha256": "ac9fd63a9b1774c3912aed5feaceee61c8a552df9487929a2bc9618c6fd468cd"
       },
-      "sourceApiDimensions": { "width": 0, "height": 0, "depth": 0, "unit": "unspecified by API" },
-      "sourceResolutionPx": [1024, 1024],
-      "tileMeters": [2, 2],
-      "uvDensityPixelsPerMeter": [512, 512],
+      "sourceApiDimensions": {
+        "width": 0,
+        "height": 0,
+        "depth": 0,
+        "unit": "unspecified by API"
+      },
+      "sourceResolutionPx": [
+        1024,
+        1024
+      ],
+      "tileMeters": [
+        2,
+        2
+      ],
+      "uvDensityPixelsPerMeter": [
+        512,
+        512
+      ],
       "maps": {
-        "color": { "file": "Plaster004_1K-JPG_Color.jpg", "role": "albedo", "colorSpace": "sRGB", "selected": true },
-        "normalGL": { "file": "Plaster004_1K-JPG_NormalGL.jpg", "role": "tangent-space normal, OpenGL convention", "colorSpace": "linear", "selected": true },
-        "roughness": { "file": "Plaster004_1K-JPG_Roughness.jpg", "role": "roughness", "colorSpace": "linear", "selected": true },
-        "displacement": { "file": "Plaster004_1K-JPG_Displacement.jpg", "role": "height/displacement", "colorSpace": "linear", "selected": false, "deferredTo": "stage-3.3" }
+        "color": {
+          "file": "Plaster004_1K-JPG_Color.jpg",
+          "role": "albedo",
+          "colorSpace": "sRGB",
+          "selected": true,
+          "sourceFile": "source/ambientcg/Plaster004/Plaster004_1K-JPG_Color.jpg",
+          "sourceSha256": "ea7bcf4c5af54df095300caeb4179a601b9126d08fe38d273fe71075546919f2",
+          "atlas": "processed/materials/basecolor-atlas.png",
+          "atlasRect": {
+            "pixelRectTopLeft": [
+              16,
+              16,
+              1024,
+              1024
+            ],
+            "uvRectBottomLeft": [
+              0.005102041,
+              0.503816794,
+              0.326530612,
+              0.488549618
+            ],
+            "sourceResolutionPx": [
+              1024,
+              1024
+            ],
+            "neutralDefault": false
+          }
+        },
+        "normalGL": {
+          "file": "Plaster004_1K-JPG_NormalGL.jpg",
+          "role": "tangent-space normal, OpenGL convention",
+          "colorSpace": "linear",
+          "selected": true,
+          "sourceFile": "source/ambientcg/Plaster004/Plaster004_1K-JPG_NormalGL.jpg",
+          "sourceSha256": "d4f7af819be607020c06c7ef70d659d0584430dd598e148f5f9ac18fd877c909",
+          "atlas": "processed/materials/normal-atlas.png",
+          "atlasRect": {
+            "pixelRectTopLeft": [
+              16,
+              16,
+              1024,
+              1024
+            ],
+            "uvRectBottomLeft": [
+              0.005102041,
+              0.503816794,
+              0.326530612,
+              0.488549618
+            ],
+            "sourceResolutionPx": [
+              1024,
+              1024
+            ],
+            "neutralDefault": false
+          }
+        },
+        "roughness": {
+          "file": "Plaster004_1K-JPG_Roughness.jpg",
+          "role": "roughness",
+          "colorSpace": "linear",
+          "selected": true,
+          "sourceFile": "source/ambientcg/Plaster004/Plaster004_1K-JPG_Roughness.jpg",
+          "sourceSha256": "4755ea52a42515be051976f6bcac0bab31a9417de864939b0ec1c83153cb1c8b",
+          "atlas": "processed/materials/roughness-atlas.png",
+          "atlasRect": {
+            "pixelRectTopLeft": [
+              16,
+              16,
+              1024,
+              1024
+            ],
+            "uvRectBottomLeft": [
+              0.005102041,
+              0.503816794,
+              0.326530612,
+              0.488549618
+            ],
+            "sourceResolutionPx": [
+              1024,
+              1024
+            ],
+            "neutralDefault": false
+          }
+        },
+        "displacement": {
+          "file": "Plaster004_1K-JPG_Displacement.jpg",
+          "role": "height/displacement",
+          "colorSpace": "linear",
+          "selected": false,
+          "deferredTo": "stage-3.3"
+        },
+        "ambientOcclusion": {
+          "selected": false,
+          "role": "ambient occlusion",
+          "colorSpace": "linear",
+          "atlas": "processed/materials/ao-atlas.png",
+          "atlasRect": {
+            "pixelRectTopLeft": [
+              16,
+              16,
+              1024,
+              1024
+            ],
+            "uvRectBottomLeft": [
+              0.005102041,
+              0.503816794,
+              0.326530612,
+              0.488549618
+            ],
+            "sourceResolutionPx": [
+              1024,
+              1024
+            ],
+            "neutralDefault": true
+          }
+        }
       },
       "outputRevision": "source-only-r1"
     },
@@ -51,16 +177,144 @@
         "bytes": 7852794,
         "sha256": "e8dce6fd843fce863bd60aa118ae904d52cef020b4db7d343a2e389fc489ac6f"
       },
-      "sourceApiDimensions": { "width": 105, "height": 105, "depth": 0, "unit": "unspecified by API" },
-      "sourceResolutionPx": [1024, 1024],
-      "tileMeters": [2, 2],
-      "uvDensityPixelsPerMeter": [512, 512],
+      "sourceApiDimensions": {
+        "width": 105,
+        "height": 105,
+        "depth": 0,
+        "unit": "unspecified by API"
+      },
+      "sourceResolutionPx": [
+        1024,
+        1024
+      ],
+      "tileMeters": [
+        2,
+        2
+      ],
+      "uvDensityPixelsPerMeter": [
+        512,
+        512
+      ],
       "maps": {
-        "color": { "file": "Bricks060_1K-JPG_Color.jpg", "role": "albedo", "colorSpace": "sRGB", "selected": true },
-        "normalGL": { "file": "Bricks060_1K-JPG_NormalGL.jpg", "role": "tangent-space normal, OpenGL convention", "colorSpace": "linear", "selected": true },
-        "roughness": { "file": "Bricks060_1K-JPG_Roughness.jpg", "role": "roughness", "colorSpace": "linear", "selected": true },
-        "ambientOcclusion": { "file": "Bricks060_1K-JPG_AmbientOcclusion.jpg", "role": "ambient occlusion", "colorSpace": "linear", "selected": true },
-        "displacement": { "file": "Bricks060_1K-JPG_Displacement.jpg", "role": "height/displacement", "colorSpace": "linear", "selected": false, "deferredTo": "stage-3.3" }
+        "color": {
+          "file": "Bricks060_1K-JPG_Color.jpg",
+          "role": "albedo",
+          "colorSpace": "sRGB",
+          "selected": true,
+          "sourceFile": "source/ambientcg/Bricks060/Bricks060_1K-JPG_Color.jpg",
+          "sourceSha256": "d56a6900be43dc9d37c0725257a04ee4e0d3840efd53ad9bab82cc6897de8435",
+          "atlas": "processed/materials/basecolor-atlas.png",
+          "atlasRect": {
+            "pixelRectTopLeft": [
+              1056,
+              16,
+              1024,
+              1024
+            ],
+            "uvRectBottomLeft": [
+              0.336734694,
+              0.503816794,
+              0.326530612,
+              0.488549618
+            ],
+            "sourceResolutionPx": [
+              1024,
+              1024
+            ],
+            "neutralDefault": false
+          }
+        },
+        "normalGL": {
+          "file": "Bricks060_1K-JPG_NormalGL.jpg",
+          "role": "tangent-space normal, OpenGL convention",
+          "colorSpace": "linear",
+          "selected": true,
+          "sourceFile": "source/ambientcg/Bricks060/Bricks060_1K-JPG_NormalGL.jpg",
+          "sourceSha256": "c4b8fffa7cb3d2e9462f93d6e65ffcd6e8edc2f202b782018ae6a508c23998cd",
+          "atlas": "processed/materials/normal-atlas.png",
+          "atlasRect": {
+            "pixelRectTopLeft": [
+              1056,
+              16,
+              1024,
+              1024
+            ],
+            "uvRectBottomLeft": [
+              0.336734694,
+              0.503816794,
+              0.326530612,
+              0.488549618
+            ],
+            "sourceResolutionPx": [
+              1024,
+              1024
+            ],
+            "neutralDefault": false
+          }
+        },
+        "roughness": {
+          "file": "Bricks060_1K-JPG_Roughness.jpg",
+          "role": "roughness",
+          "colorSpace": "linear",
+          "selected": true,
+          "sourceFile": "source/ambientcg/Bricks060/Bricks060_1K-JPG_Roughness.jpg",
+          "sourceSha256": "143f9c13813031150016ffdf6f771deb6f9c0852a4a28a143b8b8b575f00d22f",
+          "atlas": "processed/materials/roughness-atlas.png",
+          "atlasRect": {
+            "pixelRectTopLeft": [
+              1056,
+              16,
+              1024,
+              1024
+            ],
+            "uvRectBottomLeft": [
+              0.336734694,
+              0.503816794,
+              0.326530612,
+              0.488549618
+            ],
+            "sourceResolutionPx": [
+              1024,
+              1024
+            ],
+            "neutralDefault": false
+          }
+        },
+        "ambientOcclusion": {
+          "file": "Bricks060_1K-JPG_AmbientOcclusion.jpg",
+          "role": "ambient occlusion",
+          "colorSpace": "linear",
+          "selected": true,
+          "sourceFile": "source/ambientcg/Bricks060/Bricks060_1K-JPG_AmbientOcclusion.jpg",
+          "sourceSha256": "1e7209acbc67b231209631ca5d645f3e1ae02ab817dbda469acc2e747e78d55d",
+          "atlas": "processed/materials/ao-atlas.png",
+          "atlasRect": {
+            "pixelRectTopLeft": [
+              1056,
+              16,
+              1024,
+              1024
+            ],
+            "uvRectBottomLeft": [
+              0.336734694,
+              0.503816794,
+              0.326530612,
+              0.488549618
+            ],
+            "sourceResolutionPx": [
+              1024,
+              1024
+            ],
+            "neutralDefault": false
+          }
+        },
+        "displacement": {
+          "file": "Bricks060_1K-JPG_Displacement.jpg",
+          "role": "height/displacement",
+          "colorSpace": "linear",
+          "selected": false,
+          "deferredTo": "stage-3.3"
+        }
       },
       "outputRevision": "source-only-r1"
     },
@@ -79,16 +333,144 @@
         "bytes": 9037823,
         "sha256": "b92da13c054134309c03ca4cac8ac38ae93b2866267013b2ce53bdc942ce1d86"
       },
-      "sourceApiDimensions": { "width": 190, "height": 190, "depth": 0, "unit": "unspecified by API" },
-      "sourceResolutionPx": [1024, 1024],
-      "tileMeters": [2, 2],
-      "uvDensityPixelsPerMeter": [512, 512],
+      "sourceApiDimensions": {
+        "width": 190,
+        "height": 190,
+        "depth": 0,
+        "unit": "unspecified by API"
+      },
+      "sourceResolutionPx": [
+        1024,
+        1024
+      ],
+      "tileMeters": [
+        2,
+        2
+      ],
+      "uvDensityPixelsPerMeter": [
+        512,
+        512
+      ],
       "maps": {
-        "color": { "file": "Rocks025_1K-JPG_Color.jpg", "role": "albedo", "colorSpace": "sRGB", "selected": true },
-        "normalGL": { "file": "Rocks025_1K-JPG_NormalGL.jpg", "role": "tangent-space normal, OpenGL convention", "colorSpace": "linear", "selected": true },
-        "roughness": { "file": "Rocks025_1K-JPG_Roughness.jpg", "role": "roughness", "colorSpace": "linear", "selected": true },
-        "ambientOcclusion": { "file": "Rocks025_1K-JPG_AmbientOcclusion.jpg", "role": "ambient occlusion", "colorSpace": "linear", "selected": true },
-        "displacement": { "file": "Rocks025_1K-JPG_Displacement.jpg", "role": "height/displacement", "colorSpace": "linear", "selected": false, "deferredTo": "stage-3.3" }
+        "color": {
+          "file": "Rocks025_1K-JPG_Color.jpg",
+          "role": "albedo",
+          "colorSpace": "sRGB",
+          "selected": true,
+          "sourceFile": "source/ambientcg/Rocks025/Rocks025_1K-JPG_Color.jpg",
+          "sourceSha256": "2fad8b83d07cadc01914b122dc325ffc758d4bc9896fa35ff76ffa3cc01cf018",
+          "atlas": "processed/materials/basecolor-atlas.png",
+          "atlasRect": {
+            "pixelRectTopLeft": [
+              2096,
+              16,
+              1024,
+              1024
+            ],
+            "uvRectBottomLeft": [
+              0.668367347,
+              0.503816794,
+              0.326530612,
+              0.488549618
+            ],
+            "sourceResolutionPx": [
+              1024,
+              1024
+            ],
+            "neutralDefault": false
+          }
+        },
+        "normalGL": {
+          "file": "Rocks025_1K-JPG_NormalGL.jpg",
+          "role": "tangent-space normal, OpenGL convention",
+          "colorSpace": "linear",
+          "selected": true,
+          "sourceFile": "source/ambientcg/Rocks025/Rocks025_1K-JPG_NormalGL.jpg",
+          "sourceSha256": "f53181cde6fb6403872ce9e735d1f67bacdad9d91bad1ac8de9534dc550c6b4c",
+          "atlas": "processed/materials/normal-atlas.png",
+          "atlasRect": {
+            "pixelRectTopLeft": [
+              2096,
+              16,
+              1024,
+              1024
+            ],
+            "uvRectBottomLeft": [
+              0.668367347,
+              0.503816794,
+              0.326530612,
+              0.488549618
+            ],
+            "sourceResolutionPx": [
+              1024,
+              1024
+            ],
+            "neutralDefault": false
+          }
+        },
+        "roughness": {
+          "file": "Rocks025_1K-JPG_Roughness.jpg",
+          "role": "roughness",
+          "colorSpace": "linear",
+          "selected": true,
+          "sourceFile": "source/ambientcg/Rocks025/Rocks025_1K-JPG_Roughness.jpg",
+          "sourceSha256": "e9507ad2f9dfa738e759755e7dffaa0270195468bcf60fd765193c1959958992",
+          "atlas": "processed/materials/roughness-atlas.png",
+          "atlasRect": {
+            "pixelRectTopLeft": [
+              2096,
+              16,
+              1024,
+              1024
+            ],
+            "uvRectBottomLeft": [
+              0.668367347,
+              0.503816794,
+              0.326530612,
+              0.488549618
+            ],
+            "sourceResolutionPx": [
+              1024,
+              1024
+            ],
+            "neutralDefault": false
+          }
+        },
+        "ambientOcclusion": {
+          "file": "Rocks025_1K-JPG_AmbientOcclusion.jpg",
+          "role": "ambient occlusion",
+          "colorSpace": "linear",
+          "selected": true,
+          "sourceFile": "source/ambientcg/Rocks025/Rocks025_1K-JPG_AmbientOcclusion.jpg",
+          "sourceSha256": "2d547b316f187c63f8d6e4abe6dffb7b1284fc300fdd5ca9171c1d79979b0c16",
+          "atlas": "processed/materials/ao-atlas.png",
+          "atlasRect": {
+            "pixelRectTopLeft": [
+              2096,
+              16,
+              1024,
+              1024
+            ],
+            "uvRectBottomLeft": [
+              0.668367347,
+              0.503816794,
+              0.326530612,
+              0.488549618
+            ],
+            "sourceResolutionPx": [
+              1024,
+              1024
+            ],
+            "neutralDefault": false
+          }
+        },
+        "displacement": {
+          "file": "Rocks025_1K-JPG_Displacement.jpg",
+          "role": "height/displacement",
+          "colorSpace": "linear",
+          "selected": false,
+          "deferredTo": "stage-3.3"
+        }
       },
       "outputRevision": "source-only-r1"
     },
@@ -107,15 +489,141 @@
         "bytes": 3657575,
         "sha256": "5839d284d94ffb8d2a56df742ec522b13dd311c52dbd42b8fd33f0409ceedb81"
       },
-      "sourceApiDimensions": { "width": 110, "height": 55, "depth": 0, "unit": "unspecified by API" },
-      "sourceResolutionPx": [1024, 512],
-      "tileMeters": [2, 1],
-      "uvDensityPixelsPerMeter": [512, 512],
+      "sourceApiDimensions": {
+        "width": 110,
+        "height": 55,
+        "depth": 0,
+        "unit": "unspecified by API"
+      },
+      "sourceResolutionPx": [
+        1024,
+        512
+      ],
+      "tileMeters": [
+        2,
+        1
+      ],
+      "uvDensityPixelsPerMeter": [
+        512,
+        512
+      ],
       "maps": {
-        "color": { "file": "Concrete034_1K-JPG_Color.jpg", "role": "albedo", "colorSpace": "sRGB", "selected": true },
-        "normalGL": { "file": "Concrete034_1K-JPG_NormalGL.jpg", "role": "tangent-space normal, OpenGL convention", "colorSpace": "linear", "selected": true },
-        "roughness": { "file": "Concrete034_1K-JPG_Roughness.jpg", "role": "roughness", "colorSpace": "linear", "selected": true },
-        "displacement": { "file": "Concrete034_1K-JPG_Displacement.jpg", "role": "height/displacement", "colorSpace": "linear", "selected": false, "deferredTo": "stage-3.3" }
+        "color": {
+          "file": "Concrete034_1K-JPG_Color.jpg",
+          "role": "albedo",
+          "colorSpace": "sRGB",
+          "selected": true,
+          "sourceFile": "source/ambientcg/Concrete034/Concrete034_1K-JPG_Color.jpg",
+          "sourceSha256": "8ceb9186d990b31fce785e06fdc6974c160f1d27c43f6160266f164deba713aa",
+          "atlas": "processed/materials/basecolor-atlas.png",
+          "atlasRect": {
+            "pixelRectTopLeft": [
+              16,
+              1312,
+              1024,
+              512
+            ],
+            "uvRectBottomLeft": [
+              0.005102041,
+              0.129770992,
+              0.326530612,
+              0.244274809
+            ],
+            "sourceResolutionPx": [
+              1024,
+              512
+            ],
+            "neutralDefault": false
+          }
+        },
+        "normalGL": {
+          "file": "Concrete034_1K-JPG_NormalGL.jpg",
+          "role": "tangent-space normal, OpenGL convention",
+          "colorSpace": "linear",
+          "selected": true,
+          "sourceFile": "source/ambientcg/Concrete034/Concrete034_1K-JPG_NormalGL.jpg",
+          "sourceSha256": "e509eb9dfa978e780fbebfd2acacc2ce158b5b7ced722ddc0759039dd51e18ca",
+          "atlas": "processed/materials/normal-atlas.png",
+          "atlasRect": {
+            "pixelRectTopLeft": [
+              16,
+              1312,
+              1024,
+              512
+            ],
+            "uvRectBottomLeft": [
+              0.005102041,
+              0.129770992,
+              0.326530612,
+              0.244274809
+            ],
+            "sourceResolutionPx": [
+              1024,
+              512
+            ],
+            "neutralDefault": false
+          }
+        },
+        "roughness": {
+          "file": "Concrete034_1K-JPG_Roughness.jpg",
+          "role": "roughness",
+          "colorSpace": "linear",
+          "selected": true,
+          "sourceFile": "source/ambientcg/Concrete034/Concrete034_1K-JPG_Roughness.jpg",
+          "sourceSha256": "a4a9e39857a19afd23a778e5abf44fcdf6bd7f93918f1cf6878b41933e553511",
+          "atlas": "processed/materials/roughness-atlas.png",
+          "atlasRect": {
+            "pixelRectTopLeft": [
+              16,
+              1312,
+              1024,
+              512
+            ],
+            "uvRectBottomLeft": [
+              0.005102041,
+              0.129770992,
+              0.326530612,
+              0.244274809
+            ],
+            "sourceResolutionPx": [
+              1024,
+              512
+            ],
+            "neutralDefault": false
+          }
+        },
+        "displacement": {
+          "file": "Concrete034_1K-JPG_Displacement.jpg",
+          "role": "height/displacement",
+          "colorSpace": "linear",
+          "selected": false,
+          "deferredTo": "stage-3.3"
+        },
+        "ambientOcclusion": {
+          "selected": false,
+          "role": "ambient occlusion",
+          "colorSpace": "linear",
+          "atlas": "processed/materials/ao-atlas.png",
+          "atlasRect": {
+            "pixelRectTopLeft": [
+              16,
+              1312,
+              1024,
+              512
+            ],
+            "uvRectBottomLeft": [
+              0.005102041,
+              0.129770992,
+              0.326530612,
+              0.244274809
+            ],
+            "sourceResolutionPx": [
+              1024,
+              512
+            ],
+            "neutralDefault": true
+          }
+        }
       },
       "outputRevision": "source-only-r1"
     },
@@ -134,16 +642,144 @@
         "bytes": 8502228,
         "sha256": "a007d81975030430efdfbb404cb66d211b946f5eccd1c5d08dcfe1b50511ba82"
       },
-      "sourceApiDimensions": { "width": 0, "height": 0, "depth": 0, "unit": "unspecified by API" },
-      "sourceResolutionPx": [1024, 1024],
-      "tileMeters": [4, 4],
-      "uvDensityPixelsPerMeter": [256, 256],
+      "sourceApiDimensions": {
+        "width": 0,
+        "height": 0,
+        "depth": 0,
+        "unit": "unspecified by API"
+      },
+      "sourceResolutionPx": [
+        1024,
+        1024
+      ],
+      "tileMeters": [
+        4,
+        4
+      ],
+      "uvDensityPixelsPerMeter": [
+        256,
+        256
+      ],
       "maps": {
-        "color": { "file": "Asphalt025A_1K-JPG_Color.jpg", "role": "albedo", "colorSpace": "sRGB", "selected": true },
-        "normalGL": { "file": "Asphalt025A_1K-JPG_NormalGL.jpg", "role": "tangent-space normal, OpenGL convention", "colorSpace": "linear", "selected": true },
-        "roughness": { "file": "Asphalt025A_1K-JPG_Roughness.jpg", "role": "roughness", "colorSpace": "linear", "selected": true },
-        "ambientOcclusion": { "file": "Asphalt025A_1K-JPG_AmbientOcclusion.jpg", "role": "ambient occlusion", "colorSpace": "linear", "selected": true },
-        "displacement": { "file": "Asphalt025A_1K-JPG_Displacement.jpg", "role": "height/displacement", "colorSpace": "linear", "selected": false, "deferredTo": "stage-3.3" }
+        "color": {
+          "file": "Asphalt025A_1K-JPG_Color.jpg",
+          "role": "albedo",
+          "colorSpace": "sRGB",
+          "selected": true,
+          "sourceFile": "source/ambientcg/Asphalt025A/Asphalt025A_1K-JPG_Color.jpg",
+          "sourceSha256": "937906797e5ba8b550b4997fe37b20e517d208c15a93972f073aa4452e11e80c",
+          "atlas": "processed/materials/basecolor-atlas.png",
+          "atlasRect": {
+            "pixelRectTopLeft": [
+              1056,
+              1056,
+              1024,
+              1024
+            ],
+            "uvRectBottomLeft": [
+              0.336734694,
+              0.007633588,
+              0.326530612,
+              0.488549618
+            ],
+            "sourceResolutionPx": [
+              1024,
+              1024
+            ],
+            "neutralDefault": false
+          }
+        },
+        "normalGL": {
+          "file": "Asphalt025A_1K-JPG_NormalGL.jpg",
+          "role": "tangent-space normal, OpenGL convention",
+          "colorSpace": "linear",
+          "selected": true,
+          "sourceFile": "source/ambientcg/Asphalt025A/Asphalt025A_1K-JPG_NormalGL.jpg",
+          "sourceSha256": "9e693a458d55a3dfddc3c159bc2d9abb83b552e741ca9ee97300241edb360313",
+          "atlas": "processed/materials/normal-atlas.png",
+          "atlasRect": {
+            "pixelRectTopLeft": [
+              1056,
+              1056,
+              1024,
+              1024
+            ],
+            "uvRectBottomLeft": [
+              0.336734694,
+              0.007633588,
+              0.326530612,
+              0.488549618
+            ],
+            "sourceResolutionPx": [
+              1024,
+              1024
+            ],
+            "neutralDefault": false
+          }
+        },
+        "roughness": {
+          "file": "Asphalt025A_1K-JPG_Roughness.jpg",
+          "role": "roughness",
+          "colorSpace": "linear",
+          "selected": true,
+          "sourceFile": "source/ambientcg/Asphalt025A/Asphalt025A_1K-JPG_Roughness.jpg",
+          "sourceSha256": "b935bb6fea9735303deeafb9b51d5fa6686b87aba6da40a7b7d895aa960f3c1c",
+          "atlas": "processed/materials/roughness-atlas.png",
+          "atlasRect": {
+            "pixelRectTopLeft": [
+              1056,
+              1056,
+              1024,
+              1024
+            ],
+            "uvRectBottomLeft": [
+              0.336734694,
+              0.007633588,
+              0.326530612,
+              0.488549618
+            ],
+            "sourceResolutionPx": [
+              1024,
+              1024
+            ],
+            "neutralDefault": false
+          }
+        },
+        "ambientOcclusion": {
+          "file": "Asphalt025A_1K-JPG_AmbientOcclusion.jpg",
+          "role": "ambient occlusion",
+          "colorSpace": "linear",
+          "selected": true,
+          "sourceFile": "source/ambientcg/Asphalt025A/Asphalt025A_1K-JPG_AmbientOcclusion.jpg",
+          "sourceSha256": "88996af38c1de4177874ff7f38441c4cfa0127db354b1b50af202c89ff6fb4fc",
+          "atlas": "processed/materials/ao-atlas.png",
+          "atlasRect": {
+            "pixelRectTopLeft": [
+              1056,
+              1056,
+              1024,
+              1024
+            ],
+            "uvRectBottomLeft": [
+              0.336734694,
+              0.007633588,
+              0.326530612,
+              0.488549618
+            ],
+            "sourceResolutionPx": [
+              1024,
+              1024
+            ],
+            "neutralDefault": false
+          }
+        },
+        "displacement": {
+          "file": "Asphalt025A_1K-JPG_Displacement.jpg",
+          "role": "height/displacement",
+          "colorSpace": "linear",
+          "selected": false,
+          "deferredTo": "stage-3.3"
+        }
       },
       "outputRevision": "source-only-r1"
     },
@@ -162,16 +798,144 @@
         "bytes": 9354813,
         "sha256": "91223aa46aa4275bb30df310fba788d8bfb740f2b1e9796ac0eb9a14f367e9ce"
       },
-      "sourceApiDimensions": { "width": 0, "height": 0, "depth": 0, "unit": "unspecified by API" },
-      "sourceResolutionPx": [1024, 1024],
-      "tileMeters": [2, 2],
-      "uvDensityPixelsPerMeter": [512, 512],
+      "sourceApiDimensions": {
+        "width": 0,
+        "height": 0,
+        "depth": 0,
+        "unit": "unspecified by API"
+      },
+      "sourceResolutionPx": [
+        1024,
+        1024
+      ],
+      "tileMeters": [
+        2,
+        2
+      ],
+      "uvDensityPixelsPerMeter": [
+        512,
+        512
+      ],
       "maps": {
-        "color": { "file": "PavingStones036_1K-JPG_Color.jpg", "role": "albedo", "colorSpace": "sRGB", "selected": true },
-        "normalGL": { "file": "PavingStones036_1K-JPG_NormalGL.jpg", "role": "tangent-space normal, OpenGL convention", "colorSpace": "linear", "selected": true },
-        "roughness": { "file": "PavingStones036_1K-JPG_Roughness.jpg", "role": "roughness", "colorSpace": "linear", "selected": true },
-        "ambientOcclusion": { "file": "PavingStones036_1K-JPG_AmbientOcclusion.jpg", "role": "ambient occlusion", "colorSpace": "linear", "selected": true },
-        "displacement": { "file": "PavingStones036_1K-JPG_Displacement.jpg", "role": "height/displacement", "colorSpace": "linear", "selected": false, "deferredTo": "stage-3.3" }
+        "color": {
+          "file": "PavingStones036_1K-JPG_Color.jpg",
+          "role": "albedo",
+          "colorSpace": "sRGB",
+          "selected": true,
+          "sourceFile": "source/ambientcg/PavingStones036/PavingStones036_1K-JPG_Color.jpg",
+          "sourceSha256": "065dad4ad95ee74992a6d3cbeb0efb107d3b18a0a3425487bf41452dce12c533",
+          "atlas": "processed/materials/basecolor-atlas.png",
+          "atlasRect": {
+            "pixelRectTopLeft": [
+              2096,
+              1056,
+              1024,
+              1024
+            ],
+            "uvRectBottomLeft": [
+              0.668367347,
+              0.007633588,
+              0.326530612,
+              0.488549618
+            ],
+            "sourceResolutionPx": [
+              1024,
+              1024
+            ],
+            "neutralDefault": false
+          }
+        },
+        "normalGL": {
+          "file": "PavingStones036_1K-JPG_NormalGL.jpg",
+          "role": "tangent-space normal, OpenGL convention",
+          "colorSpace": "linear",
+          "selected": true,
+          "sourceFile": "source/ambientcg/PavingStones036/PavingStones036_1K-JPG_NormalGL.jpg",
+          "sourceSha256": "7e86034b299d5628bb072c74ed30364dbab5da21f55e17c675ccbef15b209543",
+          "atlas": "processed/materials/normal-atlas.png",
+          "atlasRect": {
+            "pixelRectTopLeft": [
+              2096,
+              1056,
+              1024,
+              1024
+            ],
+            "uvRectBottomLeft": [
+              0.668367347,
+              0.007633588,
+              0.326530612,
+              0.488549618
+            ],
+            "sourceResolutionPx": [
+              1024,
+              1024
+            ],
+            "neutralDefault": false
+          }
+        },
+        "roughness": {
+          "file": "PavingStones036_1K-JPG_Roughness.jpg",
+          "role": "roughness",
+          "colorSpace": "linear",
+          "selected": true,
+          "sourceFile": "source/ambientcg/PavingStones036/PavingStones036_1K-JPG_Roughness.jpg",
+          "sourceSha256": "d97ddc1b344edf9e799d5a63b497c5bafabf3afe189bca565bbd155c79f269a1",
+          "atlas": "processed/materials/roughness-atlas.png",
+          "atlasRect": {
+            "pixelRectTopLeft": [
+              2096,
+              1056,
+              1024,
+              1024
+            ],
+            "uvRectBottomLeft": [
+              0.668367347,
+              0.007633588,
+              0.326530612,
+              0.488549618
+            ],
+            "sourceResolutionPx": [
+              1024,
+              1024
+            ],
+            "neutralDefault": false
+          }
+        },
+        "ambientOcclusion": {
+          "file": "PavingStones036_1K-JPG_AmbientOcclusion.jpg",
+          "role": "ambient occlusion",
+          "colorSpace": "linear",
+          "selected": true,
+          "sourceFile": "source/ambientcg/PavingStones036/PavingStones036_1K-JPG_AmbientOcclusion.jpg",
+          "sourceSha256": "a30168f74c40a7debfbb0b4038f438679f89067451e790d679d448e69c52db2b",
+          "atlas": "processed/materials/ao-atlas.png",
+          "atlasRect": {
+            "pixelRectTopLeft": [
+              2096,
+              1056,
+              1024,
+              1024
+            ],
+            "uvRectBottomLeft": [
+              0.668367347,
+              0.007633588,
+              0.326530612,
+              0.488549618
+            ],
+            "sourceResolutionPx": [
+              1024,
+              1024
+            ],
+            "neutralDefault": false
+          }
+        },
+        "displacement": {
+          "file": "PavingStones036_1K-JPG_Displacement.jpg",
+          "role": "height/displacement",
+          "colorSpace": "linear",
+          "selected": false,
+          "deferredTo": "stage-3.3"
+        }
       },
       "outputRevision": "source-only-r1"
     }
@@ -192,7 +956,10 @@
     "colorAtlas": {
       "sourceFile": "Models/GLB format/Textures/colormap.png",
       "sha256": "a48e2962661ae44368ffddf3054f80ed8491d082b757dcc3011184cd9a98b185",
-      "resolutionPx": [512, 512],
+      "resolutionPx": [
+        512,
+        512
+      ],
       "role": "palette-style base color atlas",
       "colorSpace": "sRGB",
       "uvDensityPixelsPerMeter": null,
@@ -203,7 +970,7 @@
       "linearUnits": "meters",
       "upAxis": "+Y",
       "frontAxisByFormatConvention": "+Z",
-      "frontAxisVisualAudit": "pending stage-3.3",
+      "frontAxisVisualAudit": "visually confirmed against four cardinal-direction previews; stop sign and traffic light face +Z after a +90 degree Y rotation; cone and barrier are symmetric",
       "formatReference": "https://github.com/KhronosGroup/glTF/blob/main/specification/2.0/Specification.adoc"
     },
     "models": [
@@ -211,50 +978,996 @@
         "id": "kenney:construction-cone",
         "sourceFile": "Models/GLB format/construction-cone.glb",
         "sourceSha256": "50ceae45cd1d71f738a8f7c40f8b6b46f360063c2754bf717aae54013d6f2ee4",
-        "rawBoundsMeters": { "min": [-0.0375, 0, -0.0375], "max": [0.0375, 0.09375, 0.0375], "size": [0.075, 0.09375, 0.075] },
-        "pivot": "ground-level; minimum Y is 0",
-        "targetSizeMeters": [0.4, 0.5, 0.4],
-        "uniformScaleFactor": 5.333333,
-        "scaleApplied": false,
-        "mapRoles": { "baseColor": "Models/GLB format/Textures/colormap.png" },
-        "outputRevision": "source-only-r1"
+        "rawBoundsMeters": {
+          "min": [
+            -0.0375,
+            0,
+            -0.0375
+          ],
+          "max": [
+            0.0375,
+            0.09375,
+            0.0375
+          ],
+          "size": [
+            0.075,
+            0.09375,
+            0.075
+          ]
+        },
+        "pivot": "bottom-centre at (0, 0, 0); ground plane is Y=0",
+        "targetSizeMeters": [
+          0.4,
+          0.5,
+          0.4
+        ],
+        "uniformScaleFactor": 5.333333333,
+        "scaleApplied": true,
+        "mapRoles": {
+          "baseColor": "Models/GLB format/Textures/colormap.png"
+        },
+        "outputRevision": "stage3-geometry-r1",
+        "outputFile": "processed/props/construction-cone.glb",
+        "processedSha256": "2a02ac3c9aa9dfe5e90d6493202dedda33caf8da2e372a5573d4b0881a201886",
+        "processedBytes": 5408,
+        "processedBoundsMeters": {
+          "min": [
+            -0.2,
+            0.0,
+            -0.2
+          ],
+          "max": [
+            0.2,
+            0.5,
+            0.2
+          ],
+          "size": [
+            0.4,
+            0.5,
+            0.4
+          ]
+        },
+        "frontAxisVisualAudit": "visually audited from four cardinal directions; symmetric prop, +Z convention retained"
       },
       {
         "id": "kenney:construction-barrier",
         "sourceFile": "Models/GLB format/construction-barrier.glb",
         "sourceSha256": "906f73a6d62d8de58a4c5a19e76ff95b460c42b37e5fa37478b8612f06793f26",
-        "rawBoundsMeters": { "min": [-0.06775, 0, -0.1125], "max": [0.06775, 0.13, 0.1125], "size": [0.1355, 0.13, 0.225] },
-        "pivot": "ground-level; minimum Y is 0",
-        "targetSizeMeters": [0.9033, 0.8667, 1.5],
-        "uniformScaleFactor": 6.666667,
-        "scaleApplied": false,
-        "mapRoles": { "baseColor": "Models/GLB format/Textures/colormap.png" },
-        "outputRevision": "source-only-r1"
+        "rawBoundsMeters": {
+          "min": [
+            -0.06775,
+            0,
+            -0.1125
+          ],
+          "max": [
+            0.06775,
+            0.13,
+            0.1125
+          ],
+          "size": [
+            0.1355,
+            0.13,
+            0.225
+          ]
+        },
+        "pivot": "bottom-centre at (0, 0, 0); ground plane is Y=0",
+        "targetSizeMeters": [
+          0.9033,
+          0.8667,
+          1.5
+        ],
+        "uniformScaleFactor": 6.666923321,
+        "scaleApplied": true,
+        "mapRoles": {
+          "baseColor": "Models/GLB format/Textures/colormap.png"
+        },
+        "outputRevision": "stage3-geometry-r1",
+        "outputFile": "processed/props/construction-barrier.glb",
+        "processedSha256": "d8bb5144e9deed608ffdfda1e3fc41639259cfdf3dc903cf3d6c8d651b0eb894",
+        "processedBytes": 5392,
+        "processedBoundsMeters": {
+          "min": [
+            -0.451684,
+            0.0,
+            -0.750029
+          ],
+          "max": [
+            0.451684,
+            0.8667,
+            0.750029
+          ],
+          "size": [
+            0.903368,
+            0.8667,
+            1.500058
+          ]
+        },
+        "frontAxisVisualAudit": "visually audited from four cardinal directions; symmetric prop, +Z convention retained"
       },
       {
         "id": "kenney:road-sign-stop",
         "sourceFile": "Models/GLB format/road-sign-stop.glb",
         "sourceSha256": "0991181f37171daf8d2501e436a688e46ea2bcebb5e27aa451640fcbaab107ef",
-        "rawBoundsMeters": { "min": [-0.051404, 0, -0.069106], "max": [0.026096, 0.494075, 0.069106], "size": [0.0775, 0.494075, 0.138212] },
-        "pivot": "ground-level; minimum Y is 0",
-        "targetSizeMeters": [0.3294, 2.1, 0.5875],
-        "uniformScaleFactor": 4.250368,
-        "scaleApplied": false,
-        "mapRoles": { "baseColor": "Models/GLB format/Textures/colormap.png" },
-        "outputRevision": "source-only-r1"
+        "rawBoundsMeters": {
+          "min": [
+            -0.051404,
+            0,
+            -0.069106
+          ],
+          "max": [
+            0.026096,
+            0.494075,
+            0.069106
+          ],
+          "size": [
+            0.0775,
+            0.494075,
+            0.138212
+          ]
+        },
+        "pivot": "bottom-centre at (0, 0, 0); ground plane is Y=0",
+        "targetSizeMeters": [
+          0.5875,
+          2.1,
+          0.3294
+        ],
+        "frontAxisCorrectionDegrees": 90,
+        "uniformScaleFactor": 4.250367614,
+        "scaleApplied": true,
+        "mapRoles": {
+          "baseColor": "Models/GLB format/Textures/colormap.png"
+        },
+        "outputRevision": "stage3-geometry-r1",
+        "outputFile": "processed/props/road-sign-stop.glb",
+        "processedSha256": "bc2cf0b3ea4a9c9d5145f4810c929e4c3656109727f06f19c7f8ffebf8f6f7bd",
+        "processedBytes": 8080,
+        "processedBoundsMeters": {
+          "min": [
+            -0.293727,
+            0.0,
+            -0.164702
+          ],
+          "max": [
+            0.293727,
+            2.1,
+            0.164702
+          ],
+          "size": [
+            0.587453,
+            2.1,
+            0.329404
+          ]
+        },
+        "frontAxisVisualAudit": "visually audited from four cardinal directions; correction applied to align front with glTF +Z"
       },
       {
         "id": "kenney:traffic-light",
         "sourceFile": "Models/GLB format/traffic-light.glb",
         "sourceSha256": "6c9ee253b7370e1043168493b2e662b349484a0cdd02100cff04d9d8d1bd9abb",
-        "rawBoundsMeters": { "min": [-0.0726, 0, -0.045], "max": [0.045, 0.515, 0.045], "size": [0.1176, 0.515, 0.09] },
-        "pivot": "ground-level; minimum Y is approximately 0",
-        "targetSizeMeters": [0.6394, 2.8, 0.4893],
-        "uniformScaleFactor": 5.436893,
-        "scaleApplied": false,
-        "mapRoles": { "baseColor": "Models/GLB format/Textures/colormap.png" },
-        "outputRevision": "source-only-r1"
+        "rawBoundsMeters": {
+          "min": [
+            -0.0726,
+            0,
+            -0.045
+          ],
+          "max": [
+            0.045,
+            0.515,
+            0.045
+          ],
+          "size": [
+            0.1176,
+            0.515,
+            0.09
+          ]
+        },
+        "pivot": "bottom-centre at (0, 0, 0); ground plane is Y=0",
+        "targetSizeMeters": [
+          0.4893,
+          2.8,
+          0.6394
+        ],
+        "frontAxisCorrectionDegrees": 90,
+        "uniformScaleFactor": 5.436893355,
+        "scaleApplied": true,
+        "mapRoles": {
+          "baseColor": "Models/GLB format/Textures/colormap.png"
+        },
+        "outputRevision": "stage3-geometry-r1",
+        "outputFile": "processed/props/traffic-light.glb",
+        "processedSha256": "e6099205c71bd57c4cfebe52b59749c0cd46153578e4ccab05a833e6a9baa4eb",
+        "processedBytes": 14932,
+        "processedBoundsMeters": {
+          "min": [
+            -0.24466,
+            0.0,
+            -0.319689
+          ],
+          "max": [
+            0.24466,
+            2.8,
+            0.319689
+          ],
+          "size": [
+            0.48932,
+            2.8,
+            0.639379
+          ]
+        },
+        "frontAxisVisualAudit": "visually audited from four cardinal directions; correction applied to align front with glTF +Z"
       }
-    ]
+    ],
+    "normalization": {
+      "revision": "stage3-geometry-r1",
+      "tool": "Blender 5.2.0 LTS",
+      "method": "mesh vertices transformed to bottom-centred origin, uniformly scaled to target Y dimension and rotated where needed to align the visible front to +Z; non-mesh scene nodes removed; used material images embedded",
+      "sourceOrientationPreserved": false,
+      "frontAxisVisualAudit": "four-cardinal-direction previews reviewed; stop sign and traffic light corrected from -X to +Z; cone and barrier are symmetric",
+      "models": [
+        {
+          "id": "kenney:construction-cone",
+          "output": "processed/props/construction-cone.glb",
+          "sizeMeters": [
+            0.4,
+            0.5,
+            0.4
+          ],
+          "frontAxisCorrectionDegrees": 0,
+          "sha256": "2a02ac3c9aa9dfe5e90d6493202dedda33caf8da2e372a5573d4b0881a201886"
+        },
+        {
+          "id": "kenney:construction-barrier",
+          "output": "processed/props/construction-barrier.glb",
+          "sizeMeters": [
+            0.903368,
+            0.8667,
+            1.500058
+          ],
+          "frontAxisCorrectionDegrees": 0,
+          "sha256": "d8bb5144e9deed608ffdfda1e3fc41639259cfdf3dc903cf3d6c8d651b0eb894"
+        },
+        {
+          "id": "kenney:road-sign-stop",
+          "output": "processed/props/road-sign-stop.glb",
+          "sizeMeters": [
+            0.587453,
+            2.1,
+            0.329404
+          ],
+          "frontAxisCorrectionDegrees": 90,
+          "sha256": "bc2cf0b3ea4a9c9d5145f4810c929e4c3656109727f06f19c7f8ffebf8f6f7bd"
+        },
+        {
+          "id": "kenney:traffic-light",
+          "output": "processed/props/traffic-light.glb",
+          "sizeMeters": [
+            0.48932,
+            2.8,
+            0.639379
+          ],
+          "frontAxisCorrectionDegrees": 90,
+          "sha256": "e6099205c71bd57c4cfebe52b59749c0cd46153578e4ccab05a833e6a9baa4eb"
+        }
+      ]
+    }
+  },
+  "sourceFiles": [
+    {
+      "file": "source/ambientcg/Asphalt025A/Asphalt025A_1K-JPG_AmbientOcclusion.jpg",
+      "bytes": 631042,
+      "sha256": "88996af38c1de4177874ff7f38441c4cfa0127db354b1b50af202c89ff6fb4fc"
+    },
+    {
+      "file": "source/ambientcg/Asphalt025A/Asphalt025A_1K-JPG_Color.jpg",
+      "bytes": 1056456,
+      "sha256": "937906797e5ba8b550b4997fe37b20e517d208c15a93972f073aa4452e11e80c"
+    },
+    {
+      "file": "source/ambientcg/Asphalt025A/Asphalt025A_1K-JPG_NormalGL.jpg",
+      "bytes": 2019662,
+      "sha256": "9e693a458d55a3dfddc3c159bc2d9abb83b552e741ca9ee97300241edb360313"
+    },
+    {
+      "file": "source/ambientcg/Asphalt025A/Asphalt025A_1K-JPG_Roughness.jpg",
+      "bytes": 669509,
+      "sha256": "b935bb6fea9735303deeafb9b51d5fa6686b87aba6da40a7b7d895aa960f3c1c"
+    },
+    {
+      "file": "source/ambientcg/Bricks060/Bricks060_1K-JPG_AmbientOcclusion.jpg",
+      "bytes": 555466,
+      "sha256": "1e7209acbc67b231209631ca5d645f3e1ae02ab817dbda469acc2e747e78d55d"
+    },
+    {
+      "file": "source/ambientcg/Bricks060/Bricks060_1K-JPG_Color.jpg",
+      "bytes": 1169954,
+      "sha256": "d56a6900be43dc9d37c0725257a04ee4e0d3840efd53ad9bab82cc6897de8435"
+    },
+    {
+      "file": "source/ambientcg/Bricks060/Bricks060_1K-JPG_NormalGL.jpg",
+      "bytes": 1838326,
+      "sha256": "c4b8fffa7cb3d2e9462f93d6e65ffcd6e8edc2f202b782018ae6a508c23998cd"
+    },
+    {
+      "file": "source/ambientcg/Bricks060/Bricks060_1K-JPG_Roughness.jpg",
+      "bytes": 640257,
+      "sha256": "143f9c13813031150016ffdf6f771deb6f9c0852a4a28a143b8b8b575f00d22f"
+    },
+    {
+      "file": "source/ambientcg/Concrete034/Concrete034_1K-JPG_Color.jpg",
+      "bytes": 269501,
+      "sha256": "8ceb9186d990b31fce785e06fdc6974c160f1d27c43f6160266f164deba713aa"
+    },
+    {
+      "file": "source/ambientcg/Concrete034/Concrete034_1K-JPG_NormalGL.jpg",
+      "bytes": 821681,
+      "sha256": "e509eb9dfa978e780fbebfd2acacc2ce158b5b7ced722ddc0759039dd51e18ca"
+    },
+    {
+      "file": "source/ambientcg/Concrete034/Concrete034_1K-JPG_Roughness.jpg",
+      "bytes": 217708,
+      "sha256": "a4a9e39857a19afd23a778e5abf44fcdf6bd7f93918f1cf6878b41933e553511"
+    },
+    {
+      "file": "source/ambientcg/PavingStones036/PavingStones036_1K-JPG_AmbientOcclusion.jpg",
+      "bytes": 499312,
+      "sha256": "a30168f74c40a7debfbb0b4038f438679f89067451e790d679d448e69c52db2b"
+    },
+    {
+      "file": "source/ambientcg/PavingStones036/PavingStones036_1K-JPG_Color.jpg",
+      "bytes": 1796007,
+      "sha256": "065dad4ad95ee74992a6d3cbeb0efb107d3b18a0a3425487bf41452dce12c533"
+    },
+    {
+      "file": "source/ambientcg/PavingStones036/PavingStones036_1K-JPG_NormalGL.jpg",
+      "bytes": 2139484,
+      "sha256": "7e86034b299d5628bb072c74ed30364dbab5da21f55e17c675ccbef15b209543"
+    },
+    {
+      "file": "source/ambientcg/PavingStones036/PavingStones036_1K-JPG_Roughness.jpg",
+      "bytes": 688711,
+      "sha256": "d97ddc1b344edf9e799d5a63b497c5bafabf3afe189bca565bbd155c79f269a1"
+    },
+    {
+      "file": "source/ambientcg/Plaster004/Plaster004_1K-JPG_Color.jpg",
+      "bytes": 1093948,
+      "sha256": "ea7bcf4c5af54df095300caeb4179a601b9126d08fe38d273fe71075546919f2"
+    },
+    {
+      "file": "source/ambientcg/Plaster004/Plaster004_1K-JPG_NormalGL.jpg",
+      "bytes": 2237930,
+      "sha256": "d4f7af819be607020c06c7ef70d659d0584430dd598e148f5f9ac18fd877c909"
+    },
+    {
+      "file": "source/ambientcg/Plaster004/Plaster004_1K-JPG_Roughness.jpg",
+      "bytes": 604413,
+      "sha256": "4755ea52a42515be051976f6bcac0bab31a9417de864939b0ec1c83153cb1c8b"
+    },
+    {
+      "file": "source/ambientcg/Rocks025/Rocks025_1K-JPG_AmbientOcclusion.jpg",
+      "bytes": 697725,
+      "sha256": "2d547b316f187c63f8d6e4abe6dffb7b1284fc300fdd5ca9171c1d79979b0c16"
+    },
+    {
+      "file": "source/ambientcg/Rocks025/Rocks025_1K-JPG_Color.jpg",
+      "bytes": 1730929,
+      "sha256": "2fad8b83d07cadc01914b122dc325ffc758d4bc9896fa35ff76ffa3cc01cf018"
+    },
+    {
+      "file": "source/ambientcg/Rocks025/Rocks025_1K-JPG_NormalGL.jpg",
+      "bytes": 1975803,
+      "sha256": "f53181cde6fb6403872ce9e735d1f67bacdad9d91bad1ac8de9534dc550c6b4c"
+    },
+    {
+      "file": "source/ambientcg/Rocks025/Rocks025_1K-JPG_Roughness.jpg",
+      "bytes": 633958,
+      "sha256": "e9507ad2f9dfa738e759755e7dffaa0270195468bcf60fd765193c1959958992"
+    },
+    {
+      "file": "source/kenney/city-kit-roads/License.txt",
+      "bytes": 703,
+      "sha256": "d23f51360ca2cd81711bc5b09ddfb28ac94da96d7ca2dbdef12c50f33f35c353"
+    },
+    {
+      "file": "source/kenney/city-kit-roads/Models/GLB format/construction-barrier.glb",
+      "bytes": 7052,
+      "sha256": "906f73a6d62d8de58a4c5a19e76ff95b460c42b37e5fa37478b8612f06793f26"
+    },
+    {
+      "file": "source/kenney/city-kit-roads/Models/GLB format/construction-cone.glb",
+      "bytes": 7056,
+      "sha256": "50ceae45cd1d71f738a8f7c40f8b6b46f360063c2754bf717aae54013d6f2ee4"
+    },
+    {
+      "file": "source/kenney/city-kit-roads/Models/GLB format/road-sign-stop.glb",
+      "bytes": 10720,
+      "sha256": "0991181f37171daf8d2501e436a688e46ea2bcebb5e27aa451640fcbaab107ef"
+    },
+    {
+      "file": "source/kenney/city-kit-roads/Models/GLB format/Textures/colormap.png",
+      "bytes": 11428,
+      "sha256": "a48e2962661ae44368ffddf3054f80ed8491d082b757dcc3011184cd9a98b185"
+    },
+    {
+      "file": "source/kenney/city-kit-roads/Models/GLB format/traffic-light.glb",
+      "bytes": 20344,
+      "sha256": "6c9ee253b7370e1043168493b2e662b349484a0cdd02100cff04d9d8d1bd9abb"
+    }
+  ],
+  "materialAtlases": {
+    "revision": "stage3-atlas-r1",
+    "builder": {
+      "python": "3.11.9",
+      "pillow": "10.4.0",
+      "script": "scripts/build-material-atlases.py"
+    },
+    "layout": {
+      "coordinateConvention": "pixel rectangles use top-left origin; UV rectangles use bottom-left origin",
+      "cellPx": 1024,
+      "gutterPx": 16,
+      "mipSafeLevelsApprox": 4,
+      "directionalLightingBaked": false
+    },
+    "maps": {
+      "color": {
+        "file": "processed/materials/basecolor-atlas.png",
+        "sha256": "c515ac030062ab40490a3d7533c9dbd5f0ffbaf0ffb847151ee21022823bc7e0",
+        "resolutionPx": [
+          3136,
+          2096
+        ],
+        "colorSpace": "sRGB",
+        "gutterPx": 16,
+        "grid": {
+          "columns": 3,
+          "rows": 2,
+          "cellPx": 1024,
+          "order": [
+            "Plaster004",
+            "Bricks060",
+            "Rocks025",
+            "Concrete034",
+            "Asphalt025A",
+            "PavingStones036"
+          ]
+        },
+        "rects": {
+          "Plaster004": {
+            "pixelRectTopLeft": [
+              16,
+              16,
+              1024,
+              1024
+            ],
+            "uvRectBottomLeft": [
+              0.005102041,
+              0.503816794,
+              0.326530612,
+              0.488549618
+            ],
+            "sourceResolutionPx": [
+              1024,
+              1024
+            ],
+            "neutralDefault": false
+          },
+          "Bricks060": {
+            "pixelRectTopLeft": [
+              1056,
+              16,
+              1024,
+              1024
+            ],
+            "uvRectBottomLeft": [
+              0.336734694,
+              0.503816794,
+              0.326530612,
+              0.488549618
+            ],
+            "sourceResolutionPx": [
+              1024,
+              1024
+            ],
+            "neutralDefault": false
+          },
+          "Rocks025": {
+            "pixelRectTopLeft": [
+              2096,
+              16,
+              1024,
+              1024
+            ],
+            "uvRectBottomLeft": [
+              0.668367347,
+              0.503816794,
+              0.326530612,
+              0.488549618
+            ],
+            "sourceResolutionPx": [
+              1024,
+              1024
+            ],
+            "neutralDefault": false
+          },
+          "Concrete034": {
+            "pixelRectTopLeft": [
+              16,
+              1312,
+              1024,
+              512
+            ],
+            "uvRectBottomLeft": [
+              0.005102041,
+              0.129770992,
+              0.326530612,
+              0.244274809
+            ],
+            "sourceResolutionPx": [
+              1024,
+              512
+            ],
+            "neutralDefault": false
+          },
+          "Asphalt025A": {
+            "pixelRectTopLeft": [
+              1056,
+              1056,
+              1024,
+              1024
+            ],
+            "uvRectBottomLeft": [
+              0.336734694,
+              0.007633588,
+              0.326530612,
+              0.488549618
+            ],
+            "sourceResolutionPx": [
+              1024,
+              1024
+            ],
+            "neutralDefault": false
+          },
+          "PavingStones036": {
+            "pixelRectTopLeft": [
+              2096,
+              1056,
+              1024,
+              1024
+            ],
+            "uvRectBottomLeft": [
+              0.668367347,
+              0.007633588,
+              0.326530612,
+              0.488549618
+            ],
+            "sourceResolutionPx": [
+              1024,
+              1024
+            ],
+            "neutralDefault": false
+          }
+        }
+      },
+      "normalGL": {
+        "file": "processed/materials/normal-atlas.png",
+        "sha256": "1620be34d4b6a99c29a7de87fcbd3e337fa8046befe8be6e42dd5d6939a168de",
+        "resolutionPx": [
+          3136,
+          2096
+        ],
+        "colorSpace": "linear",
+        "gutterPx": 16,
+        "grid": {
+          "columns": 3,
+          "rows": 2,
+          "cellPx": 1024,
+          "order": [
+            "Plaster004",
+            "Bricks060",
+            "Rocks025",
+            "Concrete034",
+            "Asphalt025A",
+            "PavingStones036"
+          ]
+        },
+        "rects": {
+          "Plaster004": {
+            "pixelRectTopLeft": [
+              16,
+              16,
+              1024,
+              1024
+            ],
+            "uvRectBottomLeft": [
+              0.005102041,
+              0.503816794,
+              0.326530612,
+              0.488549618
+            ],
+            "sourceResolutionPx": [
+              1024,
+              1024
+            ],
+            "neutralDefault": false
+          },
+          "Bricks060": {
+            "pixelRectTopLeft": [
+              1056,
+              16,
+              1024,
+              1024
+            ],
+            "uvRectBottomLeft": [
+              0.336734694,
+              0.503816794,
+              0.326530612,
+              0.488549618
+            ],
+            "sourceResolutionPx": [
+              1024,
+              1024
+            ],
+            "neutralDefault": false
+          },
+          "Rocks025": {
+            "pixelRectTopLeft": [
+              2096,
+              16,
+              1024,
+              1024
+            ],
+            "uvRectBottomLeft": [
+              0.668367347,
+              0.503816794,
+              0.326530612,
+              0.488549618
+            ],
+            "sourceResolutionPx": [
+              1024,
+              1024
+            ],
+            "neutralDefault": false
+          },
+          "Concrete034": {
+            "pixelRectTopLeft": [
+              16,
+              1312,
+              1024,
+              512
+            ],
+            "uvRectBottomLeft": [
+              0.005102041,
+              0.129770992,
+              0.326530612,
+              0.244274809
+            ],
+            "sourceResolutionPx": [
+              1024,
+              512
+            ],
+            "neutralDefault": false
+          },
+          "Asphalt025A": {
+            "pixelRectTopLeft": [
+              1056,
+              1056,
+              1024,
+              1024
+            ],
+            "uvRectBottomLeft": [
+              0.336734694,
+              0.007633588,
+              0.326530612,
+              0.488549618
+            ],
+            "sourceResolutionPx": [
+              1024,
+              1024
+            ],
+            "neutralDefault": false
+          },
+          "PavingStones036": {
+            "pixelRectTopLeft": [
+              2096,
+              1056,
+              1024,
+              1024
+            ],
+            "uvRectBottomLeft": [
+              0.668367347,
+              0.007633588,
+              0.326530612,
+              0.488549618
+            ],
+            "sourceResolutionPx": [
+              1024,
+              1024
+            ],
+            "neutralDefault": false
+          }
+        }
+      },
+      "roughness": {
+        "file": "processed/materials/roughness-atlas.png",
+        "sha256": "2f179290a0629909665906035d7923127b75d46531d152024cb19f3b13bc8a2a",
+        "resolutionPx": [
+          3136,
+          2096
+        ],
+        "colorSpace": "linear",
+        "gutterPx": 16,
+        "grid": {
+          "columns": 3,
+          "rows": 2,
+          "cellPx": 1024,
+          "order": [
+            "Plaster004",
+            "Bricks060",
+            "Rocks025",
+            "Concrete034",
+            "Asphalt025A",
+            "PavingStones036"
+          ]
+        },
+        "rects": {
+          "Plaster004": {
+            "pixelRectTopLeft": [
+              16,
+              16,
+              1024,
+              1024
+            ],
+            "uvRectBottomLeft": [
+              0.005102041,
+              0.503816794,
+              0.326530612,
+              0.488549618
+            ],
+            "sourceResolutionPx": [
+              1024,
+              1024
+            ],
+            "neutralDefault": false
+          },
+          "Bricks060": {
+            "pixelRectTopLeft": [
+              1056,
+              16,
+              1024,
+              1024
+            ],
+            "uvRectBottomLeft": [
+              0.336734694,
+              0.503816794,
+              0.326530612,
+              0.488549618
+            ],
+            "sourceResolutionPx": [
+              1024,
+              1024
+            ],
+            "neutralDefault": false
+          },
+          "Rocks025": {
+            "pixelRectTopLeft": [
+              2096,
+              16,
+              1024,
+              1024
+            ],
+            "uvRectBottomLeft": [
+              0.668367347,
+              0.503816794,
+              0.326530612,
+              0.488549618
+            ],
+            "sourceResolutionPx": [
+              1024,
+              1024
+            ],
+            "neutralDefault": false
+          },
+          "Concrete034": {
+            "pixelRectTopLeft": [
+              16,
+              1312,
+              1024,
+              512
+            ],
+            "uvRectBottomLeft": [
+              0.005102041,
+              0.129770992,
+              0.326530612,
+              0.244274809
+            ],
+            "sourceResolutionPx": [
+              1024,
+              512
+            ],
+            "neutralDefault": false
+          },
+          "Asphalt025A": {
+            "pixelRectTopLeft": [
+              1056,
+              1056,
+              1024,
+              1024
+            ],
+            "uvRectBottomLeft": [
+              0.336734694,
+              0.007633588,
+              0.326530612,
+              0.488549618
+            ],
+            "sourceResolutionPx": [
+              1024,
+              1024
+            ],
+            "neutralDefault": false
+          },
+          "PavingStones036": {
+            "pixelRectTopLeft": [
+              2096,
+              1056,
+              1024,
+              1024
+            ],
+            "uvRectBottomLeft": [
+              0.668367347,
+              0.007633588,
+              0.326530612,
+              0.488549618
+            ],
+            "sourceResolutionPx": [
+              1024,
+              1024
+            ],
+            "neutralDefault": false
+          }
+        }
+      },
+      "ambientOcclusion": {
+        "file": "processed/materials/ao-atlas.png",
+        "sha256": "e2dc261a55a970e440558429bed1535f92050a661478c352e4ba447cb90da1f4",
+        "resolutionPx": [
+          3136,
+          2096
+        ],
+        "colorSpace": "linear",
+        "gutterPx": 16,
+        "grid": {
+          "columns": 3,
+          "rows": 2,
+          "cellPx": 1024,
+          "order": [
+            "Plaster004",
+            "Bricks060",
+            "Rocks025",
+            "Concrete034",
+            "Asphalt025A",
+            "PavingStones036"
+          ]
+        },
+        "rects": {
+          "Plaster004": {
+            "pixelRectTopLeft": [
+              16,
+              16,
+              1024,
+              1024
+            ],
+            "uvRectBottomLeft": [
+              0.005102041,
+              0.503816794,
+              0.326530612,
+              0.488549618
+            ],
+            "sourceResolutionPx": [
+              1024,
+              1024
+            ],
+            "neutralDefault": true
+          },
+          "Bricks060": {
+            "pixelRectTopLeft": [
+              1056,
+              16,
+              1024,
+              1024
+            ],
+            "uvRectBottomLeft": [
+              0.336734694,
+              0.503816794,
+              0.326530612,
+              0.488549618
+            ],
+            "sourceResolutionPx": [
+              1024,
+              1024
+            ],
+            "neutralDefault": false
+          },
+          "Rocks025": {
+            "pixelRectTopLeft": [
+              2096,
+              16,
+              1024,
+              1024
+            ],
+            "uvRectBottomLeft": [
+              0.668367347,
+              0.503816794,
+              0.326530612,
+              0.488549618
+            ],
+            "sourceResolutionPx": [
+              1024,
+              1024
+            ],
+            "neutralDefault": false
+          },
+          "Concrete034": {
+            "pixelRectTopLeft": [
+              16,
+              1312,
+              1024,
+              512
+            ],
+            "uvRectBottomLeft": [
+              0.005102041,
+              0.129770992,
+              0.326530612,
+              0.244274809
+            ],
+            "sourceResolutionPx": [
+              1024,
+              512
+            ],
+            "neutralDefault": true
+          },
+          "Asphalt025A": {
+            "pixelRectTopLeft": [
+              1056,
+              1056,
+              1024,
+              1024
+            ],
+            "uvRectBottomLeft": [
+              0.336734694,
+              0.007633588,
+              0.326530612,
+              0.488549618
+            ],
+            "sourceResolutionPx": [
+              1024,
+              1024
+            ],
+            "neutralDefault": false
+          },
+          "PavingStones036": {
+            "pixelRectTopLeft": [
+              2096,
+              1056,
+              1024,
+              1024
+            ],
+            "uvRectBottomLeft": [
+              0.668367347,
+              0.007633588,
+              0.326530612,
+              0.488549618
+            ],
+            "sourceResolutionPx": [
+              1024,
+              1024
+            ],
+            "neutralDefault": false
+          }
+        }
+      }
+    },
+    "emissive": {
+      "status": "not baked into the material atlases",
+      "alignment": "existing procedural lit-window atlas shares the same GRID as the facade atlas in lib/engine/facade-uv.js"
+    }
   }
 }

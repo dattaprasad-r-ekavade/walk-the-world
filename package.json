@@ -14,6 +14,8 @@
     "fixtures:build": "node scripts/build-benchmark-fixtures.mjs",
     "fixtures:build:rome": "node scripts/build-osm-fixture.mjs",
     "bench:street": "node scripts/validate-street.mjs",
+    "assets:build": "node scripts/build-assets.mjs",
+    "assets:preview": "blender --background --python scripts/render-asset-audit.py",
     "overture-index": "node scripts/build-overture-index.mjs",
     "enrich": "node scripts/enrich-r2-cells.mjs",
     "seed": "node scripts/warm-cities.mjs https://walk-the-world-delta.vercel.app --state=warm-state.json --conc=2",

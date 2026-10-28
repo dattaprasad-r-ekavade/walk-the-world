@@ -588,14 +588,25 @@ scripts/build-assets.mjs and public/textures/.
   - The manifest records source archive and model hashes, initial metre tiling,
     UV density, map roles, raw GLB bounds, target dimensions and a source-only
     revision. ambientCG's v3 API does not expose individual creator names, so
-    those are marked as unavailable. Conversion and runtime adoption remain
-    open; imagery credits stay in their separate section.
+    those are marked as unavailable. Extracted source hashes and converted
+    output metadata are recorded in the Stage 3.3 progress note; imagery credits
+    stay in their separate section.
 - [ ] 3.3 Normalise pivots/+Z direction; prune unused geometry/maps. Bake shallow
   facade detail into shared atlases, align emissive masks, add mip-safe gutters
   and avoid baking directional sunlight into albedo.
+  - Progress, not exit: source snapshots are retained and hashed; four shared
+    PBR atlases have 16px edge-dilated gutters; missing AO uses white; four
+    Kenney GLBs have bottom-centred pivots, metre scaling and audited +Z-facing
+    fronts. Details and output hashes are in [the manifest](assets/manifest.json).
+    Blender 5.2.0 and Pillow 10.4.0 are pinned, with rebuild instructions in
+    [the asset pipeline notes](assets/README.md). Facade-window/storefront detail
+    is not yet baked into the PBR atlases, and browser integration/visual approval
+    remains open; the existing procedural facade and emissive atlases still share
+    their grid.
 - [ ] 3.4 Pin offline conversion tools. Compare KTX2 ETC1S/UASTC per map type,
   inspecting normals, window detail and masks. ORM packing saves files; stock
-  shaders may still sample each map separately.
+  shaders may still sample each map separately. KTX2 encoder/transcoder versions
+  and per-map comparisons remain open.
 - [ ] 3.5 Add one shared support-detected KTX2 loader, bounded decoder workers,
   self-hosted matching decoders and disposal. Preserve procedural fallback and
   measure transfer/compile/transcode/upload plus estimated GPU residency.
@@ -827,16 +838,16 @@ for Cesium, imagery and model resources. SSR, volumetrics, displacement, dense
 skeletal crowds and shadowed lamp arrays require separate high-tier budgets.
 None is a prerequisite for this sequence.
 
-**Next bounded work:** close the remaining measurement gates before another
-rendering experiment. Stage 1.2 queue bounds, Stage 1.4 allocation changes,
-Stage 1.5 lifecycle checks, and the desktop 15-minute resource soak are complete.
-The next open checks are the Stage 0.8 dense live-city cold/warm walk/drive
-matrix, Stage 1 mobile assembly and input latency, and Stage 1.3 low-core worker
-and KTX2 contention/memory measurements. Stage 3.1 and 3.2 are now complete as
-a source-only asset curation and metadata pilot; Stage 3.3 is the next content
-step after the profiling gates. The manifest does not mean that these assets
-have been converted, visually approved in the engine, or loaded at runtime.
-Recorded Rome replay is client/streaming evidence, not live Overpass evidence.
+**Next bounded work:** finish Stage 3.3 by baking the shallow facade/window
+detail into the shared atlas layout, preserving exact alignment with the night
+emissive mask, then inspect that integration in the browser. The offline PBR
+atlases and normalised props now exist, but are not loaded at runtime. After this
+content step, pin KTX2 tools and compare ETC1S/UASTC by map type before any loader
+adoption. Stage 0.8 dense live-city cold/warm walk/drive, Stage 1 mobile assembly
+and input latency, and Stage 1.3 low-core worker plus KTX2 contention/memory
+checks remain release gates; runtime adoption must preserve the measured
+fallback and resource budgets. Recorded Rome replay is client/streaming
+evidence, not live Overpass evidence.
 
 **Open acceptance gate:** Stage 0.8 still needs matched dense live-city cold/
 warm and walk/drive boundary measurements. The 28 October Manhattan retries
@@ -850,7 +861,5 @@ exposes no ACPI thermal readings. The desktop resource soak passed, but mobile
 thermal checks and direct thermal measurements remain open. Keep Rust/Wasm/SIMD deferred: worker compute was 25.9 ms median versus
 729.4 ms roundtrip on the earlier synthetic trace, so kernel acceleration is
 not yet the measured opportunity. The Stage 2.5 far-material experiment was
-completed and rejected; Stage 2.6 shader/shadow parity is complete. After Stage
-0/1 profiling gates, visual content work resumes with Stage 3.1: curate a small
-licensed material set and prop kit, then record attribution and scale before
-building the conversion pipeline.
+completed and rejected; Stage 2.6 shader/shadow parity is complete. Stage 3.1
+and 3.2 curation are complete, and 3.3 offline conversion is in progress.

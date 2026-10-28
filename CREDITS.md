@@ -39,16 +39,21 @@ Optional CC0 loops can be dropped at `public/audio/day.ogg` and
 
 ## Materials & lighting (17.1 / 17.2)
 
-Street materials are procedural PBR (`lib/engine/materials.js`) with optional
-CC0 maps cataloged for a later runtime pilot. The selected sources are tracked
-in [assets/manifest.json](assets/manifest.json); they are not converted or loaded
-by the runtime yet.
+Street materials remain procedural PBR (`lib/engine/materials.js`). The selected
+CC0 maps are preserved under `assets/source/ambientcg/` and assembled into
+shared atlases under `assets/processed/materials/`; the Kenney props have
+normalised GLB outputs under `assets/processed/props/`. These outputs are not
+loaded by the runtime yet. No directional sunlight is baked into the source
+albedo maps, and the existing procedural lit-window atlas remains separate.
 
 | Set | Publisher / author | License | Source |
 |---|---|---|---|
 | Plaster004, Bricks060, Rocks025, Concrete034, Asphalt025A, PavingStones036 | ambientCG (individual creator not exposed in its v3 API) | CC0 1.0 | [ambientCG license](https://docs.ambientcg.com/license/) and the per-asset links in the manifest |
 | City Kit Roads 2.2: construction cone/barrier, stop sign, traffic light | Kenney | CC0 1.0 | [Kenney City Kit Roads](https://kenney.nl/assets/city-kit-roads) |
 
-The manifest records source archive/model hashes, map roles and scale metadata.
+The [asset manifest](assets/manifest.json) records source package and extracted
+file hashes, map roles, atlas rectangles and gutters, model bounds, pivots and
+front-axis corrections. `npm run assets:build` regenerates the offline outputs;
+see [the pipeline notes](assets/README.md) for tool pins and remaining work.
 IBL uses a procedural equirect sky → PMREM (`lib/engine/env-map.js`); Poly
 Haven HDRIs remain a later option when hosted.
