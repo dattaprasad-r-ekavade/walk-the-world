@@ -10,10 +10,12 @@ building terrain visuals or requesting imagery. The latest matched headless
 run was 4.7% slower cold and 5.8% faster warm than raw, with 7.4% less payload.
 The visible Chrome comparison below confirms the path on this host's NVIDIA
 RTX 4060 Laptop GPU: 4.2% slower cold, 8.3% faster warm and 7.3% less payload.
-Cold height validation still has a 1.58–2.01 s range (1.72 s median). Startup
+That first visible run's cold height validation took 1.58–2.01 s (1.72 s
+median); the later phase breakdown below measured 1.65–2.22 s. Startup
 frame/GPU samples are too bursty to establish steady-state frame acceptance;
 WebGL does not expose reliable allocated VRAM or direct upload-byte totals.
-Lower-tier device parity and browser editor/failure acceptance remain open.
+Lower-tier device parity and editor save/reload acceptance remain open; the
+visible-browser edit and artifact-failure fallback smoke is recorded below.
 Unit tests cover editor-change fallback, prebuilt-fetch cancellation, and
 eviction/revisit through the prebuilt path.
 
@@ -177,8 +179,8 @@ upload submission or VRAM.
 
 The benchmark and raw reports/screenshots are retained locally under
 `benchmarks/results/stage8/b1-steady-visible-chrome-2026-10-29/` and are
-ignored by Git. B1 remains open for lower-tier device parity, browser editor and
-failure-path acceptance, cold terrain-gate work, upload-cost investigation,
+ignored by Git. B1 remains open for lower-tier device parity, editor
+hide/save/reload acceptance, cold terrain-cache work, upload-cost investigation,
 and overlap-index growth bounds.
 
 ## Cold terrain-validation breakdown — 29 October 2026
@@ -201,6 +203,22 @@ The next useful terrain work is to evaluate a revision-aware cache or another
 way to avoid cold image refetch while preserving the terrain mismatch fallback.
 Changing the hash implementation alone is not justified by these timings.
 
+## Browser edit and artifact-failure fallback smoke — 29 October 2026
+
+Visible Chrome exercised two local failure paths against the same Tokyo
+snapshot. With a real building feature (`way/54500467`) returned in the spawn
+cell's hidden-edit list, the engine requested raw origin JSON and made no baked
+artifact request. The MAP EDITOR panel and Hide control rendered. With no edit,
+the baked artifact request was forced to HTTP 503; the engine then requested
+raw origin JSON. Both cases reached ready and settled at eight loaded cells,
+one failed neighbor, and zero deferred cells, with no page errors.
+
+Screenshots are retained locally under the ignored directory
+`benchmarks/results/stage8/b1-browser-fallback-2026-10-29/`. This smoke confirms
+the edit and unavailable-artifact fallback paths in the browser. It did not
+click Hide or verify saving and reloading an editor change; those checks remain
+open.
+
 ## Evidence and remaining gates
 
 The initial and follow-up JSON reports and cold-run screenshots are retained
@@ -212,7 +230,7 @@ contains the reviewable measurements so the raw traces need not be committed.
 Before adopting B1, repeat the fixed-window comparison on the intended
 integrated/mobile tiers and investigate GPU upload submission cost, which the
 current window does not isolate. Evaluate revision-safe caching for the cold
-terrain image gate; verify browser editor/failure behavior alongside existing
+terrain image gate; verify editor Hide/save/reload behavior alongside existing
 cancellation/eviction tests; and confirm the overlap index stays bounded as
 bake coverage grows. Local artifacts remain unpublished; production R2
 publication is a separate release task.
