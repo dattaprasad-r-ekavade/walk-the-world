@@ -2,6 +2,7 @@
 /.next
 /out
 /public/cesium
+/public/prebuilt-cells/
 .env.local
 .DS_Store
 *.log

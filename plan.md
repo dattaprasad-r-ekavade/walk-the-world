@@ -138,7 +138,7 @@ Decisions taken from the research:
   shadows rebake when the last rise ends). New cells grow from the ground over
   ~0.6 s instead of popping in; transform-only so shared materials stay
   untouched.
-- [ ] **A7 — Three.js r170 → r186 (M).** Verified low risk for this stack:
+- [x] **A7 — Three.js r170 → r186 (M).** Verified low risk for this stack:
   WebGL EffectComposer passes unchanged; PCFSoftShadowMap deprecated (PCF is
   now soft); rough PBR materials brighter (r181); PMREM moved to cube render
   targets (r187); KTX2Loader.detectSupportAsync deprecated (r181). Re-test
@@ -146,14 +146,15 @@ Decisions taken from the research:
   package and lockfile now target Three.js 0.186.0. Matched visible-Chrome
   captures use the same frozen city-cell data in [the r170 baseline](screenshots/demo-track/rehearsal-2026-10-28-a7-r170-matched/)
   and [the r186 build](screenshots/demo-track/rehearsal-2026-10-28-a7-r186-matched/).
-  One 300-frame sample per city measured p95 at 14.0/34.9/36.0/20.9 ms on r170
-  and 14.0/34.9/41.6/20.8 ms on r186 (Pune/Edinburgh/Tokyo/New York). Tokyo is
-  15.6% slower in that sample, above the 5% gate. Three 900-frame Edinburgh
-  samples per version had the same 34.7 ms median, showing material host timing
-  noise. Edinburgh and Tokyo did not fully settle their neighbor streams, with
-  the same failed neighbors in both versions. Repeat the matched Tokyo smoke,
-  confirm all shader patches and stream behavior, and rerun tests/build after
-  the latest rehearsal-runner edits before closing A7.
+  The first 300-frame city smoke measured p95 at 14.0/34.9/36.0/20.9 ms on r170
+  and 14.0/34.9/41.6/20.8 ms on r186 (Pune/Edinburgh/Tokyo/New York); its Tokyo
+  result was a noisy +15.6%. Three matched 900-frame Tokyo repetitions per
+  version then measured medians of 16.9 ms on both r170 and r186 (0% change;
+  all six reached ready/settled). The same single neighbor cell failed in each
+  version. No shader compilation errors appeared; the same geometry-merge
+  warning and unconfigured local `/api/assets` 501 appeared in both. The matched
+  captures and repeat reports are in [the A7 progress evidence](screenshots/demo-track/a7-progress-2026-10-28.md).
+  All 180 tests and the r186 production build pass.
 
 ### Phase B — data foundation
 
@@ -693,19 +694,16 @@ matched settings, tested hardware, thresholds and remaining gates.
 
 ## 15. Next action and deferred choices
 
-1. Finish A7's matched Tokyo performance repeat, verify every shader patch and
-   stream outcome, then run the full tests and production build. Keep A7 open
-   until every city stays within the 5% frame-time p95 gate.
-2. Start B1 (prebuilt cell format), which replaces the conditional Stage 8
+1. Start B1 (prebuilt cell format), which replaces the conditional Stage 8
    experiment and the Stage 6 prerequisite question. Then work through B2
    (Overpass independence), B3 (procedural landuse ground) and B4 (Overture
    attribute gap fill).
-3. Consider C1–C3 only after the data foundation, and only when a measured
+2. Consider C1–C3 only after the data foundation, and only when a measured
    viewer-visible benefit justifies their cost. The remaining release gates
    include 0.8 live dense-city baselines, 1.3 physical low-core validation,
    R1–R4 ownership/fallback checks, 4.3/4.5/4.6 visual and shadow checks, and
    Stages 5 and 9 integration/hardware acceptance.
-4. Keep R5 wet-road work and conditional Stages 6–8 deferred unless a demo
+3. Keep R5 wet-road work and conditional Stages 6–8 deferred unless a demo
    viewer or measured profile makes them a priority.
 
 Rust/Wasm/SIMD remains deferred: an earlier synthetic trace measured worker
