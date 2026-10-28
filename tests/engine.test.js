@@ -428,6 +428,15 @@ describe('env map (17.2)', () => {
     expect(c.width).toBe(512);
     expect(c.height).toBe(256);
   });
+
+  it('adds the low-cost reflection horizon only for wet dusk and night', async () => {
+    const { wetNightHorizonAlpha } = await import('../lib/engine/env-map.js');
+    expect(wetNightHorizonAlpha(12, 0.9)).toBe(0);
+    expect(wetNightHorizonAlpha(21, 0)).toBe(0);
+    expect(wetNightHorizonAlpha(21, 0.9)).toBeCloseTo(0.288);
+    expect(wetNightHorizonAlpha(21, 1.4)).toBeCloseTo(0.32);
+    expect(wetNightHorizonAlpha(18, 0.9)).toBeCloseTo(0.162);
+  });
 });
 
 describe('cell-clip ownership', () => {

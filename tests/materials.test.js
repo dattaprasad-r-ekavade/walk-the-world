@@ -20,12 +20,16 @@ describe('road material weather inheritance', () => {
     const material = getRoadMaterial(0x3a7b2d, 'plain', 'service');
 
     expect(material.roughness).toBeCloseTo(0.296);
-    expect(material.normalScale.x).toBeCloseTo(0.27);
-    expect(material.envMapIntensity).toBeCloseTo(1.63);
+    expect(material.normalScale.x).toBeCloseTo(0.23);
+    expect(material.envMapIntensity).toBeCloseTo(2.47);
+    const wetColor = material.color.clone();
 
     setRoadWetness(0);
     expect(material.roughness).toBe(1);
     expect(material.envMapIntensity).toBe(0.55);
+    expect(wetColor.r).toBeCloseTo(material.color.r * 0.888);
+    expect(wetColor.g).toBeCloseTo(material.color.g * 0.888);
+    expect(wetColor.b).toBeCloseTo(material.color.b * 0.888);
     material.dispose();
     expect(roadMaterialCount()).toBe(initialCount);
   });

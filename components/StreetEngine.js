@@ -20,7 +20,7 @@ import { clipElementsToCell } from "@/lib/engine/cell-clip";
 import { getSimpleStandard, installBuildingTextureMaps, installBuildingNearTextureMaps, clearBuildingNearTextureMaps, setBuildingTextureQuality, setRoadWetness, sharedMaterialTextures, materialFactoryInventory, disposeMaterialCache } from "@/lib/engine/materials";
 import { createKtx2BuildingTextureLoader } from "@/lib/engine/ktx2-textures";
 import { createVehicleController } from "@/lib/engine/street/vehicle";
-import { createPostFx } from "@/lib/engine/post-fx";
+import { createPostFx, getPostFxPassState } from "@/lib/engine/post-fx";
 import { applyAutoQuality } from "@/lib/engine/gpu-tier";
 import { createTrailBuffer } from "@/lib/engine/trail-buffer";
 import { createGpuFrameTimer } from "@/lib/engine/gpu-frame-timer";
@@ -523,12 +523,15 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false }) {
         });
         markPerf("ktx2-high-textures-released", { estimatedGpuBytes: sharedKtx2GpuBytes });
       }
-      postFx.setEnabled(quality === "high", quality === "high");
+      const postFxState = getPostFxPassState(quality, currentStreetLightNight);
+      postFx.setEnabled(postFxState.active, postFxState.ssao);
       setPerfMetadata({
         qualityTier: quality,
         pixelRatio: renderer.getPixelRatio(),
         shadowMapEnabled: renderer.shadowMap.enabled,
         postFxActive: postFx.active,
+        ssaoActive: postFx.ssaoActive,
+        bloomActive: postFx.bloomActive,
       });
       syncStreetLightQuality();
     };
@@ -583,9 +586,15 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false }) {
       renderer.shadowMap.needsUpdate = true; // sun moved → re-bake shadows
       // 21.0 night grade: commit to darkness. Bloom on at night for medium+,
       // sky/fog go deep blue-black, non-emissive fill drops so lamps read.
-      if (postFx && qualityTier !== "low") {
-        postFx.setEnabled(qualityTier === "high" || winGlow > 0.15, qualityTier === "high");
-      }
+      const postFxState = getPostFxPassState(qualityTier, winGlow);
+      postFx.setEnabled(postFxState.active, postFxState.ssao);
+      setPerfMetadata({
+        hour,
+        weather: weatherAmt * 100,
+        postFxActive: postFx.active,
+        ssaoActive: postFx.ssaoActive,
+        bloomActive: postFx.bloomActive,
+      });
       // sun + moon ride opposite ends of the same arc
       sunSprite.position.set(Math.cos(t) * 4200, elev * 4200, -1600);
       moonSprite.position.set(-Math.cos(t) * 4200, -elev * 4200, -1600);

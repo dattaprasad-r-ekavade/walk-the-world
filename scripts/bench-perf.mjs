@@ -12,6 +12,7 @@ import { fileURLToPath } from 'url';
 import { CELL_STEP, cityCacheKey } from '../lib/city-contract.js';
 import { EARTH_R } from '../lib/engine/geo.js';
 import { parseBenchmarkEnvironment } from './bench-environment.mjs';
+import { selectRecordedCityPayload } from './bench-fixtures.mjs';
 import {
   orderedFrameIntervals,
   orderedGpuFrameTimes,
@@ -73,6 +74,7 @@ const skipHostTelemetry = args.includes('--skip-host-telemetry');
 const driving = args.includes('--drive');
 const crossCell = args.includes('--cross-cell');
 const resourceSoakEnabled = args.includes('--resource-soak');
+const streamLifecycleEnabled = args.includes('--stream-lifecycle');
 const poseOptionNames = ['--pose-x', '--pose-z', '--heading'];
 const suppliedPoseOptions = poseOptionNames.filter((name) => args.includes(name));
 let fixedPose = null;
@@ -118,10 +120,15 @@ if (resourceSoakEnabled && walkDurationMs < 900_000) {
 }
 if (resourceSoakEnabled && !crossCell) throw new Error('--resource-soak requires --cross-cell to exercise streaming and eviction');
 if (resourceSoakEnabled && driving) throw new Error('--resource-soak is a pedestrian walk and cannot be combined with --drive');
+if (streamLifecycleEnabled && !crossCell) throw new Error('--stream-lifecycle requires --cross-cell');
+if (streamLifecycleEnabled && dataMode !== 'recorded') throw new Error('--stream-lifecycle requires --data-mode recorded');
 const READY_TIMEOUT = 180_000;
 const HOST_TELEMETRY_READY_MARKER = '__BENCH_HOST_TELEMETRY_READY__';
 
 const BENCH_FIXTURE = JSON.parse(readFileSync(fixturePath, 'utf8'));
+if (streamLifecycleEnabled && !BENCH_FIXTURE.cellPayloads) {
+  throw new Error('--stream-lifecycle requires a per-cell fixture with cellPayloads');
+}
 
 function streetUrl() {
   const url = new URL(route, baseUrl);
@@ -484,6 +491,7 @@ async function benchStreet(page) {
   }
   let cellStreamStart = null;
   let expectedCellKey = null;
+  let streamLifecycleBaseline = null;
   if (crossCell) {
     await page.waitForFunction(() => {
       const state = window.__streetDebug?.cellStream?.();
@@ -492,6 +500,12 @@ async function benchStreet(page) {
     const initialCellState = await page.evaluate(() => window.__streetDebug.cellStream());
     cellStreamStart = initialCellState.center.key;
     expectedCellKey = cityCacheKey(location.lat, location.lon + CELL_STEP);
+    if (streamLifecycleEnabled) {
+      streamLifecycleBaseline = await page.evaluate(() => ({
+        stream: window.__streetDebug?.cellStream?.() || null,
+        lights: window.__streetDebug?.streetLightStats?.() || null,
+      }));
+    }
     const crossingSetup = await page.evaluate(({ lat, lon, step, earthRadius, useDriving }) => {
       const debug = window.__streetDebug;
       const player = debug?.player;
@@ -713,6 +727,77 @@ async function benchStreet(page) {
     }, { startKey: cellStreamStart, expectedKey: expectedCellKey, resourceSoak: resourceSoakEnabled });
   }
 
+  let streamLifecycle = null;
+  if (streamLifecycleEnabled) {
+    const originCellKey = cityCacheKey(location.lat, location.lon);
+    const streamedLampCellKey = cityCacheKey(location.lat, location.lon + 2 * CELL_STEP);
+    const evictionCenterKey = cityCacheKey(location.lat, location.lon + 4 * CELL_STEP);
+    const originLampCount = (BENCH_FIXTURE.cellPayloads[originCellKey]?.elements || [])
+      .filter((element) => element.type === 'node' && element.tags?.highway === 'street_lamp').length;
+    const streamedLampCount = (BENCH_FIXTURE.cellPayloads[streamedLampCellKey]?.elements || [])
+      .filter((element) => element.type === 'node' && element.tags?.highway === 'street_lamp').length;
+    if (originLampCount < 1 || streamedLampCount < 1) {
+      throw new Error(`--stream-lifecycle fixture needs at least one origin and streamed lamp (${originCellKey}, ${streamedLampCellKey})`);
+    }
+
+    const readLifecycleState = () => page.evaluate(() => ({
+      stream: window.__streetDebug?.cellStream?.() || null,
+      lights: window.__streetDebug?.streetLightStats?.() || null,
+    }));
+    const moveToCellOffset = async (cellOffset) => {
+      const x = cellOffset * CELL_STEP * Math.PI * EARTH_R * Math.cos(location.lat * Math.PI / 180) / 180;
+      await page.evaluate((targetX) => {
+        const player = window.__streetDebug?.player;
+        if (!player) throw new Error('Street player debug state is unavailable');
+        player.x = targetX;
+        player.moving = false;
+      }, x);
+      const centerKey = cityCacheKey(location.lat, location.lon + cellOffset * CELL_STEP);
+      try {
+        await page.waitForFunction((expectedCenterKey) => {
+          const state = window.__streetDebug?.cellStream?.();
+          return state?.center?.key === expectedCenterKey &&
+            state.loadedKeys.includes(expectedCenterKey) && state.pendingCount === 0;
+        }, centerKey, { timeout: READY_TIMEOUT });
+      } catch { /* retain the final state for a useful validation error */ }
+      return readLifecycleState();
+    };
+
+    // Capture the baseline after the origin ring settles and before the
+    // benchmark moves the player into the adjacent cell's prefetch radius.
+    const originState = streamLifecycleBaseline;
+    const streamedState = await moveToCellOffset(2);
+    const evictedState = await moveToCellOffset(4);
+    const originMarkerCount = originState.lights?.lampMarkers ?? null;
+    const streamedMarkerCount = streamedState.lights?.lampMarkers ?? null;
+    const evictedMarkerCount = evictedState.lights?.lampMarkers ?? null;
+    const streamedCellLoaded = streamedState.stream?.loadedKeys?.includes(streamedLampCellKey) === true;
+    const streamCellEvicted = evictedState.stream?.loadedKeys?.includes(streamedLampCellKey) === false;
+    const resourceLimitOk = Number.isFinite(evictedState.stream?.residentCellCount) &&
+      evictedState.stream.residentCellCount <= evictedState.stream.maxCells;
+    streamLifecycle = {
+      originCellKey,
+      streamedLampCellKey,
+      evictionCenterKey,
+      expectedOriginLampCount: originLampCount,
+      expectedStreamedLampCount: streamedLampCount,
+      originMarkerCount,
+      streamedMarkerCount,
+      evictedMarkerCount,
+      streamedCellLoaded,
+      streamCellEvicted,
+      resourceLimitOk,
+      loadedCellCountAfterEviction: evictedState.stream?.residentCellCount ?? null,
+      maxCells: evictedState.stream?.maxCells ?? null,
+      failedCellKeys: evictedState.stream?.failedKeys || [],
+      validated: originMarkerCount === originLampCount &&
+        streamedMarkerCount === originLampCount + streamedLampCount &&
+        evictedMarkerCount === originLampCount &&
+        streamedCellLoaded && streamCellEvicted && resourceLimitOk &&
+        (evictedState.stream?.failedKeys?.length || 0) === 0,
+    };
+  }
+
   const hostTelemetry = await hostTelemetryPromise;
   const displacementMeters = metrics.player
     ? Math.hypot(metrics.player.x - playerStart.x, metrics.player.z - playerStart.z)
@@ -776,6 +861,7 @@ async function benchStreet(page) {
     },
     driving: metrics.vehicleActive,
     cellStreaming,
+    streamLifecycle,
     preset: qualityPreset,
     fpsSamples: samples,
     frameSummary,
@@ -840,7 +926,7 @@ async function main() {
   mkdirSync(dirname(outPath), { recursive: true });
 
   console.log(`  Fixture: ${fixturePath}`);
-  console.log(`  Route: ${route}; data: ${dataMode}; cache: ${cacheMode}; preset: ${qualityPreset}; geometry workers: ${geometryWorkers}; city data copy: ${cityDataCopyMode}; road query: ${roadQueryMode}; browser: ${browserChannel}; renderer: ${rendererMode}; hour: ${benchmarkEnvironment.hour}; weather: ${benchmarkEnvironment.weather}; walk: ${walkDurationMs}ms${crossCell ? '; crossing a cell boundary' : ''}${resourceSoakEnabled ? '; resource soak' : ''}`);
+  console.log(`  Route: ${route}; data: ${dataMode}; cache: ${cacheMode}; preset: ${qualityPreset}; geometry workers: ${geometryWorkers}; city data copy: ${cityDataCopyMode}; road query: ${roadQueryMode}; browser: ${browserChannel}; renderer: ${rendererMode}; hour: ${benchmarkEnvironment.hour}; weather: ${benchmarkEnvironment.weather}; walk: ${walkDurationMs}ms${crossCell ? '; crossing a cell boundary' : ''}${resourceSoakEnabled ? '; resource soak' : ''}${streamLifecycleEnabled ? '; streamed lamp lifecycle' : ''}`);
 
   const launchOptions = {
     headless: !headed,
@@ -851,10 +937,11 @@ async function main() {
   const context = await browser.newContext();
   const baseOrigin = new URL(baseUrl).origin;
   if (dataMode === 'recorded') {
-    const fixtureBody = JSON.stringify(BENCH_FIXTURE);
-    await context.route((url) => url.origin === baseOrigin && /^\/api\/city\//.test(url.pathname), (routeRequest) =>
-      routeRequest.fulfill({ status: 200, contentType: 'application/json', body: fixtureBody })
-    );
+    await context.route((url) => url.origin === baseOrigin && /^\/api\/city\//.test(url.pathname), (routeRequest) => {
+      const cityKey = decodeURIComponent(new URL(routeRequest.request().url()).pathname.split('/').at(-1));
+      const cityPayload = selectRecordedCityPayload(BENCH_FIXTURE, cityKey);
+      return routeRequest.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(cityPayload) });
+    });
   }
   if (['fixture', 'recorded'].includes(dataMode)) {
     await context.route((url) => url.origin === baseOrigin && url.pathname === '/api/assets', (routeRequest) =>
@@ -1017,6 +1104,7 @@ async function main() {
       cacheMode,
       driving,
       crossCell,
+      streamLifecycle: streamLifecycleEnabled,
       geometryWorkers,
       cityDataCopyMode,
       roadQueryMode,
@@ -1070,6 +1158,9 @@ async function main() {
     if (!result.street.movement.validated) throw new Error('Street movement did not exceed 0.25m; controls were not validated');
     if (crossCell && !result.street.cellStreaming?.validated) {
       throw new Error(`Cell-crossing validation failed: ${JSON.stringify(result.street.cellStreaming)}`);
+    }
+    if (streamLifecycleEnabled && !result.street.streamLifecycle?.validated) {
+      throw new Error(`Streamed lamp lifecycle validation failed: ${JSON.stringify(result.street.streamLifecycle)}`);
     }
 
     if (skipGlobe) result.globe = { skipped: true };

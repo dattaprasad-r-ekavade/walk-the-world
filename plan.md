@@ -27,7 +27,11 @@ offline KTX2 ETC1S/UASTC comparison covers all nine shared and facade maps.
 Stages 3.5 and 3.6 now include shared runtime maps and selective high-tier packed
 facade PBR maps. The RTX 4060 smoke estimates 19.3 MB compressed mip residency
 when high is active; low-memory and mobile texture checks remain open. Work is
-consolidated on `main`.
+consolidated on `main`. The latest checkpoint also adds deterministic procedural
+surface maps, reversible wet-road color tuning, corrected bloom/SSAO transitions,
+and per-cell lamp lifecycle validation. The latest unit suite passes 130 tests
+across 19 files and the production build passes. Wet-road visual acceptance,
+controlled post-FX comparison and real-mobile checks remain open.
 
 ## 1. Verified baseline and scope
 
@@ -710,13 +714,77 @@ street/assemble-city.js and StreetEngine.js.
     stayed near 92% median utilization on this machine. The captures show rain
     clearly, but the road-reflection difference is subtle, so close-up visual
     acceptance remains open. See the [current-code checkpoint](benchmarks/results/stage4/current-main-local-fallback-rome-night.md).
+  - Added stable seeded random generation for procedural normal, roughness and
+     rail-ballast textures so visual captures use the same maps across runs; this
+     work occurs during asset creation and adds no per-frame work. The production
+     build and all 127 tests passed after the latest post-processing and wet-road
+     changes. One matched 12-second high-tier close-up
+     night pair on visible Chrome/Intel UHD 630 recorded 33.5 ms frame-p95 for
+     both clear and rain, 20.74/21.38 ms GPU-timer p95, 40 average FPS, and no
+     browser, page or asset errors. The existing street-light pool stayed at
+     4/4 assigned and active for both runs, with 17 lamp markers. A rough
+     scanline sample found road-to-adjacent-ground luminance contrast of
+     -39.08 clear and -39.12 rain, so these captures do not demonstrate a
+     road-specific reflection gain. Keep visual acceptance open. See the
+     [clear capture](benchmarks/results/stage4/deterministic-wet-road-night-clear.png),
+     [rain capture](benchmarks/results/stage4/deterministic-wet-road-night-rain.png),
+     and their adjacent JSON reports.
+   - Wet roads now also darken their existing diffuse color by up to 14%, while
+     retaining the dry color for reversible weather updates. This changes a
+     uniform only and adds no texture upload or shader pass. The 28 October
+     2-second same-pose high-tier smoke confirmed all seven road-material
+     variants changed from their dry colors/roughness to wet values at weather
+     90 (roughness 1.0 → 0.208); the captured pair remains visual evidence, not
+     a performance A/B. The screenshot difference in road reflections is still
+     subtle, so Stage 4.3 stays open. See [clear](benchmarks/results/stage4/wet-albedo-night-clear-2s.png)
+     and [rain](benchmarks/results/stage4/wet-albedo-night-rain-2s.png).
 - [ ] 4.4 Verify existing four-light high-tier pool reassignment, newly streamed/
   evicted lamp markers and quality transitions. Stable light counts avoid shader
   churn, but visible zero-intensity lights can still cost shading; measure policy.
   Do not add a second pool or shadow map for every lamp.
+  - [x] In the production app on 28 October, switch high night → medium night →
+    high night → high day → high night with the settings UI and time control. The
+    pool stayed at four lights; active/assigned counts changed 3 → 0 → 3 → 0 → 3
+    with no page errors. The three active lights are the markers inside the
+    configured radius; 17 lamp markers were present. This confirms transition
+    behavior and stable pool size, not the shading cost of visible zero-intensity
+    lights.
+  - [x] Run a recorded Rome high-tier night boundary walk. It crossed into the
+    expected east neighbor, settled with 10/10 cells and no failures, and kept
+    the pool bounded at four lights. At the endpoint no lamp was inside the
+    assignment radius. Frame p95 was 50 ms with 59.94% system CPU, 1,148 MB
+    minimum free memory and 85.27% peak 3D-engine utilization; treat this as a
+    loaded diagnostic, not a clean performance comparison. That first fixture
+    did not change its 17 lamp-marker count, so it left streamed/evicted marker
+    validation open. See the [crossing capture](benchmarks/results/stage4/light-pool-crossing-night.json).
+  - [x] Add `--stream-lifecycle` to the recorded-city benchmark and run the
+    synthetic per-cell lamp fixture in visible Chrome on Intel UHD 630. The
+    settled origin began with one lamp marker; the adjacent-cell crossing loaded
+    the fixture's second lamp (1 → 2), and moving to the east-four cell evicted
+    its source cell and removed that marker (2 → 1). The streamer settled with
+    10/10 resident cells and no failures. The one-second medium/night run had a
+    valid capture window but is functional evidence, not a performance A/B
+    (49.9 ms frame p95). No browser, page or local-asset errors occurred. See
+    [the passing lifecycle report](benchmarks/results/stage4/lamp-stream-lifecycle.md).
+    The separate cost of keeping zero-intensity pool objects visible remains
+    open.
 - [ ] 4.5 Tune existing half-resolution bloom before selective masking; compare
   extra passes if masking is needed. Compare optional SSAO with vertex/baked
   contact shading; inspect halos and washed-out daytime surfaces.
+  - [x] Centralize the quality/time pass policy and expose actual SSAO/bloom
+    pass state in benchmark metadata. Browser verification confirmed High keeps
+    SSAO+bloom on, Medium night uses bloom only, and Medium day turns both off;
+    High↔Medium transitions retained the same policy without page errors. The
+    earlier metadata had reported Medium night post-FX off even when the runtime
+    had enabled bloom, so older Medium-night metadata must not be used to judge
+    the pass policy. The policy tests and production build passed with 127 tests.
+  - [ ] A 28 October same-pose Medium/High comparison was captured, but is not a
+    valid A/B: Medium recorded 34 ms frame-p95 / 15.06 ms GPU-p95 with 67.53%
+    system CPU and 1,252 MB minimum free memory; High recorded 83.3 ms / 36.47 ms
+    while system CPU reached 100% and free memory fell to 854 MB. Both runs had
+    no browser/page/asset errors and the refreshed metadata correctly showed
+    Medium night bloom-only and High SSAO+bloom. Repeat under controlled host
+    load before tuning pass settings or claiming a performance difference.
 - [ ] 4.6 Retain quantized PMREM/shadow updates. Measure small-object shadow
   pruning and contact approximations without losing essential silhouette shadows.
   Do not regenerate environments every frame.
@@ -879,6 +947,13 @@ Use the Rome showcase fixture explicitly:
     npm run bench -- --base-url http://127.0.0.1:3456 --data-mode recorded --cache-mode cold --fixture benchmarks/fixtures/rome-showcase-osm.json --browser-channel chrome --renderer-mode browser-default --headed --skip-globe --cross-cell --out benchmarks/results/stage0/recorded-cold-walk.json
     npm run bench -- --base-url http://127.0.0.1:3456 --data-mode recorded --cache-mode warm --fixture benchmarks/fixtures/rome-showcase-osm.json --browser-channel chrome --renderer-mode browser-default --headed --skip-globe --cross-cell --out benchmarks/results/stage0/recorded-warm-walk.json
 
+For a per-cell fixture that has at least one lamp in the origin and a later
+cell, add `--stream-lifecycle` alongside `--cross-cell`. It checks the settled
+origin count, the streamed marker count and removal after the source cell is
+evicted. This lifecycle run is not a performance comparison:
+
+    npm run bench -- --base-url http://127.0.0.1:3456 --data-mode recorded --cache-mode cold --fixture benchmarks/fixtures/rome-lamp-stream.json --browser-channel chrome --renderer-mode browser-default --headed --skip-globe --skip-host-telemetry --cross-cell --stream-lifecycle --walk-ms 1000 --hour 21 --weather 0 --out benchmarks/results/stage4/lamp-stream-lifecycle-v3.json
+
 The default commands use a small fixture; they do not satisfy Stage 0's full
 matrix. The runner accepts
 `--hour` (0–24), `--weather` (0–100; precipitation starts at 85), `--pose-x`,
@@ -912,9 +987,14 @@ None is a prerequisite for this sequence.
 **Next bounded work:** Stages 3.7 and 3.8 and Stages 4.1–4.2 are implemented;
 road-ribbon evidence is in [the road-ribbon review](benchmarks/results/stage4/road-ribbons.md).
 Stage 4.3 now has a valid current-code performance and material-inheritance
-checkpoint, but its close-up wet-road appearance still needs review. Continue
-with a controlled near-road/light-pool capture, then Stage 4.4's streamed lamp
-reassignment and quality-transition checks. Stage 0.8 dense live-city
+checkpoint and deterministic procedural maps, but its close-up wet-road
+appearance still needs review. Stage 4.4 now has production UI evidence for
+quality/time transitions and a verified crossing, but still needs a meaningful
+streamed/evicted marker check is now passing; measure the shading policy for
+visible zero-intensity lights. Stage 4.5's live pass-state metadata is correct,
+but its tier comparison was contaminated by 100% host CPU and needs a clean
+repeat. The latest unit run passed 130 tests across 19 files.
+Stage 0.8 dense live-city
 cold/warm walk/drive, Stage 1 mobile assembly and input latency, Stage 1.3
 low-core worker plus KTX2 contention/memory, and lower-memory/mobile high-atlas
 checks remain release gates. Recorded Rome replay is client/streaming evidence,
