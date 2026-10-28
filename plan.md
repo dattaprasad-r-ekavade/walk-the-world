@@ -1,7 +1,7 @@
 # Walk the World — Performance and Visuals Implementation Plan
 
-Updated: 28 October 2026. Reviewed base: `e90a47a` on `main`; subsequent
-rendering fixes and the benchmark-only wet-road prototype are in this checkpoint.
+Updated: 28 October 2026. Reviewed base: `d1bc537` on `main`; current work adds
+explicit per-city demo headings and closes demo deployment gates D4–D6.
 This is the active plan. The [previous detailed checkpoint](docs/PLAN-CHECKPOINT-2026-10-28-BEFORE-REVIEW.md)
 preserves the full experiment history; its status is historical.
 
@@ -23,33 +23,38 @@ Acceptance for demo-track items (lighter than section 3):
 
 Demo-track items:
 
-- [x] **D1 — Ground and sidewalks near the player.** Done: raster darkened,
-  world-space detail grain near the player, stronger zebras; road-decal lane
-  markings still open. At street level the ground
-  reads as a flat white/beige smear and road markings are hard to see. Make the
-  first 60 m read as asphalt with markings, kerbs and paved sidewalks. Prefer a
-  world-space detail texture faded with distance over a larger ground canvas.
-- [ ] **D2 — Per-city demo presets.** Each demo place opens at a chosen time and
-  weather (not the live local time; New York opened dark at 06:00) and a curated
-  start position and heading (Pune spawned facing an empty lot). Live time and
-  weather stay the default outside the demo places.
+- [ ] **D1 — Ground and sidewalks near the player (partial).** Raster darkening,
+  near-player detail grain and stronger zebras are implemented. Current live
+  captures still show a broad flat pale foreground; lane decals, kerbs and paved
+  sidewalks remain open. Make the first 60 m read as asphalt with markings,
+  kerbs and paved sidewalks. Prefer world-space detail faded with distance over
+  a larger ground canvas.
+- [ ] **D2 — Per-city demo presets.** Each demo place now has a fixed start
+  coordinate, time, weather and explicit heading. Pune's 270° heading replaces
+  the empty-lot view; other headings match the captured street-framing angles.
+  `StreetEngine` applies the preset heading after safe street placement. The
+  [Pune angle preview](screenshots/demo-track/rehearsal-2026-10-28/pune-heading-270-candidate.jpg)
+  is a browser-side comparison, not a post-change app capture. Unit tests and
+  the production build pass; close D2 after a post-deploy matched screenshot and
+  visible-Chrome smoke.
 - [ ] **D3 — Facade textures visible on demo hardware.** Prefetch the shared KTX2
   set and Basis decoder while the menu is open. Allow the near facade set on the
   medium tier on desktop GPUs that support compressed formats. Low tier and
   mobile stay unchanged.
-- [ ] **D4 — Benchmark mode cannot reach live visitors.** `?bench=1` only works
-  in builds with `NEXT_PUBLIC_ENABLE_BENCH=1` or in development.
-- [ ] **D5 — Remove dead deploy weight.** Delete the unhashed KTX2 and Basis
-  decoder copies in `public/` (about 7 MB); the runtime uses only hashed paths.
-  Stop the asset script from recreating them. Ignore raw benchmark JSON/PNG
-  results in git; keep committed decision reports.
-- [ ] **D6 — Service-worker revision on every build.** `npm run build` stamps a
-  new shell-cache revision, so a deploy never serves an old shell.
-- [ ] **D7 — Demo rehearsal checklist.** After each demo-track change, load all
-  four cities on the live deployment, confirm all 36 demo cells are warm
-  (`npm run seed:direct` seeds Overpass straight into R2 from a local machine,
-  without the API route's 85 s limit), and record time-to-ready and one
-  screenshot per city with `npm run rehearse`.
+- [x] **D4 — Benchmark mode cannot reach live visitors.** A normal production
+  build opened at `/street?bench=1` with `window.__BENCH_MODE` false; only
+  `NEXT_PUBLIC_ENABLE_BENCH=1` builds and development enable it.
+- [x] **D5 — Remove dead deploy weight.** `public/` contains only content-hashed
+  KTX2 maps and revisioned Basis decoder files. The runtime asset builder writes
+  those hashed paths, and `.gitignore` excludes raw benchmark JSON/PNG results.
+- [x] **D6 — Service-worker revision on every build.** `npm run build` invoked
+  `prebuild` and stamped `CACHE_REVISION` from package, commit and texture
+  revisions before Next.js built.
+- [ ] **D7 — Demo rehearsal checklist.** The 28 October
+  [visible-Chrome baseline](screenshots/demo-track/rehearsal-2026-10-28/report.json)
+  confirms 36/36 cells warm, all four cities ready and zero console errors.
+  Rerun after the D2 heading change is deployed; keep the four screenshots and
+  the per-city time-to-ready, heading and frame-time report.
 - [x] **D8 — Facade and storefront variation (from 4.7).** Done: wider
   storefront rule, per-building window band/U shift and tint. Ground-floor shopfronts,
   entrances and roof silhouettes at the four demo start points.
@@ -176,11 +181,10 @@ mobile, offline and several visual gates remain open.
 | 6–8 Alternatives | Conditional, deferred | Only prototype Rust/Wasm, SIMD or prebuilt cells after their measured prerequisite passes |
 | 9 Integration | Open | Full regression, hardware/visual acceptance and release records |
 
-Latest validation: all 138 tests across 21 files and the production build pass,
-including the current roughness draft, resource cleanup and atlas fallback checks.
-This review inspected source and matching installed Three.js 0.170.0 code; it did
-not rerun the device performance matrix or prove release readiness. Existing tests
-do not cover the ownership failures below.
+Latest validation: all 167 tests across 26 files and the production build pass,
+including the new demo-heading normalization case. This review still does not
+rerun the full device performance matrix or prove release readiness. Existing
+tests do not cover the ownership failures below.
 
 ### Priority issues found in this review
 
@@ -656,12 +660,15 @@ matched settings, tested hardware, thresholds and remaining gates.
 
 ## 15. Next action and deferred choices
 
-1. Demo track D1–D8 is complete; rerun `npm run rehearse` after each deploy.
-2. Section 0b: A1 and A2 first, then A3–A5, then B1 and B2.
-3. Then the remaining R1–R4 browser and device checks.
-4. Deprioritized: R5 and 4.3 wet-road tuning (captures show little visible
-   gain), the 0.8 Manhattan live baseline, and the conditional Stage 6–8
-   experiments. Revisit them only when a demo viewer would notice the result.
+1. Close D2 and D7 with a visible-Chrome rehearsal after the heading change
+   reaches the live deployment; all 36 cells were warm in the pre-change run.
+2. Reopen D1 based on current screenshots: finish near-road markings, kerbs and
+   sidewalks. Verify D3's medium-tier facade visibility on demo hardware.
+3. Then Section 0b A3–A5, followed by B1 and B2; keep R1–R4 browser/device
+   validation open and address it after the priority-0 demo gates.
+4. Deprioritize R5 and 4.3 wet-road tuning (captures show little visible gain),
+   the 0.8 Manhattan live baseline, and conditional Stage 6–8 experiments unless
+   a demo viewer would notice the result.
 
 Rust/Wasm/SIMD remains deferred: an earlier synthetic trace measured worker
 compute at 25.9 ms median versus 729.4 ms roundtrip. That trace does not establish

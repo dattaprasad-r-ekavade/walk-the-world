@@ -8,7 +8,7 @@ import {
   pitchedRoofColor,
   wantsPitchedRoof,
 } from '../lib/engine/styles.js';
-import { DEMO_PLACES, demoPlaceNear, demoPresetNear, streetUrl } from '../lib/geo.js';
+import { DEMO_PLACES, demoHeadingRadians, demoPlaceNear, demoPresetNear, streetUrl } from '../lib/geo.js';
 import { dailyDestination, allDestinations } from '../lib/daily.js';
 import { streetShareUrl, photoFilename } from '../lib/share.js';
 
@@ -527,13 +527,21 @@ describe('demo presets', () => {
       expect(p.preset.hour).toBeGreaterThanOrEqual(17);
       expect(p.preset.hour).toBeLessThanOrEqual(19);
       expect(p.preset.weather).toBe(0);
+      expect(p.preset.headingDeg).toBeGreaterThanOrEqual(0);
+      expect(p.preset.headingDeg).toBeLessThan(360);
     }
   });
   it('looks up the nearest demo place within 300 m only', () => {
-    expect(demoPresetNear(40.758, -73.9855)).toEqual({ hour: 18, weather: 0 });
+    expect(demoPresetNear(40.758, -73.9855)).toEqual({ hour: 18, weather: 0, headingDeg: 292 });
     expect(demoPlaceNear(35.6597, 139.7007).name).toBe('Tokyo');
     expect(demoPresetNear(35.67, 139.7005)).toBeNull();
     expect(demoPresetNear(NaN, 0)).toBeNull();
+  });
+  it('normalizes demo headings to the street engine frame', () => {
+    expect(demoHeadingRadians({ headingDeg: 270 })).toBeCloseTo(3 * Math.PI / 2);
+    expect(demoHeadingRadians({ headingDeg: -11 })).toBeCloseTo(349 * Math.PI / 180);
+    expect(demoHeadingRadians({ headingDeg: 360 })).toBe(0);
+    expect(demoHeadingRadians({})).toBeNull();
   });
   it('Pune start stays within 200 m of Koregaon Park', () => {
     const p = DEMO_PLACES.find((d) => d.name === 'Pune');

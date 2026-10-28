@@ -37,7 +37,7 @@ import { disposeSceneGroup } from "@/lib/engine/street/resources";
 import { createHudRef } from "@/lib/engine/street/hud-ref";
 import { GameShell } from "@/components/game-shell/GameShell";
 import { useRouter } from "next/navigation";
-import { streetUrl } from "@/lib/geo";
+import { demoHeadingRadians, streetUrl } from "@/lib/geo";
 import { useGameStore } from "@/stores/game-store";
 import { useGameKeyboard } from "@/hooks/use-game-keyboard";
 import { touchInputRef, readTouchMovement, applyTouchLook } from "@/lib/touch-input";
@@ -1473,6 +1473,7 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false, demo
       // Demo arrival (?demo=1): apply the city's preset once instead of live
       // local time/weather; the user can still change both in settings afterwards.
       const demoApplied = !!demoPreset && window.__BENCH_MODE !== true;
+      const demoHeading = demoApplied ? demoHeadingRadians(demoPreset) : null;
       const initialHour = demoApplied && Number.isFinite(demoPreset.hour)
         ? Math.max(0, Math.min(24, demoPreset.hour))
         : Number.isFinite(initialSettings.hour)
@@ -1574,6 +1575,15 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false, demo
         player.pitch = 0;
         player.moving = false;
         window.__BENCH_POSE_APPLIED = true;
+      } else if (cityBuilt && demoHeading !== null) {
+        const headingDeg = ((demoPreset.headingDeg % 360) + 360) % 360;
+        player.heading = demoHeading;
+        player.pitch = 0;
+        runtime.current.spawnFraming = {
+          ...(runtime.current.spawnFraming || {}),
+          headingSource: "demo-preset",
+          headingDeg,
+        };
       }
       markPerf("streaming-complete", { scope: "spawn-cell", cityBuilt });
       for (const entry of edits.assets || []) placeAsset(entry, false);

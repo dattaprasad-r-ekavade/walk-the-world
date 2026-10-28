@@ -70,7 +70,7 @@ async function rehearsePlace(browser, base, place, outDir) {
   const errors = [];
   page.on("console", (m) => { if (m.type() === "error") errors.push(m.text()); });
   page.on("pageerror", (e) => errors.push(String(e.message || e)));
-  const res = { ready: false, readyMs: null, consoleErrors: 0, p50: null, p95: null, shot: null, note: "" };
+  const res = { ready: false, readyMs: null, consoleErrors: 0, p50: null, p95: null, spawn: null, shot: null, note: "" };
   try {
     const url = `${base}/street?lat=${place.lat}&lon=${place.lon}&demo=1`;
     await page.goto(url, { waitUntil: "domcontentloaded", timeout: 60000 });
@@ -80,6 +80,24 @@ async function rehearsePlace(browser, base, place, outDir) {
       res.readyMs = Math.round(await page.evaluate(() => performance.now()));
     } catch { res.note = "not ready in 90s"; }
     await page.waitForTimeout(4000);
+    res.spawn = await page.evaluate((expectedHeadingDeg) => {
+      const debug = window.__streetDebug;
+      const player = debug?.player;
+      const framing = debug?.spawnFraming?.() || null;
+      const heading = Number.isFinite(player?.heading) ? player.heading : null;
+      const headingDegrees = heading === null ? null : ((Math.round(heading * 180 / Math.PI) % 360) + 360) % 360;
+      return {
+        framing,
+        headingRadians: heading,
+        headingDegrees,
+        expectedHeadingDeg,
+        headingMatchesPreset: expectedHeadingDeg === null ||
+          (headingDegrees === expectedHeadingDeg && framing?.headingSource === "demo-preset"),
+        localPosition: player && Number.isFinite(player.x) && Number.isFinite(player.z)
+          ? { x: +player.x.toFixed(1), z: +player.z.toFixed(1) }
+          : null,
+      };
+    }, Number.isFinite(place.preset?.headingDeg) ? place.preset.headingDeg : null);
     const shot = path.join(outDir, `${slugify(place.name)}.jpg`);
     await page.screenshot({ path: shot, type: "jpeg", quality: 80 });
     res.shot = shot;
@@ -108,7 +126,7 @@ export async function main(argv = process.argv.slice(2)) {
   console.log(`Base ${args.base}  R2 ${r2}\n`);
 
   const report = { base: args.base, r2, headed: args.headed, at: new Date().toISOString(), places: [] };
-  for (const p of DEMO_PLACES) report.places.push({ name: p.name, cells: await checkCells(p, r2) });
+  for (const p of DEMO_PLACES) report.places.push({ name: p.name, preset: p.preset, cells: await checkCells(p, r2) });
 
   const { chromium } = await import("playwright");
   let browser;
@@ -130,14 +148,20 @@ export async function main(argv = process.argv.slice(2)) {
     ready: r.browser.ready ? "yes" : "NO",
     readyMs: r.browser.readyMs,
     errors: r.browser.consoleErrors,
+    "heading°": r.browser.spawn?.headingDegrees,
+    headingMatch: r.browser.spawn?.headingMatchesPreset ? "yes" : "NO",
     "p50ms": r.browser.p50,
     "p95ms": r.browser.p95,
   }));
-  console.log(formatTable(rows, ["city", "cells", "ready", "readyMs", "errors", "p50ms", "p95ms"]));
+  console.log(formatTable(rows, ["city", "cells", "ready", "readyMs", "errors", "heading°", "headingMatch", "p50ms", "p95ms"]));
   for (const r of report.places) if (r.cells.missing.length) console.log(`\nMissing (${r.name}):\n  ${r.cells.missing.join("\n  ")}`);
-  console.log("\nNote: headless timings are not hardware evidence.");
+  console.log(args.headed
+    ? "\nVisible Chrome run; timings represent this host."
+    : "\nNote: headless timings are not hardware evidence.");
   fs.writeFileSync(path.join(args.out, "report.json"), JSON.stringify(report, null, 2));
-  const bad = report.places.some((r) => r.cells.missing.length || !r.browser.ready);
+  const bad = report.places.some((r) =>
+    r.cells.missing.length || !r.browser.ready || r.browser.spawn?.headingMatchesPreset === false
+  );
   return bad ? 1 : 0;
 }
 
