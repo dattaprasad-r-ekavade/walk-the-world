@@ -105,4 +105,24 @@ describe("prebuilt cell runtime loader", () => {
       decode: async () => ({ metadata: { ...metadata, sourceHash: "stale" }, result }),
     })).resolves.toBeNull();
   });
+
+  it("falls back from the index before downloading a cell that overlaps an owned cell", async () => {
+    const fetchImpl = vi.fn().mockResolvedValueOnce(response({
+      format: "walk-the-world-prebuilt-cell-index",
+      version: 1,
+      builderRevision: "b".repeat(64),
+      materialRevision: "c".repeat(16),
+      cells: { [key]: { ...entry, featureOverlapKeys: ["wtw_city6_35.665_139.701"] } },
+    }));
+
+    await expect(fetchPrebuiltCell(key, {
+      expectedBuilderRevision: "b".repeat(64),
+      expectedMaterialRevision: "c".repeat(16),
+      fetchImpl,
+      getOwnedCellKeys: () => new Set(["wtw_city6_35.665_139.701"]),
+    })).resolves.toEqual({ kind: "raw-fallback", reason: "feature-id-overlap" });
+    expect(fetchImpl).toHaveBeenCalledOnce();
+    expect(fetchImpl.mock.calls[0][0]).toBe("/prebuilt-cells/index.json");
+  });
+
 });

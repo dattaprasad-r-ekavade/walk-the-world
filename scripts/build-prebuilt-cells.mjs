@@ -7,6 +7,7 @@ import { fileURLToPath } from "node:url";
 import sharp from "sharp";
 import { createServer } from "vite";
 import { encodePrebuiltCell } from "../lib/engine/prebuilt-cell-encoder.js";
+import { buildPrebuiltCellOverlapIndex } from "../lib/engine/prebuilt-cell-overlap-index.js";
 import { computePrebuiltBuilderRevision, readMaterialRevision } from "./prebuilt-cell-revision.mjs";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -149,6 +150,7 @@ async function bakeOne({ key, inputDir, outputDir, terrainCacheDir, origin }, ap
     outputToSourceRatio: Number((bytes.byteLength / sourceBytes.byteLength).toFixed(3)),
     sourceHash: metadata.sourceHash,
     terrainRevision: metadata.terrainRevision,
+    featureIds: metadata.featureIds,
     clippedElementCount: elements.length,
     buildingCount: result.buildingCount,
     terrainTiles: terrainTiles.length,
@@ -225,7 +227,7 @@ async function main(argv = process.argv.slice(2)) {
       threeVersion: api.threeVersion,
       builderRevision: api.builderRevision,
       materialRevision: api.materialRevision,
-      entries: rows,
+      entries: rows.map(({ featureIds, ...row }) => row),
     };
     writeFileSync(path.join(args.outputDir, "bake-report.json"), JSON.stringify(report, null, 2));
     const indexPath = path.join(args.outputDir, "index.json");
@@ -239,6 +241,7 @@ async function main(argv = process.argv.slice(2)) {
         }
       } catch { /* replace an invalid index with the current bake set */ }
     }
+    const overlapKeysByCell = buildPrebuiltCellOverlapIndex(rows);
     for (const row of rows) {
       cells[row.key] = {
         file: row.output,
@@ -248,6 +251,7 @@ async function main(argv = process.argv.slice(2)) {
         terrainRevision: row.terrainRevision,
         editorRevision: row.editorRevision,
         origin: row.origin,
+        featureOverlapKeys: overlapKeysByCell.get(row.key) || [],
       };
     }
     writeFileSync(indexPath, JSON.stringify({

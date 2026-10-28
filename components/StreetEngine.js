@@ -800,6 +800,16 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false, demo
         return false;
       }
     };
+    let prebuiltTerrainValidationPromise = null;
+    const cityDataWithPrebuiltValidationPromise = cityDataPromise.then((data) => {
+      if (data?.kind === "prebuilt" && !disposed) {
+        prebuiltTerrainValidationPromise = measurePerfAsync(
+          "city.prebuilt-terrain-revision",
+          () => validatePrebuiltTerrain(data)
+        );
+      }
+      return data;
+    });
     let spawnCellUsedPrebuilt = false;
     const loadCity = async (data) => {
       spawnCellUsedPrebuilt = false;
@@ -812,10 +822,10 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false, demo
         const metadata = data.metadata;
         const revisionsMatch = metadata.terrainZoom === Z &&
           metadata.editorRevision === "unmodified" && !hasGeometryEdits(runtime.current.edits);
-        const terrainMatches = revisionsMatch && await measurePerfAsync(
+        const terrainMatches = revisionsMatch && await (prebuiltTerrainValidationPromise || measurePerfAsync(
           "city.prebuilt-terrain-revision",
           () => validatePrebuiltTerrain(data)
-        );
+        ));
         if (!terrainMatches) {
           markPerf("city-prebuilt-fallback", {
             key: metadata.key,
@@ -1579,7 +1589,7 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false, demo
       setStage("Streaming city…");
       markPerf("input-ready", { terrainTiles: terrainTiles.size });
       ktx2TextureLoader.setWalkingReady();
-      const cityData = await cityDataPromise;
+      const cityData = await cityDataWithPrebuiltValidationPromise;
       markPerf("city-data-ready", {
         elements: cityData?.metadata?.elementCount ?? cityData?.elements?.length ?? 0,
         partial: !!cityData?.partial,
