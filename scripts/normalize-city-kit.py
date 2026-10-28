@@ -149,8 +149,8 @@ def main():
         report.append({"id": item["id"], "output": item["outputFile"], "sizeMeters": rounded(gltf_size), "frontAxisCorrectionDegrees": item.get("frontAxisCorrectionDegrees", 0), "sha256": item["processedSha256"]})
         print(f"{item['id']}: {item['outputFile']} size={rounded(gltf_size)} sha256={item['processedSha256']}")
 
-    manifest["outputRevision"] = "stage3-pipeline-r1"
-    manifest["status"] = "source snapshots, PBR atlases and normalised prop GLBs built; facade/emissive integration and visual adoption remain pending"
+    manifest["outputRevision"] = "stage3-pipeline-r2"
+    manifest["status"] = "source snapshots, PBR atlases, aligned procedural facade/emissive atlases and normalised props built; runtime adoption and browser visual approval remain pending"
     manifest["propKit"]["normalization"] = {
         "revision": "stage3-geometry-r1",
         "tool": "Blender " + bpy.app.version_string,

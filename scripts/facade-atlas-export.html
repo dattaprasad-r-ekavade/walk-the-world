@@ -1,0 +1,24 @@
+<!doctype html>
+<meta charset="utf-8">
+<script type="importmap">
+{
+  "imports": {
+    "three": "../node_modules/three/build/three.module.js"
+  }
+}
+</script>
+<script type="module">
+  import { FACADE_ATLAS_LAYOUT, makeFacadeAtlas, makeLitWindowAtlas } from "../lib/engine/facade-uv.js";
+
+  try {
+    const facade = makeFacadeAtlas();
+    const emissive = makeLitWindowAtlas();
+    window.__assetAtlasData = {
+      layout: FACADE_ATLAS_LAYOUT,
+      facade: facade.image.toDataURL("image/png"),
+      emissive: emissive.image.toDataURL("image/png"),
+    };
+  } catch (error) {
+    window.__assetAtlasError = String(error?.stack || error);
+  }
+</script>

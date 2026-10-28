@@ -597,12 +597,12 @@ scripts/build-assets.mjs and public/textures/.
   - Progress, not exit: source snapshots are retained and hashed; four shared
     PBR atlases have 16px edge-dilated gutters; missing AO uses white; four
     Kenney GLBs have bottom-centred pivots, metre scaling and audited +Z-facing
-    fronts. Details and output hashes are in [the manifest](assets/manifest.json).
-    Blender 5.2.0 and Pillow 10.4.0 are pinned, with rebuild instructions in
-    [the asset pipeline notes](assets/README.md). Facade-window/storefront detail
-    is not yet baked into the PBR atlases, and browser integration/visual approval
-    remains open; the existing procedural facade and emissive atlases still share
-    their grid.
+    fronts. The procedural facade and its night emissive mask are exported from
+    their shared grid as a PNG pair. Details and output hashes are in [the
+    manifest](assets/manifest.json). Blender 5.2.0 and Pillow 10.4.0 are pinned,
+    with rebuild instructions in [the asset pipeline notes](assets/README.md).
+    Composing source PBR maps into the facade cells, runtime integration and
+    browser visual approval remain open.
 - [ ] 3.4 Pin offline conversion tools. Compare KTX2 ETC1S/UASTC per map type,
   inspecting normals, window detail and masks. ORM packing saves files; stock
   shaders may still sample each map separately. KTX2 encoder/transcoder versions
@@ -838,16 +838,15 @@ for Cesium, imagery and model resources. SSR, volumetrics, displacement, dense
 skeletal crowds and shadowed lamp arrays require separate high-tier budgets.
 None is a prerequisite for this sequence.
 
-**Next bounded work:** finish Stage 3.3 by baking the shallow facade/window
-detail into the shared atlas layout, preserving exact alignment with the night
-emissive mask, then inspect that integration in the browser. The offline PBR
-atlases and normalised props now exist, but are not loaded at runtime. After this
-content step, pin KTX2 tools and compare ETC1S/UASTC by map type before any loader
-adoption. Stage 0.8 dense live-city cold/warm walk/drive, Stage 1 mobile assembly
-and input latency, and Stage 1.3 low-core worker plus KTX2 contention/memory
-checks remain release gates; runtime adoption must preserve the measured
-fallback and resource budgets. Recorded Rome replay is client/streaming
-evidence, not live Overpass evidence.
+**Next bounded work:** finish Stage 3.3 by composing selected source PBR maps
+into the shared facade cells and checking that they retain exact alignment with
+the emissive atlas. Inspect the result in the browser before loading it through
+the runtime material factory. After this content step, pin KTX2 tools and compare
+ETC1S/UASTC by map type before any loader adoption. Stage 0.8 dense live-city
+cold/warm walk/drive, Stage 1 mobile assembly and input latency, and Stage 1.3
+low-core worker plus KTX2 contention/memory checks remain release gates; runtime
+adoption must preserve the measured fallback and resource budgets. Recorded
+Rome replay is client/streaming evidence, not live Overpass evidence.
 
 **Open acceptance gate:** Stage 0.8 still needs matched dense live-city cold/
 warm and walk/drive boundary measurements. The 28 October Manhattan retries

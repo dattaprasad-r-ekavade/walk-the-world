@@ -41,10 +41,11 @@ Optional CC0 loops can be dropped at `public/audio/day.ogg` and
 
 Street materials remain procedural PBR (`lib/engine/materials.js`). The selected
 CC0 maps are preserved under `assets/source/ambientcg/` and assembled into
-shared atlases under `assets/processed/materials/`; the Kenney props have
-normalised GLB outputs under `assets/processed/props/`. These outputs are not
-loaded by the runtime yet. No directional sunlight is baked into the source
-albedo maps, and the existing procedural lit-window atlas remains separate.
+shared atlases under `assets/processed/materials/`; the existing procedural
+facade and aligned night-emissive maps are also exported under
+`assets/processed/facades/`. The Kenney props have normalised GLB outputs under
+`assets/processed/props/`. These outputs are not loaded by the runtime yet. No
+directional sunlight is baked into the source albedo maps.
 
 | Set | Publisher / author | License | Source |
 |---|---|---|---|

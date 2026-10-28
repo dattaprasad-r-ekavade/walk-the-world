@@ -15,6 +15,7 @@
     "fixtures:build:rome": "node scripts/build-osm-fixture.mjs",
     "bench:street": "node scripts/validate-street.mjs",
     "assets:build": "node scripts/build-assets.mjs",
+    "assets:facades": "node scripts/build-facade-atlases.mjs",
     "assets:preview": "blender --background --python scripts/render-asset-audit.py",
     "overture-index": "node scripts/build-overture-index.mjs",
     "enrich": "node scripts/enrich-r2-cells.mjs",

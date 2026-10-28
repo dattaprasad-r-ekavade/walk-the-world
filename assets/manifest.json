@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "manifestRevision": "stage3-source-r1",
-  "outputRevision": "stage3-pipeline-r1",
-  "status": "source snapshots, PBR atlases and normalised prop GLBs built; facade/emissive integration and visual adoption remain pending",
+  "outputRevision": "stage3-pipeline-r2",
+  "status": "source snapshots, PBR atlases, aligned procedural facade/emissive atlases and normalised props built; runtime adoption and browser visual approval remain pending",
   "sourceSelectionNotes": [
     "AmbientCG supplies the six selected PBR surfaces; its downloadable assets are CC0 1.0.",
     "Kenney City Kit Roads supplies the selected street props; the inspected package is version 2.2 and includes its CC0 license file.",
@@ -1968,6 +1968,59 @@
     "emissive": {
       "status": "not baked into the material atlases",
       "alignment": "existing procedural lit-window atlas shares the same GRID as the facade atlas in lib/engine/facade-uv.js"
+    }
+  },
+  "facadeAtlases": {
+    "revision": "stage3-facade-r1",
+    "builder": {
+      "script": "scripts/build-facade-atlases.mjs",
+      "playwright": "1.52.0",
+      "chrome": "156.0.8078.48"
+    },
+    "layout": {
+      "widthPx": 512,
+      "heightPx": 1024,
+      "storefrontV": [
+        0,
+        0.22
+      ],
+      "upperFacadeV": [
+        0.22,
+        1
+      ],
+      "windowGrid": {
+        "columns": 5,
+        "rows": 7,
+        "cells": 35
+      },
+      "emissiveSelectionProbability": 0.42,
+      "coordinateConvention": "pixel coordinates use top-left origin; UV bands use bottom-left origin"
+    },
+    "alignment": "both images are exported by makeFacadeAtlas() and makeLitWindowAtlas() from the shared GRID in lib/engine/facade-uv.js",
+    "directionalLightingBaked": false,
+    "maps": {
+      "facade": {
+        "file": "processed/facades/facade-basecolor-atlas.png",
+        "sha256": "7c851a8d309b3d7b71c73bb8a4d7e2e116b7e5656a59a191ab66728e89029dd6",
+        "bytes": 159567,
+        "resolutionPx": [
+          512,
+          1024
+        ],
+        "role": "procedural facade albedo with shallow wall/window/storefront detail",
+        "colorSpace": "sRGB"
+      },
+      "emissive": {
+        "file": "processed/facades/facade-emissive-atlas.png",
+        "sha256": "e5279564312bd6ca650af44e1db37a606354c84b7c84e0312f1af793900fe739",
+        "bytes": 54797,
+        "resolutionPx": [
+          512,
+          1024
+        ],
+        "role": "night window emissive mask aligned to the facade atlas grid",
+        "colorSpace": "sRGB"
+      }
     }
   }
 }
