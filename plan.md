@@ -85,7 +85,8 @@ do not cover the ownership failures below.
 ### Priority issues found in this review
 
 R1–R4 have implementation changes and unit checks; their remaining device and
-browser validation gates are listed below. Preserve gameplay and fallbacks.
+browser validation gates are listed below. R6's evidence labels are reconciled.
+Preserve gameplay and fallbacks.
 
 - [ ] **R1 — P1: Validate the road-specific environment intensity fix.**
   Previously [materials.js](lib/engine/materials.js) changed `material.envMapIntensity`
@@ -151,7 +152,9 @@ browser validation gates are listed below. Preserve gameplay and fallbacks.
   installation error. A visible Chrome run with service workers blocked injected
   invalid JSON, observed the fallback, retained shared maps and moved 4.09 m;
   [browser evidence](benchmarks/results/stage3/invalid-layout-browser-check.md).
-  Browser schema-error, service-worker/cache and offline validation remain open.
+  Cached asset/route offline responses are verified in Chrome; uncached offline
+  failure handling and the schema-invalid rectangle browser case remain open.
+  [Service-worker report](benchmarks/results/stage3/service-worker-offline-check.md).
 
 - [ ] **R5 — P2, benchmark prototype: Wet-map transition and acceptance are unfinished.**
   [materials.js:204](lib/engine/materials.js) swaps roughness textures at
@@ -167,11 +170,13 @@ browser validation gates are listed below. Preserve gameplay and fallbacks.
 
 ### Evidence/documentation corrections
 
-- [ ] **R6 — P2: Reconcile hardware labels in the lighting reports.**
+- [x] **R6 — P2: Reconcile hardware labels in the lighting reports.**
   The inactive-light report describes an i5-1035G1/Intel UHD machine but later
-  calls it UHD 630; the active plan inherited that label. Compare each raw run's
-  adapter/CPU metadata, use the recorded model or mark it unspecified, and avoid
-  combining devices in one comparison.
+  called it UHD 630; the lifecycle note repeated that label despite host telemetry
+  being disabled. All 18 retained lighting captures identify the same
+  i5-1035G1/Intel(R) UHD Graphics host. The lifecycle capture identifies the
+  WebGL adapter as Intel UHD Graphics (0x00008A56), but does not record its CPU.
+  Reports now use only the captured names; no UHD 630 claim remains.
 - Earlier baseline text claimed local main was 20 commits ahead and unpushed.
   That is superseded: `e90a47a` was verified on local and remote main before
   the current checkpoint.
@@ -315,11 +320,15 @@ Preserve visual/editor parity; real-city/mobile acceptance remains open.
   and deferred texture loading after input-ready.
   [Asset index](benchmarks/results/stage3/runtime-asset-index.md).
 
-Exit remains open: R4 malformed-layout cleanup, Stage 3.8 offline/failure browser
-check, lower-memory/mobile residency, and far mip seams (gutters fall below one
-pixel after mip 4). Three.js exposes combined worker/WASM/transcode timing and
-upload submission, not separate compile or GPU-upload completion. Publication
-is separate release work.
+Exit remains open: R4 schema-error browser fallback and disposal validation,
+uncached offline-miss recovery, lower-memory/mobile residency, and far mip seams
+(gutters fall below one pixel after mip 4). A production browser check verified
+offline service-worker responses for shared/high facade KTX2, the atlas layout,
+the Basis WASM decoder, and the cached street route. Its local loopback server
+remained reachable with Chromium offline mode enabled, so uncached network-failure
+fallback remains unverified. Three.js exposes combined worker/WASM/transcode
+timing and upload submission, not separate compile or GPU-upload completion.
+Publication is separate release work.
 
 ## 8. Stage 4 — Roads, lighting and regional appearance
 
@@ -341,7 +350,7 @@ is separate release work.
   lights stayed at 87 programs. Retain visible inactive lights.
   [Policy report](benchmarks/results/stage4/inactive-light-policy-checkpoint.md),
   [stream lifecycle](benchmarks/results/stage4/lamp-stream-lifecycle.md).
-  Resolve R6 device labels; mobile portability remains open.
+  Device labels are reconciled in R6; mobile portability remains open.
 - [ ] 4.5 Finish bloom halo/daytime washout review and compare cheaper contact
   shading before changing High defaults. Quality/time pass states are corrected.
   Five same-tier runs: High SSAO+bloom median GPU p95 33.81 ms versus 15.65 ms

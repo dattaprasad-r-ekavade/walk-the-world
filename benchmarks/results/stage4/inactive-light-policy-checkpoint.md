@@ -80,10 +80,15 @@ and hitch. Raw transition captures remain local as
 Keep inactive lights visible in the shipped runtime. Hiding them has a lower
 median daytime GPU timer p95 in this small sample, but it causes a repeatable
 2.7–2.9 second first-night shader stall and adds 18 shader programs on this
-Intel UHD 630 laptop. Visible lights keep the program count stable across both
+Intel UHD Graphics laptop. Visible lights keep the program count stable across both
 time changes. The benchmark-only hidden setting remains available for future
 device-specific checks; the product default is unchanged. These transition
 measurements cover one integrated GPU and do not establish mobile behavior.
+
+Device labels were checked against all 18 retained lighting capture files.
+Their Windows host telemetry consistently records an Intel Core i5-1035G1 and
+`Intel(R) UHD Graphics`; the saved adapter name does not identify the GPU as
+UHD 630. References to UHD 630 in this report were incorrect and are removed.
 
 Validation after the implementation: `npm test` passed 132 tests across 19
 files; `npm run build` passed. The benchmark runner validates requested

@@ -7,8 +7,11 @@ removed when the streamer evicts that cell.
 
 ## Result
 
-The recorded per-cell fixture passed in visible Chrome 155 on Intel UHD 630 at
-1280×720, DPR 1.0, medium quality, 21:00 and clear weather. The origin began
+The recorded per-cell fixture passed in visible Chrome 155 at 1280×720, DPR 1.0,
+medium quality, 21:00 and clear weather. The captured WebGL renderer is
+`ANGLE (Intel, Intel(R) UHD Graphics (0x00008A56) Direct3D11 vs_5_0 ps_5_0,
+D3D11)`. Host telemetry was disabled, so this run does not independently identify
+the CPU or laptop model. The origin began
 with one lamp marker. Crossing into the east neighbor loaded the lamp from
 `wtw_city6_41.890_12.503`, raising the count to two. Moving the player to
 `wtw_city6_41.890_12.514` evicted the lamp's source cell and returned the count
