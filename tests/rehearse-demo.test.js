@@ -27,8 +27,11 @@ describe('rehearse-demo helpers', () => {
   it('parses args and slugs', () => {
     expect(parseArgs([]).base).toBe('https://walk-the-world-delta.vercel.app');
     const a = parseArgs(['http://x/', '--headed', '--out=o']);
-    expect(a).toMatchObject({ base: 'http://x', headed: true, out: 'o', frames: 300, r2NodeProxy: false });
-    expect(parseArgs(['--r2-node-proxy', '--frames=500'])).toMatchObject({ r2NodeProxy: true, frames: 500 });
+    expect(a).toMatchObject({ base: 'http://x', headed: true, out: 'o', frames: 300, r2NodeProxy: false,
+      city: null, readyTimeoutMs: 90000, settleTimeoutMs: 45000, r2SnapshotDir: null });
+    expect(parseArgs(['--r2-node-proxy', '--frames=500', '--city=Pune', '--ready-timeout-ms=10000', '--settle-timeout-ms=5000']))
+      .toMatchObject({ r2NodeProxy: true, frames: 500, city: 'Pune', readyTimeoutMs: 10000, settleTimeoutMs: 5000 });
+    expect(parseArgs(['--r2-snapshot-dir=D:/temp/cells']).r2SnapshotDir).toBe('D:/temp/cells');
     expect(slugify('New York')).toBe('new-york');
   });
 });

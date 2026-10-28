@@ -1,0 +1,482 @@
+{
+  "base": "http://localhost:3456",
+  "r2": "https://myjyotishai.in",
+  "r2NodeProxy": true,
+  "frameSamples": 300,
+  "headed": true,
+  "at": "2026-10-28T17:32:54.118Z",
+  "places": [
+    {
+      "name": "Pune",
+      "preset": {
+        "hour": 17,
+        "weather": 0,
+        "headingDeg": 270
+      },
+      "cells": {
+        "total": 9,
+        "warm": 9,
+        "missing": []
+      },
+      "browser": {
+        "ready": true,
+        "settled": true,
+        "readyMs": 5429,
+        "consoleErrors": 1,
+        "cellResponses": [
+          {
+            "status": 200,
+            "url": "https://myjyotishai.in/wtw_city6_18.541_73.896.json"
+          },
+          {
+            "status": 200,
+            "url": "https://myjyotishai.in/wtw_city6_18.541_73.901.json"
+          },
+          {
+            "status": 200,
+            "url": "https://myjyotishai.in/wtw_city6_18.546_73.896.json"
+          },
+          {
+            "status": 200,
+            "url": "https://myjyotishai.in/wtw_city6_18.535_73.896.json"
+          },
+          {
+            "status": 200,
+            "url": "https://myjyotishai.in/wtw_city6_18.541_73.890.json"
+          },
+          {
+            "status": 200,
+            "url": "https://myjyotishai.in/wtw_city6_18.546_73.901.json"
+          },
+          {
+            "status": 200,
+            "url": "https://myjyotishai.in/wtw_city6_18.535_73.901.json"
+          },
+          {
+            "status": 200,
+            "url": "https://myjyotishai.in/wtw_city6_18.546_73.890.json"
+          },
+          {
+            "status": 200,
+            "url": "https://myjyotishai.in/wtw_city6_18.535_73.890.json"
+          }
+        ],
+        "cellFailures": [],
+        "nodeProxyFailures": [],
+        "p50": 7,
+        "p95": 14,
+        "spawn": {
+          "framing": {
+            "mode": "arrival",
+            "cls": "residential",
+            "movedM": 7,
+            "score": 0.81,
+            "coverage": 0.81,
+            "openness": 1,
+            "headingSource": "demo-preset",
+            "headingDeg": 270
+          },
+          "headingRadians": 4.71238898038469,
+          "headingDegrees": 270,
+          "expectedHeadingDeg": 270,
+          "headingMatchesPreset": true,
+          "localPosition": {
+            "x": -4.9,
+            "z": -0.3
+          },
+          "cellStream": {
+            "center": {
+              "lat": 18.540913,
+              "lon": 73.895553,
+              "key": "wtw_city6_18.541_73.896"
+            },
+            "loadedKeys": [
+              "wtw_city6_18.535_73.890",
+              "wtw_city6_18.535_73.896",
+              "wtw_city6_18.535_73.901",
+              "wtw_city6_18.541_73.890",
+              "wtw_city6_18.541_73.896",
+              "wtw_city6_18.541_73.901",
+              "wtw_city6_18.546_73.890",
+              "wtw_city6_18.546_73.896",
+              "wtw_city6_18.546_73.901"
+            ],
+            "loadingKeys": [],
+            "queuedKeys": [],
+            "activeJobKeys": [],
+            "obsoleteJobKeys": [],
+            "failedKeys": [],
+            "deferredKeys": [],
+            "reservationCount": 0,
+            "queueLimit": 9,
+            "residentCellCount": 9,
+            "maxCells": 10,
+            "pendingCount": 0
+          },
+          "shaderProgramCount": 29
+        },
+        "shot": "screenshots\\demo-track\\rehearsal-2026-10-28-a7-r186-after\\pune.jpg",
+        "note": "",
+        "errors": [
+          "Failed to load resource: the server responded with a status of 501 (Not Implemented)"
+        ]
+      }
+    },
+    {
+      "name": "Edinburgh",
+      "preset": {
+        "hour": 17.5,
+        "weather": 0,
+        "headingDeg": 349
+      },
+      "cells": {
+        "total": 9,
+        "warm": 9,
+        "missing": []
+      },
+      "browser": {
+        "ready": true,
+        "settled": false,
+        "readyMs": 4718,
+        "consoleErrors": 5,
+        "cellResponses": [
+          {
+            "status": 200,
+            "url": "https://myjyotishai.in/wtw_city6_55.950_-3.188.json"
+          },
+          {
+            "status": 200,
+            "url": "https://myjyotishai.in/wtw_city6_55.950_-3.182.json"
+          },
+          {
+            "status": 200,
+            "url": "https://myjyotishai.in/wtw_city6_55.945_-3.188.json"
+          },
+          {
+            "status": 200,
+            "url": "https://myjyotishai.in/wtw_city6_55.945_-3.193.json"
+          },
+          {
+            "status": 200,
+            "url": "https://myjyotishai.in/wtw_city6_55.950_-3.193.json"
+          },
+          {
+            "status": 200,
+            "url": "https://myjyotishai.in/wtw_city6_55.956_-3.188.json"
+          },
+          {
+            "status": 200,
+            "url": "https://myjyotishai.in/wtw_city6_55.956_-3.193.json"
+          },
+          {
+            "status": 200,
+            "url": "https://myjyotishai.in/wtw_city6_55.945_-3.182.json"
+          },
+          {
+            "status": 200,
+            "url": "https://myjyotishai.in/wtw_city6_55.956_-3.182.json"
+          }
+        ],
+        "cellFailures": [],
+        "nodeProxyFailures": [],
+        "p50": 34.6,
+        "p95": 35,
+        "spawn": {
+          "framing": {
+            "mode": "arrival",
+            "cls": "pedestrian",
+            "movedM": 58,
+            "score": 1,
+            "coverage": 1,
+            "openness": 1,
+            "headingSource": "demo-preset",
+            "headingDeg": 349
+          },
+          "headingRadians": 6.09119908946021,
+          "headingDegrees": 349,
+          "expectedHeadingDeg": 349,
+          "headingMatchesPreset": true,
+          "localPosition": {
+            "x": -45.3,
+            "z": 31.1
+          },
+          "cellStream": {
+            "center": {
+              "lat": 55.9505,
+              "lon": -3.1875,
+              "key": "wtw_city6_55.950_-3.188"
+            },
+            "loadedKeys": [
+              "wtw_city6_55.945_-3.182",
+              "wtw_city6_55.945_-3.188",
+              "wtw_city6_55.950_-3.182",
+              "wtw_city6_55.950_-3.188",
+              "wtw_city6_55.950_-3.193",
+              "wtw_city6_55.956_-3.188",
+              "wtw_city6_55.956_-3.193"
+            ],
+            "loadingKeys": [],
+            "queuedKeys": [],
+            "activeJobKeys": [],
+            "obsoleteJobKeys": [],
+            "failedKeys": [
+              "wtw_city6_55.945_-3.193",
+              "wtw_city6_55.956_-3.182"
+            ],
+            "deferredKeys": [],
+            "reservationCount": 0,
+            "queueLimit": 9,
+            "residentCellCount": 7,
+            "maxCells": 10,
+            "pendingCount": 0
+          },
+          "shaderProgramCount": 106
+        },
+        "shot": "screenshots\\demo-track\\rehearsal-2026-10-28-a7-r186-after\\edinburgh.jpg",
+        "note": "",
+        "errors": [
+          "Failed to load resource: the server responded with a status of 501 (Not Implemented)",
+          "THREE.BufferGeometryUtils: .mergeGeometries() failed with geometry at index 18. All geometries must have compatible attributes; make sure index attribute exists among all geometries, or in none of them.",
+          "THREE.BufferGeometryUtils: .mergeGeometries() failed with geometry at index 16. All geometries must have compatible attributes; make sure index attribute exists among all geometries, or in none of them.",
+          "THREE.BufferGeometryUtils: .mergeGeometries() failed with geometry at index 16. All geometries must have compatible attributes; make sure index attribute exists among all geometries, or in none of them.",
+          "THREE.BufferGeometryUtils: .mergeGeometries() failed with geometry at index 18. All geometries must have compatible attributes; make sure index attribute exists among all geometries, or in none of them."
+        ]
+      }
+    },
+    {
+      "name": "Tokyo",
+      "preset": {
+        "hour": 19,
+        "weather": 0,
+        "headingDeg": 317
+      },
+      "cells": {
+        "total": 9,
+        "warm": 9,
+        "missing": []
+      },
+      "browser": {
+        "ready": true,
+        "settled": false,
+        "readyMs": 8552,
+        "consoleErrors": 3,
+        "cellResponses": [
+          {
+            "status": 200,
+            "url": "https://myjyotishai.in/wtw_city6_35.660_139.701.json"
+          },
+          {
+            "status": 200,
+            "url": "https://myjyotishai.in/wtw_city6_35.660_139.706.json"
+          },
+          {
+            "status": 200,
+            "url": "https://myjyotishai.in/wtw_city6_35.665_139.701.json"
+          },
+          {
+            "status": 200,
+            "url": "https://myjyotishai.in/wtw_city6_35.654_139.701.json"
+          },
+          {
+            "status": 200,
+            "url": "https://myjyotishai.in/wtw_city6_35.660_139.695.json"
+          },
+          {
+            "status": 200,
+            "url": "https://myjyotishai.in/wtw_city6_35.665_139.706.json"
+          },
+          {
+            "status": 200,
+            "url": "https://myjyotishai.in/wtw_city6_35.654_139.706.json"
+          },
+          {
+            "status": 200,
+            "url": "https://myjyotishai.in/wtw_city6_35.665_139.695.json"
+          },
+          {
+            "status": 200,
+            "url": "https://myjyotishai.in/wtw_city6_35.654_139.695.json"
+          }
+        ],
+        "cellFailures": [],
+        "nodeProxyFailures": [],
+        "p50": 34.6,
+        "p95": 34.9,
+        "spawn": {
+          "framing": {
+            "mode": "arrival",
+            "cls": "pedestrian",
+            "movedM": 29,
+            "score": 1,
+            "coverage": 1,
+            "openness": 1,
+            "headingSource": "demo-preset",
+            "headingDeg": 317
+          },
+          "headingRadians": 5.532693728822025,
+          "headingDegrees": 317,
+          "expectedHeadingDeg": 317,
+          "headingMatchesPreset": true,
+          "localPosition": {
+            "x": -15.7,
+            "z": -25
+          },
+          "cellStream": {
+            "center": {
+              "lat": 35.6595,
+              "lon": 139.7005,
+              "key": "wtw_city6_35.660_139.701"
+            },
+            "loadedKeys": [
+              "wtw_city6_35.654_139.695",
+              "wtw_city6_35.654_139.701",
+              "wtw_city6_35.654_139.706",
+              "wtw_city6_35.660_139.695",
+              "wtw_city6_35.660_139.701",
+              "wtw_city6_35.660_139.706",
+              "wtw_city6_35.665_139.695",
+              "wtw_city6_35.665_139.701"
+            ],
+            "loadingKeys": [],
+            "queuedKeys": [],
+            "activeJobKeys": [],
+            "obsoleteJobKeys": [],
+            "failedKeys": [
+              "wtw_city6_35.665_139.706"
+            ],
+            "deferredKeys": [],
+            "reservationCount": 0,
+            "queueLimit": 9,
+            "residentCellCount": 8,
+            "maxCells": 10,
+            "pendingCount": 0
+          },
+          "shaderProgramCount": 74
+        },
+        "shot": "screenshots\\demo-track\\rehearsal-2026-10-28-a7-r186-after\\tokyo.jpg",
+        "note": "",
+        "errors": [
+          "Failed to load resource: the server responded with a status of 501 (Not Implemented)",
+          "THREE.BufferGeometryUtils: .mergeGeometries() failed with geometry at index 8. All geometries must have compatible attributes; make sure index attribute exists among all geometries, or in none of them.",
+          "THREE.BufferGeometryUtils: .mergeGeometries() failed with geometry at index 8. All geometries must have compatible attributes; make sure index attribute exists among all geometries, or in none of them."
+        ]
+      }
+    },
+    {
+      "name": "New York",
+      "preset": {
+        "hour": 18,
+        "weather": 0,
+        "headingDeg": 292
+      },
+      "cells": {
+        "total": 9,
+        "warm": 9,
+        "missing": []
+      },
+      "browser": {
+        "ready": true,
+        "settled": true,
+        "readyMs": 3986,
+        "consoleErrors": 1,
+        "cellResponses": [
+          {
+            "status": 200,
+            "url": "https://myjyotishai.in/wtw_city6_40.758_-73.986.json"
+          },
+          {
+            "status": 200,
+            "url": "https://myjyotishai.in/wtw_city6_40.764_-73.986.json"
+          },
+          {
+            "status": 200,
+            "url": "https://myjyotishai.in/wtw_city6_40.758_-73.980.json"
+          },
+          {
+            "status": 200,
+            "url": "https://myjyotishai.in/wtw_city6_40.758_-73.991.json"
+          },
+          {
+            "status": 200,
+            "url": "https://myjyotishai.in/wtw_city6_40.764_-73.991.json"
+          },
+          {
+            "status": 200,
+            "url": "https://myjyotishai.in/wtw_city6_40.764_-73.980.json"
+          },
+          {
+            "status": 200,
+            "url": "https://myjyotishai.in/wtw_city6_40.752_-73.986.json"
+          },
+          {
+            "status": 200,
+            "url": "https://myjyotishai.in/wtw_city6_40.752_-73.991.json"
+          },
+          {
+            "status": 200,
+            "url": "https://myjyotishai.in/wtw_city6_40.752_-73.980.json"
+          }
+        ],
+        "cellFailures": [],
+        "nodeProxyFailures": [],
+        "p50": 13.9,
+        "p95": 20.8,
+        "spawn": {
+          "framing": {
+            "mode": "arrival",
+            "cls": "footway",
+            "movedM": 11,
+            "score": 0.905,
+            "coverage": 0.905,
+            "openness": 1,
+            "headingSource": "demo-preset",
+            "headingDeg": 292
+          },
+          "headingRadians": 5.096361415823442,
+          "headingDegrees": 292,
+          "expectedHeadingDeg": 292,
+          "headingMatchesPreset": true,
+          "localPosition": {
+            "x": -5.6,
+            "z": -11.2
+          },
+          "cellStream": {
+            "center": {
+              "lat": 40.758,
+              "lon": -73.9855,
+              "key": "wtw_city6_40.758_-73.986"
+            },
+            "loadedKeys": [
+              "wtw_city6_40.752_-73.980",
+              "wtw_city6_40.752_-73.986",
+              "wtw_city6_40.752_-73.991",
+              "wtw_city6_40.758_-73.980",
+              "wtw_city6_40.758_-73.986",
+              "wtw_city6_40.758_-73.991",
+              "wtw_city6_40.764_-73.980",
+              "wtw_city6_40.764_-73.986",
+              "wtw_city6_40.764_-73.991"
+            ],
+            "loadingKeys": [],
+            "queuedKeys": [],
+            "activeJobKeys": [],
+            "obsoleteJobKeys": [],
+            "failedKeys": [],
+            "deferredKeys": [],
+            "reservationCount": 0,
+            "queueLimit": 9,
+            "residentCellCount": 9,
+            "maxCells": 10,
+            "pendingCount": 0
+          },
+          "shaderProgramCount": 43
+        },
+        "shot": "screenshots\\demo-track\\rehearsal-2026-10-28-a7-r186-after\\new-york.jpg",
+        "note": "",
+        "errors": [
+          "Failed to load resource: the server responded with a status of 501 (Not Implemented)"
+        ]
+      }
+    }
+  ]
+}

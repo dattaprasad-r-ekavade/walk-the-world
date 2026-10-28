@@ -41,11 +41,22 @@ export function formatTable(rows, columns) {
 }
 
 export function parseArgs(argv) {
-  const out = { base: DEFAULT_BASE, headed: false, out: DEFAULT_OUT, help: false, r2NodeProxy: false, frames: 300 };
+  const out = { base: DEFAULT_BASE, headed: false, out: DEFAULT_OUT, help: false, r2NodeProxy: false,
+    frames: 300, city: null, readyTimeoutMs: 90000, settleTimeoutMs: 45000, r2SnapshotDir: null };
   for (const a of argv) {
     if (a === "--help" || a === "-h") out.help = true;
     else if (a === "--headed") out.headed = true;
     else if (a === "--r2-node-proxy") out.r2NodeProxy = true;
+    else if (a.startsWith("--city=")) out.city = a.slice(7).trim();
+    else if (a.startsWith("--r2-snapshot-dir=")) out.r2SnapshotDir = a.slice("--r2-snapshot-dir=".length).trim();
+    else if (a.startsWith("--ready-timeout-ms=")) {
+      const ms = Number.parseInt(a.slice(19), 10);
+      if (Number.isInteger(ms) && ms > 0) out.readyTimeoutMs = Math.min(ms, 300000);
+    }
+    else if (a.startsWith("--settle-timeout-ms=")) {
+      const ms = Number.parseInt(a.slice(20), 10);
+      if (Number.isInteger(ms) && ms > 0) out.settleTimeoutMs = Math.min(ms, 180000);
+    }
     else if (a.startsWith("--frames=")) {
       const frames = Number.parseInt(a.slice(9), 10);
       if (Number.isInteger(frames) && frames > 0) out.frames = Math.min(frames, 10000);
@@ -57,53 +68,77 @@ export function parseArgs(argv) {
   return out;
 }
 
-async function checkCells(place, r2) {
+async function fetchCell(key, r2, snapshotDir) {
+  const file = snapshotDir ? path.join(snapshotDir, `${key}.json`) : null;
+  if (file && fs.existsSync(file)) return { status: 200, body: fs.readFileSync(file), contentType: "application/json" };
+  const response = await fetch(`${r2}/${key}.json?v=${Date.now()}`, {
+    cache: "no-store",
+    signal: AbortSignal.timeout(15000),
+  });
+  const body = Buffer.from(await response.arrayBuffer());
+  const contentType = response.headers.get("content-type") || "application/json";
+  if (response.ok && file) {
+    fs.mkdirSync(snapshotDir, { recursive: true });
+    fs.writeFileSync(file, body);
+  }
+  return { status: response.status, body, contentType };
+}
+
+async function checkCells(place, r2, snapshotDir) {
   const keys = cellNeighborhood(place.lat, place.lon).map(([la, lo]) => cityCacheKey(la, lo));
   const missing = [];
   await Promise.all(keys.map(async (key) => {
     try {
-      const res = await fetch(`${r2}/${key}.json?v=${Date.now()}`, { cache: "no-store" });
-      if (!res.ok) missing.push(key);
-      else await res.arrayBuffer();
+      const response = await fetchCell(key, r2, snapshotDir);
+      if (response.status !== 200 || !response.body.length) missing.push(key);
     } catch { missing.push(key); }
   }));
   return { total: keys.length, warm: keys.length - missing.length, missing };
 }
 
-async function rehearsePlace(browser, base, place, outDir, { r2, r2NodeProxy, frames }) {
-  const ctx = await browser.newContext({ viewport: { width: 1280, height: 720 } });
+async function rehearsePlace(browser, base, place, outDir, { r2, r2NodeProxy, r2SnapshotDir, frames, readyTimeoutMs, settleTimeoutMs }) {
+  const ctx = await browser.newContext({ viewport: { width: 1280, height: 720 }, serviceWorkers: "block" });
   const page = await ctx.newPage();
   const errors = [];
   const cellResponses = [];
+  const cellFailures = [];
+  const nodeProxyFailures = [];
   page.on("console", (m) => { if (m.type() === "error") errors.push(m.text()); });
   page.on("pageerror", (e) => errors.push(String(e.message || e)));
-  page.on("response", (response) => {
-    if (/\/wtw_city[^/]*\.json(?:\?|$)/.test(response.url())) {
-      cellResponses.push({ status: response.status(), url: new URL(response.url()).pathname });
+  page.on("requestfailed", (request) => {
+    if (/\/wtw_city[^/]*\.json(?:\?|$)/.test(request.url())) {
+      cellFailures.push({ url: request.url(), error: request.failure()?.errorText || "request failed" });
     }
   });
-  const res = { ready: false, settled: false, readyMs: null, consoleErrors: 0, cellResponses,
+  page.on("response", (response) => {
+    if (/\/wtw_city[^/]*\.json(?:\?|$)/.test(response.url())) {
+      cellResponses.push({ status: response.status(), url: response.url() });
+    }
+  });
+  const res = { ready: false, settled: false, readyMs: null, consoleErrors: 0, cellResponses, cellFailures, nodeProxyFailures,
     p50: null, p95: null, spawn: null, shot: null, note: "" };
   try {
     if (r2NodeProxy) {
-      await page.route(`${r2}/**`, async (route) => {
+      const r2Origin = new URL(r2).origin;
+      await ctx.route((url) => url.origin === r2Origin && /\/wtw_city[^/]*\.json$/u.test(url.pathname), async (route) => {
         try {
-          const upstream = await fetch(route.request().url(), { cache: "no-store" });
-          const body = Buffer.from(await upstream.arrayBuffer());
-          const contentType = upstream.headers.get("content-type");
+          const key = path.basename(new URL(route.request().url()).pathname).replace(/\.json$/u, "");
+          const upstream = await fetchCell(key, r2, r2SnapshotDir);
           await route.fulfill({
             status: upstream.status,
-            body,
+            body: upstream.body,
             headers: {
               "access-control-allow-origin": "*",
               "access-control-allow-methods": "GET, HEAD, OPTIONS",
               "access-control-allow-headers": "*",
               "cache-control": "no-store",
-              ...(contentType ? { "content-type": contentType } : {}),
+              "content-type": upstream.contentType,
             },
           });
         } catch (error) {
-          errors.push(`Node-side R2 fetch failed: ${error?.message || error}`);
+          const message = String(error?.message || error);
+          nodeProxyFailures.push({ url: route.request().url(), error: message });
+          errors.push(`Node-side R2 fetch failed: ${message}`);
           await route.abort();
         }
       });
@@ -111,16 +146,18 @@ async function rehearsePlace(browser, base, place, outDir, { r2, r2NodeProxy, fr
     const url = `${base}/street?lat=${place.lat}&lon=${place.lon}&demo=1`;
     await page.goto(url, { waitUntil: "domcontentloaded", timeout: 60000 });
     try {
-      await page.waitForFunction(() => window.__engineReady === true, null, { timeout: 90000, polling: 250 });
+      await page.waitForFunction(() => window.__engineReady === true, null, { timeout: readyTimeoutMs, polling: 250 });
       res.ready = true;
       res.readyMs = Math.round(await page.evaluate(() => performance.now()));
-    } catch { res.note = "not ready in 90s"; }
+    } catch { res.note = `not ready within ${readyTimeoutMs} ms`; }
     await page.waitForTimeout(4000);
     try {
       await page.waitForFunction(() => {
         const state = window.__streetDebug?.cellStream?.();
-        return state?.residentCellCount >= 9 && state.pendingCount === 0;
-      }, null, { timeout: 45000, polling: 250 });
+        if (!state || state.pendingCount !== 0) return false;
+        const resolved = state.loadedKeys.length + state.failedKeys.length + state.deferredKeys.length;
+        return resolved >= 9;
+      }, null, { timeout: settleTimeoutMs, polling: 250 });
       res.settled = true;
     } catch { /* keep the capture and report the unsettled stream below */ }
     res.spawn = await page.evaluate((expectedHeadingDeg) => {
@@ -133,6 +170,8 @@ async function rehearsePlace(browser, base, place, outDir, { r2, r2NodeProxy, fr
         framing,
         headingRadians: heading,
         headingDegrees,
+        pitchRadians: Number.isFinite(player?.pitch) ? player.pitch : null,
+        thirdPerson: player?.third === true,
         expectedHeadingDeg,
         headingMatchesPreset: expectedHeadingDeg === null ||
           (headingDegrees === expectedHeadingDeg && framing?.headingSource === "demo-preset"),
@@ -153,8 +192,17 @@ async function rehearsePlace(browser, base, place, outDir, { r2, r2NodeProxy, fr
     }), frames);
     res.p50 = +percentile(intervals, 50).toFixed(1);
     res.p95 = +percentile(intervals, 95).toFixed(1);
+    const sceneStats = await page.evaluate(() => {
+      const meshes = window.__streetDebug?.meshes?.() || [];
+      return {
+        meshCount: meshes.length,
+        triangleCount: meshes.reduce((sum, mesh) => sum + (Number.isFinite(mesh.tris) ? mesh.tris : 0), 0),
+      };
+    });
+    Object.assign(res.spawn, sceneStats);
   } catch (e) { res.note = String(e.message || e).split("\n")[0]; }
-  res.consoleErrors = filterConsoleErrors(errors).length;
+  res.errors = filterConsoleErrors(errors);
+  res.consoleErrors = res.errors.length;
   await ctx.close();
   return res;
 }
@@ -162,19 +210,30 @@ async function rehearsePlace(browser, base, place, outDir, { r2, r2NodeProxy, fr
 export async function main(argv = process.argv.slice(2)) {
   const args = parseArgs(argv);
   if (args.help) {
-    console.log("Usage: node scripts/rehearse-demo.mjs [baseUrl] [--headed] [--r2-node-proxy] [--frames=300] [--out=DIR] [--help]\n" +
+    console.log("Usage: node scripts/rehearse-demo.mjs [baseUrl] [--headed] [--r2-node-proxy] [--r2-snapshot-dir=DIR] [--city=NAME] [--frames=300] [--out=DIR] [--help]\n" +
       `  baseUrl        default ${DEFAULT_BASE}\n  --out          default ${DEFAULT_OUT}\n` +
       "  --r2-node-proxy fetches public city cells from Node and adds CORS for local previews\n" +
+      "  --r2-snapshot-dir records/replays city-cell bodies for matched A/B captures\n" +
+      "  --city         rehearse one demo city (Pune, Edinburgh, Tokyo, or New York)\n" +
+      "  --ready-timeout-ms   time allowed for engine readiness (default 90000)\n" +
+      "  --settle-timeout-ms  time allowed for cell stream to settle (default 45000)\n" +
       `  --frames       animation-frame samples per city (default 300)\nHeadless timings are not hardware evidence.`);
     return 0;
   }
   const r2 = (process.env.NEXT_PUBLIC_R2_PUBLIC_BASE || "https://myjyotishai.in").replace(/\/$/, "");
+  const places = args.city
+    ? DEMO_PLACES.filter((place) => place.name.toLowerCase() === args.city.toLowerCase())
+    : DEMO_PLACES;
+  if (!places.length) throw new Error(`Unknown demo city "${args.city}". Choose one of: ${DEMO_PLACES.map((place) => place.name).join(", ")}`);
   fs.mkdirSync(args.out, { recursive: true });
   console.log(`Base ${args.base}  R2 ${r2}\n`);
 
-  const report = { base: args.base, r2, r2NodeProxy: args.r2NodeProxy, frameSamples: args.frames,
+  const report = { base: args.base, r2, r2NodeProxy: args.r2NodeProxy, r2SnapshotDir: args.r2SnapshotDir,
+    frameSamples: args.frames,
     headed: args.headed, at: new Date().toISOString(), places: [] };
-  for (const p of DEMO_PLACES) report.places.push({ name: p.name, preset: p.preset, cells: await checkCells(p, r2) });
+  for (const p of places) report.places.push({ name: p.name, preset: p.preset, cells: await checkCells(p, r2, args.r2SnapshotDir) });
+  const reportPath = path.join(args.out, "report.json");
+  fs.writeFileSync(reportPath, JSON.stringify(report, null, 2));
 
   const { chromium } = await import("playwright");
   let browser;
@@ -185,8 +244,9 @@ export async function main(argv = process.argv.slice(2)) {
     browser = await chromium.launch({ headless: !args.headed, channel: "chrome" });
   }
   try {
-    for (let i = 0; i < DEMO_PLACES.length; i++) {
-      report.places[i].browser = await rehearsePlace(browser, args.base, DEMO_PLACES[i], args.out, args);
+    for (let i = 0; i < places.length; i++) {
+      report.places[i].browser = await rehearsePlace(browser, args.base, places[i], args.out, { ...args, r2 });
+      fs.writeFileSync(reportPath, JSON.stringify(report, null, 2));
     }
   } finally { await browser.close(); }
 
@@ -195,6 +255,8 @@ export async function main(argv = process.argv.slice(2)) {
     cells: `${r.cells.warm}/${r.cells.total}`,
     ready: r.browser.ready ? "yes" : "NO",
     settled: r.browser.settled ? "yes" : "NO",
+    resident: r.browser.spawn?.cellStream?.residentCellCount ?? null,
+    failed: r.browser.spawn?.cellStream?.failedKeys?.length ?? null,
     readyMs: r.browser.readyMs,
     errors: r.browser.consoleErrors,
     "heading°": r.browser.spawn?.headingDegrees,
@@ -202,12 +264,12 @@ export async function main(argv = process.argv.slice(2)) {
     "p50ms": r.browser.p50,
     "p95ms": r.browser.p95,
   }));
-  console.log(formatTable(rows, ["city", "cells", "ready", "settled", "readyMs", "errors", "heading°", "headingMatch", "p50ms", "p95ms"]));
+  console.log(formatTable(rows, ["city", "cells", "ready", "settled", "resident", "failed", "readyMs", "errors", "heading°", "headingMatch", "p50ms", "p95ms"]));
   for (const r of report.places) if (r.cells.missing.length) console.log(`\nMissing (${r.name}):\n  ${r.cells.missing.join("\n  ")}`);
   console.log(args.headed
     ? "\nVisible Chrome run; timings represent this host."
     : "\nNote: headless timings are not hardware evidence.");
-  fs.writeFileSync(path.join(args.out, "report.json"), JSON.stringify(report, null, 2));
+  fs.writeFileSync(reportPath, JSON.stringify(report, null, 2));
   const bad = report.places.some((r) =>
     r.cells.missing.length || !r.browser.ready || !r.browser.settled || r.browser.spawn?.headingMatchesPreset === false
   );

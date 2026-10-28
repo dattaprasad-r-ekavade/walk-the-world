@@ -1,0 +1,54 @@
+{
+  "base": "http://localhost:3456",
+  "r2": "https://myjyotishai.in",
+  "r2NodeProxy": true,
+  "frameSamples": 60,
+  "headed": true,
+  "at": "2026-10-28T17:28:52.090Z",
+  "places": [
+    {
+      "name": "Pune",
+      "preset": {
+        "hour": 17,
+        "weather": 0,
+        "headingDeg": 270
+      },
+      "cells": {
+        "total": 9,
+        "warm": 9,
+        "missing": []
+      },
+      "browser": {
+        "ready": false,
+        "settled": false,
+        "readyMs": null,
+        "consoleErrors": 1,
+        "cellResponses": [],
+        "cellFailures": [
+          {
+            "url": "https://myjyotishai.in/wtw_city6_18.541_73.896.json",
+            "error": "net::ERR_FAILED"
+          }
+        ],
+        "nodeProxyFailures": [],
+        "p50": 13.9,
+        "p95": 20.6,
+        "spawn": {
+          "framing": null,
+          "headingRadians": null,
+          "headingDegrees": null,
+          "expectedHeadingDeg": 270,
+          "headingMatchesPreset": false,
+          "localPosition": null,
+          "cellStream": null,
+          "shaderProgramCount": null
+        },
+        "shot": "screenshots\\demo-track\\rehearsal-2026-10-28-a7-r186-diagnostic4\\pune.jpg",
+        "note": "not ready within 40000 ms",
+        "errors": [
+          "Failed to load resource: the server responded with a status of 501 (Not Implemented)"
+        ]
+      }
+    }
+  ]
+}

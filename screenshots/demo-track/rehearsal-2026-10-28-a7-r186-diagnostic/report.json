@@ -1,0 +1,93 @@
+{
+  "base": "http://localhost:3456",
+  "r2": "https://myjyotishai.in",
+  "r2NodeProxy": true,
+  "frameSamples": 60,
+  "headed": true,
+  "at": "2026-10-28T17:24:13.637Z",
+  "places": [
+    {
+      "name": "Pune",
+      "preset": {
+        "hour": 17,
+        "weather": 0,
+        "headingDeg": 270
+      },
+      "cells": {
+        "total": 9,
+        "warm": 9,
+        "missing": []
+      },
+      "browser": {
+        "ready": false,
+        "settled": false,
+        "readyMs": null,
+        "consoleErrors": 2,
+        "cellResponses": [],
+        "cellFailures": [
+          {
+            "url": "/wtw_city6_18.541_73.896.json",
+            "error": "net::ERR_FAILED"
+          },
+          {
+            "url": "/wtw_city6_18.541_73.896.json",
+            "error": "net::ERR_FAILED"
+          },
+          {
+            "url": "/wtw_city6_18.541_73.901.json",
+            "error": "net::ERR_FAILED"
+          }
+        ],
+        "p50": 13.8,
+        "p95": 14.1,
+        "spawn": {
+          "framing": null,
+          "headingRadians": 0,
+          "headingDegrees": 0,
+          "expectedHeadingDeg": 270,
+          "headingMatchesPreset": false,
+          "localPosition": {
+            "x": 0,
+            "z": 0
+          },
+          "cellStream": {
+            "center": {
+              "lat": 18.540913,
+              "lon": 73.895553,
+              "key": "wtw_city6_18.541_73.896"
+            },
+            "loadedKeys": [],
+            "loadingKeys": [
+              "wtw_city6_18.541_73.896",
+              "wtw_city6_18.541_73.901"
+            ],
+            "queuedKeys": [
+              "wtw_city6_18.535_73.890",
+              "wtw_city6_18.535_73.896",
+              "wtw_city6_18.535_73.901",
+              "wtw_city6_18.541_73.890",
+              "wtw_city6_18.546_73.890",
+              "wtw_city6_18.546_73.896",
+              "wtw_city6_18.546_73.901"
+            ],
+            "activeJobKeys": [
+              "wtw_city6_18.541_73.896",
+              "wtw_city6_18.541_73.901"
+            ],
+            "obsoleteJobKeys": [],
+            "failedKeys": [],
+            "deferredKeys": [],
+            "reservationCount": 0,
+            "queueLimit": 9,
+            "residentCellCount": 0,
+            "maxCells": 10,
+            "pendingCount": 9
+          },
+          "shaderProgramCount": 23
+        },
+        "shot": "screenshots\\demo-track\\rehearsal-2026-10-28-a7-r186-diagnostic\\pune.jpg",
+        "note": "not ready in 90s"
+      }
+    }
+  ]
+}

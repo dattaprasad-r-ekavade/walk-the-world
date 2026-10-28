@@ -142,7 +142,18 @@ Decisions taken from the research:
   WebGL EffectComposer passes unchanged; PCFSoftShadowMap deprecated (PCF is
   now soft); rough PBR materials brighter (r181); PMREM moved to cube render
   targets (r187); KTX2Loader.detectSupportAsync deprecated (r181). Re-test
-  every onBeforeCompile chunk replacement and compare matched screenshots.
+  every onBeforeCompile chunk replacement and compare matched screenshots. The
+  package and lockfile now target Three.js 0.186.0. Matched visible-Chrome
+  captures use the same frozen city-cell data in [the r170 baseline](screenshots/demo-track/rehearsal-2026-10-28-a7-r170-matched/)
+  and [the r186 build](screenshots/demo-track/rehearsal-2026-10-28-a7-r186-matched/).
+  One 300-frame sample per city measured p95 at 14.0/34.9/36.0/20.9 ms on r170
+  and 14.0/34.9/41.6/20.8 ms on r186 (Pune/Edinburgh/Tokyo/New York). Tokyo is
+  15.6% slower in that sample, above the 5% gate. Three 900-frame Edinburgh
+  samples per version had the same 34.7 ms median, showing material host timing
+  noise. Edinburgh and Tokyo did not fully settle their neighbor streams, with
+  the same failed neighbors in both versions. Repeat the matched Tokyo smoke,
+  confirm all shader patches and stream behavior, and rerun tests/build after
+  the latest rehearsal-runner edits before closing A7.
 
 ### Phase B — data foundation
 
@@ -682,15 +693,20 @@ matched settings, tested hardware, thresholds and remaining gates.
 
 ## 15. Next action and deferred choices
 
-1. Close D2 and D7 with a visible-Chrome rehearsal after the heading change
-   reaches the live deployment; all 36 cells were warm in the pre-change run.
-2. Reopen D1 based on current screenshots: finish near-road markings, kerbs and
-   sidewalks. Verify D3's medium-tier facade visibility on demo hardware.
-3. Then Section 0b A3–A5, followed by B1 and B2; keep R1–R4 browser/device
-   validation open and address it after the priority-0 demo gates.
-4. Deprioritize R5 and 4.3 wet-road tuning (captures show little visible gain),
-   the 0.8 Manhattan live baseline, and conditional Stage 6–8 experiments unless
-   a demo viewer would notice the result.
+1. Finish A7's matched Tokyo performance repeat, verify every shader patch and
+   stream outcome, then run the full tests and production build. Keep A7 open
+   until every city stays within the 5% frame-time p95 gate.
+2. Start B1 (prebuilt cell format), which replaces the conditional Stage 8
+   experiment and the Stage 6 prerequisite question. Then work through B2
+   (Overpass independence), B3 (procedural landuse ground) and B4 (Overture
+   attribute gap fill).
+3. Consider C1–C3 only after the data foundation, and only when a measured
+   viewer-visible benefit justifies their cost. The remaining release gates
+   include 0.8 live dense-city baselines, 1.3 physical low-core validation,
+   R1–R4 ownership/fallback checks, 4.3/4.5/4.6 visual and shadow checks, and
+   Stages 5 and 9 integration/hardware acceptance.
+4. Keep R5 wet-road work and conditional Stages 6–8 deferred unless a demo
+   viewer or measured profile makes them a priority.
 
 Rust/Wasm/SIMD remains deferred: an earlier synthetic trace measured worker
 compute at 25.9 ms median versus 729.4 ms roundtrip. That trace does not establish
