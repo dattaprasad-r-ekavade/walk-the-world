@@ -63,6 +63,101 @@ Process rules for every stage:
 - Update this plan in place. Do not add new root plan files; archive superseded
   plans under `docs/archive/`.
 
+## 0b. Outside-view roadmap — priority 1 (after the demo track)
+
+Source: outside-view research of October 2026 (peer projects, rendering tech,
+data pipeline). Each item states what already exists so work does not repeat it.
+Items marked (verify) rest on unconfirmed research claims; check them before
+starting. Acceptance follows the demo-track rules in section 0.
+
+Decisions taken from the research:
+
+- Stay on Three.js. Engine ports (Babylon.js, PlayCanvas, Bevy/WASM) cost weeks
+  and do not fix integrated-GPU fill rate. Unreal pixel streaming is rejected
+  (per-session GPU cost and latency).
+- Streets GL (MIT, github.com/StrandedKitty/streets-gl) is the closest peer:
+  Simple 3D Buildings roofs and parts, SSAO, aerial perspective, prebuilt
+  vector tiles. Reuse its ideas and MIT code freely. Treat GPL/LGPL projects
+  (Blosm, OSM2World) as reading material only.
+- Google Photorealistic 3D Tiles are not the main view: caching and R2 storage
+  are prohibited, attribution and per-session billing apply, and street-level
+  geometry looks melted. At most a far-horizon backdrop.
+- Licence traps: Sentinel-2 cloudless 2018+ is non-commercial (and 10 m);
+  Esri, Mapbox and Google imagery must not be cached; Vercel Hobby is
+  non-commercial with a 300 s function cap.
+
+### Phase A — visible quality and frame rate
+
+- [x] **A1 — Render-scale governor (S).** Done (lib/engine/render-scale.js;
+  `__streetDebug.renderScale()`). Scale the pixel ratio 0.6–1.0 from
+  p90 frame time with hysteresis before stepping the whole preset down; FXAA
+  when MSAA is off and the composer is active. Today only whole presets step.
+- [x] **A2 — Atmosphere and grading (S).** Done: dawn/dusk fog tint, grade
+  pass after OutputPass on composer tiers. Time-of-day fog tint and density,
+  plus one grading pass (exposure, contrast, saturation, vignette) on tiers
+  that already run the composer. No new fullscreen pass on the low tier.
+- [ ] **A3 — Interior-mapping windows (M).** Fake rooms behind facade windows
+  within ~40–60 m, lit at dusk/night. Highest visual gain per millisecond.
+  Start from three-fenestra (MIT, MeshStandardMaterial subclass) or port the
+  ray-box shader; small shared room cubemap atlas (4–8 rooms).
+- [ ] **A4 — Sidewalks, kerbs and lane markings (M).** Offset road edges into
+  sidewalk polygons (sidewalk=* tags, default when missing), 15 cm kerb,
+  paving texture, centre/edge/lane markings from lanes/width/oneway.
+- [ ] **A5 — Full roof shapes and building parts (M).** styles.js already reads
+  roof:shape for the pitched-roof heuristic. Add gabled, hipped, skillion,
+  pyramidal and dome roofs plus building:part/min_height. Candidate:
+  `straight-skeleton` npm (StrandedKitty, MIT wrapper over CGAL WASM; check
+  the CGAL licence before shipping). Prefer running it in the B1 baker with
+  gabled/hipped templates as runtime fallback.
+- [x] **A6 — Streamed cells rise in (S).** Done (street/cell-rise.js;
+  shadows rebake when the last rise ends). New cells grow from the ground over
+  ~0.6 s instead of popping in; transform-only so shared materials stay
+  untouched.
+- [ ] **A7 — Three.js r170 → r186 (M).** Verified low risk for this stack:
+  WebGL EffectComposer passes unchanged; PCFSoftShadowMap deprecated (PCF is
+  now soft); rough PBR materials brighter (r181); PMREM moved to cube render
+  targets (r187); KTX2Loader.detectSupportAsync deprecated (r181). Re-test
+  every onBeforeCompile chunk replacement and compare matched screenshots.
+
+### Phase B — data foundation
+
+- [ ] **B1 — Prebuilt cell format (M).** Compact per-cell binary (quantized,
+  meshopt-compressed) produced by a baker that reuses city-builder-core, so the
+  browser skips Overpass JSON parsing and geometry building for baked cells.
+  Add frame-sliced GPU uploads and renderer.compileAsync shader warm-up.
+  Supersedes Stage 8 (8.1–8.5) and the Stage 6 prerequisite question.
+- [ ] **B2 — Overpass independence (M).** Self-hosted Overpass on a small VPS
+  for target regions behind a Cloudflare Worker, or a custom Planetiler
+  profile (Protomaps' basemap schema drops roof, lane and colour tags).
+  `npm run seed:direct` remains the stopgap.
+- [ ] **B3 — Procedural landuse ground (S–M).** Asphalt, grass, paving and
+  water materials from landuse polygons instead of the near-white Carto
+  raster; extends D1.
+- [ ] **B4 — Overture gap fill (S).** The Overture footprint fallback already
+  exists for sparse cells. Remaining: merge Overture height, num_floors,
+  roof_shape, roof_color, facade_color and facade_material into OSM buildings
+  that lack them, in the baker (fields exist in the schema; coverage is sparse).
+  Overture segments have no lanes or sidewalk fields, so A4 uses OSM tags.
+
+### Phase C — larger bets, only with measured benefit
+
+- [ ] **C1 — osm2streets lanes and intersections (L).** Apache-2.0 Rust
+  library; the repo has an `osm2streets-js` WASM binding with GeoJSON output.
+  npm package name and WASM size are unconfirmed: build and measure first.
+- [ ] **C2 — Far-field HLOD and horizon backdrop (L).** Flat-coloured low-detail
+  far cells with cross-fade; optional Cesium OSM Buildings or photoreal tiles
+  beyond the procedural radius, within their terms.
+- [ ] **C3 — WebGPU prototype (L).** WebGPURenderer behind a flag with TSL
+  ports of the facade and ground materials. Expected gain 0–20% on
+  integrated GPUs; GLSL onBeforeCompile patches do not run on it.
+
+Already present (no new work): ambient audio, street furniture and lamps,
+instanced crowds and traffic, photo mode, share links, wet roads, PWA shell.
+Streets GL is unmaintained since September 2024; use it as reference code only.
+
+Skip: engine switch, photoreal tiles as the main view, @takram atmosphere and
+clouds on integrated GPUs, realism-effects, path tracing, pixel streaming.
+
 ## 1. Progress and code review
 
 The project has working profiling, bounded streaming, material families, compressed
@@ -374,6 +469,8 @@ GPU budgets, including visible real-GPU night/bloom and mobile review.
 
 ## 9. Stage 5 — Spatial detail, vegetation and analytic weather
 
+Section 0b takes priority. 5.1 overlaps C2 (HLOD); keep 5.2–5.5 as later work.
+
 Files: street/assemble-city.js, street/cell-stream.js, props.js, population.js,
 ped-walk.js, gpu-tier.js and StreetEngine.js.
 
@@ -451,6 +548,8 @@ Files: Rust crate, backend adapter, geometry fixtures/tests and benchmark runner
 Exit: full-stage benefit and fallback parity, or explicit measured deferral.
 
 ## 12. Stage 8 — Optional prebuilt-cell alternative
+
+Superseded by section 0b B1 (prebuilt cell format). Kept for its design notes.
 
 Proposed: scripts/build-city-geometry.mjs, derived-cache adapter and editor
 invalidation hooks, integrated with city-contract.js and the streamer.
@@ -557,9 +656,8 @@ matched settings, tested hardware, thresholds and remaining gates.
 
 ## 15. Next action and deferred choices
 
-1. Finish the section 0 demo track (D1–D8) and run the D7 rehearsal.
-2. Then 4.7 facade variation beyond the demo start points, and 4.5 bloom/contact
-   shading close-ups.
+1. Demo track D1–D8 is complete; rerun `npm run rehearse` after each deploy.
+2. Section 0b: A1 and A2 first, then A3–A5, then B1 and B2.
 3. Then the remaining R1–R4 browser and device checks.
 4. Deprioritized: R5 and 4.3 wet-road tuning (captures show little visible
    gain), the 0.8 Manhattan live baseline, and the conditional Stage 6–8

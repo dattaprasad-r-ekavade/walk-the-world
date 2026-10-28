@@ -28,6 +28,7 @@ import { createSeededRandom } from "@/lib/engine/seeded-random";
 
 const toolBtn = "rounded bg-white/10 px-2 py-1 hover:bg-white/20";
 const toolBtnPrimary = "rounded bg-emerald-500/80 px-2 py-1 font-semibold text-black hover:bg-emerald-400";
+import { createRenderScaleState, isAtRenderScaleFloor, p90Of, renderScaleTargetMs, stepRenderScale } from "@/lib/engine/render-scale";
 import { appendGpuFrameTime, appendRendererFrame, getPerfCounters, markPerf, markPerfMeasurementUnavailable, measurePerf, measurePerfAsync, recordPerfTiming, recordFrameInterval, recordFpsSample, setPerfEnvironment, setPerfMetadata, setPerfResourceCounts, trackRender } from "@/lib/perf";
 import { STREET } from "@/lib/engine/street/constants";
 import { createCollision } from "@/lib/engine/street/collision";
@@ -296,7 +297,21 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false, demo
     if (!gpuTimer.supported) markPerfMeasurementUnavailable("gpuFrameTimeMs", initialGpuTimerState.reason || "GPU timer queries are unavailable.");
     markPerfMeasurementUnavailable("estimatedGpuMemoryBytes", "WebGL does not expose reliable allocated VRAM bytes; geometry and texture object counts are reported instead.");
     renderer.setSize(mount.clientWidth, mount.clientHeight);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, useMsaa ? 1.5 : 1.25));
+    // Dynamic render-scale governor: the tier sets a base pixel ratio; the
+    // governor scales it between 0.6x and 1x. Disabled in benchmark mode.
+    let basePixelRatio = Math.min(window.devicePixelRatio || 1, useMsaa ? 1.5 : 1.25);
+    let renderScaleState = createRenderScaleState(1);
+    const governorEnabled = window.__BENCH_MODE !== true;
+    const frameWindow = new Float32Array(256);
+    let frameWindowCount = 0;
+    const applyRenderScale = () => {
+      renderer.setPixelRatio(basePixelRatio * renderScaleState.scale);
+      if (postFx) {
+        postFx.setSize(mount.clientWidth, mount.clientHeight);
+        postFx.setFxaa(!useMsaa && renderScaleState.scale < 1);
+      }
+    };
+    renderer.setPixelRatio(basePixelRatio);
     // filmic tone mapping: richer sky gradients, softer highlights, deeper
     // shadow color — the single cheapest whole-scene visual upgrade
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -497,13 +512,16 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false, demo
     postFx.setSize(mount.clientWidth, mount.clientHeight);
     applyQuality = (q) => {
       const quality = q || "medium";
-      renderer.setPixelRatio(
+      basePixelRatio =
         quality === "low"
           ? 0.75
           : quality === "medium"
-            ? Math.min(window.devicePixelRatio, 1.25)
-            : Math.min(window.devicePixelRatio || 1, 1.5)
-      );
+            ? Math.min(window.devicePixelRatio || 1, 1.25)
+            : Math.min(window.devicePixelRatio || 1, 1.5);
+      // new tier -> restart the governor from full scale
+      renderScaleState = createRenderScaleState(1);
+      frameWindowCount = 0;
+      renderer.setPixelRatio(basePixelRatio);
       renderer.shadowMap.enabled = quality !== "low";
       sun.castShadow = quality !== "low";
       if (quality === "low") sun.shadow.mapSize.set(512, 512);
@@ -511,6 +529,7 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false, demo
       else sun.shadow.mapSize.set(2048, 2048);
       renderer.setSize(mount.clientWidth, mount.clientHeight);
       postFx.setSize(mount.clientWidth, mount.clientHeight);
+      postFx.setFxaa(false);
       // remember the tier; applySky re-evaluates so night can turn bloom on
       qualityTier = quality;
       const nearTextures = ktx2TextureLoader.setQuality(quality);
@@ -545,6 +564,9 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false, demo
     const nightSky = new THREE.Color(0x121b2d); // deep blue: keep the horizon readable
     let weatherAmt = 0;
     const sunDir = new THREE.Vector3(300, 500, -200);
+    const skyTmp = new THREE.Color();
+    const overcastTmp = new THREE.Color();
+    const fogWarm = new THREE.Color(0xe9b48a); // sun-side horizon haze
     const applySky = (hour) => {
       // sun elevation from local solar hour
       const t = ((hour - 6) / 12) * Math.PI; // 6h→sunrise, 18h→sunset
@@ -566,15 +588,19 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false, demo
         // slight "bloom" via brighter additive pools at night
         pool.opacity = winGlow * (1.05 + winGlow * 0.35);
       }
-      const sky = new THREE.Color();
+      const sky = skyTmp;
       if (elev > 0.25) sky.copy(daySky);
       else if (elev > -0.05) sky.lerpColors(duskSky, daySky, (elev + 0.05) / 0.3);
       else sky.copy(nightSky);
       const overcastSky = elev > 0.25 ? 0x8a8f96 : elev > -0.05 ? 0x766d74 : 0x37414f;
       const weatherBlend = weatherAmt * (elev > 0.25 ? 0.7 : elev > -0.05 ? 0.55 : 0.5);
-      sky.lerp(new THREE.Color(overcastSky), weatherBlend);
+      sky.lerp(overcastTmp.setHex(overcastSky), weatherBlend);
       scene.background = sky;
       scene.fog.color.copy(sky);
+      // Horizon haze: near sunrise/sunset the fog picks up a warm horizon tint
+      // (less in bad weather), so distant blocks fade toward the glow.
+      const hazeWarm = Math.max(0, 1 - Math.abs(elev) / 0.35) * (1 - weatherAmt * 0.7) * 0.35;
+      if (hazeWarm > 0) scene.fog.color.lerp(fogWarm, hazeWarm);
       // denser fog in weather + height-ish mood: dawn/dusk thicker, noon clearer
       const duskMood = 1 - Math.abs(elev); // 0 at noon, 1 at horizon
       // Keep distant streets atmospheric without letting night/rain erase the route.
@@ -1136,6 +1162,7 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false, demo
       }
       if (document.visibilityState === "visible" && lastFrameAt !== null) {
         recordFrameInterval(frameAt - lastFrameAt);
+        if (frameWindowCount < frameWindow.length) frameWindow[frameWindowCount++] = frameAt - lastFrameAt;
       }
       lastFrameAt = document.visibilityState === "visible" ? frameAt : null;
       const dt = Math.min(clock.getDelta(), 0.1);
@@ -1372,6 +1399,14 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false, demo
       if (now - fpsTime >= 1000) {
         fpsVal = Math.round((fpsCount * 1000) / (now - fpsTime));
         fpsCount = 0; fpsTime = now;
+        // Fine-grained governor first: p90 frame time over the last ~1 s window.
+        if (governorEnabled && frameWindowCount >= 20) {
+          const next = stepRenderScale(renderScaleState, p90Of(frameWindow, frameWindowCount), renderScaleTargetMs(qualityTier));
+          const changed = next.scale !== renderScaleState.scale;
+          renderScaleState = next;
+          if (changed) applyRenderScale();
+        }
+        frameWindowCount = 0;
         // Require several consecutive samples before changing quality so a
         // one-off streamed cell does not cause visible preset thrashing.
         const currentSettings = useGameStore.getState().settings;
@@ -1386,7 +1421,9 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false, demo
             qualityGuardLow = 0;
             qualityGuardGood = 0;
           }
-          const nextQuality = qualityGuardLow >= 3
+          // Preset step-down only once render scale has bottomed out.
+          const scaleExhausted = !governorEnabled || isAtRenderScaleFloor(renderScaleState.scale);
+          const nextQuality = qualityGuardLow >= 3 && scaleExhausted
             ? ({ high: "medium", medium: "low" }[qualityTier] || qualityTier)
             : qualityGuardGood >= 12
               ? ({ low: "medium", medium: "high" }[qualityTier] || qualityTier)
@@ -1552,6 +1589,8 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false, demo
       // crosses ~650 m boundaries (R2 warm hits are ~1–2s; cold Overpass slower).
       const cellStreamer = createCellStreamer({
         scene,
+        // Shadows are baked manually; refresh once streamed cells finish rising.
+        onRiseEnd: () => { renderer.shadowMap.needsUpdate = true; },
         lat0,
         lon0,
         toLocal,
@@ -1734,6 +1773,7 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false, demo
 
       window.__streetDebug = {
         player,
+        renderScale: () => renderScaleState.scale,
         setWetRoadMapCandidate: (enabled) => window.__BENCH_MODE === true ? setWetRoadMapCandidate(enabled) : null,
         wetRoadMapStats: () => window.__BENCH_MODE === true ? wetRoadMapStats() : null,
         cityDataCopyMode: readOnlyCityData ? "readonly" : "clone",
