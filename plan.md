@@ -23,7 +23,9 @@ Acceptance for demo-track items (lighter than section 3):
 
 Demo-track items:
 
-- [ ] **D1 — Ground and sidewalks near the player.** At street level the ground
+- [x] **D1 — Ground and sidewalks near the player.** Done: raster darkened,
+  world-space detail grain near the player, stronger zebras; road-decal lane
+  markings still open. At street level the ground
   reads as a flat white/beige smear and road markings are hard to see. Make the
   first 60 m read as asphalt with markings, kerbs and paved sidewalks. Prefer a
   world-space detail texture faded with distance over a larger ground canvas.
@@ -48,7 +50,8 @@ Demo-track items:
   (`npm run seed:direct` seeds Overpass straight into R2 from a local machine,
   without the API route's 85 s limit), and record time-to-ready and one
   screenshot per city with `npm run rehearse`.
-- [ ] **D8 — Facade and storefront variation (from 4.7).** Ground-floor shopfronts,
+- [x] **D8 — Facade and storefront variation (from 4.7).** Done: wider
+  storefront rule, per-building window band/U shift and tint. Ground-floor shopfronts,
   entrances and roof silhouettes at the four demo start points.
 
 Process rules for every stage:
