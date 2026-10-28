@@ -160,7 +160,7 @@ async function captureVisitState(page) {
     const timeline = Array.isArray(perf.timeline) ? perf.timeline : [];
     const steadyWindowStartAtMs = Number.isFinite(window.__BENCH_STEADY_WINDOW_START_AT)
       ? window.__BENCH_STEADY_WINDOW_START_AT : null;
-    const timings = timeline.filter((event) => event.type === "timing" && /^(city\.(?:initial-data-consumer|cell-load|indexeddb-read|fetch-to-headers|json-body-and-parse|enrichment|consumer-copy|spawn-clip|spawn-geometry-total|spawn-assembly-total|prebuilt-terrain-revision|prebuilt-terrain-tiles|prebuilt-terrain-hash|prebuilt-frame-rebase|prebuilt-shader-warmup))$/u.test(event.name))
+    const timings = timeline.filter((event) => event.type === "timing" && /^(?:city\.(?:initial-data-consumer|cell-load|indexeddb-read|fetch-to-headers|json-body-and-parse|enrichment|consumer-copy|spawn-clip|spawn-geometry-total|spawn-assembly-total|prebuilt-terrain-revision|prebuilt-terrain-tiles|prebuilt-terrain-hash(?:-(?:pack|digest))?|prebuilt-frame-rebase|prebuilt-shader-warmup)|terrain\.height-(?:image|pixels|grid))$/u.test(event.name))
       .filter((event) => steadyWindowStartAtMs === null || event.atMs >= steadyWindowStartAtMs)
       .map(({ name, durationMs, details }) => ({ name, durationMs: +durationMs.toFixed(1), details }));
     const steadyWindow = window.__BENCH_STEADY_WINDOW || null;

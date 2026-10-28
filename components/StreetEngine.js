@@ -812,7 +812,9 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false, demo
         if (!ready) return false;
         const revision = await measurePerfAsync(
           "city.prebuilt-terrain-hash",
-          () => computeTerrainRevision(terrainTiles, metadata.terrainTileKeys),
+          () => computeTerrainRevision(terrainTiles, metadata.terrainTileKeys, globalThis.crypto, (phase, durationMs, details) => {
+            recordPerfTiming(`city.prebuilt-terrain-hash-${phase}`, durationMs, details);
+          }),
           { tileCount: metadata.terrainTileKeys.length }
         );
         return revision === metadata.terrainRevision;

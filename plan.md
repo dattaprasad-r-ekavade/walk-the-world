@@ -218,8 +218,14 @@ Decisions taken from the research:
   steady window does not isolate per-geometry upload submission. In this run,
   raw/prebuilt cold medians were 3.431/3.590 s and warm medians were
   1.765/1.868 s; prebuilt transferred 7.3% fewer cold bytes. B1 remains open
-  for integrated/mobile parity, browser editor and failure acceptance, cold
-  terrain-gate work, upload-cost investigation and overlap-index growth bounds.
+  for integrated/mobile parity, browser editor and failure acceptance,
+  upload-cost investigation and overlap-index growth bounds. A phase-level
+  terrain trace found four cold sampled-tile image loads at 1.21–2.22 s each;
+  canvas reads took 0.9–2.0 ms and 65×65 downsampling 0.0–0.6 ms per tile.
+  Hash packing took 6.9–8.4 ms and SHA-256 completion 0.4–0.6 ms. The cold
+  terrain gate is dominated by image obtain/decode, so a hash rewrite is not a
+  useful target; evaluate a revision-aware cache only if it preserves mismatch
+  fallback.
   See [the B1 decision](benchmarks/results/stage8/b1-matched-2026-10-29/decision.md);
   detailed reports and screenshots remain ignored under
   `benchmarks/results/stage8/b1-steady-visible-chrome-2026-10-29/`.
@@ -271,7 +277,7 @@ mobile, offline and several visual gates remain open.
 | 3 Assets | 3.1–3.8 implemented; compressed maps and optimized props | Offline/failure browser checks, lower-memory/mobile residency and far mip seams |
 | 4 Roads/lights | 4.1, 4.2 and desktop 4.4 complete | Wetness, bloom/contact shading, shadows and facade variation |
 | 5 Detail/weather | Planned | LOD, spatial instances, vegetation and analytic precipitation |
-| 6–8 Alternatives | B1 overlap filtering, sampled terrain keys and height-only preflight measured; Stage 6/7 deferred | B1 terrain-download cost, browser/device parity and upload-cost acceptance |
+| 6–8 Alternatives | B1 overlap filtering, sampled terrain keys, height-only preflight and steady-window diagnostics measured; Stage 6/7 deferred | B1 revision-safe cold-terrain caching, browser/device parity and upload-cost acceptance |
 | 9 Integration | Open | Full regression, hardware/visual acceptance and release records |
 
 Latest validation: all 206 tests across 33 files and the production build pass,
@@ -759,10 +765,11 @@ matched settings, tested hardware, thresholds and remaining gates.
 ## 15. Next action and deferred choices
 
 1. Complete B1's integrated/mobile parity and browser editor/failure acceptance;
-   measure the cold terrain gate and bound overlap-index growth. Continue
-   investigating upload cost because the visible steady window does not expose
-   per-geometry submission time. Keep local artifacts private unless a separate
-   release task authorizes publication. Then work through B2 (Overpass
+   evaluate whether a revision-aware cache can safely avoid cold terrain image
+   fetches, and bound overlap-index growth. Continue investigating upload cost
+   because the visible steady window does not expose per-geometry submission
+   time. Keep local artifacts private unless a separate release task authorizes
+   publication. Then work through B2 (Overpass
    independence), B3 (procedural landuse ground) and B4 (Overture attribute gap
    fill).
 2. Consider C1–C3 only after the data foundation, and only when a measured

@@ -181,6 +181,26 @@ ignored by Git. B1 remains open for lower-tier device parity, browser editor and
 failure-path acceptance, cold terrain-gate work, upload-cost investigation,
 and overlap-index growth bounds.
 
+## Cold terrain-validation breakdown — 29 October 2026
+
+Added phase timings around the four sampled Terrarium height tiles and split
+terrain revision hashing into buffer packing and the WebCrypto digest. A valid
+visible-Chrome prebuilt run showed cold `prebuilt-terrain-tiles` times of
+2,224.8 / 1,653.5 / 1,655.9 ms. Across the four required keys, image onload
+took 1,206–2,219 ms per tile; canvas pixel extraction took 0.9–2.0 ms, and
+downsampling to the 65×65 grid took 0.0–0.6 ms. Hash buffer packing took
+6.9–8.4 ms and SHA-256 digest completion 0.4–0.6 ms. The cold gate is therefore
+dominated by obtaining and decoding the source PNGs, not by grid conversion or
+hashing. Image onload combines network and browser decode; the current report
+does not separate those phases. Warm visits reused loaded heights and reduced
+tile validation to 0–0.1 ms, followed by the small hash cost.
+
+The run's valid reports are in the ignored local directory
+`benchmarks/results/stage8/b1-terrain-breakdown-2026-10-29/prebuilt-hash-split/`.
+The next useful terrain work is to evaluate a revision-aware cache or another
+way to avoid cold image refetch while preserving the terrain mismatch fallback.
+Changing the hash implementation alone is not justified by these timings.
+
 ## Evidence and remaining gates
 
 The initial and follow-up JSON reports and cold-run screenshots are retained
@@ -189,9 +209,10 @@ locally under `raw/`, `prebuilt/`, `b1-validation-overlap-2026-10-29/`,
 ignored by Git. This tracked note
 contains the reviewable measurements so the raw traces need not be committed.
 
-Before adopting B1, measure a controlled steady frame window and GPU upload
-submission cost; repeat on the intended integrated/mobile tiers; investigate
-the cold terrain-validation gate; verify editor/failure/cancellation/eviction
-behavior in the browser; and confirm the overlap index stays bounded as bake
-coverage grows. Local artifacts remain unpublished; production R2 publication
-is a separate release task.
+Before adopting B1, repeat the fixed-window comparison on the intended
+integrated/mobile tiers and investigate GPU upload submission cost, which the
+current window does not isolate. Evaluate revision-safe caching for the cold
+terrain image gate; verify browser editor/failure behavior alongside existing
+cancellation/eviction tests; and confirm the overlap index stays bounded as
+bake coverage grows. Local artifacts remain unpublished; production R2
+publication is a separate release task.
