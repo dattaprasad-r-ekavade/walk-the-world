@@ -1,0 +1,234 @@
+{
+  "schemaVersion": 1,
+  "stage": "3.7",
+  "createdAt": "2026-10-28T02:35:11.902272+00:00",
+  "toolchain": {
+    "renderer": "Blender 5.2.0",
+    "engine": "BLENDER_EEVEE",
+    "captureWidth": 384,
+    "captureHeight": 384,
+    "views": [
+      "plus-z",
+      "minus-z",
+      "plus-x",
+      "minus-x"
+    ]
+  },
+  "comparison": "Fresh normalized self-contained GLBs vs prune + dedup + weld outputs; identical camera, light, world, and render settings per view.",
+  "models": [
+    {
+      "id": "kenney:construction-barrier",
+      "file": "assets/processed/props/construction-barrier.glb",
+      "normalizedSha256": "112ac9998178293bf22dfff1dd638d582f3fdaa79c7c50c7360ca364993f5506",
+      "optimizedSha256": "10b7ca84d46e4a274df8d62a54fcd1cfbaf83437e3b7d5ce9eb528c3d4455836",
+      "capture": "benchmarks/results/stage3/glb-optimization-review/construction-barrier-comparison.png",
+      "losslessPipeline": [
+        {
+          "view": "plus-z",
+          "changedPixels": 0,
+          "pixels": 147456,
+          "changedPercent": 0.0,
+          "meanAbsChannelDifference": 0.0,
+          "maxAbsChannelDifference": 0
+        },
+        {
+          "view": "minus-z",
+          "changedPixels": 0,
+          "pixels": 147456,
+          "changedPercent": 0.0,
+          "meanAbsChannelDifference": 0.0,
+          "maxAbsChannelDifference": 0
+        },
+        {
+          "view": "plus-x",
+          "changedPixels": 0,
+          "pixels": 147456,
+          "changedPercent": 0.0,
+          "meanAbsChannelDifference": 0.0,
+          "maxAbsChannelDifference": 0
+        },
+        {
+          "view": "minus-x",
+          "changedPixels": 0,
+          "pixels": 147456,
+          "changedPercent": 0.0,
+          "meanAbsChannelDifference": 0.0,
+          "maxAbsChannelDifference": 0
+        }
+      ]
+    },
+    {
+      "id": "kenney:construction-cone",
+      "file": "assets/processed/props/construction-cone.glb",
+      "normalizedSha256": "fdaa49af2ff677dc4a583521c1e3b3c4abb30827f04cf478b93c5812cc31350a",
+      "optimizedSha256": "f60eb08c1a8d4d9e38e00073b851e927eacaa9adbd6a0d875055af4540bd270a",
+      "capture": "benchmarks/results/stage3/glb-optimization-review/construction-cone-comparison.png",
+      "losslessPipeline": [
+        {
+          "view": "plus-z",
+          "changedPixels": 0,
+          "pixels": 147456,
+          "changedPercent": 0.0,
+          "meanAbsChannelDifference": 0.0,
+          "maxAbsChannelDifference": 0
+        },
+        {
+          "view": "minus-z",
+          "changedPixels": 0,
+          "pixels": 147456,
+          "changedPercent": 0.0,
+          "meanAbsChannelDifference": 0.0,
+          "maxAbsChannelDifference": 0
+        },
+        {
+          "view": "plus-x",
+          "changedPixels": 0,
+          "pixels": 147456,
+          "changedPercent": 0.0,
+          "meanAbsChannelDifference": 0.0,
+          "maxAbsChannelDifference": 0
+        },
+        {
+          "view": "minus-x",
+          "changedPixels": 0,
+          "pixels": 147456,
+          "changedPercent": 0.0,
+          "meanAbsChannelDifference": 0.0,
+          "maxAbsChannelDifference": 0
+        }
+      ]
+    },
+    {
+      "id": "kenney:road-sign-stop",
+      "file": "assets/processed/props/road-sign-stop.glb",
+      "normalizedSha256": "4ccaaec5fa594abd1de085863b0c9729d905d5591d151269b56fdb470263f602",
+      "optimizedSha256": "97f90fff48465e66dcfd844b71ea491b768d6de457cb38cbcc7fcd7025ed4255",
+      "capture": "benchmarks/results/stage3/glb-optimization-review/road-sign-stop-comparison.png",
+      "losslessPipeline": [
+        {
+          "view": "plus-z",
+          "changedPixels": 0,
+          "pixels": 147456,
+          "changedPercent": 0.0,
+          "meanAbsChannelDifference": 0.0,
+          "maxAbsChannelDifference": 0
+        },
+        {
+          "view": "minus-z",
+          "changedPixels": 0,
+          "pixels": 147456,
+          "changedPercent": 0.0,
+          "meanAbsChannelDifference": 0.0,
+          "maxAbsChannelDifference": 0
+        },
+        {
+          "view": "plus-x",
+          "changedPixels": 0,
+          "pixels": 147456,
+          "changedPercent": 0.0,
+          "meanAbsChannelDifference": 0.0,
+          "maxAbsChannelDifference": 0
+        },
+        {
+          "view": "minus-x",
+          "changedPixels": 0,
+          "pixels": 147456,
+          "changedPercent": 0.0,
+          "meanAbsChannelDifference": 0.0,
+          "maxAbsChannelDifference": 0
+        }
+      ]
+    },
+    {
+      "id": "kenney:traffic-light",
+      "file": "assets/processed/props/traffic-light.glb",
+      "normalizedSha256": "b5abafb50b47f2724b0883d3d3cda1c685aedde2bc8697c5b15f7e8c99cfe21a",
+      "optimizedSha256": "598c60ef52a3f500f220001b785e7feabef0ad7e0bda5c150b4a435c35c154c7",
+      "capture": "benchmarks/results/stage3/glb-optimization-review/traffic-light-comparison.png",
+      "losslessPipeline": [
+        {
+          "view": "plus-z",
+          "changedPixels": 0,
+          "pixels": 147456,
+          "changedPercent": 0.0,
+          "meanAbsChannelDifference": 0.0,
+          "maxAbsChannelDifference": 0
+        },
+        {
+          "view": "minus-z",
+          "changedPixels": 0,
+          "pixels": 147456,
+          "changedPercent": 0.0,
+          "meanAbsChannelDifference": 0.0,
+          "maxAbsChannelDifference": 0
+        },
+        {
+          "view": "plus-x",
+          "changedPixels": 0,
+          "pixels": 147456,
+          "changedPercent": 0.0,
+          "meanAbsChannelDifference": 0.0,
+          "maxAbsChannelDifference": 0
+        },
+        {
+          "view": "minus-x",
+          "changedPixels": 0,
+          "pixels": 147456,
+          "changedPercent": 0.0,
+          "meanAbsChannelDifference": 0.0,
+          "maxAbsChannelDifference": 0
+        }
+      ]
+    }
+  ],
+  "simplificationTrial": {
+    "asset": "kenney:traffic-light",
+    "ratio": 0.75,
+    "error": 0.01,
+    "vertices": {
+      "optimized": 306,
+      "candidate": 286
+    },
+    "triangles": {
+      "optimized": 212,
+      "candidate": 192
+    },
+    "candidateCapture": "benchmarks/results/stage3/glb-optimization-review/traffic-light-comparison.png",
+    "comparison": [
+      {
+        "view": "plus-z",
+        "changedPixels": 1186,
+        "pixels": 147456,
+        "changedPercent": 0.8043,
+        "meanAbsChannelDifference": 0.121388,
+        "maxAbsChannelDifference": 204
+      },
+      {
+        "view": "minus-z",
+        "changedPixels": 115,
+        "pixels": 147456,
+        "changedPercent": 0.078,
+        "meanAbsChannelDifference": 0.011217,
+        "maxAbsChannelDifference": 72
+      },
+      {
+        "view": "plus-x",
+        "changedPixels": 561,
+        "pixels": 147456,
+        "changedPercent": 0.3805,
+        "meanAbsChannelDifference": 0.024525,
+        "maxAbsChannelDifference": 40
+      },
+      {
+        "view": "minus-x",
+        "changedPixels": 572,
+        "pixels": 147456,
+        "changedPercent": 0.3879,
+        "meanAbsChannelDifference": 0.033908,
+        "maxAbsChannelDifference": 66
+      }
+    ],
+    "decision": "Rejected: the three round signal lenses become square in the front view."
+  },
+  "decision": "The decoder-free prune/dedup/weld pipeline is visually accepted: all 16 per-view captures are pixel-identical. Triangle simplification and Meshopt/Draco compression are not adopted."
+}

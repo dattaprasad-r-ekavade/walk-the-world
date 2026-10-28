@@ -13,3 +13,4 @@ function run(command, args) {
 run("python", ["scripts/build-material-atlases.py"]);
 run("node", ["scripts/build-facade-atlases.mjs"]);
 run("blender", ["--background", "--python", "scripts/normalize-city-kit.py"]);
+run("node", ["scripts/optimize-props.mjs"]);

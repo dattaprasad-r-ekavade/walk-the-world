@@ -1,0 +1,803 @@
+{
+  "schemaVersion": 1,
+  "createdAt": "2026-10-28T02:39:50.403Z",
+  "revision": "stage3-glb-optimization-r1",
+  "toolchain": {
+    "gltfTransformCli": "4.5.0",
+    "node": "v22.23.3",
+    "platform": "win32-x64"
+  },
+  "pipeline": [
+    "prune",
+    "dedup",
+    "weld"
+  ],
+  "simplificationTrials": [
+    {
+      "ratio": 0.75,
+      "error": 0.001,
+      "adopted": false
+    },
+    {
+      "ratio": 0.75,
+      "error": 0.01,
+      "adopted": false
+    }
+  ],
+  "codecTrials": [
+    "meshopt",
+    "draco"
+  ],
+  "codecTotals": {
+    "meshopt": {
+      "bytes": 61520,
+      "gzipBytes": 48795,
+      "brotliBytes": 46967
+    },
+    "draco": {
+      "bytes": 54624,
+      "gzipBytes": 46613,
+      "brotliBytes": 45258
+    }
+  },
+  "models": [
+    {
+      "id": "kenney:construction-cone",
+      "file": "processed/props/construction-cone.glb",
+      "normalized": {
+        "bytes": 16504,
+        "sha256": "fdaa49af2ff677dc4a583521c1e3b3c4abb30827f04cf478b93c5812cc31350a",
+        "gzipBytes": 11739,
+        "brotliBytes": 11192,
+        "nodes": 1,
+        "meshes": 1,
+        "primitives": 1,
+        "materials": 1,
+        "textures": 1,
+        "images": [
+          {
+            "mimeType": "image/png",
+            "bytes": 11428,
+            "sha256": "a48e2962661ae44368ffddf3054f80ed8491d082b757dcc3011184cd9a98b185"
+          }
+        ],
+        "textureSlots": [
+          "pbrMetallicRoughness.baseColorTexture"
+        ],
+        "vertices": 104,
+        "triangles": 66,
+        "attributes": [
+          "NORMAL",
+          "POSITION",
+          "TEXCOORD_0"
+        ],
+        "positionBounds": [
+          {
+            "min": [
+              -0.20000000298023224,
+              0,
+              -0.20000000298023224
+            ],
+            "max": [
+              0.20000000298023224,
+              0.5,
+              0.20000000298023224
+            ]
+          }
+        ],
+        "extensionsUsed": [],
+        "extensionsRequired": []
+      },
+      "optimized": {
+        "bytes": 15580,
+        "sha256": "f60eb08c1a8d4d9e38e00073b851e927eacaa9adbd6a0d875055af4540bd270a",
+        "gzipBytes": 11681,
+        "brotliBytes": 11163,
+        "nodes": 1,
+        "meshes": 1,
+        "primitives": 1,
+        "materials": 1,
+        "textures": 1,
+        "images": [
+          {
+            "mimeType": "image/png",
+            "bytes": 11428,
+            "sha256": "a48e2962661ae44368ffddf3054f80ed8491d082b757dcc3011184cd9a98b185"
+          }
+        ],
+        "textureSlots": [
+          "pbrMetallicRoughness.baseColorTexture"
+        ],
+        "vertices": 76,
+        "triangles": 66,
+        "attributes": [
+          "NORMAL",
+          "POSITION",
+          "TEXCOORD_0"
+        ],
+        "positionBounds": [
+          {
+            "min": [
+              -0.20000000298023224,
+              0,
+              -0.20000000298023224
+            ],
+            "max": [
+              0.20000000298023224,
+              0.5,
+              0.20000000298023224
+            ]
+          }
+        ],
+        "extensionsUsed": [],
+        "extensionsRequired": []
+      },
+      "meshopt": {
+        "bytes": 14608,
+        "gzipBytes": 11654,
+        "brotliBytes": 11239,
+        "extensionsUsed": [
+          "EXT_meshopt_compression",
+          "KHR_mesh_quantization"
+        ],
+        "extensionsRequired": [
+          "EXT_meshopt_compression",
+          "KHR_mesh_quantization"
+        ]
+      },
+      "draco": {
+        "bytes": 13328,
+        "gzipBytes": 11303,
+        "brotliBytes": 10975,
+        "extensionsUsed": [
+          "KHR_draco_mesh_compression"
+        ],
+        "extensionsRequired": [
+          "KHR_draco_mesh_compression"
+        ]
+      },
+      "simplify": {
+        "strict": {
+          "bytes": 15580,
+          "vertices": 76,
+          "triangles": 66,
+          "positionBounds": [
+            {
+              "min": [
+                -0.20000000298023224,
+                0,
+                -0.20000000298023224
+              ],
+              "max": [
+                0.20000000298023224,
+                0.5,
+                0.20000000298023224
+              ]
+            }
+          ],
+          "extensionsUsed": []
+        },
+        "loose": {
+          "bytes": 15580,
+          "vertices": 76,
+          "triangles": 66,
+          "positionBounds": [
+            {
+              "min": [
+                -0.20000000298023224,
+                0,
+                -0.20000000298023224
+              ],
+              "max": [
+                0.20000000298023224,
+                0.5,
+                0.20000000298023224
+              ]
+            }
+          ],
+          "extensionsUsed": []
+        }
+      },
+      "transformLogs": {
+        "prune": [
+          "info: construction-cone.glb (16.5 KB) → pruned.glb (16.48 KB)"
+        ],
+        "dedup": [
+          "info: pruned.glb (16.48 KB) → deduped.glb (16.48 KB)"
+        ],
+        "weld": [
+          "info: deduped.glb (16.48 KB) → optimized.glb (15.58 KB)"
+        ],
+        "validate": [
+          "ERROR",
+          " ────────────────────────────────────────────",
+          "info: No errors found.\r",
+          " WARNING",
+          " ────────────────────────────────────────────",
+          "info: No warnings found.\r",
+          " INFO",
+          " ────────────────────────────────────────────",
+          "info: No infos found.\r",
+          " HINT",
+          " ────────────────────────────────────────────",
+          "info: No hints found."
+        ]
+      }
+    },
+    {
+      "id": "kenney:construction-barrier",
+      "file": "processed/props/construction-barrier.glb",
+      "normalized": {
+        "bytes": 16488,
+        "sha256": "112ac9998178293bf22dfff1dd638d582f3fdaa79c7c50c7360ca364993f5506",
+        "gzipBytes": 12018,
+        "brotliBytes": 11434,
+        "nodes": 1,
+        "meshes": 1,
+        "primitives": 1,
+        "materials": 1,
+        "textures": 1,
+        "images": [
+          {
+            "mimeType": "image/png",
+            "bytes": 11428,
+            "sha256": "a48e2962661ae44368ffddf3054f80ed8491d082b757dcc3011184cd9a98b185"
+          }
+        ],
+        "textureSlots": [
+          "pbrMetallicRoughness.baseColorTexture"
+        ],
+        "vertices": 104,
+        "triangles": 60,
+        "attributes": [
+          "NORMAL",
+          "POSITION",
+          "TEXCOORD_0"
+        ],
+        "positionBounds": [
+          {
+            "min": [
+              -0.45168405771255493,
+              0,
+              -0.7500288486480713
+            ],
+            "max": [
+              0.45168405771255493,
+              0.8666999936103821,
+              0.7500288486480713
+            ]
+          }
+        ],
+        "extensionsUsed": [],
+        "extensionsRequired": []
+      },
+      "optimized": {
+        "bytes": 15824,
+        "sha256": "10b7ca84d46e4a274df8d62a54fcd1cfbaf83437e3b7d5ce9eb528c3d4455836",
+        "gzipBytes": 11974,
+        "brotliBytes": 11304,
+        "nodes": 1,
+        "meshes": 1,
+        "primitives": 1,
+        "materials": 1,
+        "textures": 1,
+        "images": [
+          {
+            "mimeType": "image/png",
+            "bytes": 11428,
+            "sha256": "a48e2962661ae44368ffddf3054f80ed8491d082b757dcc3011184cd9a98b185"
+          }
+        ],
+        "textureSlots": [
+          "pbrMetallicRoughness.baseColorTexture"
+        ],
+        "vertices": 84,
+        "triangles": 60,
+        "attributes": [
+          "NORMAL",
+          "POSITION",
+          "TEXCOORD_0"
+        ],
+        "positionBounds": [
+          {
+            "min": [
+              -0.45168405771255493,
+              0,
+              -0.7500288486480713
+            ],
+            "max": [
+              0.45168405771255493,
+              0.8666999936103821,
+              0.7500288486480713
+            ]
+          }
+        ],
+        "extensionsUsed": [],
+        "extensionsRequired": []
+      },
+      "meshopt": {
+        "bytes": 14800,
+        "gzipBytes": 11756,
+        "brotliBytes": 11327,
+        "extensionsUsed": [
+          "EXT_meshopt_compression",
+          "KHR_mesh_quantization"
+        ],
+        "extensionsRequired": [
+          "EXT_meshopt_compression",
+          "KHR_mesh_quantization"
+        ]
+      },
+      "draco": {
+        "bytes": 13432,
+        "gzipBytes": 11439,
+        "brotliBytes": 11094,
+        "extensionsUsed": [
+          "KHR_draco_mesh_compression"
+        ],
+        "extensionsRequired": [
+          "KHR_draco_mesh_compression"
+        ]
+      },
+      "simplify": {
+        "strict": {
+          "bytes": 15824,
+          "vertices": 84,
+          "triangles": 60,
+          "positionBounds": [
+            {
+              "min": [
+                -0.45168405771255493,
+                0,
+                -0.7500288486480713
+              ],
+              "max": [
+                0.45168405771255493,
+                0.8666999936103821,
+                0.7500288486480713
+              ]
+            }
+          ],
+          "extensionsUsed": []
+        },
+        "loose": {
+          "bytes": 15824,
+          "vertices": 84,
+          "triangles": 60,
+          "positionBounds": [
+            {
+              "min": [
+                -0.45168405771255493,
+                0,
+                -0.7500288486480713
+              ],
+              "max": [
+                0.45168405771255493,
+                0.8666999936103821,
+                0.7500288486480713
+              ]
+            }
+          ],
+          "extensionsUsed": []
+        }
+      },
+      "transformLogs": {
+        "prune": [
+          "info: construction-barrier.glb (16.49 KB) → pruned.glb (16.47 KB)"
+        ],
+        "dedup": [
+          "info: pruned.glb (16.47 KB) → deduped.glb (16.47 KB)"
+        ],
+        "weld": [
+          "info: deduped.glb (16.47 KB) → optimized.glb (15.82 KB)"
+        ],
+        "validate": [
+          "ERROR",
+          " ────────────────────────────────────────────",
+          "info: No errors found.\r",
+          " WARNING",
+          " ────────────────────────────────────────────",
+          "info: No warnings found.\r",
+          " INFO",
+          " ────────────────────────────────────────────",
+          "info: No infos found.\r",
+          " HINT",
+          " ────────────────────────────────────────────",
+          "info: No hints found."
+        ]
+      }
+    },
+    {
+      "id": "kenney:road-sign-stop",
+      "file": "processed/props/road-sign-stop.glb",
+      "normalized": {
+        "bytes": 19172,
+        "sha256": "4ccaaec5fa594abd1de085863b0c9729d905d5591d151269b56fdb470263f602",
+        "gzipBytes": 12657,
+        "brotliBytes": 11925,
+        "nodes": 1,
+        "meshes": 1,
+        "primitives": 1,
+        "materials": 1,
+        "textures": 1,
+        "images": [
+          {
+            "mimeType": "image/png",
+            "bytes": 11428,
+            "sha256": "a48e2962661ae44368ffddf3054f80ed8491d082b757dcc3011184cd9a98b185"
+          }
+        ],
+        "textureSlots": [
+          "pbrMetallicRoughness.baseColorTexture"
+        ],
+        "vertices": 180,
+        "triangles": 104,
+        "attributes": [
+          "NORMAL",
+          "POSITION",
+          "TEXCOORD_0"
+        ],
+        "positionBounds": [
+          {
+            "min": [
+              -0.29372668266296387,
+              0,
+              -0.16470175981521606
+            ],
+            "max": [
+              0.29372668266296387,
+              2.0999999046325684,
+              0.16470175981521606
+            ]
+          }
+        ],
+        "extensionsUsed": [],
+        "extensionsRequired": []
+      },
+      "optimized": {
+        "bytes": 18896,
+        "sha256": "97f90fff48465e66dcfd844b71ea491b768d6de457cb38cbcc7fcd7025ed4255",
+        "gzipBytes": 12713,
+        "brotliBytes": 11912,
+        "nodes": 1,
+        "meshes": 1,
+        "primitives": 1,
+        "materials": 1,
+        "textures": 1,
+        "images": [
+          {
+            "mimeType": "image/png",
+            "bytes": 11428,
+            "sha256": "a48e2962661ae44368ffddf3054f80ed8491d082b757dcc3011184cd9a98b185"
+          }
+        ],
+        "textureSlots": [
+          "pbrMetallicRoughness.baseColorTexture"
+        ],
+        "vertices": 172,
+        "triangles": 104,
+        "attributes": [
+          "NORMAL",
+          "POSITION",
+          "TEXCOORD_0"
+        ],
+        "positionBounds": [
+          {
+            "min": [
+              -0.29372668266296387,
+              0,
+              -0.16470175981521606
+            ],
+            "max": [
+              0.29372668266296387,
+              2.0999999046325684,
+              0.16470175981521606
+            ]
+          }
+        ],
+        "extensionsUsed": [],
+        "extensionsRequired": []
+      },
+      "meshopt": {
+        "bytes": 15540,
+        "gzipBytes": 12396,
+        "brotliBytes": 11955,
+        "extensionsUsed": [
+          "EXT_meshopt_compression",
+          "KHR_mesh_quantization"
+        ],
+        "extensionsRequired": [
+          "EXT_meshopt_compression",
+          "KHR_mesh_quantization"
+        ]
+      },
+      "draco": {
+        "bytes": 13648,
+        "gzipBytes": 11653,
+        "brotliBytes": 11317,
+        "extensionsUsed": [
+          "KHR_draco_mesh_compression"
+        ],
+        "extensionsRequired": [
+          "KHR_draco_mesh_compression"
+        ]
+      },
+      "simplify": {
+        "strict": {
+          "bytes": 18896,
+          "vertices": 172,
+          "triangles": 104,
+          "positionBounds": [
+            {
+              "min": [
+                -0.29372668266296387,
+                0,
+                -0.16470175981521606
+              ],
+              "max": [
+                0.29372668266296387,
+                2.0999999046325684,
+                0.16470175981521606
+              ]
+            }
+          ],
+          "extensionsUsed": []
+        },
+        "loose": {
+          "bytes": 18896,
+          "vertices": 172,
+          "triangles": 104,
+          "positionBounds": [
+            {
+              "min": [
+                -0.29372668266296387,
+                0,
+                -0.16470175981521606
+              ],
+              "max": [
+                0.29372668266296387,
+                2.0999999046325684,
+                0.16470175981521606
+              ]
+            }
+          ],
+          "extensionsUsed": []
+        }
+      },
+      "transformLogs": {
+        "prune": [
+          "info: road-sign-stop.glb (19.17 KB) → pruned.glb (19.15 KB)"
+        ],
+        "dedup": [
+          "info: pruned.glb (19.15 KB) → deduped.glb (19.15 KB)"
+        ],
+        "weld": [
+          "info: deduped.glb (19.15 KB) → optimized.glb (18.9 KB)"
+        ],
+        "validate": [
+          "ERROR",
+          " ────────────────────────────────────────────",
+          "info: No errors found.\r",
+          " WARNING",
+          " ────────────────────────────────────────────",
+          "info: No warnings found.\r",
+          " INFO",
+          " ────────────────────────────────────────────",
+          "info: No infos found.\r",
+          " HINT",
+          " ────────────────────────────────────────────",
+          "info: No hints found."
+        ]
+      }
+    },
+    {
+      "id": "kenney:traffic-light",
+      "file": "processed/props/traffic-light.glb",
+      "normalized": {
+        "bytes": 26024,
+        "sha256": "b5abafb50b47f2724b0883d3d3cda1c685aedde2bc8697c5b15f7e8c99cfe21a",
+        "gzipBytes": 14034,
+        "brotliBytes": 12751,
+        "nodes": 1,
+        "meshes": 1,
+        "primitives": 1,
+        "materials": 1,
+        "textures": 1,
+        "images": [
+          {
+            "mimeType": "image/png",
+            "bytes": 11428,
+            "sha256": "a48e2962661ae44368ffddf3054f80ed8491d082b757dcc3011184cd9a98b185"
+          }
+        ],
+        "textureSlots": [
+          "pbrMetallicRoughness.baseColorTexture"
+        ],
+        "vertices": 374,
+        "triangles": 212,
+        "attributes": [
+          "NORMAL",
+          "POSITION",
+          "TEXCOORD_0"
+        ],
+        "positionBounds": [
+          {
+            "min": [
+              -0.2446601837873459,
+              0,
+              -0.3196893334388733
+            ],
+            "max": [
+              0.2446601837873459,
+              2.799999952316284,
+              0.3196893334388733
+            ]
+          }
+        ],
+        "extensionsUsed": [],
+        "extensionsRequired": []
+      },
+      "optimized": {
+        "bytes": 23828,
+        "sha256": "598c60ef52a3f500f220001b785e7feabef0ad7e0bda5c150b4a435c35c154c7",
+        "gzipBytes": 13940,
+        "brotliBytes": 12612,
+        "nodes": 1,
+        "meshes": 1,
+        "primitives": 1,
+        "materials": 1,
+        "textures": 1,
+        "images": [
+          {
+            "mimeType": "image/png",
+            "bytes": 11428,
+            "sha256": "a48e2962661ae44368ffddf3054f80ed8491d082b757dcc3011184cd9a98b185"
+          }
+        ],
+        "textureSlots": [
+          "pbrMetallicRoughness.baseColorTexture"
+        ],
+        "vertices": 306,
+        "triangles": 212,
+        "attributes": [
+          "NORMAL",
+          "POSITION",
+          "TEXCOORD_0"
+        ],
+        "positionBounds": [
+          {
+            "min": [
+              -0.2446601837873459,
+              0,
+              -0.3196893334388733
+            ],
+            "max": [
+              0.2446601837873459,
+              2.799999952316284,
+              0.3196893334388733
+            ]
+          }
+        ],
+        "extensionsUsed": [],
+        "extensionsRequired": []
+      },
+      "meshopt": {
+        "bytes": 16572,
+        "gzipBytes": 12989,
+        "brotliBytes": 12446,
+        "extensionsUsed": [
+          "EXT_meshopt_compression",
+          "KHR_mesh_quantization"
+        ],
+        "extensionsRequired": [
+          "EXT_meshopt_compression",
+          "KHR_mesh_quantization"
+        ]
+      },
+      "draco": {
+        "bytes": 14216,
+        "gzipBytes": 12218,
+        "brotliBytes": 11872,
+        "extensionsUsed": [
+          "KHR_draco_mesh_compression"
+        ],
+        "extensionsRequired": [
+          "KHR_draco_mesh_compression"
+        ]
+      },
+      "simplify": {
+        "strict": {
+          "bytes": 23828,
+          "vertices": 306,
+          "triangles": 212,
+          "positionBounds": [
+            {
+              "min": [
+                -0.2446601837873459,
+                0,
+                -0.3196893334388733
+              ],
+              "max": [
+                0.2446601837873459,
+                2.799999952316284,
+                0.3196893334388733
+              ]
+            }
+          ],
+          "extensionsUsed": []
+        },
+        "loose": {
+          "bytes": 23068,
+          "vertices": 286,
+          "triangles": 192,
+          "positionBounds": [
+            {
+              "min": [
+                -0.2446601837873459,
+                0,
+                -0.3196893334388733
+              ],
+              "max": [
+                0.2446601837873459,
+                2.799999952316284,
+                0.3196893334388733
+              ]
+            }
+          ],
+          "extensionsUsed": []
+        }
+      },
+      "transformLogs": {
+        "prune": [
+          "info: traffic-light.glb (26.02 KB) → pruned.glb (26.01 KB)"
+        ],
+        "dedup": [
+          "info: pruned.glb (26.01 KB) → deduped.glb (26.01 KB)"
+        ],
+        "weld": [
+          "info: deduped.glb (26.01 KB) → optimized.glb (23.83 KB)"
+        ],
+        "validate": [
+          "ERROR",
+          " ────────────────────────────────────────────",
+          "info: No errors found.\r",
+          " WARNING",
+          " ────────────────────────────────────────────",
+          "info: No warnings found.\r",
+          " INFO",
+          " ────────────────────────────────────────────",
+          "info: No infos found.\r",
+          " HINT",
+          " ────────────────────────────────────────────",
+          "info: No hints found."
+        ]
+      }
+    }
+  ],
+  "totals": {
+    "bytes": {
+      "normalized": 78188,
+      "optimized": 74128
+    },
+    "gzipBytes": {
+      "normalized": 50448,
+      "optimized": 50308
+    },
+    "brotliBytes": {
+      "normalized": 47302,
+      "optimized": 46991
+    },
+    "vertices": {
+      "normalized": 762,
+      "optimized": 638
+    },
+    "triangles": {
+      "normalized": 442,
+      "optimized": 442
+    }
+  },
+  "decisions": {
+    "geometryCompression": "trial only; outputs require runtime decoder integration and improve compressed transfer size only slightly for these map-dominated assets",
+    "triangleSimplification": "trial only; the 0.01 error candidate squared the traffic-light lenses in four-view review"
+  }
+}

@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { copyFileSync, mkdirSync, mkdtempSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
+import { copyFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { spawnSync } from "node:child_process";
 import os from "node:os";
 import path from "node:path";
@@ -9,7 +9,10 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const assetManifestPath = path.join(root, "assets", "manifest.json");
 const outputRoot = path.join(root, "assets", "processed", "ktx2", "runtime");
 const publicTextureRoot = path.join(root, "public", "textures", "ktx2");
-const publicDecoderRoot = path.join(root, "public", "decoders", "basis");
+const publicDecoderBaseRoot = path.join(root, "public", "decoders", "basis");
+const runtimeManifestPath = path.join(publicTextureRoot, "runtime-manifest.json");
+const runtimeAssetModulePath = path.join(root, "lib", "engine", "runtime-texture-assets.js");
+const serviceWorkerPath = path.join(root, "public", "sw.js");
 const EXPECTED_KTX_VERSION = "v4.4.2";
 const EXPECTED_THREE_VERSION = "0.170.0";
 const EXPECTED_PILLOW_VERSION = "10.4.0";
@@ -26,6 +29,10 @@ const MAPS = [
 
 function sha256(filePath) {
   return createHash("sha256").update(readFileSync(filePath)).digest("hex");
+}
+
+function sha256Bytes(bytes) {
+  return createHash("sha256").update(bytes).digest("hex");
 }
 
 function run(program, args, { allowOutput = true } = {}) {
@@ -136,10 +143,19 @@ function encodeVariant(ktx, map, variant, mipPaths, sourceSha256) {
 }
 
 function main() {
-  const ktx = resolveKtx();
-  const version = run(ktx, ["--version"], { allowOutput: false });
-  if (!version.includes(EXPECTED_KTX_VERSION)) {
-    throw new Error(`Expected KTX-Software ${EXPECTED_KTX_VERSION}; received ${version || "no version output"}`);
+  const reuseExisting = process.argv.includes("--reuse-existing");
+  const manifest = JSON.parse(readFileSync(assetManifestPath, "utf8"));
+  let ktx = null;
+  if (reuseExisting) {
+    if (!Array.isArray(manifest.runtimeKtx2?.textures) || !manifest.runtimeKtx2.textures.length) {
+      throw new Error("--reuse-existing requires runtimeKtx2 entries in assets/manifest.json");
+    }
+  } else {
+    ktx = resolveKtx();
+    const version = run(ktx, ["--version"], { allowOutput: false });
+    if (!version.includes(EXPECTED_KTX_VERSION)) {
+      throw new Error(`Expected KTX-Software ${EXPECTED_KTX_VERSION}; received ${version || "no version output"}`);
+    }
   }
 
   const threePackagePath = path.join(root, "node_modules", "three", "package.json");
@@ -149,29 +165,40 @@ function main() {
   }
   const basisSource = path.join(root, "node_modules", "three", "examples", "jsm", "libs", "basis");
   const decoderNames = ["basis_transcoder.js", "basis_transcoder.wasm", "README.md"];
+  const previousDecoderFiles = manifest.runtimeKtx2?.decoderFiles ?? {};
+  const decoderSourceFiles = Object.fromEntries(decoderNames.map((name) => [
+    name,
+    reuseExisting && previousDecoderFiles[name]?.file
+      ? path.join(root, "public", ...previousDecoderFiles[name].file.split("/"))
+      : path.join(basisSource, name),
+  ]));
+  const licensePath = path.join(root, "assets", "licenses", "Basis-Universal-LICENSE.txt");
+  decoderSourceFiles["LICENSE.txt"] = reuseExisting && previousDecoderFiles["LICENSE.txt"]?.file
+    ? path.join(root, "public", ...previousDecoderFiles["LICENSE.txt"].file.split("/"))
+    : licensePath;
+  const decoderHashes = Object.fromEntries(Object.entries(decoderSourceFiles).map(([name, sourcePath]) => [
+    name,
+    sha256(sourcePath),
+  ]));
+  const decoderRevision = createHash("sha256")
+    .update(Object.keys(decoderHashes).sort().map((name) => `${name}:${decoderHashes[name]}`).join("\n"))
+    .digest("hex")
+    .slice(0, 16);
+  const publicDecoderRoot = path.join(publicDecoderBaseRoot, decoderRevision);
   mkdirSync(publicDecoderRoot, { recursive: true });
   const decoderFiles = {};
-  for (const name of decoderNames) {
-    const sourcePath = path.join(basisSource, name);
+  for (const [name, sourcePath] of Object.entries(decoderSourceFiles)) {
     const targetPath = path.join(publicDecoderRoot, name);
-    copyFileSync(sourcePath, targetPath);
+    if (path.resolve(sourcePath) !== path.resolve(targetPath)) copyFileSync(sourcePath, targetPath);
     decoderFiles[name] = {
-      file: path.posix.join("decoders/basis", name),
+      file: path.posix.join("decoders/basis", decoderRevision, name),
       bytes: statSync(targetPath).size,
-      sha256: sha256(targetPath),
+      sha256: decoderHashes[name],
     };
   }
-  const licensePath = path.join(root, "assets", "licenses", "Basis-Universal-LICENSE.txt");
-  const publicLicensePath = path.join(publicDecoderRoot, "LICENSE.txt");
-  copyFileSync(licensePath, publicLicensePath);
-  decoderFiles["LICENSE.txt"] = {
-    file: path.posix.join("decoders/basis", "LICENSE.txt"),
-    bytes: statSync(publicLicensePath).size,
-    sha256: sha256(publicLicensePath),
-  };
 
-  const manifest = JSON.parse(readFileSync(assetManifestPath, "utf8"));
   const textureRecords = [];
+  const previousTextures = new Map((manifest.runtimeKtx2?.textures ?? []).map((texture) => [texture.id, texture]));
   const mipRoot = mkdtempSync(path.join(os.tmpdir(), "walk-the-world-runtime-mips-"));
   try {
     for (const map of MAPS) {
@@ -186,28 +213,45 @@ function main() {
       }
 
       const expectedMipLevels = mipLevelCount(source.resolutionPx);
-      const mipPaths = createMipChain(
-        sourcePath,
-        path.join(mipRoot, map.id),
-        expectedMipLevels,
-        map.mipmapWrapS,
-      );
-      const variants = {};
-      for (const variant of ["etc1s", "uastc"]) {
-        variants[variant] = encodeVariant(
-          ktx,
-          { ...map, resolutionPx: source.resolutionPx, colorSpace: source.colorSpace },
-          variant,
-          mipPaths,
-          sourceSha256,
+      let variants;
+      let selected;
+      let publicSourcePath;
+      if (reuseExisting) {
+        const previous = previousTextures.get(map.id);
+        if (!previous?.runtime?.file || !previous.variants?.[SELECTED_CODEC]) {
+          throw new Error(`Missing existing runtime ${SELECTED_CODEC} texture for ${map.id}`);
+        }
+        publicSourcePath = path.join(root, "public", ...previous.runtime.file.split("/"));
+        if (!existsSync(publicSourcePath) || sha256(publicSourcePath) !== previous.runtime.sha256) {
+          throw new Error(`Existing runtime texture hash mismatch for ${map.id}`);
+        }
+        variants = previous.variants;
+        selected = { ...variants[SELECTED_CODEC], sha256: previous.runtime.sha256 };
+      } else {
+        const mipPaths = createMipChain(
+          sourcePath,
+          path.join(mipRoot, map.id),
+          expectedMipLevels,
+          map.mipmapWrapS,
         );
+        variants = {};
+        for (const variant of ["etc1s", "uastc"]) {
+          variants[variant] = encodeVariant(
+            ktx,
+            { ...map, resolutionPx: source.resolutionPx, colorSpace: source.colorSpace },
+            variant,
+            mipPaths,
+            sourceSha256,
+          );
+        }
+        selected = variants[SELECTED_CODEC];
+        publicSourcePath = path.join(root, "assets", selected.file);
       }
 
-      const selected = variants[SELECTED_CODEC];
-      const publicName = `${map.id}.ktx2`;
+      const publicName = `${map.id}.${selected.sha256.slice(0, 16)}.ktx2`;
       const publicPath = path.join(publicTextureRoot, publicName);
       mkdirSync(publicTextureRoot, { recursive: true });
-      copyFileSync(path.join(root, "assets", selected.file), publicPath);
+      if (path.resolve(publicSourcePath) !== path.resolve(publicPath)) copyFileSync(publicSourcePath, publicPath);
       textureRecords.push({
         id: map.id,
         tier: map.tier,
@@ -236,7 +280,6 @@ function main() {
   if (!nearAtlas?.materialRects || !nearAtlas.resolutionPx) {
     throw new Error("Missing packed facade atlas layout for the high quality tier");
   }
-  const layoutPath = path.join(publicTextureRoot, "facade-near-layout.json");
   const layout = {
     resolutionPx: nearAtlas.resolutionPx,
     materialRects: nearAtlas.materialRects,
@@ -245,14 +288,64 @@ function main() {
     mipSafeLevelsApprox: nearAtlas.mipSafeLevelsApprox,
   };
   const layoutBytes = Buffer.from(JSON.stringify(layout, null, 2) + "\n", "utf8");
+  const layoutSha256 = sha256Bytes(layoutBytes);
+  const layoutName = `facade-near-layout.${layoutSha256.slice(0, 16)}.json`;
+  const layoutPath = path.join(publicTextureRoot, layoutName);
   writeFileSync(layoutPath, layoutBytes);
   const layoutRecord = {
-    file: "textures/ktx2/facade-near-layout.json",
+    file: path.posix.join("textures/ktx2", layoutName),
     bytes: layoutBytes.byteLength,
-    sha256: createHash("sha256").update(layoutBytes).digest("hex"),
+    sha256: layoutSha256,
   };
+  const revisionParts = [
+    ...textureRecords.map(({ runtime }) => `${runtime.file}:${runtime.sha256}`),
+    `${layoutRecord.file}:${layoutRecord.sha256}`,
+    ...Object.entries(decoderFiles).map(([name, file]) => `${file.file}:${file.sha256}`),
+  ].sort();
+  const assetRevision = createHash("sha256").update(revisionParts.join("\n")).digest("hex").slice(0, 16);
+  const decoderPath = path.posix.join("/decoders/basis", decoderRevision, "/");
+  const runtimeManifest = {
+    schemaVersion: 1,
+    revision: assetRevision,
+    decoderPath,
+    decoderFiles,
+    textures: Object.fromEntries(textureRecords.map((texture) => [texture.id, {
+      tier: texture.tier,
+      file: texture.runtime.file,
+      bytes: texture.runtime.bytes,
+      sha256: texture.runtime.sha256,
+    }])),
+    nearAtlasLayout: layoutRecord,
+  };
+  writeFileSync(runtimeManifestPath, `${JSON.stringify(runtimeManifest, null, 2)}\n`, "utf8");
+
+  const textureUrls = Object.fromEntries(textureRecords.map((texture) => [
+    texture.id,
+    `/${texture.runtime.file}`,
+  ]));
+  const runtimeAssetModule = [
+    "// Generated by scripts/build-runtime-ktx2.mjs; do not edit by hand.",
+    `export const RUNTIME_TEXTURE_REVISION = ${JSON.stringify(assetRevision)};`,
+    `export const BASIS_TRANSCODER_PATH = ${JSON.stringify(decoderPath)};`,
+    `export const RUNTIME_TEXTURE_URLS = Object.freeze(${JSON.stringify(textureUrls, null, 2)});`,
+    `export const RUNTIME_LAYOUT_URL = ${JSON.stringify(`/${layoutRecord.file}`)};`,
+    "",
+  ].join("\n");
+  writeFileSync(runtimeAssetModulePath, runtimeAssetModule, "utf8");
+
+  const serviceWorker = readFileSync(serviceWorkerPath, "utf8");
+  const revisionPattern = /(const CACHE_REVISION = )["'][^"']*["'];/u;
+  if (!revisionPattern.test(serviceWorker)) {
+    throw new Error("public/sw.js is missing the generated CACHE_REVISION declaration");
+  }
+  writeFileSync(
+    serviceWorkerPath,
+    serviceWorker.replace(revisionPattern, `$1${JSON.stringify(assetRevision)};`),
+    "utf8",
+  );
   manifest.runtimeKtx2 = {
-    revision: "stage3.6-quality-atlas-r1",
+    revision: `stage3.8-content-${assetRevision}`,
+    assetRevision,
     toolchain: {
       name: "KTX-Software",
       version: EXPECTED_KTX_VERSION,
@@ -267,7 +360,7 @@ function main() {
     },
     runtime: {
       threeVersion: EXPECTED_THREE_VERSION,
-      decoderPath: "public/decoders/basis/",
+      decoderPath: path.posix.join("public/decoders/basis", decoderRevision, "/"),
       workerLimit: 2,
       selectedCodec: SELECTED_CODEC,
       texcoordOrigin: "top-left",
@@ -281,6 +374,11 @@ function main() {
       fallback: "procedural makeFacadeAtlas/makeLitWindowAtlas",
     },
     nearAtlasLayout: layoutRecord,
+    runtimeManifest: {
+      file: "textures/ktx2/runtime-manifest.json",
+      sha256: sha256(runtimeManifestPath),
+      revision: assetRevision,
+    },
     decoderFiles,
     textures: textureRecords,
   };

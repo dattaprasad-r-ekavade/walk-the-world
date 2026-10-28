@@ -15,8 +15,10 @@
     "fixtures:build:rome": "node scripts/build-osm-fixture.mjs",
     "bench:street": "node scripts/validate-street.mjs",
     "assets:build": "node scripts/build-assets.mjs",
+    "assets:props": "node scripts/optimize-props.mjs",
     "assets:ktx2": "node scripts/build-ktx2.mjs",
     "assets:runtime-ktx2": "node scripts/build-runtime-ktx2.mjs",
+    "assets:runtime-index": "node scripts/build-runtime-ktx2.mjs --reuse-existing",
     "assets:facades": "node scripts/build-facade-atlases.mjs",
     "assets:preview": "blender --background --python scripts/render-asset-audit.py",
     "overture-index": "node scripts/build-overture-index.mjs",
@@ -38,6 +40,7 @@
     "zustand": "^5.0.14"
   },
   "devDependencies": {
+    "@gltf-transform/cli": "4.5.0",
     "autoprefixer": "^10.5.2",
     "eslint": "^8",
     "eslint-config-next": "^14.2.33",

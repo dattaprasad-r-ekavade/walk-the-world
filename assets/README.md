@@ -20,7 +20,7 @@ recorded Chrome version. Update those pins deliberately when refreshing tools;
 the browser canvas output is part of the generated asset hashes.
 The build creates four shared 3136×2096 PNG atlases (base color, OpenGL normal,
 roughness, AO), a 512×1024 facade/emissive template pair, five 1600×2096 facade
-PBR atlases, and four normalised Kenney GLBs. Source snapshots live under
+PBR atlases, and four normalized, self-contained, optimized Kenney GLBs. Source snapshots live under
 `assets/source/`; output hashes, selected-file hashes and atlas rectangles are
 recorded in `assets/manifest.json`.
 
@@ -37,6 +37,13 @@ glTF +Z forward convention. Four-cardinal-direction previews are produced with
 `npm run assets:preview` under `assets/processed/previews/`. The stop sign and
 traffic light were visually found to face -X in the source and are rotated +90°
 about Y in the processed output; cone and barrier are symmetric.
+
+The asset build then runs glTF Transform CLI 4.5.0 with `prune`, `dedup` and
+`weld`. Geometry bounds, attributes, triangle counts, embedded texture bytes,
+material slots, orientation and extension-free loading are checked before the
+outputs and manifest are updated. Meshopt, Draco and triangle simplification
+are recorded trials, not runtime formats. See the [Stage 3.7 report](../benchmarks/results/stage3/glb-optimization.md)
+for size comparisons, visual checks and decoder decision.
 
 ## KTX2 comparison pilot
 
@@ -78,12 +85,23 @@ KTX orientation metadata stays `top-left` for glTF BasisU compatibility. Three.j
 0.170.0 returns a `CompressedTexture` with `flipY=false`; the runtime applies a V
 mirror transform to match the current CanvasTexture mapping. The procedural
 facade and emissive textures remain active until both compressed maps decode and
-upload successfully. The runtime loader is capped at two workers, starts without
-blocking input-ready, and reports fetch bytes/time, decoder resource time,
+upload successfully. The runtime loader is capped at two workers and waits for
+`input-ready` before initializing the decoder or fetching either texture tier.
+It reports fetch bytes/time, decoder resource time,
 combined worker/WASM compile/transcode time, upload submission time, renderer
 texture-count delta, and compressed-payload residency estimate. Browser APIs do
 not expose a separate WASM compile or GPU upload completion time; those
 limitations are recorded in the performance timeline.
+
+Runtime texture files and the Basis transcoder use content-addressed paths.
+`lib/engine/runtime-texture-assets.js` carries the generated URLs, while
+`public/textures/ktx2/runtime-manifest.json` records hashes and the shared
+revision. The service-worker cache revision is updated from the same asset
+revision; hashed files are cached as immutable, and API requests bypass the
+service worker. To add hashes/versioned paths to already-generated runtime
+textures without rerunning KTX encoding, use `npm run assets:runtime-index`.
+Unavailable maps leave the procedural/shared facade maps active. See the
+[Stage 3.8 report](../benchmarks/results/stage3/runtime-asset-index.md).
 
 The shared pair carries 11 offline Lanczos mip levels generated with repeat-S
 and clamp-T filtering. The high-tier maps carry 12 levels and clamp on both
@@ -110,6 +128,7 @@ and window coordinates. The KTX-Software 4.4.2 ETC1S/UASTC pilot and decoded
 atlas/window-mask review are complete; see the comparison report and manifest.
 Stages 3.5 and 3.6 passed their desktop RTX 4060 runtime checks, including the
 shared-map fallback check, selective high-tier loading, and mip/projected-detail
-review. Low-memory and mobile texture residency remain release checks. Stage 3.7
-GLB optimization and Stage 3.8 revision-aware service-worker caching remain.
-Processed props are still offline.
+review. Stage 3.7 GLB optimization and Stage 3.8 content-addressed runtime
+assets, revision-aware caching and post-input-ready KTX loading are implemented;
+the props remain offline. Offline/failure browser acceptance and low-memory /
+mobile texture residency remain release checks.

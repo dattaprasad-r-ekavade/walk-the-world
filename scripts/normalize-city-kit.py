@@ -50,6 +50,9 @@ def main():
         raise RuntimeError(f"Expected Blender {EXPECTED_BLENDER}, got {bpy.app.version_string}")
 
     manifest = json.loads(MANIFEST_PATH.read_text(encoding="utf-8"))
+    # The normalizer is the source stage of the deterministic GLB pipeline. Clear
+    # derived optimization metadata before rewriting these intermediate outputs.
+    manifest.get("propKit", {}).pop("optimization", None)
     kit_root = ASSETS / "source" / "kenney" / "city-kit-roads"
     output_root = ASSETS / "processed" / "props"
     output_root.mkdir(parents=True, exist_ok=True)
@@ -121,11 +124,16 @@ def main():
             obj.select_set(True)
         bpy.context.view_layer.objects.active = mesh_objects[0]
         output = output_root / Path(item["sourceFile"]).name
+        for key in ("preOptimizationSha256", "preOptimizationBytes", "optimization"):
+            item.pop(key, None)
         bpy.ops.export_scene.gltf(
             filepath=str(output),
             export_format="GLB",
             export_image_format="AUTO",
-            export_keep_originals=True,
+            # Keep GLBs self-contained. With keep_originals=True Blender writes
+            # the source URI beside a 1x1 white fallback image; glTF loaders may
+            # then depend on an asset-tree path that is absent after upload.
+            export_keep_originals=False,
             export_unused_images=False,
             export_unused_textures=False,
             export_apply=True,
@@ -145,16 +153,16 @@ def main():
         item["uniformScaleFactor"] = round(scale, 9)
         item["scaleApplied"] = True
         item["frontAxisVisualAudit"] = "visually audited from four cardinal directions; correction applied to align front with glTF +Z" if correction else "visually audited from four cardinal directions; symmetric prop, +Z convention retained"
-        item["outputRevision"] = "stage3-geometry-r1"
+        item["outputRevision"] = "stage3-geometry-r2"
         report.append({"id": item["id"], "output": item["outputFile"], "sizeMeters": rounded(gltf_size), "frontAxisCorrectionDegrees": item.get("frontAxisCorrectionDegrees", 0), "sha256": item["processedSha256"]})
         print(f"{item['id']}: {item['outputFile']} size={rounded(gltf_size)} sha256={item['processedSha256']}")
 
-    manifest["outputRevision"] = "stage3-pipeline-r3"
-    manifest["status"] = "source snapshots, PBR atlases, composited facade PBR atlases, aligned emissive atlases and normalised props built; runtime adoption and browser visual approval remain pending"
+    manifest["outputRevision"] = "stage3-pipeline-r4"
+    manifest["status"] = "source snapshots, PBR atlases, composited facade PBR atlases, aligned emissive atlases and self-contained normalised props built; glTF optimization and runtime adoption remain pending"
     manifest["propKit"]["normalization"] = {
-        "revision": "stage3-geometry-r1",
+        "revision": "stage3-geometry-r2",
         "tool": "Blender " + bpy.app.version_string,
-        "method": "mesh vertices transformed to bottom-centred origin, uniformly scaled to target Y dimension and rotated where needed to align the visible front to +Z; non-mesh scene nodes removed; used material images embedded",
+        "method": "mesh vertices transformed to bottom-centred origin, uniformly scaled to target Y dimension and rotated where needed to align the visible front to +Z; non-mesh scene nodes removed; used material images embedded without external source URIs",
         "sourceOrientationPreserved": False,
         "frontAxisVisualAudit": "four-cardinal-direction previews reviewed; stop sign and traffic light corrected from -X to +Z; cone and barrier are symmetric",
         "models": report,

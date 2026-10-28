@@ -1405,6 +1405,7 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false }) {
       setCityStreaming(true);
       setStage("Streaming city…");
       markPerf("input-ready", { terrainTiles: terrainTiles.size });
+      ktx2TextureLoader.setWalkingReady();
       const cityData = await cityDataPromise;
       markPerf("city-data-ready", { elements: cityData?.elements?.length || 0, partial: !!cityData?.partial });
       if (!disposed) setWorldSummary(summarizeCityElements(cityData?.elements || []));

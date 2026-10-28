@@ -673,15 +673,21 @@ scripts/build-assets.mjs and public/textures/.
     cover the current RTX 4060 desktop. Gutter padding falls below one pixel
     after mip 4, so mobile/low-memory and far-LOD seam review remain release
     checks; the short frame samples are diagnostic, not a performance A/B.
-- [ ] 3.7 Inspect/prune/deduplicate/simplify selected GLBs with glTF Transform.
-  Compare Meshopt/Draco only where savings justify decoder cost; validate existing
-  model merging, maps, orientation and instancing.
-- [ ] 3.8 Content-hash derived outputs and make service-worker caching revision-
-  aware. Stream optional detail after walking is usable; failed decode/network
-  leaves a working scene. Production publication is separate release work.
+- [x] 3.7 Inspect/prune/deduplicate/simplify selected GLBs with glTF Transform.
+  The four selected props use the decoder-free `prune`/`dedup`/`weld` pipeline;
+  Meshopt/Draco and simplification trials were measured and rejected for runtime
+  adoption. Embedded maps, bounds, orientation, merging and instancing were
+  checked. See `benchmarks/results/stage3/glb-optimization.md`.
+- [x] 3.8 Content-addressed KTX2/layout/decoder outputs and revision-aware
+  service-worker cache. Defer decoder initialization and both texture tiers until
+  `input-ready`; decode/network failures leave procedural/shared maps active.
+  See `benchmarks/results/stage3/runtime-asset-index.md`. Production publication
+  is separate release work.
 
 Exit: approved captures, byte/transcode/upload/memory accounting, acceptable cold
-input-ready time and tested offline/failure fallback. Avoid bulk library imports.
+input-ready time and browser-tested offline/failure fallback. The Stage 3.8
+offline/failure browser check and lower-memory/mobile texture residency remain
+release gates. Avoid bulk library imports.
 
 ## 8. Stage 4 — Roads, lighting and regional visual identity
 
@@ -898,11 +904,11 @@ for Cesium, imagery and model resources. SSR, volumetrics, displacement, dense
 skeletal crowds and shadowed lamp arrays require separate high-tier budgets.
 None is a prerequisite for this sequence.
 
-**Next bounded work:** Stage 3.6's shared and high-tier KTX2 paths are implemented
-and reviewed on an RTX 4060. Proceed to Stage 3.7: inspect and optimize the
-selected GLBs with glTF Transform, compare Meshopt/Draco only where measured
-savings justify decoder cost, and validate maps, orientation, existing merging
-and instancing. Stage 0.8 dense live-city cold/warm walk/drive, Stage 1 mobile
+**Next bounded work:** Stage 3.7 GLB optimization and Stage 3.8 content-addressed
+runtime assets, revision-aware caching and post-input-ready KTX streaming are
+implemented. Proceed to Stage 4.1: fix reference poses for the showcase
+day/dusk/night/rain conditions and tune exposure, sky/fog and palettes before
+adding effects. Stage 0.8 dense live-city cold/warm walk/drive, Stage 1 mobile
 assembly and input latency, Stage 1.3 low-core worker plus KTX2
 contention/memory, and lower-memory/mobile high-atlas checks remain release
 gates. Recorded Rome replay is client/streaming evidence, not live Overpass
