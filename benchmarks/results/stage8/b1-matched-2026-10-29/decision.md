@@ -4,13 +4,13 @@
 
 B1 remains open. The first matched run found that overlapping neighbor
 artifacts were downloaded before fallback. An exact cell-overlap index now
-avoids those transfers. The index also gives terrain validation the tile keys
-it needs before artifact decode; validation starts after successful artifact
-headers and overlaps body consumption. The latest matched headless run lagged
-raw mode by 17.8% cold and 10.9% warm, while transferring 7.4% less payload. An
-earlier matched follow-up was 8.2% slower cold and near warm parity, showing
-meaningful host variance. This is not target-device acceptance, and upload/
-submit cost plus editor and lifecycle parity remain unmeasured.
+avoids those transfers. The baker records only the terrain tiles sampled while
+building each artifact, and runtime preflight loads their height grids without
+building terrain visuals or requesting imagery. The latest matched headless
+run was 4.7% slower cold and 5.8% faster warm than raw, with 7.4% less payload.
+The remaining 1.82–2.10 s cold height-tile load and host variance keep this
+short of target-device acceptance; upload/submit cost plus editor and lifecycle
+parity remain unmeasured.
 
 ## Setup
 
@@ -59,7 +59,7 @@ local assets 501 and geometry-merge warning. Terrain revision validation took
 2.1–2.5 s per cold run, much of which now overlaps startup. The run did not
 isolate GPU upload submission by frame.
 
-## Latest run with index-level terrain prevalidation
+## Prior run with 16-tile index-level terrain prevalidation
 
 The bake index now contains `terrainZoom` and `terrainTileKeys`. After the baked
 artifact responds successfully, the runtime starts terrain validation while
@@ -82,11 +82,39 @@ terrain loading gate, not optimize the 7–9 ms hash. The raw control used the
 same source except for a failure-path ordering tweak that does not run with its
 empty prebuilt index.
 
+## Latest run with sampled terrain dependencies and height-only preflight
+
+The baker still loads the one-tile safety margin while building geometry, but
+records and hashes only terrain tiles actually sampled by `buildCityGeometry`.
+The Tokyo spawn artifact now depends on four tiles rather than 16; the other
+eight cells use two to five. The nine-cell index is 9,453 B with 68 directed
+overlap edges. Runtime validation fetches and decodes height grids without
+creating scene meshes or starting ground imagery requests. Later visual terrain
+streaming reuses those decoded grids, avoiding a second elevation fetch.
+
+| Mode | Ready median, cold | Ready median, warm | Cold payload | Cold settled state |
+|---|---:|---:|---:|---|
+| Raw | 3,406 ms | 1,793 ms | 15,473,747 B raw JSON | 8 loaded, 1 failed, 0 deferred |
+| Prebuilt with sampled terrain keys | 3,567 ms | 1,689 ms | 13,583,369 B raw + 745,555 B baked = 14,328,924 B | 8 loaded, 1 failed, 0 deferred |
+
+Prebuilt was 4.7% slower cold and 5.8% faster warm, with 7.4% less cold
+payload. All three runs reached ready and settled without deferred cells, with
+the same failed neighbor and known local assets 501 and geometry-merge warning.
+The four-height-tile cold load phase took 1.82–2.10 s; hashing took 6.8–9.0 ms.
+The matched headless runs still show large first-repetition host variance.
+
+The reports and captures are in the ignored local directory
+`benchmarks/results/stage8/b1-height-only-2026-10-29/`. This comparison
+includes the current terrain loader, unlike the preceding `b1-sampled-terrain`
+comparison. The sampled-key implementation also cuts validation-only work and
+retains the one-tile bake margin for edge samples.
+
 ## Evidence and remaining gates
 
 The initial and follow-up JSON reports and cold-run screenshots are retained
-locally under `raw/`, `prebuilt/`, `b1-validation-overlap-2026-10-29/`, and
-`b1-index-validation-2026-10-29/`; they are ignored by Git. This tracked note
+locally under `raw/`, `prebuilt/`, `b1-validation-overlap-2026-10-29/`,
+`b1-index-validation-2026-10-29/`, and `b1-height-only-2026-10-29/`; they are
+ignored by Git. This tracked note
 contains the reviewable measurements so the raw traces need not be committed.
 
 Before adopting B1, measure target-device readiness and upload costs, determine

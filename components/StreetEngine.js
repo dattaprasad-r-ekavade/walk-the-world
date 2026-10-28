@@ -806,7 +806,7 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false, demo
         if (metadata?.terrainZoom !== Z || !Array.isArray(metadata.terrainTileKeys) || !metadata.terrainTileKeys.length) return false;
         const ready = await measurePerfAsync(
           "city.prebuilt-terrain-tiles",
-          () => terrain.ensureTiles(metadata.terrainTileKeys),
+          () => terrain.ensureHeightTiles(metadata.terrainTileKeys),
           { tileCount: metadata.terrainTileKeys.length }
         );
         if (!ready) return false;

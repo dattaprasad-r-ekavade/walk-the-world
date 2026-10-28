@@ -403,6 +403,7 @@ describe('city builder core (19.1)', () => {
     const { buildCityGeometry } = await import('../lib/engine/city-builder-core.js');
     const N = 3;
     const heights = new Float32Array(N * N).fill(10);
+    const sampledTerrainTileKeys = new Set();
     const { result, transfers } = buildCityGeometry({
       elements: [
         {
@@ -438,7 +439,9 @@ describe('city builder core (19.1)', () => {
         sizeX: 400,
         sizeZ: 400,
       }],
+      onTerrainTileSample: (key) => sampledTerrainTileKeys.add(key),
     });
+    expect([...sampledTerrainTileKeys]).toEqual(["0/0"]);
     expect(result.buildingCount).toBe(1);
     expect(result.walls.length).toBeGreaterThan(0);
     expect(result.walls[0].geo.position.array).toBeInstanceOf(Float32Array);

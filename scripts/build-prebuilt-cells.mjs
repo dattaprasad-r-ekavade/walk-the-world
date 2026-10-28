@@ -89,9 +89,9 @@ async function bakeOne({ key, inputDir, outputDir, terrainCacheDir, origin }, ap
   if (!validCityData(source) || !isCompleteCity(source)) throw new Error(`${key} is incomplete or invalid`);
 
   const localFrame = makeLocalFrame(bakedOrigin.lat, bakedOrigin.lon);
-  const tileKeys = terrainTileKeysForCell(bakedOrigin.lat, bakedOrigin.lon, cellStep, terrainZoom, 1);
+  const buildTerrainTileKeys = terrainTileKeysForCell(bakedOrigin.lat, bakedOrigin.lon, cellStep, terrainZoom, 1);
   const terrainTiles = [];
-  for (const tileKey of tileKeys) {
+  for (const tileKey of buildTerrainTileKeys) {
     const [tx, ty] = tileKey.split("/").map(Number);
     terrainTiles.push(await readTerrainTile({
       tx, ty, zoom: terrainZoom, cacheDir: terrainCacheDir, localFrame,
@@ -102,16 +102,24 @@ async function bakeOne({ key, inputDir, outputDir, terrainCacheDir, origin }, ap
   const enriched = applyCellEnrichment(source);
   const elements = clipElementsToCell(enriched.elements, bakedOrigin.lat, bakedOrigin.lon);
   if (!elements.length) throw new Error(`${key} has no features in the requested spawn cell`);
+  const sampledTerrainTileKeys = new Set();
   const buildStartedAt = performance.now();
   const { result } = buildCityGeometry({
     elements,
     lat0: bakedOrigin.lat,
     lon0: bakedOrigin.lon,
     terrainTiles,
+    onTerrainTileSample: (tileKey) => sampledTerrainTileKeys.add(tileKey),
   });
   const buildMs = performance.now() - buildStartedAt;
+  const terrainTileKeys = sampledTerrainTileKeys.size
+    ? [...sampledTerrainTileKeys].sort()
+    : terrainTileKeysForCell(bakedOrigin.lat, bakedOrigin.lon, cellStep, terrainZoom);
+  const terrainTilesByKey = new Map(terrainTiles.map((tile) => [tile.key, tile]));
+  const revisionTiles = terrainTileKeys.map((tileKey) => terrainTilesByKey.get(tileKey));
+  if (revisionTiles.some((tile) => !tile)) throw new Error(`${key} sampled terrain outside the bake tile set`);
   const terrainHash = createHash("sha256");
-  for (const chunk of terrainRevisionChunks(terrainTiles)) terrainHash.update(chunk);
+  for (const chunk of terrainRevisionChunks(revisionTiles)) terrainHash.update(chunk);
   const terrainRevision = terrainHash.digest("hex");
   const metadata = {
     key,
@@ -123,7 +131,7 @@ async function bakeOne({ key, inputDir, outputDir, terrainCacheDir, origin }, ap
     materialRevision: api.materialRevision,
     terrainRevision,
     terrainZoom,
-    terrainTileKeys: tileKeys,
+    terrainTileKeys,
     editorRevision: "unmodified",
     elementCount: enriched.elements.length,
     clippedElementCount: elements.length,
@@ -151,7 +159,7 @@ async function bakeOne({ key, inputDir, outputDir, terrainCacheDir, origin }, ap
     sourceHash: metadata.sourceHash,
     terrainRevision: metadata.terrainRevision,
     terrainZoom,
-    terrainTileKeys: tileKeys,
+    terrainTileKeys,
     featureIds: metadata.featureIds,
     clippedElementCount: elements.length,
     buildingCount: result.buildingCount,

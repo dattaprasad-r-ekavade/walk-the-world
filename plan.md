@@ -1,6 +1,6 @@
 # Walk the World — Performance and Visuals Implementation Plan
 
-Updated: 29 October 2026. Reviewed base: `5196beb` on `origin/main`; current work
+Updated: 29 October 2026. Reviewed base: `8782533` on `origin/main`; current work
 closes demo gates D1–D8. D3's hardware acceptance uses the local production
 preview described below.
 This is the active plan. The [previous detailed checkpoint](docs/PLAN-CHECKPOINT-2026-10-28-BEFORE-REVIEW.md)
@@ -181,21 +181,24 @@ Decisions taken from the research:
   4.486 s cold median, versus 15,473,747 B and 3.515 s raw. The baker now writes
   exact cell-to-cell overlap hints in the index, and the streamer skips known
   conflicts before artifact fetch while retaining its decoded-ID check for old
-  or incomplete indexes. The nine-cell Tokyo index is 10.9 KB; all eight
-  neighbors share IDs with spawn. The index also carries terrain tile keys so
-  spawn terrain validation can overlap artifact-body consumption after a
-  successful response. In a
-  latest matched three-run headless comparison, raw reached ready at 3.045 s
-  cold / 1.690 s warm median and transferred 15,473,747 B. Prebuilt reached
-  ready at 3.587 s / 1.875 s and transferred 13,583,369 B raw neighbors plus one
-  745,576 B spawn artifact (14,328,945 B total, 7.4% less). Both settled at
-  eight resident cells, the same one failed neighbor and zero deferred cells,
-  with the same known local assets 501 and geometry-merge warning. This run was
-  17.8% slower cold and 10.9% slower warm; an earlier run after overlap
-  filtering measured 8.2% slower cold and near-equal warm, showing headless host
-  variance. The 16-tile terrain phase takes 2.08–2.12 s; hashing takes 7–9 ms. B1
-  remains open pending terrain-load cost and device validation, editor/failure/
-  cancel/eviction parity, and measured upload/total-load costs. See [the B1 decision](benchmarks/results/stage8/b1-matched-2026-10-29/decision.md);
+  or incomplete indexes. The nine-cell Tokyo index is now 9.5 KB; all eight
+  neighbors share IDs with spawn. The baker records only the terrain tiles
+  actually sampled by geometry, while loading a one-tile safety margin to keep
+  edge samples covered. The spawn uses four tiles (the other Tokyo cells use
+  two to five), down from 16 in the previous index. Runtime validation loads
+  height grids without creating terrain meshes or requesting ground imagery;
+  normal terrain streaming upgrades those grids to visuals without refetching
+  elevation. In the latest matched three-run headless comparison, raw reached
+  ready at 3.406 s cold / 1.793 s warm median and transferred 15,473,747 B.
+  Prebuilt reached ready at 3.567 s / 1.689 s and transferred 13,583,369 B raw
+  neighbors plus one 745,555 B spawn artifact (14,328,924 B total, 7.4% less).
+  Both settled at eight resident cells, the same one failed neighbor and zero
+  deferred cells, with the same known local assets 501 and geometry-merge
+  warning. Prebuilt was 4.7% slower cold and 5.8% faster warm in this run.
+  Headless host variance remains visible in both modes. The four-height-tile
+  phase still takes 1.82–2.10 s cold; hashing takes 6.8–9 ms. B1 remains open
+  pending terrain-download cost and device validation, editor/failure/cancel/
+  eviction parity, and measured upload/total-load costs. See [the B1 decision](benchmarks/results/stage8/b1-matched-2026-10-29/decision.md);
   detailed JSON and screenshots are local ignored artifacts.
   Artifacts remain local; production R2 publication needs its own release task.
 - [ ] **B2 — Overpass independence (M).** Self-hosted Overpass on a small VPS
@@ -245,10 +248,10 @@ mobile, offline and several visual gates remain open.
 | 3 Assets | 3.1–3.8 implemented; compressed maps and optimized props | Offline/failure browser checks, lower-memory/mobile residency and far mip seams |
 | 4 Roads/lights | 4.1, 4.2 and desktop 4.4 complete | Wetness, bloom/contact shading, shadows and facade variation |
 | 5 Detail/weather | Planned | LOD, spatial instances, vegetation and analytic precipitation |
-| 6–8 Alternatives | B1 overlap filtering and terrain preflight measured; Stage 6/7 deferred | B1 terrain-load cost, device, editor/failure/cancel/eviction and upload-cost acceptance |
+| 6–8 Alternatives | B1 overlap filtering, sampled terrain keys and height-only preflight measured; Stage 6/7 deferred | B1 terrain-download cost, device, editor/failure/cancel/eviction and upload-cost acceptance |
 | 9 Integration | Open | Full regression, hardware/visual acceptance and release records |
 
-Latest validation: all 201 tests across 33 files and the production build pass,
+Latest validation: all 202 tests across 33 files and the production build pass,
 including the B1 codec, frame transform, terrain revision and streamed-cell
 overlap-index fallback checks. Raw and prebuilt production builds both pass.
 The four-city production rehearsal loaded all 36 nearby

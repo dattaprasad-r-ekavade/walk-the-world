@@ -74,7 +74,7 @@ describe('terrain tile lifecycle', () => {
       onProgress: vi.fn(),
     });
 
-    const firstLoad = terrain.loadTile(100, 100, true);
+    const firstLoad = terrain.ensureTiles(['100/100']);
     await vi.waitFor(() => expect(imageInstances).toHaveLength(1));
     resolveImage(0);
     await firstLoad;
@@ -112,6 +112,56 @@ describe('terrain tile lifecycle', () => {
     await flushImages();
     expect(drawGroundTileImage).toHaveBeenCalledTimes(4);
     expect(terrain.tileCanvases[0].texture.version).toBeGreaterThan(oldTextureVersion);
+    terrain.dispose();
+  });
+
+  it('loads height grids without visuals and upgrades them without refetching elevation', async () => {
+    vi.stubGlobal('Image', PendingImage);
+    vi.stubGlobal('document', {
+      createElement: () => {
+        const canvas = { width: 0, height: 0 };
+        const context = {
+          canvas,
+          drawImage: vi.fn(),
+          getImageData: vi.fn(() => ({ data: new Uint8ClampedArray(256 * 256 * 4) })),
+          putImageData: vi.fn(),
+          fillRect: vi.fn(),
+        };
+        canvas.getContext = () => context;
+        return canvas;
+      },
+    });
+
+    const scene = new THREE.Scene();
+    const terrain = createTerrainSystem({
+      scene,
+      lat0: 0,
+      lon0: 0,
+      toLocal: (lat, lon) => ({ x: lon, z: lat }),
+      groundSource: 'osm',
+      signal: new AbortController().signal,
+      onStage: vi.fn(),
+      onProgress: vi.fn(),
+    });
+
+    const validationLoad = terrain.ensureHeightTiles(['100/100']);
+    await vi.waitFor(() => expect(imageInstances).toHaveLength(1));
+    resolveImage(0);
+    await expect(validationLoad).resolves.toBe(true);
+    expect(terrain.terrainTiles.has('100/100')).toBe(true);
+    expect(scene.children).toHaveLength(0);
+    expect(terrain.tileCanvases).toHaveLength(0);
+
+    const visualLoad = terrain.loadTile(100, 100, true);
+    await vi.waitFor(() => expect(imageInstances).toHaveLength(5));
+    expect(imageInstances[0]._src).toContain('/terrarium/');
+    for (let index = 1; index <= 4; index++) resolveImage(index);
+    await visualLoad;
+    await flushImages();
+
+    expect(imageInstances).toHaveLength(5);
+    expect(scene.children).toHaveLength(2);
+    expect(terrain.tileCanvases).toHaveLength(1);
     terrain.dispose();
   });
 });
