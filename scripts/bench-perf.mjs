@@ -81,6 +81,7 @@ const resourceSoakEnabled = args.includes('--resource-soak');
 const streamLifecycleEnabled = args.includes('--stream-lifecycle');
 const lightTransitionEnabled = args.includes('--light-transition');
 const environmentAuditEnabled = args.includes('--environment-audit');
+const invalidFacadeLayout = args.includes('--invalid-facade-layout');
 const LIGHT_TRANSITION_SAMPLE_MS = 2500;
 const poseOptionNames = ['--pose-x', '--pose-z', '--heading'];
 const suppliedPoseOptions = poseOptionNames.filter((name) => args.includes(name));
@@ -155,6 +156,9 @@ if (lightTransitionEnabled && (driving || crossCell || resourceSoakEnabled || st
 }
 if (environmentAuditEnabled && (dataMode !== 'recorded' || benchmarkEnvironment.hour !== 21 || benchmarkEnvironment.weather !== 90 || driving || crossCell)) {
   throw new Error('--environment-audit requires recorded, stationary pedestrian data at 21:00 and weather 90');
+}
+if (invalidFacadeLayout && (dataMode !== 'recorded' || qualityPreset !== 'high')) {
+  throw new Error('--invalid-facade-layout requires --data-mode recorded and --preset high');
 }
 const READY_TIMEOUT = 180_000;
 const HOST_TELEMETRY_READY_MARKER = '__BENCH_HOST_TELEMETRY_READY__';
@@ -525,14 +529,30 @@ async function benchStreet(page) {
     waitUntil: 'domcontentloaded',
     timeout: 60_000,
   });
-  await page.waitForFunction(() =>
-    window.__engineReady === true &&
-    !!window.__streetDebug?.player &&
-    !!window.__streetDebug?.population?.() &&
-    (!window.__BENCH_START_POSE || window.__BENCH_POSE_APPLIED === true), null, {
-    timeout: READY_TIMEOUT,
-  });
+  try {
+    await page.waitForFunction(() =>
+      window.__engineReady === true &&
+      !!window.__streetDebug?.player &&
+      !!window.__streetDebug?.population?.() &&
+      (!window.__BENCH_START_POSE || window.__BENCH_POSE_APPLIED === true), null, {
+      timeout: READY_TIMEOUT,
+    });
+  } catch (error) {
+    if (!invalidFacadeLayout) throw error;
+    const state = await page.evaluate(() => ({ ready: window.__engineReady, debug: !!window.__streetDebug, marks: window.__perfCounters?.marks, settings: window.__perfCounters?.settings }));
+    throw new Error(`Street readiness failed during invalid-layout audit: ${JSON.stringify(state)}; ${error.message}`);
+  }
   const loadMs = Date.now() - t0;
+  if (invalidFacadeLayout) {
+    try {
+      await page.waitForFunction(() =>
+        !!window.__perfCounters?.marks?.['ktx2-high-fallback-active'] &&
+        !!window.__perfCounters?.marks?.['ktx2-textures-ready'], null, { timeout: 60000 });
+    } catch (error) {
+      const state = await page.evaluate(() => ({ marks: window.__perfCounters?.marks, settings: window.__perfCounters?.settings, families: window.__streetDebug?.materialInventory?.()?.factoryCache?.textureFamilies }));
+      throw new Error(`Invalid-layout fallback readiness failed: ${JSON.stringify(state)}; ${error.message}`);
+    }
+  }
 
   if (driving) {
     await page.waitForFunction(() => window.__streetDebug?.population?.()?.counts?.cars > 0, null, {
@@ -1159,8 +1179,17 @@ async function main() {
   };
   if (browserChannel === 'chrome') launchOptions.channel = 'chrome';
   const browser = await chromium.launch(launchOptions);
-  const context = await browser.newContext();
+  // Playwright cannot intercept requests handled by a service worker. Block it
+  // only for this failure-injection scenario and record the limitation.
+  const context = await browser.newContext(invalidFacadeLayout ? { serviceWorkers: 'block' } : {});
   const baseOrigin = new URL(baseUrl).origin;
+  let invalidLayoutRequests = 0;
+  if (invalidFacadeLayout) {
+    await context.route((url) => url.origin === baseOrigin && /^\/textures\/ktx2\/facade-near-layout\.[a-f0-9]{16}\.json$/u.test(url.pathname), (routeRequest) => {
+      invalidLayoutRequests++;
+      return routeRequest.fulfill({ status: 200, contentType: 'application/json', body: '{' });
+    });
+  }
   if (dataMode === 'recorded') {
     await context.route((url) => recordedCityKeyForUrl(url, baseOrigin) !== null, (routeRequest) => {
       const cityKey = recordedCityKeyForUrl(routeRequest.request().url(), baseOrigin);
@@ -1326,6 +1355,8 @@ async function main() {
       wetRoadMapMode,
       lightTransitionEnabled,
       environmentAuditEnabled,
+      invalidFacadeLayout,
+      serviceWorkersBlocked: invalidFacadeLayout,
       hour: benchmarkEnvironment.hour,
       weather: benchmarkEnvironment.weather,
       precipitationMode: benchmarkEnvironment.precipitationMode,
@@ -1371,6 +1402,15 @@ async function main() {
       throw new Error(`Resource soak validation failed: ${result.street.resourceSoak?.validation?.reasons?.join('; ') || 'missing resource samples'}`);
     }
     result.networkTelemetry = await networkRecorder.summary();
+    if (invalidFacadeLayout) {
+      const families = result.street.materialInventory?.factoryCache?.textureFamilies;
+      if (invalidLayoutRequests < 1 || !result.street.marks?.['ktx2-high-fallback-active'] ||
+          !result.street.marks?.['ktx2-textures-ready'] || families?.highFacadeAtlases !== false ||
+          families?.facade !== true || families?.litWindows !== true || result.street.metadata?.ktx2High) {
+        throw new Error(`Invalid-layout fallback was not confirmed: ${JSON.stringify({ invalidLayoutRequests, families, marks: result.street.marks, metadata: result.street.metadata })}`);
+      }
+      result.street.invalidLayoutRequests = invalidLayoutRequests;
+    }
     if (result.street.settings?.hour !== benchmarkEnvironment.hour || result.street.settings?.weather !== benchmarkEnvironment.weather) {
       throw new Error(`Applied scene environment did not match the requested benchmark: ${JSON.stringify(result.street.settings)}`);
     }

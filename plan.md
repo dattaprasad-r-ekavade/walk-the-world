@@ -95,7 +95,10 @@ browser validation gates are listed below. Preserve gameplay and fallbacks.
   The loader now validates required atlas rectangles and dimensions before high
   transcodes, and guards all subsequent payload construction and installation.
   Unit checks cover invalid JSON/rectangles, shared fallback and disposal after an
-  installation error. Browser failure and offline validation remain open.
+  installation error. A visible Chrome run with service workers blocked injected
+  invalid JSON, observed the fallback, retained shared maps and moved 4.09 m;
+  [browser evidence](benchmarks/results/stage3/invalid-layout-browser-check.md).
+  Browser schema-error, service-worker/cache and offline validation remain open.
 
 - [ ] **R5 — P2, benchmark prototype: Wet-map transition and acceptance are unfinished.**
   [materials.js:204](lib/engine/materials.js) swaps roughness textures at
