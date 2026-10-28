@@ -1,5 +1,6 @@
 <!doctype html>
 <meta charset="utf-8">
+<link rel="icon" href="data:,">
 <script type="importmap">
 {
   "imports": {
@@ -8,17 +9,131 @@
 }
 </script>
 <script type="module">
-  import { FACADE_ATLAS_LAYOUT, makeFacadeAtlas, makeLitWindowAtlas } from "../lib/engine/facade-uv.js";
+  import {
+    FACADE_ATLAS_LAYOUT,
+    makeFacadeAtlas,
+    makeFacadeMaterialMap,
+    makeLitWindowAtlas,
+  } from "../lib/engine/facade-uv.js";
 
-  try {
-    const facade = makeFacadeAtlas();
-    const emissive = makeLitWindowAtlas();
-    window.__assetAtlasData = {
-      layout: FACADE_ATLAS_LAYOUT,
-      facade: facade.image.toDataURL("image/png"),
-      emissive: emissive.image.toDataURL("image/png"),
-    };
-  } catch (error) {
-    window.__assetAtlasError = String(error?.stack || error);
+  const GUTTER = 16;
+  const CELL_W = FACADE_ATLAS_LAYOUT.widthPx;
+  const CELL_H = FACADE_ATLAS_LAYOUT.heightPx;
+  const COLUMNS = 3;
+  const ROWS = 2;
+  const ATLAS_W = COLUMNS * CELL_W + (COLUMNS + 1) * GUTTER;
+  const ATLAS_H = ROWS * CELL_H + (ROWS + 1) * GUTTER;
+  const MAPS = ["basecolor", "normal", "roughness", "ao", "emissive"];
+
+  function imageFromUrl(url) {
+    return new Promise((resolve, reject) => {
+      const image = new Image();
+      image.onload = () => resolve(image);
+      image.onerror = () => reject(new Error(`Could not load atlas input: ${url}`));
+      image.src = url;
+    });
   }
+
+  function cropImage(image, rect) {
+    const [x, y, width, height] = rect;
+    const tile = document.createElement("canvas");
+    tile.width = width;
+    tile.height = height;
+    tile.getContext("2d").drawImage(image, x, y, width, height, 0, 0, width, height);
+    return tile;
+  }
+
+  function pasteDilated(context, tile, x, y) {
+    context.drawImage(tile, x, y);
+    context.drawImage(tile, 0, 0, 1, tile.height, x - GUTTER, y, GUTTER, tile.height);
+    context.drawImage(tile, tile.width - 1, 0, 1, tile.height, x + tile.width, y, GUTTER, tile.height);
+    context.drawImage(tile, 0, 0, tile.width, 1, x, y - GUTTER, tile.width, GUTTER);
+    context.drawImage(tile, 0, tile.height - 1, tile.width, 1, x, y + tile.height, tile.width, GUTTER);
+    const source = tile.getContext("2d");
+    const corners = [
+      [0, 0, x - GUTTER, y - GUTTER],
+      [tile.width - 1, 0, x + tile.width, y - GUTTER],
+      [0, tile.height - 1, x - GUTTER, y + tile.height],
+      [tile.width - 1, tile.height - 1, x + tile.width, y + tile.height],
+    ];
+    for (const [sx, sy, dx, dy] of corners) {
+      const [r, g, b, a] = source.getImageData(sx, sy, 1, 1).data;
+      context.fillStyle = `rgba(${r},${g},${b},${a / 255})`;
+      context.fillRect(dx, dy, GUTTER, GUTTER);
+    }
+  }
+
+  function canvas() {
+    const result = document.createElement("canvas");
+    result.width = ATLAS_W;
+    result.height = ATLAS_H;
+    return result;
+  }
+
+  function addDataUri(target, name, image) {
+    target[name] = image.toDataURL("image/png");
+  }
+
+  async function build() {
+    const inputs = window.__assetAtlasInputs;
+    const imageCache = new Map();
+    const loadAtlas = async (url) => {
+      if (!imageCache.has(url)) imageCache.set(url, imageFromUrl(url));
+      return imageCache.get(url);
+    };
+    const atlasContexts = Object.fromEntries(MAPS.map((kind) => {
+      const image = canvas();
+      return [kind, { image, context: image.getContext("2d") }];
+    }));
+    const emissiveTemplate = makeLitWindowAtlas().image;
+    const materialRects = {};
+
+    for (let index = 0; index < inputs.materials.length; index++) {
+      const material = inputs.materials[index];
+      const column = index % COLUMNS;
+      const row = Math.floor(index / COLUMNS);
+      const cellX = GUTTER + column * (CELL_W + GUTTER);
+      const cellY = GUTTER + row * (CELL_H + GUTTER);
+      const tiles = {};
+      for (const [kind, spec] of Object.entries(material.maps)) {
+        const source = await loadAtlas(spec.url);
+        tiles[kind] = cropImage(source, spec.rect);
+      }
+
+      const images = {
+        basecolor: makeFacadeAtlas({ wallImage: tiles.color, tileMeters: material.tileMeters }).image,
+        normal: makeFacadeMaterialMap({ sourceImage: tiles.normalGL, tileMeters: material.tileMeters, kind: "normalGL" }),
+        roughness: makeFacadeMaterialMap({ sourceImage: tiles.roughness, tileMeters: material.tileMeters, kind: "roughness" }),
+        ao: makeFacadeMaterialMap({ sourceImage: tiles.ambientOcclusion, tileMeters: material.tileMeters, kind: "ambientOcclusion" }),
+        emissive: emissiveTemplate,
+      };
+      for (const kind of MAPS) pasteDilated(atlasContexts[kind].context, images[kind], cellX, cellY);
+      materialRects[material.id] = {
+        pixelRectTopLeft: [cellX, cellY, CELL_W, CELL_H],
+        uvRectBottomLeft: [
+          Number((cellX / ATLAS_W).toFixed(9)),
+          Number((1 - (cellY + CELL_H) / ATLAS_H).toFixed(9)),
+          Number((CELL_W / ATLAS_W).toFixed(9)),
+          Number((CELL_H / ATLAS_H).toFixed(9)),
+        ],
+        cell: [column, row],
+      };
+    }
+
+    const result = {
+      layout: FACADE_ATLAS_LAYOUT,
+      templateFacade: makeFacadeAtlas().image.toDataURL("image/png"),
+      templateEmissive: emissiveTemplate.toDataURL("image/png"),
+      packedResolutionPx: [ATLAS_W, ATLAS_H],
+      packedGutterPx: GUTTER,
+      materialRects,
+      packed: {},
+    };
+    for (const kind of MAPS) addDataUri(result.packed, kind, atlasContexts[kind].image);
+    window.__assetAtlasData = result;
+  }
+
+  build().catch((error) => {
+    window.__assetAtlasError = String(error?.stack || error);
+  });
 </script>

@@ -17,9 +17,10 @@ The scripts enforce Pillow 10.4.0, Blender 5.2.0, Playwright 1.52.0 and the
 recorded Chrome version. Update those pins deliberately when refreshing tools;
 the browser canvas output is part of the generated asset hashes.
 The build creates four shared 3136×2096 PNG atlases (base color, OpenGL normal,
-roughness, AO), a 512×1024 facade/emissive atlas pair, and four normalised
-Kenney GLBs. Source snapshots live under `assets/source/`; output hashes,
-selected-file hashes and atlas rectangles are recorded in `assets/manifest.json`.
+roughness, AO), a 512×1024 facade/emissive template pair, five 1600×2096 facade
+PBR atlases, and four normalised Kenney GLBs. Source snapshots live under
+`assets/source/`; output hashes, selected-file hashes and atlas rectangles are
+recorded in `assets/manifest.json`.
 
 Each atlas uses a 3×2 grid of 1024px cells with 16px edge-dilated gutters. The
 Concrete034 tile keeps its 1024×512 aspect and is vertically centred in its
@@ -37,9 +38,9 @@ about Y in the processed output; cone and barrier are symmetric.
 
 ## Remaining Stage 3 work
 
-The facade base-color atlas bakes the existing shallow wall/window/storefront
-detail, and its emissive mate is exported by the same shared grid generator.
-The PBR surfaces are not yet composed into those facade cells or integrated
-with the runtime material loader. KTX2 ETC1S/UASTC comparisons, runtime loader
-and fallback integration, browser visual approval, and performance/memory gates
-remain open. Do not treat the offline outputs as runtime-adopted assets.
+The five packed facade maps place each selected PBR surface under the existing
+shallow wall/window/storefront detail; the emissive atlas uses identical cells
+and window coordinates. Offline maps have been visually inspected. Runtime
+material integration, in-engine approval, KTX2 ETC1S/UASTC comparisons, and
+performance/memory gates remain open. Do not treat the offline outputs as
+runtime-adopted assets.

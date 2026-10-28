@@ -49,6 +49,25 @@ const server = createServer(async (request, response) => {
 let browser;
 try {
   const manifest = JSON.parse(await readFile(manifestPath, "utf8"));
+  const surfaceOrder = manifest.materialAtlases.maps.color.grid.order;
+  const materialInputMaps = ["color", "normalGL", "roughness", "ambientOcclusion"];
+  const browserInputs = {
+    materials: surfaceOrder.map((id) => {
+      const surface = manifest.surfaces.find((item) => item.id === `ambientCG:${id}`);
+      if (!surface) throw new Error(`Missing surface metadata for ${id}`);
+      return {
+        id,
+        tileMeters: surface.tileMeters,
+        maps: Object.fromEntries(materialInputMaps.map((kind) => {
+          const atlas = manifest.materialAtlases.maps[kind];
+          const rect = atlas.rects[id]?.pixelRectTopLeft;
+          if (!rect) throw new Error(`Missing ${kind} atlas rect for ${id}`);
+          return [kind, { url: `/assets/${atlas.file}`, rect }];
+        })),
+      };
+    }),
+  };
+
   await new Promise((resolve, reject) => {
     server.once("error", reject);
     server.listen(0, "127.0.0.1", resolve);
@@ -60,46 +79,78 @@ try {
     throw new Error(`Expected Chrome ${pinnedChromeVersion}, got ${chromeVersion}; update the recorded tool pin intentionally before rebuilding`);
   }
   const page = await browser.newPage();
+  page.on("console", (message) => {
+    if (message.type() === "error") process.stderr.write(`Chrome console error: ${message.text()}\n`);
+  });
+  page.on("pageerror", (error) => process.stderr.write(`Chrome page error: ${error.stack || error}\n`));
+  await page.addInitScript((inputs) => { window.__assetAtlasInputs = inputs; }, browserInputs);
   await page.goto(`http://127.0.0.1:${server.address().port}/${path.relative(root, htmlPath).replaceAll(path.sep, "/")}`);
   await page.waitForFunction(() => window.__assetAtlasData || window.__assetAtlasError);
   const data = await page.evaluate(() => window.__assetAtlasData || { error: window.__assetAtlasError });
   if (data.error) throw new Error(data.error);
   if (data.layout.widthPx !== 512 || data.layout.heightPx !== 1024) {
-    throw new Error(`Unexpected facade atlas dimensions: ${data.layout.widthPx}x${data.layout.heightPx}`);
+    throw new Error(`Unexpected facade cell dimensions: ${data.layout.widthPx}x${data.layout.heightPx}`);
+  }
+  if (data.packedResolutionPx?.[0] !== 1600 || data.packedResolutionPx?.[1] !== 2096) {
+    throw new Error(`Unexpected packed facade atlas dimensions: ${data.packedResolutionPx}`);
   }
 
   await mkdir(outputDir, { recursive: true });
   const outputs = [
-    { key: "facade", name: "facade-basecolor-atlas.png", role: "procedural facade albedo with shallow wall/window/storefront detail", colorSpace: "sRGB" },
-    { key: "emissive", name: "facade-emissive-atlas.png", role: "night window emissive mask aligned to the facade atlas grid", colorSpace: "sRGB" },
+    { key: "templateFacade", collection: "maps", name: "facade-basecolor-atlas.png", role: "procedural facade albedo with shallow wall/window/storefront detail", colorSpace: "sRGB", resolution: [data.layout.widthPx, data.layout.heightPx] },
+    { key: "templateEmissive", collection: "maps", name: "facade-emissive-atlas.png", role: "night window emissive mask aligned to the facade atlas grid", colorSpace: "sRGB", resolution: [data.layout.widthPx, data.layout.heightPx] },
+    { key: "basecolor", collection: "packedMaps", name: "facade-pbr-basecolor-atlas.png", role: "source material albedo with shallow facade detail", colorSpace: "sRGB", resolution: data.packedResolutionPx },
+    { key: "normal", collection: "packedMaps", name: "facade-pbr-normal-atlas.png", role: "source tangent normal on walls with neutral window normals", colorSpace: "linear", resolution: data.packedResolutionPx },
+    { key: "roughness", collection: "packedMaps", name: "facade-pbr-roughness-atlas.png", role: "source roughness with lower-roughness facade glass detail", colorSpace: "linear", resolution: data.packedResolutionPx },
+    { key: "ao", collection: "packedMaps", name: "facade-pbr-ao-atlas.png", role: "source ambient occlusion with neutral panes and shallow reveal occlusion", colorSpace: "linear", resolution: data.packedResolutionPx },
+    { key: "emissive", collection: "packedMaps", name: "facade-pbr-emissive-atlas.png", role: "emissive window mask packed into the matching material cells", colorSpace: "sRGB", resolution: data.packedResolutionPx },
   ];
   const maps = {};
+  const packedMaps = {};
   for (const output of outputs) {
-    const base64 = data[output.key].replace(/^data:image\/png;base64,/, "");
+    const dataUri = output.collection === "packedMaps" ? data.packed[output.key] : data[output.key];
+    const base64 = dataUri.replace(/^data:image\/png;base64,/, "");
     const bytes = Buffer.from(base64, "base64");
     const file = path.join(outputDir, output.name);
     await writeFile(file, bytes);
-    maps[output.key] = {
+    const record = {
       file: path.relative(path.join(root, "assets"), file).replaceAll(path.sep, "/"),
       sha256: sha256(bytes),
       bytes: bytes.length,
-      resolutionPx: [data.layout.widthPx, data.layout.heightPx],
+      resolutionPx: output.resolution,
       role: output.role,
       colorSpace: output.colorSpace,
     };
-    console.log(`${path.relative(root, file)} sha256=${maps[output.key].sha256}`);
+    if (output.collection === "packedMaps") packedMaps[output.key] = record;
+    else maps[output.key === "templateFacade" ? "facade" : "emissive"] = record;
+    console.log(`${path.relative(root, file)} sha256=${record.sha256}`);
   }
 
-  manifest.outputRevision = "stage3-pipeline-r2";
-  manifest.status = "source snapshots, PBR atlases, aligned procedural facade/emissive atlases and normalised props built; runtime adoption and browser visual approval remain pending";
+  manifest.outputRevision = "stage3-pipeline-r3";
+  manifest.status = "source snapshots, PBR atlases, composited facade PBR atlases, aligned emissive atlases and normalised props built; runtime adoption and browser visual approval remain pending";
   manifest.facadeAtlases = {
-    revision: "stage3-facade-r1",
+    revision: "stage3-facade-r2",
     builder: { script: "scripts/build-facade-atlases.mjs", playwright: PLAYWRIGHT_VERSION, chrome: chromeVersion },
     layout: { ...data.layout, coordinateConvention: "pixel coordinates use top-left origin; UV bands use bottom-left origin" },
-    alignment: "both images are exported by makeFacadeAtlas() and makeLitWindowAtlas() from the shared GRID in lib/engine/facade-uv.js",
+    alignment: "basecolor, normal, roughness, AO and emissive cells are generated against the shared GRID in lib/engine/facade-uv.js",
     directionalLightingBaked: false,
     maps,
+    packed: {
+      revision: "stage3-facade-pbr-r1",
+      resolutionPx: data.packedResolutionPx,
+      cellPx: [data.layout.widthPx, data.layout.heightPx],
+      gutterPx: data.packedGutterPx,
+      mipSafeLevelsApprox: 4,
+      grid: { columns: 3, rows: 2, order: surfaceOrder },
+      coordinateConvention: "pixel rectangles use top-left origin; UV rectangles use bottom-left origin",
+      alignment: "all five maps share identical material cell rectangles; each emissive mask repeats the corresponding facade cell window pattern",
+      materialRects: data.materialRects,
+      maps: packedMaps,
+    },
   };
+  for (const surface of manifest.surfaces) {
+    surface.facadeAtlasRect = data.materialRects[surface.id.split(":")[1]];
+  }
   await writeFile(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`, "utf8");
 } finally {
   if (browser) await browser.close();

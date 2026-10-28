@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "manifestRevision": "stage3-source-r1",
-  "outputRevision": "stage3-pipeline-r2",
-  "status": "source snapshots, PBR atlases, aligned procedural facade/emissive atlases and normalised props built; runtime adoption and browser visual approval remain pending",
+  "outputRevision": "stage3-pipeline-r3",
+  "status": "source snapshots, PBR atlases, composited facade PBR atlases, aligned emissive atlases and normalised props built; runtime adoption and browser visual approval remain pending",
   "sourceSelectionNotes": [
     "AmbientCG supplies the six selected PBR surfaces; its downloadable assets are CC0 1.0.",
     "Kenney City Kit Roads supplies the selected street props; the inspected package is version 2.2 and includes its CC0 license file.",
@@ -160,7 +160,25 @@
           }
         }
       },
-      "outputRevision": "source-only-r1"
+      "outputRevision": "source-only-r1",
+      "facadeAtlasRect": {
+        "pixelRectTopLeft": [
+          16,
+          16,
+          512,
+          1024
+        ],
+        "uvRectBottomLeft": [
+          0.01,
+          0.503816794,
+          0.32,
+          0.488549618
+        ],
+        "cell": [
+          0,
+          0
+        ]
+      }
     },
     {
       "id": "ambientCG:Bricks060",
@@ -316,7 +334,25 @@
           "deferredTo": "stage-3.3"
         }
       },
-      "outputRevision": "source-only-r1"
+      "outputRevision": "source-only-r1",
+      "facadeAtlasRect": {
+        "pixelRectTopLeft": [
+          544,
+          16,
+          512,
+          1024
+        ],
+        "uvRectBottomLeft": [
+          0.34,
+          0.503816794,
+          0.32,
+          0.488549618
+        ],
+        "cell": [
+          1,
+          0
+        ]
+      }
     },
     {
       "id": "ambientCG:Rocks025",
@@ -472,7 +508,25 @@
           "deferredTo": "stage-3.3"
         }
       },
-      "outputRevision": "source-only-r1"
+      "outputRevision": "source-only-r1",
+      "facadeAtlasRect": {
+        "pixelRectTopLeft": [
+          1072,
+          16,
+          512,
+          1024
+        ],
+        "uvRectBottomLeft": [
+          0.67,
+          0.503816794,
+          0.32,
+          0.488549618
+        ],
+        "cell": [
+          2,
+          0
+        ]
+      }
     },
     {
       "id": "ambientCG:Concrete034",
@@ -625,7 +679,25 @@
           }
         }
       },
-      "outputRevision": "source-only-r1"
+      "outputRevision": "source-only-r1",
+      "facadeAtlasRect": {
+        "pixelRectTopLeft": [
+          16,
+          1056,
+          512,
+          1024
+        ],
+        "uvRectBottomLeft": [
+          0.01,
+          0.007633588,
+          0.32,
+          0.488549618
+        ],
+        "cell": [
+          0,
+          1
+        ]
+      }
     },
     {
       "id": "ambientCG:Asphalt025A",
@@ -781,7 +853,25 @@
           "deferredTo": "stage-3.3"
         }
       },
-      "outputRevision": "source-only-r1"
+      "outputRevision": "source-only-r1",
+      "facadeAtlasRect": {
+        "pixelRectTopLeft": [
+          544,
+          1056,
+          512,
+          1024
+        ],
+        "uvRectBottomLeft": [
+          0.34,
+          0.007633588,
+          0.32,
+          0.488549618
+        ],
+        "cell": [
+          1,
+          1
+        ]
+      }
     },
     {
       "id": "ambientCG:PavingStones036",
@@ -937,7 +1027,25 @@
           "deferredTo": "stage-3.3"
         }
       },
-      "outputRevision": "source-only-r1"
+      "outputRevision": "source-only-r1",
+      "facadeAtlasRect": {
+        "pixelRectTopLeft": [
+          1072,
+          1056,
+          512,
+          1024
+        ],
+        "uvRectBottomLeft": [
+          0.67,
+          0.007633588,
+          0.32,
+          0.488549618
+        ],
+        "cell": [
+          2,
+          1
+        ]
+      }
     }
   ],
   "propKit": {
@@ -1971,7 +2079,7 @@
     }
   },
   "facadeAtlases": {
-    "revision": "stage3-facade-r1",
+    "revision": "stage3-facade-r2",
     "builder": {
       "script": "scripts/build-facade-atlases.mjs",
       "playwright": "1.52.0",
@@ -1980,6 +2088,11 @@
     "layout": {
       "widthPx": 512,
       "heightPx": 1024,
+      "worldMapping": {
+        "horizontalMetersPerU": 8.333333333333334,
+        "floorHeightMeters": 3.2,
+        "upperBandCycles": 3
+      },
       "storefrontV": [
         0,
         0.22
@@ -1996,7 +2109,7 @@
       "emissiveSelectionProbability": 0.42,
       "coordinateConvention": "pixel coordinates use top-left origin; UV bands use bottom-left origin"
     },
-    "alignment": "both images are exported by makeFacadeAtlas() and makeLitWindowAtlas() from the shared GRID in lib/engine/facade-uv.js",
+    "alignment": "basecolor, normal, roughness, AO and emissive cells are generated against the shared GRID in lib/engine/facade-uv.js",
     "directionalLightingBaked": false,
     "maps": {
       "facade": {
@@ -2020,6 +2133,200 @@
         ],
         "role": "night window emissive mask aligned to the facade atlas grid",
         "colorSpace": "sRGB"
+      }
+    },
+    "packed": {
+      "revision": "stage3-facade-pbr-r1",
+      "resolutionPx": [
+        1600,
+        2096
+      ],
+      "cellPx": [
+        512,
+        1024
+      ],
+      "gutterPx": 16,
+      "mipSafeLevelsApprox": 4,
+      "grid": {
+        "columns": 3,
+        "rows": 2,
+        "order": [
+          "Plaster004",
+          "Bricks060",
+          "Rocks025",
+          "Concrete034",
+          "Asphalt025A",
+          "PavingStones036"
+        ]
+      },
+      "coordinateConvention": "pixel rectangles use top-left origin; UV rectangles use bottom-left origin",
+      "alignment": "all five maps share identical material cell rectangles; each emissive mask repeats the corresponding facade cell window pattern",
+      "materialRects": {
+        "Plaster004": {
+          "pixelRectTopLeft": [
+            16,
+            16,
+            512,
+            1024
+          ],
+          "uvRectBottomLeft": [
+            0.01,
+            0.503816794,
+            0.32,
+            0.488549618
+          ],
+          "cell": [
+            0,
+            0
+          ]
+        },
+        "Bricks060": {
+          "pixelRectTopLeft": [
+            544,
+            16,
+            512,
+            1024
+          ],
+          "uvRectBottomLeft": [
+            0.34,
+            0.503816794,
+            0.32,
+            0.488549618
+          ],
+          "cell": [
+            1,
+            0
+          ]
+        },
+        "Rocks025": {
+          "pixelRectTopLeft": [
+            1072,
+            16,
+            512,
+            1024
+          ],
+          "uvRectBottomLeft": [
+            0.67,
+            0.503816794,
+            0.32,
+            0.488549618
+          ],
+          "cell": [
+            2,
+            0
+          ]
+        },
+        "Concrete034": {
+          "pixelRectTopLeft": [
+            16,
+            1056,
+            512,
+            1024
+          ],
+          "uvRectBottomLeft": [
+            0.01,
+            0.007633588,
+            0.32,
+            0.488549618
+          ],
+          "cell": [
+            0,
+            1
+          ]
+        },
+        "Asphalt025A": {
+          "pixelRectTopLeft": [
+            544,
+            1056,
+            512,
+            1024
+          ],
+          "uvRectBottomLeft": [
+            0.34,
+            0.007633588,
+            0.32,
+            0.488549618
+          ],
+          "cell": [
+            1,
+            1
+          ]
+        },
+        "PavingStones036": {
+          "pixelRectTopLeft": [
+            1072,
+            1056,
+            512,
+            1024
+          ],
+          "uvRectBottomLeft": [
+            0.67,
+            0.007633588,
+            0.32,
+            0.488549618
+          ],
+          "cell": [
+            2,
+            1
+          ]
+        }
+      },
+      "maps": {
+        "basecolor": {
+          "file": "processed/facades/facade-pbr-basecolor-atlas.png",
+          "sha256": "d4897e2dd160153acab544508c263a98e1d27a61286ebfd5f1a18fcf93990501",
+          "bytes": 4808050,
+          "resolutionPx": [
+            1600,
+            2096
+          ],
+          "role": "source material albedo with shallow facade detail",
+          "colorSpace": "sRGB"
+        },
+        "normal": {
+          "file": "processed/facades/facade-pbr-normal-atlas.png",
+          "sha256": "d3d590108a1780d5e7560fd13cddc05239f16bb527192af614bd1e36fba72845",
+          "bytes": 4582908,
+          "resolutionPx": [
+            1600,
+            2096
+          ],
+          "role": "source tangent normal on walls with neutral window normals",
+          "colorSpace": "linear"
+        },
+        "roughness": {
+          "file": "processed/facades/facade-pbr-roughness-atlas.png",
+          "sha256": "ae3046c3da6d7cb4631b1e592ed3f3b42cfd832e9342d0ea9976322547cbf0fb",
+          "bytes": 2749817,
+          "resolutionPx": [
+            1600,
+            2096
+          ],
+          "role": "source roughness with lower-roughness facade glass detail",
+          "colorSpace": "linear"
+        },
+        "ao": {
+          "file": "processed/facades/facade-pbr-ao-atlas.png",
+          "sha256": "fa178d85ee2fdfefdaa33ac4402fb1e4436c0942760ab83c3a9aae63db844a49",
+          "bytes": 1896565,
+          "resolutionPx": [
+            1600,
+            2096
+          ],
+          "role": "source ambient occlusion with neutral panes and shallow reveal occlusion",
+          "colorSpace": "linear"
+        },
+        "emissive": {
+          "file": "processed/facades/facade-pbr-emissive-atlas.png",
+          "sha256": "92243d6c5bcedcffa441ca2dd68bc16d60035cda7bc307fb2a9d53bd2f6e92f0",
+          "bytes": 186240,
+          "resolutionPx": [
+            1600,
+            2096
+          ],
+          "role": "emissive window mask packed into the matching material cells",
+          "colorSpace": "sRGB"
+        }
       }
     }
   }

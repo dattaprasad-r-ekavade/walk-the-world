@@ -591,18 +591,18 @@ scripts/build-assets.mjs and public/textures/.
     those are marked as unavailable. Extracted source hashes and converted
     output metadata are recorded in the Stage 3.3 progress note; imagery credits
     stay in their separate section.
-- [ ] 3.3 Normalise pivots/+Z direction; prune unused geometry/maps. Bake shallow
+- [x] 3.3 Normalise pivots/+Z direction; prune unused geometry/maps. Bake shallow
   facade detail into shared atlases, align emissive masks, add mip-safe gutters
   and avoid baking directional sunlight into albedo.
-  - Progress, not exit: source snapshots are retained and hashed; four shared
-    PBR atlases have 16px edge-dilated gutters; missing AO uses white; four
-    Kenney GLBs have bottom-centred pivots, metre scaling and audited +Z-facing
-    fronts. The procedural facade and its night emissive mask are exported from
-    their shared grid as a PNG pair. Details and output hashes are in [the
-    manifest](assets/manifest.json). Blender 5.2.0 and Pillow 10.4.0 are pinned,
-    with rebuild instructions in [the asset pipeline notes](assets/README.md).
-    Composing source PBR maps into the facade cells, runtime integration and
-    browser visual approval remain open.
+  - The source snapshots are hashed; four shared PBR atlases and five packed
+    facade PBR atlases have 16px edge-dilated gutters; absent AO maps use white.
+    The six facade cells bake source maps under the wall/window/storefront
+    details, and the emissive cells use identical layout and window coordinates.
+    Four Kenney GLBs have bottom-centred pivots, metre scaling and audited +Z
+    fronts. No directional sunlight is baked into albedo. Tool versions, atlas
+    rectangles and output hashes are in [the manifest](assets/manifest.json);
+    rebuild steps are in [the asset pipeline notes](assets/README.md). Outputs
+    remain offline and are not yet loaded or approved in the game.
 - [ ] 3.4 Pin offline conversion tools. Compare KTX2 ETC1S/UASTC per map type,
   inspecting normals, window detail and masks. ORM packing saves files; stock
   shaders may still sample each map separately. KTX2 encoder/transcoder versions
@@ -838,12 +838,11 @@ for Cesium, imagery and model resources. SSR, volumetrics, displacement, dense
 skeletal crowds and shadowed lamp arrays require separate high-tier budgets.
 None is a prerequisite for this sequence.
 
-**Next bounded work:** finish Stage 3.3 by composing selected source PBR maps
-into the shared facade cells and checking that they retain exact alignment with
-the emissive atlas. Inspect the result in the browser before loading it through
-the runtime material factory. After this content step, pin KTX2 tools and compare
-ETC1S/UASTC by map type before any loader adoption. Stage 0.8 dense live-city
-cold/warm walk/drive, Stage 1 mobile assembly and input latency, and Stage 1.3
+**Next bounded work:** Stage 3.3 offline conversion is complete. Continue with
+Stage 3.4: pin KTX2 encoder/transcoder versions and compare ETC1S/UASTC per map
+type, checking the normal and window maps. Then integrate the best candidate
+through the runtime material factory and inspect it in the game. Stage 0.8
+dense live-city cold/warm walk/drive, Stage 1 mobile assembly and input latency, and Stage 1.3
 low-core worker plus KTX2 contention/memory checks remain release gates; runtime
 adoption must preserve the measured fallback and resource budgets. Recorded
 Rome replay is client/streaming evidence, not live Overpass evidence.
@@ -861,4 +860,5 @@ thermal checks and direct thermal measurements remain open. Keep Rust/Wasm/SIMD 
 729.4 ms roundtrip on the earlier synthetic trace, so kernel acceleration is
 not yet the measured opportunity. The Stage 2.5 far-material experiment was
 completed and rejected; Stage 2.6 shader/shadow parity is complete. Stage 3.1
-and 3.2 curation are complete, and 3.3 offline conversion is in progress.
+and 3.2 curation plus 3.3 offline conversion are complete; 3.4 KTX2 comparison
+is the next content checkpoint.
