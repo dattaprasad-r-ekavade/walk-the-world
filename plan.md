@@ -626,14 +626,38 @@ scripts/build-assets.mjs and public/textures/.
     mask IoU is 0.9976 for UASTC versus 0.9855 for ETC1S; the facade albedo alpha
     mask IoU is 1.0000 for both. Reviewed maps are shown in the [atlas
     comparison](assets/processed/ktx2/quality-review.png) and [facade detail
-    comparison](assets/processed/ktx2/quality-review-facade-detail.png). Runtime
-    codec choice still needs Stage 3.5 in-game visual and device-cost validation.
-- [ ] 3.5 Add one shared support-detected KTX2 loader, bounded decoder workers,
+    comparison](assets/processed/ktx2/quality-review-facade-detail.png). Stage
+    3.5 accepted UASTC for the shared runtime maps; lower-memory hardware remains
+    a release check.
+- [x] 3.5 Add one shared support-detected KTX2 loader, bounded decoder workers,
   self-hosted matching decoders and disposal. Preserve procedural fallback and
   measure transfer/compile/transcode/upload plus estimated GPU residency.
+  - Production build and RTX 4060 Laptop GPU (Chrome/D3D11) acceptance passed.
+    The Rome fixture loaded 243 meshes with the two self-hosted UASTC maps;
+    day/night captures show facade and emissive alignment. The 194,691-byte
+    transfer used 110 ms combined worker/WASM initialization and transcode,
+    1.7 ms upload submission and an estimated 1,398,176 bytes of compressed
+    mip residency. Input-ready was 2,323 ms; first building 2,475 ms.
+    Forced HTTP 503 responses left the procedural fallback operational and the
+    city streamed successfully. See the [runtime acceptance report](benchmarks/results/stage3/ktx2-runtime-gpu-smoke.md)
+    and [captures](benchmarks/results/stage3/).
+  - Both ETC1S and UASTC variants validate for glTF BasisU. Three.js 0.170.0
+    does not expose separate
+    worker WASM compilation and transcode timings or GPU upload completion, so
+    the runtime records a combined decode interval and synchronous upload-submit
+    time and marks those limits explicitly.
 - [ ] 3.6 Start shared 512–1024 maps on low/medium and selective 2048 near atlases
   on high. Generate mipmaps; inspect gutters, repeat seams and projected detail.
   PNG/WebP transfer compression alone does not imply GPU memory compression.
+  - [x] Shared 512×1024 facade and emissive maps now have 11 offline Lanczos
+    mip levels. Their runtime KTX2 payloads total 194,691 bytes; repeat-S mip
+    generation tiles the image horizontally before filtering.
+  - [x] Reviewed the facade mip repeat boundary at levels 0–4, 6, 8 and 10.
+    Mean absolute RGB edge deltas range from 0.46 at level 0 to 12.71 at level 6;
+    see the [mip review](benchmarks/results/stage3/ktx2-mipmap-review.json) and
+    [contact sheet](benchmarks/results/stage3/ktx2-mipmap-repeat-review.png).
+  - [ ] Build and select the packed high-tier near atlases, then review their
+    gutters, projected detail and device memory cost.
 - [ ] 3.7 Inspect/prune/deduplicate/simplify selected GLBs with glTF Transform.
   Compare Meshopt/Draco only where savings justify decoder cost; validate existing
   model merging, maps, orientation and instancing.
@@ -859,12 +883,11 @@ for Cesium, imagery and model resources. SSR, volumetrics, displacement, dense
 skeletal crowds and shadowed lamp arrays require separate high-tier budgets.
 None is a prerequisite for this sequence.
 
-**Next bounded work:** Stage 3.4's offline conversion comparison is complete.
-Continue with Stage 3.5: add a shared support-detected KTX2 loader with bounded
-decoder workers and self-hosted matching decoders, retaining the procedural
-fallback. Measure transfer, compile, transcode, upload, input-ready time and
-estimated GPU residency, then inspect runtime materials in the game. Stage 0.8
-dense live-city cold/warm walk/drive, Stage 1 mobile assembly and input latency, and Stage 1.3
+**Next bounded work:** Stage 3.4's offline conversion comparison and Stage 3.5
+runtime acceptance are complete. Finish Stage 3.6 by adding the packed facade
+PBR maps as selectively loaded high-tier near atlases. Inspect atlas gutters and
+projected detail in the game, measure high-tier transcode and memory cost, and
+retain the shared mipmapped pair for lower tiers. Stage 0.8 dense live-city cold/warm walk/drive, Stage 1 mobile assembly and input latency, and Stage 1.3
 low-core worker plus KTX2 contention/memory checks remain release gates; runtime
 adoption must preserve the measured fallback and resource budgets. Recorded
 Rome replay is client/streaming evidence, not live Overpass evidence.

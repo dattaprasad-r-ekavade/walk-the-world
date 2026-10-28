@@ -39,15 +39,14 @@ Optional CC0 loops can be dropped at `public/audio/day.ogg` and
 
 ## Materials & lighting (17.1 / 17.2)
 
-Street materials remain procedural PBR (`lib/engine/materials.js`). The selected
-CC0 maps are preserved under `assets/source/ambientcg/` and assembled into
-shared atlases under `assets/processed/materials/`; the existing procedural
-facade and aligned night-emissive maps are also exported under
-`assets/processed/facades/`. The packed facade atlases compose each source
-surface with shallow window/storefront detail and matching PBR/emissive maps.
-The Kenney props have normalised GLB outputs under `assets/processed/props/`.
-These outputs are not loaded by the runtime yet. No directional sunlight is
-baked into the source albedo maps.
+Street materials use procedural PBR fallbacks (`lib/engine/materials.js`). The
+selected CC0 maps are preserved under `assets/source/ambientcg/` and assembled
+into shared atlases under `assets/processed/materials/`; the existing facade
+and aligned night-emissive templates are exported under
+`assets/processed/facades/`. Their UV-compatible 512×1024 KTX2 forms are loaded
+by the street engine when supported. The packed facade PBR atlases and Kenney
+props under `assets/processed/` are not loaded by the runtime yet. No
+directional sunlight is baked into the source albedo maps.
 
 | Set | Publisher / author | License | Source |
 |---|---|---|---|
@@ -60,3 +59,8 @@ front-axis corrections. `npm run assets:build` regenerates the offline outputs;
 see [the pipeline notes](assets/README.md) for tool pins and remaining work.
 IBL uses a procedural equirect sky → PMREM (`lib/engine/env-map.js`); Poly
 Haven HDRIs remain a later option when hosted.
+
+The KTX2 runtime uses the Basis Universal transcoder shipped with Three.js
+0.170.0 (`public/decoders/basis/`). Basis Universal is distributed under the
+[Apache License 2.0](https://github.com/BinomialLLC/basis_universal/blob/master/LICENSE);
+its full license text is copied beside the decoder files.

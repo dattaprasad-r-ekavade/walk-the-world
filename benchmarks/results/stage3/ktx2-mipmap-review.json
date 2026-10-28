@@ -1,0 +1,54 @@
+{
+  "texture": "facade-basecolor.ktx2",
+  "selectedLevels": [
+    {
+      "file": "level-0.png",
+      "width": 512,
+      "height": 1024,
+      "meanAbsEdgeRgbDelta": 0.46
+    },
+    {
+      "file": "level-1.png",
+      "width": 256,
+      "height": 512,
+      "meanAbsEdgeRgbDelta": 0.6
+    },
+    {
+      "file": "level-2.png",
+      "width": 128,
+      "height": 256,
+      "meanAbsEdgeRgbDelta": 0.81
+    },
+    {
+      "file": "level-3.png",
+      "width": 64,
+      "height": 128,
+      "meanAbsEdgeRgbDelta": 2.1
+    },
+    {
+      "file": "level-4.png",
+      "width": 32,
+      "height": 64,
+      "meanAbsEdgeRgbDelta": 4.19
+    },
+    {
+      "file": "level-6.png",
+      "width": 8,
+      "height": 16,
+      "meanAbsEdgeRgbDelta": 12.71
+    },
+    {
+      "file": "level-8.png",
+      "width": 2,
+      "height": 4,
+      "meanAbsEdgeRgbDelta": 7.08
+    },
+    {
+      "file": "level-10.png",
+      "width": 1,
+      "height": 1,
+      "meanAbsEdgeRgbDelta": 0.0
+    }
+  ],
+  "review": "Each extracted level is displayed twice side-by-side; the join exposes the horizontal repeat boundary."
+}

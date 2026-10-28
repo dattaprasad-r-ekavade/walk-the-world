@@ -1,7 +1,8 @@
 # Offline asset pipeline
 
-This is a source-only pilot. Nothing under `assets/processed/` is loaded by the
-game yet.
+Offline source assets remain under `assets/`. Stage 3.5 adds only the
+UV-compatible facade albedo and night-window maps to the runtime; the larger PBR
+atlases and processed props remain offline until their later checkpoints.
 
 ## Build
 
@@ -60,7 +61,32 @@ Generated `.ktx2` files, exact settings, SHA-256 hashes, file sizes and decoded
 quality metrics are recorded in `assets/manifest.json`. The complete-atlas and
 facade-window/mask sheets are under `assets/processed/ktx2/`. KTX2 transfer sizes
 do not predict GPU residency; the runtime transcode target and memory accounting
-remain Stage 3.5 work.
+are measured separately during Stage 3.5 runtime checks.
+
+## Runtime facade KTX2 maps
+
+Run `npm run assets:runtime-ktx2` after installing KTX-Software 4.4.2 as above.
+The script rebuilds ETC1S and UASTC variants from the existing 512×1024 facade
+albedo and emissive templates, validates both for `KHR_texture_basisu`, selects
+UASTC, and copies the selected maps plus the matching Basis transcoder from the
+lockfile-pinned Three.js 0.170.0 package into `public/`. Source, codec, decoder,
+and output hashes are recorded in `assets/manifest.json`.
+
+KTX orientation metadata stays `top-left` for glTF BasisU compatibility. Three.js
+0.170.0 returns a `CompressedTexture` with `flipY=false`; the runtime applies a V
+mirror transform to match the current CanvasTexture mapping. The procedural
+facade and emissive textures remain active until both compressed maps decode and
+upload successfully. The runtime loader is capped at two workers, starts without
+blocking input-ready, and reports fetch bytes/time, decoder resource time,
+combined worker/WASM compile/transcode time, upload submission time, renderer
+texture-count delta, and compressed-payload residency estimate. Browser APIs do
+not expose a separate WASM compile or GPU upload completion time; those
+limitations are recorded in the performance timeline.
+
+Runtime maps carry 11 offline Lanczos mip levels generated with repeat-S and
+clamp-T filtering. The mip generator is pinned to Pillow 10.4.0 and creates a
+horizontal repeat border while filtering so the shared facade seam remains
+continuous across lower mip levels.
 
 ## Remaining Stage 3 work
 
@@ -68,5 +94,7 @@ The five packed facade maps place each selected PBR surface under the existing
 shallow wall/window/storefront detail; the emissive atlas uses identical cells
 and window coordinates. The KTX-Software 4.4.2 ETC1S/UASTC pilot and decoded
 atlas/window-mask review are complete; see the comparison report and manifest.
-Runtime material integration, in-game approval, and performance/memory gates
-remain open. Do not treat the offline outputs as runtime-adopted assets.
+Stage 3.5 passed a production RTX 4060 runtime check with a forced-network-failure
+fallback check. Stage 3.6 has the shared mipmapped pair; selective high-tier
+packed PBR atlases, projected detail review and device memory checks remain
+open. Processed props are still offline.

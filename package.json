@@ -16,6 +16,7 @@
     "bench:street": "node scripts/validate-street.mjs",
     "assets:build": "node scripts/build-assets.mjs",
     "assets:ktx2": "node scripts/build-ktx2.mjs",
+    "assets:runtime-ktx2": "node scripts/build-runtime-ktx2.mjs",
     "assets:facades": "node scripts/build-facade-atlases.mjs",
     "assets:preview": "blender --background --python scripts/render-asset-audit.py",
     "overture-index": "node scripts/build-overture-index.mjs",

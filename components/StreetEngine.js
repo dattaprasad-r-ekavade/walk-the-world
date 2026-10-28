@@ -17,7 +17,8 @@ import { createCityBuilderPool } from "@/lib/engine/city-builder";
 import { assembleCityFromBuild, primeStationLabelMetrics } from "@/lib/engine/street/assemble-city";
 import { createCellStreamer } from "@/lib/engine/street/cell-stream";
 import { clipElementsToCell } from "@/lib/engine/cell-clip";
-import { getSimpleStandard, setRoadWetness, sharedMaterialTextures, materialFactoryInventory, disposeMaterialCache } from "@/lib/engine/materials";
+import { getSimpleStandard, installBuildingTextureMaps, setRoadWetness, sharedMaterialTextures, materialFactoryInventory, disposeMaterialCache } from "@/lib/engine/materials";
+import { createKtx2BuildingTextureLoader } from "@/lib/engine/ktx2-textures";
 import { createVehicleController } from "@/lib/engine/street/vehicle";
 import { createPostFx } from "@/lib/engine/post-fx";
 import { applyAutoQuality } from "@/lib/engine/gpu-tier";
@@ -27,7 +28,7 @@ import { createSeededRandom } from "@/lib/engine/seeded-random";
 
 const toolBtn = "rounded bg-white/10 px-2 py-1 hover:bg-white/20";
 const toolBtnPrimary = "rounded bg-emerald-500/80 px-2 py-1 font-semibold text-black hover:bg-emerald-400";
-import { appendGpuFrameTime, appendRendererFrame, getPerfCounters, markPerf, markPerfMeasurementUnavailable, measurePerf, measurePerfAsync, recordFrameInterval, recordFpsSample, setPerfEnvironment, setPerfMetadata, setPerfResourceCounts, trackRender } from "@/lib/perf";
+import { appendGpuFrameTime, appendRendererFrame, getPerfCounters, markPerf, markPerfMeasurementUnavailable, measurePerf, measurePerfAsync, recordPerfTiming, recordFrameInterval, recordFpsSample, setPerfEnvironment, setPerfMetadata, setPerfResourceCounts, trackRender } from "@/lib/perf";
 import { STREET } from "@/lib/engine/street/constants";
 import { createCollision } from "@/lib/engine/street/collision";
 import { createTerrainSystem } from "@/lib/engine/street/terrain";
@@ -309,6 +310,58 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false }) {
     renderer.shadowMap.autoUpdate = false;
     renderer.shadowMap.needsUpdate = true;
     mount.appendChild(renderer.domElement);
+    markPerfMeasurementUnavailable(
+      "ktx2GpuUploadCompletionMs",
+      "WebGL exposes synchronous upload submission but not a portable completion timestamp; GPU residency is estimated from transcoded compressed mip payloads.",
+    );
+    const ktx2TextureLoader = createKtx2BuildingTextureLoader(renderer, {
+      signal,
+      onReady: (maps) => {
+        const textureCountBefore = renderer.info.memory.textures;
+        const uploadStartedAt = performance.now();
+        renderer.initTexture(maps.facade);
+        renderer.initTexture(maps.emissive);
+        const uploadSubmitMs = performance.now() - uploadStartedAt;
+        if (!installBuildingTextureMaps(maps)) {
+          maps.facade.dispose();
+          maps.emissive.dispose();
+          return;
+        }
+        const textureCountDelta = renderer.info.memory.textures - textureCountBefore;
+        recordPerfTiming("ktx2.texture-upload-submit", uploadSubmitMs, {
+          bytes: maps.estimatedGpuBytes,
+          textureCountDelta,
+        });
+        setPerfResourceCounts({
+          textures: renderer.info.memory.textures,
+          ktx2EstimatedGpuBytes: maps.estimatedGpuBytes,
+        });
+        setPerfMetadata({
+          ktx2: {
+            transcodeFormats: maps.transcodeFormats,
+            transferBytes: maps.transferBytes,
+            transferMs: maps.transferMs,
+            decoderBytes: maps.decoderBytes,
+            mipLevels: maps.mipLevels,
+            workerLimit: 2,
+            estimatedGpuBytes: maps.estimatedGpuBytes,
+            textureCountDelta,
+          },
+        });
+        markPerf("ktx2-textures-ready", {
+          transcodeFormats: maps.transcodeFormats,
+          transferBytes: maps.transferBytes,
+          transferMs: maps.transferMs,
+          decoderBytes: maps.decoderBytes,
+          mipLevels: maps.mipLevels,
+          compileAndTranscodeMs: maps.decodeMs,
+          uploadSubmitMs,
+          estimatedGpuBytes: maps.estimatedGpuBytes,
+          textureCountDelta,
+        });
+      },
+      onError: (error) => console.warn("[street] KTX2 facade maps unavailable; procedural maps remain active:", error?.message || error),
+    });
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0x9cc4e8);
     // Exp2 fog reads more natural at distance; near/far tuned in applySky
@@ -1780,6 +1833,7 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false }) {
       ambience.dispose();
       envCtrl.dispose();
       runtime.current.cellStreamer?.dispose?.();
+      ktx2TextureLoader.dispose();
       disposeSceneGroup(scene, scene, sharedMaterialTextures());
       disposeMaterialCache();
       terrain.dispose();

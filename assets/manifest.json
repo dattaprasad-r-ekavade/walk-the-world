@@ -2896,5 +2896,182 @@
       "allAtlases": "processed/ktx2/quality-review.png",
       "facadeWindowAndMaskDetail": "processed/ktx2/quality-review-facade-detail.png"
     }
+  },
+  "runtimeKtx2": {
+    "revision": "stage3.6-mipped-runtime-r2",
+    "toolchain": {
+      "name": "KTX-Software",
+      "version": "v4.4.2",
+      "releaseUrl": "https://github.com/KhronosGroup/KTX-Software/releases/tag/v4.4.2"
+    },
+    "mipGenerator": {
+      "name": "Pillow",
+      "version": "10.4.0",
+      "filter": "Lanczos",
+      "wrapS": "per-map; repeat for shared textures and clamp for high atlas",
+      "wrapT": "clamp"
+    },
+    "runtime": {
+      "threeVersion": "0.170.0",
+      "decoderPath": "public/decoders/basis/",
+      "workerLimit": 2,
+      "selectedCodec": "uastc",
+      "texcoordOrigin": "top-left",
+      "runtimeUvTransform": "flip-v-to-match-canvas-texture",
+      "mipLevels": 11,
+      "mipmapGeneration": {
+        "method": "offline",
+        "filter": "pillow-lanczos",
+        "wrapS": "repeat",
+        "wrapT": "clamp"
+      },
+      "fallback": "procedural makeFacadeAtlas/makeLitWindowAtlas"
+    },
+    "decoderFiles": {
+      "basis_transcoder.js": {
+        "file": "decoders/basis/basis_transcoder.js",
+        "bytes": 57529,
+        "sha256": "8478b5b6d6b74e7d3082b89f6417321d8d1dc0307f2b30d4484bb11b441696a1"
+      },
+      "basis_transcoder.wasm": {
+        "file": "decoders/basis/basis_transcoder.wasm",
+        "bytes": 527333,
+        "sha256": "6cf17dc889352c42e9acf8897107978d127005fe3386c36a0e3845e27967630a"
+      },
+      "README.md": {
+        "file": "decoders/basis/README.md",
+        "bytes": 1448,
+        "sha256": "930b11bbbb742b2525491b0964f0462d63d8b21383c0623ec4c98c43d53723c6"
+      },
+      "LICENSE.txt": {
+        "file": "decoders/basis/LICENSE.txt",
+        "bytes": 11347,
+        "sha256": "065fcf48d6af21c0b75e23be5ed5753aee75c892e1c2cf178fa6736305614a5c"
+      }
+    },
+    "textures": [
+      {
+        "id": "facade-basecolor",
+        "source": "processed/facades/facade-basecolor-atlas.png",
+        "sourceSha256": "7c851a8d309b3d7b71c73bb8a4d7e2e116b7e5656a59a191ab66728e89029dd6",
+        "resolutionPx": [
+          512,
+          1024
+        ],
+        "colorSpace": "sRGB",
+        "variants": {
+          "etc1s": {
+            "file": "processed/ktx2/runtime/etc1s/facade-basecolor.ktx2",
+            "bytes": 46540,
+            "sha256": "6c523822f9371259fd2eaac9f386118050dec8d0d824c0fd9d3b9506ce1a92b9",
+            "psnrMaxDb": 48.130802,
+            "settings": {
+              "encode": "basis-lz",
+              "clevel": 1,
+              "qlevel": 128,
+              "mipLevels": 11,
+              "mipmapFilter": "pillow-lanczos",
+              "mipmapWrapS": "repeat",
+              "mipmapWrapT": "clamp"
+            },
+            "sourceSha256": "7c851a8d309b3d7b71c73bb8a4d7e2e116b7e5656a59a191ab66728e89029dd6",
+            "format": "R8G8B8A8_SRGB",
+            "texcoordOrigin": "top-left",
+            "runtimeUvTransform": "flip-v-to-match-canvas-texture"
+          },
+          "uastc": {
+            "file": "processed/ktx2/runtime/uastc/facade-basecolor.ktx2",
+            "bytes": 165060,
+            "sha256": "5950247682023a5b9a8cccc20da9db08a0175c19e5eb9fd674b308ade466efd3",
+            "psnrMaxDb": 100,
+            "settings": {
+              "encode": "uastc",
+              "quality": 2,
+              "rdoLambda": 1,
+              "rdoMultithreading": false,
+              "zstd": 18,
+              "mipLevels": 11,
+              "mipmapFilter": "pillow-lanczos",
+              "mipmapWrapS": "repeat",
+              "mipmapWrapT": "clamp"
+            },
+            "sourceSha256": "7c851a8d309b3d7b71c73bb8a4d7e2e116b7e5656a59a191ab66728e89029dd6",
+            "format": "R8G8B8A8_SRGB",
+            "texcoordOrigin": "top-left",
+            "runtimeUvTransform": "flip-v-to-match-canvas-texture"
+          }
+        },
+        "selectedCodec": "uastc",
+        "runtime": {
+          "file": "textures/ktx2/facade-basecolor.ktx2",
+          "bytes": 165060,
+          "sha256": "5950247682023a5b9a8cccc20da9db08a0175c19e5eb9fd674b308ade466efd3",
+          "mipLevels": 11,
+          "texcoordOrigin": "top-left",
+          "runtimeUvTransform": "flip-v-to-match-canvas-texture"
+        }
+      },
+      {
+        "id": "facade-emissive",
+        "source": "processed/facades/facade-emissive-atlas.png",
+        "sourceSha256": "e5279564312bd6ca650af44e1db37a606354c84b7c84e0312f1af793900fe739",
+        "resolutionPx": [
+          512,
+          1024
+        ],
+        "colorSpace": "sRGB",
+        "variants": {
+          "etc1s": {
+            "file": "processed/ktx2/runtime/etc1s/facade-emissive.ktx2",
+            "bytes": 12789,
+            "sha256": "44a821475195e3f1e82ca19f8cb9ab0d55a8b40562d0cf18aa78b2c572345d4f",
+            "psnrMaxDb": 48.130802,
+            "settings": {
+              "encode": "basis-lz",
+              "clevel": 1,
+              "qlevel": 128,
+              "mipLevels": 11,
+              "mipmapFilter": "pillow-lanczos",
+              "mipmapWrapS": "repeat",
+              "mipmapWrapT": "clamp"
+            },
+            "sourceSha256": "e5279564312bd6ca650af44e1db37a606354c84b7c84e0312f1af793900fe739",
+            "format": "R8G8B8A8_SRGB",
+            "texcoordOrigin": "top-left",
+            "runtimeUvTransform": "flip-v-to-match-canvas-texture"
+          },
+          "uastc": {
+            "file": "processed/ktx2/runtime/uastc/facade-emissive.ktx2",
+            "bytes": 29631,
+            "sha256": "7a1e700c9f969d572e7e94698caf96516b6a979a93333f484258e83258a33564",
+            "psnrMaxDb": 100,
+            "settings": {
+              "encode": "uastc",
+              "quality": 2,
+              "rdoLambda": 1,
+              "rdoMultithreading": false,
+              "zstd": 18,
+              "mipLevels": 11,
+              "mipmapFilter": "pillow-lanczos",
+              "mipmapWrapS": "repeat",
+              "mipmapWrapT": "clamp"
+            },
+            "sourceSha256": "e5279564312bd6ca650af44e1db37a606354c84b7c84e0312f1af793900fe739",
+            "format": "R8G8B8A8_SRGB",
+            "texcoordOrigin": "top-left",
+            "runtimeUvTransform": "flip-v-to-match-canvas-texture"
+          }
+        },
+        "selectedCodec": "uastc",
+        "runtime": {
+          "file": "textures/ktx2/facade-emissive.ktx2",
+          "bytes": 29631,
+          "sha256": "7a1e700c9f969d572e7e94698caf96516b6a979a93333f484258e83258a33564",
+          "mipLevels": 11,
+          "texcoordOrigin": "top-left",
+          "runtimeUvTransform": "flip-v-to-match-canvas-texture"
+        }
+      }
+    ]
   }
 }

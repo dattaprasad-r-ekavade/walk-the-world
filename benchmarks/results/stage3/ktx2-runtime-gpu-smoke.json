@@ -1,0 +1,155 @@
+{
+  "schemaVersion": 1,
+  "capturedAt": "2026-10-28T01:35:09.467Z",
+  "sourceRevision": "working-tree",
+  "fixture": "benchmarks/fixtures/rome-showcase-osm.json",
+  "rendererMode": "headless Chrome with D3D11 GPU enabled",
+  "day": {
+    "engineReady": true,
+    "webgl": {
+      "version": "WebGL 2.0 (OpenGL ES 3.0 Chromium)",
+      "vendor": "Google Inc. (NVIDIA)",
+      "renderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 4060 Laptop GPU (0x000028E0) Direct3D11 vs_5_0 ps_5_0, D3D11)"
+    },
+    "spawnFraming": {
+      "mode": "arrival",
+      "cls": "footway",
+      "movedM": 34,
+      "score": 0.762,
+      "coverage": 0.762,
+      "openness": 1
+    },
+    "meshCount": 243,
+    "buildingMaterialMaps": [
+      {
+        "uuid": "f593961f-2e8d-46ec-b8da-dbd9a9c91ac6",
+        "width": 512,
+        "height": 1024,
+        "colorSpace": "srgb",
+        "roles": [
+          "map"
+        ]
+      },
+      {
+        "uuid": "3d7ced9b-eb66-4d15-90a0-0798081dddfc",
+        "width": 512,
+        "height": 1024,
+        "colorSpace": "srgb",
+        "roles": [
+          "emissiveMap"
+        ]
+      }
+    ],
+    "buildingMaterials": [
+      {
+        "uuid": "83d17974-2b5c-4f18-b520-cfe1a8ade4df",
+        "name": "",
+        "type": "MeshStandardMaterial",
+        "color": "ffffff",
+        "vertexColors": true,
+        "transparent": false,
+        "side": 0,
+        "roughness": 1,
+        "metalness": 0.02,
+        "shared": true,
+        "roles": [
+          "map",
+          "normalMap",
+          "roughnessMap",
+          "emissiveMap"
+        ],
+        "meshUses": 2
+      }
+    ],
+    "timeline": [
+      {
+        "type": "mark",
+        "name": "ktx2-support-detected",
+        "atMs": 789.7999999523163,
+        "details": {
+          "workerLimit": 2,
+          "capabilities": {
+            "astcSupported": false,
+            "astcHDRSupported": false,
+            "etc1Supported": false,
+            "etc2Supported": false,
+            "dxtSupported": true,
+            "bptcSupported": true,
+            "pvrtcSupported": false
+          }
+        }
+      },
+      {
+        "type": "mark",
+        "name": "ktx2-transfer-complete",
+        "atMs": 1039.5,
+        "details": {
+          "bytes": 194691,
+          "count": 2
+        }
+      },
+      {
+        "type": "mark",
+        "name": "ktx2-textures-ready",
+        "atMs": 1152.6999998092651,
+        "details": {
+          "transcodeFormats": {
+            "facade": 36492,
+            "emissive": 36492
+          },
+          "transferBytes": 194691,
+          "transferMs": 7,
+          "decoderBytes": 263388,
+          "mipLevels": {
+            "facade-basecolor": 11,
+            "facade-emissive": 11
+          },
+          "compileAndTranscodeMs": 110,
+          "uploadSubmitMs": 1.7000000476837158,
+          "estimatedGpuBytes": 1398176,
+          "textureCountDelta": 2
+        }
+      },
+      {
+        "type": "mark",
+        "name": "terrain-ready",
+        "atMs": 1963.1999998092651,
+        "details": {
+          "loadedTiles": 1,
+          "flatFallback": false
+        }
+      },
+      {
+        "type": "mark",
+        "name": "input-ready",
+        "atMs": 2323.399999856949,
+        "details": {
+          "terrainTiles": 1
+        }
+      },
+      {
+        "type": "mark",
+        "name": "first-building",
+        "atMs": 2474.5,
+        "details": {
+          "cellKey": "wtw_city6_41.890_12.492",
+          "triangles": 2702
+        }
+      },
+      {
+        "type": "mark",
+        "name": "streaming-complete",
+        "atMs": 5755.699999809265,
+        "details": {
+          "scope": "spawn-cell",
+          "cityBuilt": true
+        }
+      }
+    ]
+  },
+  "nightScreenshot": "ktx2-runtime-gpu-night.png",
+  "dayScreenshot": "ktx2-runtime-gpu-day.png",
+  "consoleErrors": [],
+  "pageErrors": [],
+  "assetFailures": []
+}
