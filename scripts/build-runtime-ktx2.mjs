@@ -16,8 +16,12 @@ const EXPECTED_PILLOW_VERSION = "10.4.0";
 const KTX_RELEASE_URL = "https://github.com/KhronosGroup/KTX-Software/releases/tag/v4.4.2";
 const SELECTED_CODEC = "uastc";
 const MAPS = [
-  { id: "facade-basecolor", key: "facade", mipmapWrapS: "repeat" },
-  { id: "facade-emissive", key: "emissive", mipmapWrapS: "repeat" },
+  { id: "facade-basecolor", tier: "shared", key: "facade", mipmapWrapS: "repeat" },
+  { id: "facade-emissive", tier: "shared", key: "emissive", mipmapWrapS: "repeat" },
+  { id: "facade-near-basecolor", tier: "high", key: "basecolor", mipmapWrapS: "clamp" },
+  { id: "facade-near-normal", tier: "high", key: "normal", mipmapWrapS: "clamp", rdoLambda: 0.5 },
+  { id: "facade-near-roughness", tier: "high", key: "roughness", mipmapWrapS: "clamp" },
+  { id: "facade-near-emissive", tier: "high", key: "emissive", mipmapWrapS: "clamp" },
 ];
 
 function sha256(filePath) {
@@ -75,6 +79,7 @@ function encodeVariant(ktx, map, variant, mipPaths, sourceSha256) {
   mkdirSync(path.dirname(outputPath), { recursive: true });
 
   const srgb = map.colorSpace === "sRGB";
+  const rdoLambda = map.rdoLambda ?? 1;
   const format = `R8G8B8A8_${srgb ? "SRGB" : "UNORM"}`;
   const common = [
     "--format", format,
@@ -85,7 +90,7 @@ function encodeVariant(ktx, map, variant, mipPaths, sourceSha256) {
     "--levels", String(expectedMipLevels),
   ];
   const codecArgs = variant === "uastc"
-    ? ["--encode", "uastc", "--uastc-quality", "2", "--uastc-rdo", "--uastc-rdo-l", "1.0", "--uastc-rdo-m", "--zstd", "18"]
+    ? ["--encode", "uastc", "--uastc-quality", "2", "--uastc-rdo", "--uastc-rdo-l", String(rdoLambda), "--uastc-rdo-m", "--zstd", "18"]
     : ["--encode", "basis-lz", "--clevel", "1", "--qlevel", "128"];
 
   const comparison = run(ktx, ["create", ...common, ...codecArgs, "--compare-psnr", ...mipPaths, outputPath]);
@@ -106,7 +111,7 @@ function encodeVariant(ktx, map, variant, mipPaths, sourceSha256) {
       ? {
           encode: "uastc",
           quality: 2,
-          rdoLambda: 1,
+          rdoLambda,
           rdoMultithreading: false,
           zstd: 18,
           mipLevels: expectedMipLevels,
@@ -170,7 +175,9 @@ function main() {
   const mipRoot = mkdtempSync(path.join(os.tmpdir(), "walk-the-world-runtime-mips-"));
   try {
     for (const map of MAPS) {
-      const source = manifest.facadeAtlases?.maps?.[map.key];
+      const source = map.tier === "high"
+        ? manifest.facadeAtlases?.packed?.maps?.[map.key]
+        : manifest.facadeAtlases?.maps?.[map.key];
       if (!source?.file) throw new Error(`Missing facade source map: ${map.key}`);
       const sourcePath = path.join(root, "assets", source.file);
       const sourceSha256 = sha256(sourcePath);
@@ -203,6 +210,7 @@ function main() {
       copyFileSync(path.join(root, "assets", selected.file), publicPath);
       textureRecords.push({
         id: map.id,
+        tier: map.tier,
         source: source.file,
         sourceSha256,
         resolutionPx: source.resolutionPx,
@@ -224,8 +232,27 @@ function main() {
   }
 
   const runtimeMipLevels = Math.max(...textureRecords.map((texture) => mipLevelCount(texture.resolutionPx)));
+  const nearAtlas = manifest.facadeAtlases?.packed;
+  if (!nearAtlas?.materialRects || !nearAtlas.resolutionPx) {
+    throw new Error("Missing packed facade atlas layout for the high quality tier");
+  }
+  const layoutPath = path.join(publicTextureRoot, "facade-near-layout.json");
+  const layout = {
+    resolutionPx: nearAtlas.resolutionPx,
+    materialRects: nearAtlas.materialRects,
+    grid: nearAtlas.grid,
+    gutterPx: nearAtlas.gutterPx,
+    mipSafeLevelsApprox: nearAtlas.mipSafeLevelsApprox,
+  };
+  const layoutBytes = Buffer.from(JSON.stringify(layout, null, 2) + "\n", "utf8");
+  writeFileSync(layoutPath, layoutBytes);
+  const layoutRecord = {
+    file: "textures/ktx2/facade-near-layout.json",
+    bytes: layoutBytes.byteLength,
+    sha256: createHash("sha256").update(layoutBytes).digest("hex"),
+  };
   manifest.runtimeKtx2 = {
-    revision: "stage3.6-mipped-runtime-r2",
+    revision: "stage3.6-quality-atlas-r1",
     toolchain: {
       name: "KTX-Software",
       version: EXPECTED_KTX_VERSION,
@@ -246,9 +273,14 @@ function main() {
       texcoordOrigin: "top-left",
       runtimeUvTransform: "flip-v-to-match-canvas-texture",
       mipLevels: runtimeMipLevels,
-      mipmapGeneration: { method: "offline", filter: "pillow-lanczos", wrapS: "repeat", wrapT: "clamp" },
+      mipmapGeneration: { method: "offline", filter: "pillow-lanczos", wrapS: "per-map", wrapT: "clamp" },
+      textureTiers: {
+        shared: ["facade-basecolor", "facade-emissive"],
+        high: ["facade-near-basecolor", "facade-near-normal", "facade-near-roughness", "facade-near-emissive"],
+      },
       fallback: "procedural makeFacadeAtlas/makeLitWindowAtlas",
     },
+    nearAtlasLayout: layoutRecord,
     decoderFiles,
     textures: textureRecords,
   };

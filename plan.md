@@ -23,9 +23,11 @@ Five visible-Chrome Intel UHD repetitions are recorded for each of day/clear,
 night/clear, day/rain and night/rain. These short synthetic runs are diagnostic,
 not release acceptance; cold/warm starts, real-city stress, dynamic cell
 crossing, mobile, long-walk thermal and release gates remain open. Stage 3.4's
-offline KTX2 ETC1S/UASTC comparison now covers all nine shared and facade maps;
-runtime adoption and GPU residency checks remain open. Work is consolidated on
-`main`.
+offline KTX2 ETC1S/UASTC comparison covers all nine shared and facade maps.
+Stages 3.5 and 3.6 now include shared runtime maps and selective high-tier packed
+facade PBR maps. The RTX 4060 smoke estimates 19.3 MB compressed mip residency
+when high is active; low-memory and mobile texture checks remain open. Work is
+consolidated on `main`.
 
 ## 1. Verified baseline and scope
 
@@ -646,7 +648,7 @@ scripts/build-assets.mjs and public/textures/.
     worker WASM compilation and transcode timings or GPU upload completion, so
     the runtime records a combined decode interval and synchronous upload-submit
     time and marks those limits explicitly.
-- [ ] 3.6 Start shared 512–1024 maps on low/medium and selective 2048 near atlases
+- [x] 3.6 Start shared 512–1024 maps on low/medium and selective 2048 near atlases
   on high. Generate mipmaps; inspect gutters, repeat seams and projected detail.
   PNG/WebP transfer compression alone does not imply GPU memory compression.
   - [x] Shared 512×1024 facade and emissive maps now have 11 offline Lanczos
@@ -656,8 +658,21 @@ scripts/build-assets.mjs and public/textures/.
     Mean absolute RGB edge deltas range from 0.46 at level 0 to 12.71 at level 6;
     see the [mip review](benchmarks/results/stage3/ktx2-mipmap-review.json) and
     [contact sheet](benchmarks/results/stage3/ktx2-mipmap-repeat-review.png).
-  - [ ] Build and select the packed high-tier near atlases, then review their
+  - [x] Build and select the packed high-tier near atlases, then review their
     gutters, projected detail and device memory cost.
+    The runtime loads four 1600×2096 maps plus a layout file only on high; the
+    512×1024 shared pair remains active on low/medium and after a quality
+    downgrade. A matched Rome capture on an RTX 4060 shows facade windows and
+    aligned material-family sampling with no shader/asset errors. The [GPU
+    smoke report](benchmarks/results/stage3/ktx2-near-atlas-gpu-smoke.md) records
+    6,269,713 transferred bytes including layout, 249–274 ms combined worker/WASM
+    transcode, 8.5–9.8 ms upload submission, 17,889,344 estimated high-map
+    resident bytes and 19,287,520 bytes total with the shared pair. The [paired
+    captures](benchmarks/results/stage3/ktx2-high-vs-shared-atlas.png) and [mip
+    review](benchmarks/results/stage3/ktx2-high-atlas-mip-gutter-review.png)
+    cover the current RTX 4060 desktop. Gutter padding falls below one pixel
+    after mip 4, so mobile/low-memory and far-LOD seam review remain release
+    checks; the short frame samples are diagnostic, not a performance A/B.
 - [ ] 3.7 Inspect/prune/deduplicate/simplify selected GLBs with glTF Transform.
   Compare Meshopt/Draco only where savings justify decoder cost; validate existing
   model merging, maps, orientation and instancing.
@@ -883,14 +898,15 @@ for Cesium, imagery and model resources. SSR, volumetrics, displacement, dense
 skeletal crowds and shadowed lamp arrays require separate high-tier budgets.
 None is a prerequisite for this sequence.
 
-**Next bounded work:** Stage 3.4's offline conversion comparison and Stage 3.5
-runtime acceptance are complete. Finish Stage 3.6 by adding the packed facade
-PBR maps as selectively loaded high-tier near atlases. Inspect atlas gutters and
-projected detail in the game, measure high-tier transcode and memory cost, and
-retain the shared mipmapped pair for lower tiers. Stage 0.8 dense live-city cold/warm walk/drive, Stage 1 mobile assembly and input latency, and Stage 1.3
-low-core worker plus KTX2 contention/memory checks remain release gates; runtime
-adoption must preserve the measured fallback and resource budgets. Recorded
-Rome replay is client/streaming evidence, not live Overpass evidence.
+**Next bounded work:** Stage 3.6's shared and high-tier KTX2 paths are implemented
+and reviewed on an RTX 4060. Proceed to Stage 3.7: inspect and optimize the
+selected GLBs with glTF Transform, compare Meshopt/Draco only where measured
+savings justify decoder cost, and validate maps, orientation, existing merging
+and instancing. Stage 0.8 dense live-city cold/warm walk/drive, Stage 1 mobile
+assembly and input latency, Stage 1.3 low-core worker plus KTX2
+contention/memory, and lower-memory/mobile high-atlas checks remain release
+gates. Recorded Rome replay is client/streaming evidence, not live Overpass
+evidence.
 
 **Open acceptance gate:** Stage 0.8 still needs matched dense live-city cold/
 warm and walk/drive boundary measurements. The 28 October Manhattan retries

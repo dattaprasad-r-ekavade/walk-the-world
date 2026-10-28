@@ -1,0 +1,130 @@
+{
+  "resolutionPx": [
+    1600,
+    2096
+  ],
+  "materialRects": {
+    "Plaster004": {
+      "pixelRectTopLeft": [
+        16,
+        16,
+        512,
+        1024
+      ],
+      "uvRectBottomLeft": [
+        0.01,
+        0.503816794,
+        0.32,
+        0.488549618
+      ],
+      "cell": [
+        0,
+        0
+      ]
+    },
+    "Bricks060": {
+      "pixelRectTopLeft": [
+        544,
+        16,
+        512,
+        1024
+      ],
+      "uvRectBottomLeft": [
+        0.34,
+        0.503816794,
+        0.32,
+        0.488549618
+      ],
+      "cell": [
+        1,
+        0
+      ]
+    },
+    "Rocks025": {
+      "pixelRectTopLeft": [
+        1072,
+        16,
+        512,
+        1024
+      ],
+      "uvRectBottomLeft": [
+        0.67,
+        0.503816794,
+        0.32,
+        0.488549618
+      ],
+      "cell": [
+        2,
+        0
+      ]
+    },
+    "Concrete034": {
+      "pixelRectTopLeft": [
+        16,
+        1056,
+        512,
+        1024
+      ],
+      "uvRectBottomLeft": [
+        0.01,
+        0.007633588,
+        0.32,
+        0.488549618
+      ],
+      "cell": [
+        0,
+        1
+      ]
+    },
+    "Asphalt025A": {
+      "pixelRectTopLeft": [
+        544,
+        1056,
+        512,
+        1024
+      ],
+      "uvRectBottomLeft": [
+        0.34,
+        0.007633588,
+        0.32,
+        0.488549618
+      ],
+      "cell": [
+        1,
+        1
+      ]
+    },
+    "PavingStones036": {
+      "pixelRectTopLeft": [
+        1072,
+        1056,
+        512,
+        1024
+      ],
+      "uvRectBottomLeft": [
+        0.67,
+        0.007633588,
+        0.32,
+        0.488549618
+      ],
+      "cell": [
+        2,
+        1
+      ]
+    }
+  },
+  "grid": {
+    "columns": 3,
+    "rows": 2,
+    "order": [
+      "Plaster004",
+      "Bricks060",
+      "Rocks025",
+      "Concrete034",
+      "Asphalt025A",
+      "PavingStones036"
+    ]
+  },
+  "gutterPx": 16,
+  "mipSafeLevelsApprox": 4
+}

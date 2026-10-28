@@ -17,7 +17,7 @@ import { createCityBuilderPool } from "@/lib/engine/city-builder";
 import { assembleCityFromBuild, primeStationLabelMetrics } from "@/lib/engine/street/assemble-city";
 import { createCellStreamer } from "@/lib/engine/street/cell-stream";
 import { clipElementsToCell } from "@/lib/engine/cell-clip";
-import { getSimpleStandard, installBuildingTextureMaps, setRoadWetness, sharedMaterialTextures, materialFactoryInventory, disposeMaterialCache } from "@/lib/engine/materials";
+import { getSimpleStandard, installBuildingTextureMaps, installBuildingNearTextureMaps, clearBuildingNearTextureMaps, setBuildingTextureQuality, setRoadWetness, sharedMaterialTextures, materialFactoryInventory, disposeMaterialCache } from "@/lib/engine/materials";
 import { createKtx2BuildingTextureLoader } from "@/lib/engine/ktx2-textures";
 import { createVehicleController } from "@/lib/engine/street/vehicle";
 import { createPostFx } from "@/lib/engine/post-fx";
@@ -314,53 +314,80 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false }) {
       "ktx2GpuUploadCompletionMs",
       "WebGL exposes synchronous upload submission but not a portable completion timestamp; GPU residency is estimated from transcoded compressed mip payloads.",
     );
+    let sharedKtx2GpuBytes = 0;
+    let highKtx2GpuBytes = 0;
+    const installKtx2TextureSet = (maps) => {
+      const textures = Object.values(maps.textures);
+      const textureCountBefore = renderer.info.memory.textures;
+      const uploadStartedAt = performance.now();
+      try {
+        for (const texture of textures) renderer.initTexture(texture);
+      } catch (error) {
+        for (const texture of textures) texture.dispose();
+        throw error;
+      }
+      const uploadSubmitMs = performance.now() - uploadStartedAt;
+      const installed = maps.tier === "high"
+        ? installBuildingNearTextureMaps({
+            basecolor: maps.textures["facade-near-basecolor"],
+            normal: maps.textures["facade-near-normal"],
+            roughness: maps.textures["facade-near-roughness"],
+            emissive: maps.textures["facade-near-emissive"],
+            materialRects: maps.materialRects,
+          })
+        : installBuildingTextureMaps({
+            facade: maps.textures["facade-basecolor"],
+            emissive: maps.textures["facade-emissive"],
+          });
+      if (!installed) {
+        for (const texture of textures) texture.dispose();
+        return false;
+      }
+
+      if (maps.tier === "high") highKtx2GpuBytes = maps.estimatedGpuBytes;
+      else sharedKtx2GpuBytes = maps.estimatedGpuBytes;
+      const estimatedTotalGpuBytes = sharedKtx2GpuBytes + highKtx2GpuBytes;
+      const textureCountDelta = renderer.info.memory.textures - textureCountBefore;
+      const timingPrefix = maps.tier === "high" ? "ktx2.high" : "ktx2";
+      recordPerfTiming(timingPrefix + ".texture-upload-submit", uploadSubmitMs, {
+        bytes: maps.estimatedGpuBytes,
+        textureCountDelta,
+      });
+      setPerfResourceCounts({
+        textures: renderer.info.memory.textures,
+        ktx2EstimatedGpuBytes: estimatedTotalGpuBytes,
+        ktx2SharedEstimatedGpuBytes: sharedKtx2GpuBytes,
+        ktx2HighEstimatedGpuBytes: highKtx2GpuBytes,
+      });
+      const details = {
+        transcodeFormats: maps.transcodeFormats,
+        transferBytes: maps.transferBytes,
+        transferMs: maps.transferMs,
+        decoderBytes: maps.decoderBytes,
+        mipLevels: maps.mipLevels,
+        workerLimit: 2,
+        estimatedGpuBytes: maps.estimatedGpuBytes,
+        estimatedTotalGpuBytes,
+        textureCountDelta,
+      };
+      setPerfMetadata(maps.tier === "high" ? { ktx2High: details } : { ktx2: details });
+      markPerf(maps.tier === "high" ? "ktx2-high-textures-ready" : "ktx2-textures-ready", {
+        ...details,
+        compileAndTranscodeMs: maps.decodeMs,
+        uploadSubmitMs,
+      });
+      return true;
+    };
     const ktx2TextureLoader = createKtx2BuildingTextureLoader(renderer, {
       signal,
-      onReady: (maps) => {
-        const textureCountBefore = renderer.info.memory.textures;
-        const uploadStartedAt = performance.now();
-        renderer.initTexture(maps.facade);
-        renderer.initTexture(maps.emissive);
-        const uploadSubmitMs = performance.now() - uploadStartedAt;
-        if (!installBuildingTextureMaps(maps)) {
-          maps.facade.dispose();
-          maps.emissive.dispose();
-          return;
-        }
-        const textureCountDelta = renderer.info.memory.textures - textureCountBefore;
-        recordPerfTiming("ktx2.texture-upload-submit", uploadSubmitMs, {
-          bytes: maps.estimatedGpuBytes,
-          textureCountDelta,
-        });
-        setPerfResourceCounts({
-          textures: renderer.info.memory.textures,
-          ktx2EstimatedGpuBytes: maps.estimatedGpuBytes,
-        });
-        setPerfMetadata({
-          ktx2: {
-            transcodeFormats: maps.transcodeFormats,
-            transferBytes: maps.transferBytes,
-            transferMs: maps.transferMs,
-            decoderBytes: maps.decoderBytes,
-            mipLevels: maps.mipLevels,
-            workerLimit: 2,
-            estimatedGpuBytes: maps.estimatedGpuBytes,
-            textureCountDelta,
-          },
-        });
-        markPerf("ktx2-textures-ready", {
-          transcodeFormats: maps.transcodeFormats,
-          transferBytes: maps.transferBytes,
-          transferMs: maps.transferMs,
-          decoderBytes: maps.decoderBytes,
-          mipLevels: maps.mipLevels,
-          compileAndTranscodeMs: maps.decodeMs,
-          uploadSubmitMs,
-          estimatedGpuBytes: maps.estimatedGpuBytes,
-          textureCountDelta,
-        });
-      },
-      onError: (error) => console.warn("[street] KTX2 facade maps unavailable; procedural maps remain active:", error?.message || error),
+      onSharedReady: installKtx2TextureSet,
+      onHighReady: installKtx2TextureSet,
+      onHighDispose: clearBuildingNearTextureMaps,
+      onError: (error, tier) => console.warn(
+        "[street] " + (tier === "high" ? "high-tier KTX2 maps unavailable" : "KTX2 facade maps unavailable") +
+          "; current facade maps remain active:",
+        error?.message || error,
+      ),
     });
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0x9cc4e8);
@@ -477,6 +504,18 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false }) {
       postFx.setSize(mount.clientWidth, mount.clientHeight);
       // remember the tier; applySky re-evaluates so night can turn bloom on
       qualityTier = quality;
+      setBuildingTextureQuality(quality);
+      ktx2TextureLoader.setQuality(quality);
+      if (quality !== "high" && highKtx2GpuBytes > 0) {
+        highKtx2GpuBytes = 0;
+        setPerfResourceCounts({
+          textures: renderer.info.memory.textures,
+          ktx2EstimatedGpuBytes: sharedKtx2GpuBytes,
+          ktx2SharedEstimatedGpuBytes: sharedKtx2GpuBytes,
+          ktx2HighEstimatedGpuBytes: 0,
+        });
+        markPerf("ktx2-high-textures-released", { estimatedGpuBytes: sharedKtx2GpuBytes });
+      }
       postFx.setEnabled(quality === "high", quality === "high");
       setPerfMetadata({
         qualityTier: quality,

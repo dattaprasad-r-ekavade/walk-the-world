@@ -1,8 +1,9 @@
 # Offline asset pipeline
 
-Offline source assets remain under `assets/`. Stage 3.5 adds only the
-UV-compatible facade albedo and night-window maps to the runtime; the larger PBR
-atlases and processed props remain offline until their later checkpoints.
+Offline source assets remain under `assets/`. Stage 3.5 adds a small shared
+facade albedo/window pair; Stage 3.6 adds packed PBR facade maps only for the
+high quality tier. The other shared PBR atlases and processed props remain
+offline until their later checkpoints.
 
 ## Build
 
@@ -66,11 +67,12 @@ are measured separately during Stage 3.5 runtime checks.
 ## Runtime facade KTX2 maps
 
 Run `npm run assets:runtime-ktx2` after installing KTX-Software 4.4.2 as above.
-The script rebuilds ETC1S and UASTC variants from the existing 512×1024 facade
-albedo and emissive templates, validates both for `KHR_texture_basisu`, selects
+The script rebuilds ETC1S and UASTC variants for the shared 512×1024 facade
+albedo/window maps and the packed 1600×2096 near-atlas albedo, normal, roughness
+and emissive maps. It validates both codecs for `KHR_texture_basisu`, selects
 UASTC, and copies the selected maps plus the matching Basis transcoder from the
 lockfile-pinned Three.js 0.170.0 package into `public/`. Source, codec, decoder,
-and output hashes are recorded in `assets/manifest.json`.
+layout and output hashes are recorded in `assets/manifest.json`.
 
 KTX orientation metadata stays `top-left` for glTF BasisU compatibility. Three.js
 0.170.0 returns a `CompressedTexture` with `flipY=false`; the runtime applies a V
@@ -83,10 +85,22 @@ texture-count delta, and compressed-payload residency estimate. Browser APIs do
 not expose a separate WASM compile or GPU upload completion time; those
 limitations are recorded in the performance timeline.
 
-Runtime maps carry 11 offline Lanczos mip levels generated with repeat-S and
-clamp-T filtering. The mip generator is pinned to Pillow 10.4.0 and creates a
-horizontal repeat border while filtering so the shared facade seam remains
-continuous across lower mip levels.
+The shared pair carries 11 offline Lanczos mip levels generated with repeat-S
+and clamp-T filtering. The high-tier maps carry 12 levels and clamp on both
+axes; their packed material rectangles use the 16px gutters documented above.
+The mip generator is pinned to Pillow 10.4.0. Shared maps load on low/medium;
+the four packed maps and their layout JSON load on high. A shader UV transform
+maps building material families into their atlas cells while retaining the
+shared-map mapping on lower tiers. When quality drops, high maps detach from
+materials and their GPU textures are disposed.
+
+The RTX 4060 runtime smoke measured 6,269,713 bytes for the high-tier maps plus
+layout, 249–274 ms combined worker/WASM transcode, 8.5–9.8 ms upload submission,
+and an estimated 17,889,344 bytes of high-tier compressed mip residency. The shared
+pair estimated 1,398,176 bytes, for 19,287,520 bytes total while high is active.
+These payload estimates are device-specific and do not replace mobile or
+low-memory acceptance. See the [Stage 3.6 report](../benchmarks/results/stage3/ktx2-near-atlas-gpu-smoke.md)
+and the [mip/gutter contact sheet](../benchmarks/results/stage3/ktx2-high-atlas-mip-gutter-review.png).
 
 ## Remaining Stage 3 work
 
@@ -94,7 +108,8 @@ The five packed facade maps place each selected PBR surface under the existing
 shallow wall/window/storefront detail; the emissive atlas uses identical cells
 and window coordinates. The KTX-Software 4.4.2 ETC1S/UASTC pilot and decoded
 atlas/window-mask review are complete; see the comparison report and manifest.
-Stage 3.5 passed a production RTX 4060 runtime check with a forced-network-failure
-fallback check. Stage 3.6 has the shared mipmapped pair; selective high-tier
-packed PBR atlases, projected detail review and device memory checks remain
-open. Processed props are still offline.
+Stages 3.5 and 3.6 passed their desktop RTX 4060 runtime checks, including the
+shared-map fallback check, selective high-tier loading, and mip/projected-detail
+review. Low-memory and mobile texture residency remain release checks. Stage 3.7
+GLB optimization and Stage 3.8 revision-aware service-worker caching remain.
+Processed props are still offline.

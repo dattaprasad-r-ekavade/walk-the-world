@@ -2898,7 +2898,7 @@
     }
   },
   "runtimeKtx2": {
-    "revision": "stage3.6-mipped-runtime-r2",
+    "revision": "stage3.6-quality-atlas-r1",
     "toolchain": {
       "name": "KTX-Software",
       "version": "v4.4.2",
@@ -2918,14 +2918,31 @@
       "selectedCodec": "uastc",
       "texcoordOrigin": "top-left",
       "runtimeUvTransform": "flip-v-to-match-canvas-texture",
-      "mipLevels": 11,
+      "mipLevels": 12,
       "mipmapGeneration": {
         "method": "offline",
         "filter": "pillow-lanczos",
-        "wrapS": "repeat",
+        "wrapS": "per-map",
         "wrapT": "clamp"
       },
+      "textureTiers": {
+        "shared": [
+          "facade-basecolor",
+          "facade-emissive"
+        ],
+        "high": [
+          "facade-near-basecolor",
+          "facade-near-normal",
+          "facade-near-roughness",
+          "facade-near-emissive"
+        ]
+      },
       "fallback": "procedural makeFacadeAtlas/makeLitWindowAtlas"
+    },
+    "nearAtlasLayout": {
+      "file": "textures/ktx2/facade-near-layout.json",
+      "bytes": 1918,
+      "sha256": "10de0c1cfef7cbc0b1424681e08bc20a5dcaf4f6d2c578f841bf092f001f2c4d"
     },
     "decoderFiles": {
       "basis_transcoder.js": {
@@ -2952,6 +2969,7 @@
     "textures": [
       {
         "id": "facade-basecolor",
+        "tier": "shared",
         "source": "processed/facades/facade-basecolor-atlas.png",
         "sourceSha256": "7c851a8d309b3d7b71c73bb8a4d7e2e116b7e5656a59a191ab66728e89029dd6",
         "resolutionPx": [
@@ -3013,6 +3031,7 @@
       },
       {
         "id": "facade-emissive",
+        "tier": "shared",
         "source": "processed/facades/facade-emissive-atlas.png",
         "sourceSha256": "e5279564312bd6ca650af44e1db37a606354c84b7c84e0312f1af793900fe739",
         "resolutionPx": [
@@ -3068,6 +3087,254 @@
           "bytes": 29631,
           "sha256": "7a1e700c9f969d572e7e94698caf96516b6a979a93333f484258e83258a33564",
           "mipLevels": 11,
+          "texcoordOrigin": "top-left",
+          "runtimeUvTransform": "flip-v-to-match-canvas-texture"
+        }
+      },
+      {
+        "id": "facade-near-basecolor",
+        "tier": "high",
+        "source": "processed/facades/facade-pbr-basecolor-atlas.png",
+        "sourceSha256": "d4897e2dd160153acab544508c263a98e1d27a61286ebfd5f1a18fcf93990501",
+        "resolutionPx": [
+          1600,
+          2096
+        ],
+        "colorSpace": "sRGB",
+        "variants": {
+          "etc1s": {
+            "file": "processed/ktx2/runtime/etc1s/facade-near-basecolor.ktx2",
+            "bytes": 390911,
+            "sha256": "6740efd564698ee63b37e836218002a06c36164000671ee485056d179a14c705",
+            "psnrMaxDb": 48.130802,
+            "settings": {
+              "encode": "basis-lz",
+              "clevel": 1,
+              "qlevel": 128,
+              "mipLevels": 12,
+              "mipmapFilter": "pillow-lanczos",
+              "mipmapWrapS": "clamp",
+              "mipmapWrapT": "clamp"
+            },
+            "sourceSha256": "d4897e2dd160153acab544508c263a98e1d27a61286ebfd5f1a18fcf93990501",
+            "format": "R8G8B8A8_SRGB",
+            "texcoordOrigin": "top-left",
+            "runtimeUvTransform": "flip-v-to-match-canvas-texture"
+          },
+          "uastc": {
+            "file": "processed/ktx2/runtime/uastc/facade-near-basecolor.ktx2",
+            "bytes": 2131317,
+            "sha256": "37d1ed56e3baa91b2afa2ae0c8696e6c5b3c604a5337015f5445b8c2f65e68c3",
+            "psnrMaxDb": 100,
+            "settings": {
+              "encode": "uastc",
+              "quality": 2,
+              "rdoLambda": 1,
+              "rdoMultithreading": false,
+              "zstd": 18,
+              "mipLevels": 12,
+              "mipmapFilter": "pillow-lanczos",
+              "mipmapWrapS": "clamp",
+              "mipmapWrapT": "clamp"
+            },
+            "sourceSha256": "d4897e2dd160153acab544508c263a98e1d27a61286ebfd5f1a18fcf93990501",
+            "format": "R8G8B8A8_SRGB",
+            "texcoordOrigin": "top-left",
+            "runtimeUvTransform": "flip-v-to-match-canvas-texture"
+          }
+        },
+        "selectedCodec": "uastc",
+        "runtime": {
+          "file": "textures/ktx2/facade-near-basecolor.ktx2",
+          "bytes": 2131317,
+          "sha256": "37d1ed56e3baa91b2afa2ae0c8696e6c5b3c604a5337015f5445b8c2f65e68c3",
+          "mipLevels": 12,
+          "texcoordOrigin": "top-left",
+          "runtimeUvTransform": "flip-v-to-match-canvas-texture"
+        }
+      },
+      {
+        "id": "facade-near-normal",
+        "tier": "high",
+        "source": "processed/facades/facade-pbr-normal-atlas.png",
+        "sourceSha256": "d3d590108a1780d5e7560fd13cddc05239f16bb527192af614bd1e36fba72845",
+        "resolutionPx": [
+          1600,
+          2096
+        ],
+        "colorSpace": "linear",
+        "variants": {
+          "etc1s": {
+            "file": "processed/ktx2/runtime/etc1s/facade-near-normal.ktx2",
+            "bytes": 205185,
+            "sha256": "513dfc5e830f8092923fdc17d59fc7e79b52ea21c52ba7d930197daf6707de14",
+            "psnrMaxDb": 49.628426,
+            "settings": {
+              "encode": "basis-lz",
+              "clevel": 1,
+              "qlevel": 128,
+              "mipLevels": 12,
+              "mipmapFilter": "pillow-lanczos",
+              "mipmapWrapS": "clamp",
+              "mipmapWrapT": "clamp"
+            },
+            "sourceSha256": "d3d590108a1780d5e7560fd13cddc05239f16bb527192af614bd1e36fba72845",
+            "format": "R8G8B8A8_UNORM",
+            "texcoordOrigin": "top-left",
+            "runtimeUvTransform": "flip-v-to-match-canvas-texture"
+          },
+          "uastc": {
+            "file": "processed/ktx2/runtime/uastc/facade-near-normal.ktx2",
+            "bytes": 2099275,
+            "sha256": "ed38cd3b86d85d268352f76c647abc6f6a57e83eb3184fcd507cfd77dcbb1b8d",
+            "psnrMaxDb": 100,
+            "settings": {
+              "encode": "uastc",
+              "quality": 2,
+              "rdoLambda": 0.5,
+              "rdoMultithreading": false,
+              "zstd": 18,
+              "mipLevels": 12,
+              "mipmapFilter": "pillow-lanczos",
+              "mipmapWrapS": "clamp",
+              "mipmapWrapT": "clamp"
+            },
+            "sourceSha256": "d3d590108a1780d5e7560fd13cddc05239f16bb527192af614bd1e36fba72845",
+            "format": "R8G8B8A8_UNORM",
+            "texcoordOrigin": "top-left",
+            "runtimeUvTransform": "flip-v-to-match-canvas-texture"
+          }
+        },
+        "selectedCodec": "uastc",
+        "runtime": {
+          "file": "textures/ktx2/facade-near-normal.ktx2",
+          "bytes": 2099275,
+          "sha256": "ed38cd3b86d85d268352f76c647abc6f6a57e83eb3184fcd507cfd77dcbb1b8d",
+          "mipLevels": 12,
+          "texcoordOrigin": "top-left",
+          "runtimeUvTransform": "flip-v-to-match-canvas-texture"
+        }
+      },
+      {
+        "id": "facade-near-roughness",
+        "tier": "high",
+        "source": "processed/facades/facade-pbr-roughness-atlas.png",
+        "sourceSha256": "ae3046c3da6d7cb4631b1e592ed3f3b42cfd832e9342d0ea9976322547cbf0fb",
+        "resolutionPx": [
+          1600,
+          2096
+        ],
+        "colorSpace": "linear",
+        "variants": {
+          "etc1s": {
+            "file": "processed/ktx2/runtime/etc1s/facade-near-roughness.ktx2",
+            "bytes": 336154,
+            "sha256": "3260ac8f44394da9e9f44ffeb24143c8cf548f817d59e3b4ea239030ae8b6cdb",
+            "psnrMaxDb": 100,
+            "settings": {
+              "encode": "basis-lz",
+              "clevel": 1,
+              "qlevel": 128,
+              "mipLevels": 12,
+              "mipmapFilter": "pillow-lanczos",
+              "mipmapWrapS": "clamp",
+              "mipmapWrapT": "clamp"
+            },
+            "sourceSha256": "ae3046c3da6d7cb4631b1e592ed3f3b42cfd832e9342d0ea9976322547cbf0fb",
+            "format": "R8G8B8A8_UNORM",
+            "texcoordOrigin": "top-left",
+            "runtimeUvTransform": "flip-v-to-match-canvas-texture"
+          },
+          "uastc": {
+            "file": "processed/ktx2/runtime/uastc/facade-near-roughness.ktx2",
+            "bytes": 1988363,
+            "sha256": "ced7ffbf67d560a065fb52d52ad147b820513397b11f482a9425e4e318dbc3cb",
+            "psnrMaxDb": 100,
+            "settings": {
+              "encode": "uastc",
+              "quality": 2,
+              "rdoLambda": 1,
+              "rdoMultithreading": false,
+              "zstd": 18,
+              "mipLevels": 12,
+              "mipmapFilter": "pillow-lanczos",
+              "mipmapWrapS": "clamp",
+              "mipmapWrapT": "clamp"
+            },
+            "sourceSha256": "ae3046c3da6d7cb4631b1e592ed3f3b42cfd832e9342d0ea9976322547cbf0fb",
+            "format": "R8G8B8A8_UNORM",
+            "texcoordOrigin": "top-left",
+            "runtimeUvTransform": "flip-v-to-match-canvas-texture"
+          }
+        },
+        "selectedCodec": "uastc",
+        "runtime": {
+          "file": "textures/ktx2/facade-near-roughness.ktx2",
+          "bytes": 1988363,
+          "sha256": "ced7ffbf67d560a065fb52d52ad147b820513397b11f482a9425e4e318dbc3cb",
+          "mipLevels": 12,
+          "texcoordOrigin": "top-left",
+          "runtimeUvTransform": "flip-v-to-match-canvas-texture"
+        }
+      },
+      {
+        "id": "facade-near-emissive",
+        "tier": "high",
+        "source": "processed/facades/facade-pbr-emissive-atlas.png",
+        "sourceSha256": "92243d6c5bcedcffa441ca2dd68bc16d60035cda7bc307fb2a9d53bd2f6e92f0",
+        "resolutionPx": [
+          1600,
+          2096
+        ],
+        "colorSpace": "sRGB",
+        "variants": {
+          "etc1s": {
+            "file": "processed/ktx2/runtime/etc1s/facade-near-emissive.ktx2",
+            "bytes": 54783,
+            "sha256": "9c6b38cff66e6dc4033a3024dc83a668d9a8d87bb761a88874d29f27f5354158",
+            "psnrMaxDb": 100,
+            "settings": {
+              "encode": "basis-lz",
+              "clevel": 1,
+              "qlevel": 128,
+              "mipLevels": 12,
+              "mipmapFilter": "pillow-lanczos",
+              "mipmapWrapS": "clamp",
+              "mipmapWrapT": "clamp"
+            },
+            "sourceSha256": "92243d6c5bcedcffa441ca2dd68bc16d60035cda7bc307fb2a9d53bd2f6e92f0",
+            "format": "R8G8B8A8_SRGB",
+            "texcoordOrigin": "top-left",
+            "runtimeUvTransform": "flip-v-to-match-canvas-texture"
+          },
+          "uastc": {
+            "file": "processed/ktx2/runtime/uastc/facade-near-emissive.ktx2",
+            "bytes": 48840,
+            "sha256": "837d903115f1a4c6572bdade1bd16e71d0d17e38beb62460500912d06b504ec6",
+            "psnrMaxDb": 100,
+            "settings": {
+              "encode": "uastc",
+              "quality": 2,
+              "rdoLambda": 1,
+              "rdoMultithreading": false,
+              "zstd": 18,
+              "mipLevels": 12,
+              "mipmapFilter": "pillow-lanczos",
+              "mipmapWrapS": "clamp",
+              "mipmapWrapT": "clamp"
+            },
+            "sourceSha256": "92243d6c5bcedcffa441ca2dd68bc16d60035cda7bc307fb2a9d53bd2f6e92f0",
+            "format": "R8G8B8A8_SRGB",
+            "texcoordOrigin": "top-left",
+            "runtimeUvTransform": "flip-v-to-match-canvas-texture"
+          }
+        },
+        "selectedCodec": "uastc",
+        "runtime": {
+          "file": "textures/ktx2/facade-near-emissive.ktx2",
+          "bytes": 48840,
+          "sha256": "837d903115f1a4c6572bdade1bd16e71d0d17e38beb62460500912d06b504ec6",
+          "mipLevels": 12,
           "texcoordOrigin": "top-left",
           "runtimeUvTransform": "flip-v-to-match-canvas-texture"
         }

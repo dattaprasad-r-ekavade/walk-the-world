@@ -1,0 +1,415 @@
+{
+  "review": "Stage 3.6 packed high-tier atlas mip and gutter inspection",
+  "filter": "Pillow Lanczos, clamp S/T, matching build-runtime-mip-chain.py",
+  "pillowVersion": "10.4.0",
+  "atlasResolutionPx": [
+    1600,
+    2096
+  ],
+  "sourceGutterPx": 16,
+  "approxMipSafeLevels": 4,
+  "mipLevels": {
+    "basecolor": [
+      {
+        "level": 0,
+        "width": 1600,
+        "height": 2096
+      },
+      {
+        "level": 1,
+        "width": 800,
+        "height": 1048
+      },
+      {
+        "level": 2,
+        "width": 400,
+        "height": 524
+      },
+      {
+        "level": 3,
+        "width": 200,
+        "height": 262
+      },
+      {
+        "level": 4,
+        "width": 100,
+        "height": 131
+      },
+      {
+        "level": 5,
+        "width": 50,
+        "height": 65
+      },
+      {
+        "level": 6,
+        "width": 25,
+        "height": 32
+      },
+      {
+        "level": 7,
+        "width": 12,
+        "height": 16
+      },
+      {
+        "level": 8,
+        "width": 6,
+        "height": 8
+      },
+      {
+        "level": 9,
+        "width": 3,
+        "height": 4
+      },
+      {
+        "level": 10,
+        "width": 1,
+        "height": 2
+      },
+      {
+        "level": 11,
+        "width": 1,
+        "height": 1
+      }
+    ],
+    "normal": [
+      {
+        "level": 0,
+        "width": 1600,
+        "height": 2096
+      },
+      {
+        "level": 1,
+        "width": 800,
+        "height": 1048
+      },
+      {
+        "level": 2,
+        "width": 400,
+        "height": 524
+      },
+      {
+        "level": 3,
+        "width": 200,
+        "height": 262
+      },
+      {
+        "level": 4,
+        "width": 100,
+        "height": 131
+      },
+      {
+        "level": 5,
+        "width": 50,
+        "height": 65
+      },
+      {
+        "level": 6,
+        "width": 25,
+        "height": 32
+      },
+      {
+        "level": 7,
+        "width": 12,
+        "height": 16
+      },
+      {
+        "level": 8,
+        "width": 6,
+        "height": 8
+      },
+      {
+        "level": 9,
+        "width": 3,
+        "height": 4
+      },
+      {
+        "level": 10,
+        "width": 1,
+        "height": 2
+      },
+      {
+        "level": 11,
+        "width": 1,
+        "height": 1
+      }
+    ],
+    "roughness": [
+      {
+        "level": 0,
+        "width": 1600,
+        "height": 2096
+      },
+      {
+        "level": 1,
+        "width": 800,
+        "height": 1048
+      },
+      {
+        "level": 2,
+        "width": 400,
+        "height": 524
+      },
+      {
+        "level": 3,
+        "width": 200,
+        "height": 262
+      },
+      {
+        "level": 4,
+        "width": 100,
+        "height": 131
+      },
+      {
+        "level": 5,
+        "width": 50,
+        "height": 65
+      },
+      {
+        "level": 6,
+        "width": 25,
+        "height": 32
+      },
+      {
+        "level": 7,
+        "width": 12,
+        "height": 16
+      },
+      {
+        "level": 8,
+        "width": 6,
+        "height": 8
+      },
+      {
+        "level": 9,
+        "width": 3,
+        "height": 4
+      },
+      {
+        "level": 10,
+        "width": 1,
+        "height": 2
+      },
+      {
+        "level": 11,
+        "width": 1,
+        "height": 1
+      }
+    ],
+    "emissive": [
+      {
+        "level": 0,
+        "width": 1600,
+        "height": 2096
+      },
+      {
+        "level": 1,
+        "width": 800,
+        "height": 1048
+      },
+      {
+        "level": 2,
+        "width": 400,
+        "height": 524
+      },
+      {
+        "level": 3,
+        "width": 200,
+        "height": 262
+      },
+      {
+        "level": 4,
+        "width": 100,
+        "height": 131
+      },
+      {
+        "level": 5,
+        "width": 50,
+        "height": 65
+      },
+      {
+        "level": 6,
+        "width": 25,
+        "height": 32
+      },
+      {
+        "level": 7,
+        "width": 12,
+        "height": 16
+      },
+      {
+        "level": 8,
+        "width": 6,
+        "height": 8
+      },
+      {
+        "level": 9,
+        "width": 3,
+        "height": 4
+      },
+      {
+        "level": 10,
+        "width": 1,
+        "height": 2
+      },
+      {
+        "level": 11,
+        "width": 1,
+        "height": 1
+      }
+    ]
+  },
+  "gutterEdgeMetrics": [
+    {
+      "map": "basecolor",
+      "level": 0,
+      "gutterPx": 16,
+      "meanEdgeGutterMAE": 14.7458,
+      "maxCellMAE": 32.2923
+    },
+    {
+      "map": "basecolor",
+      "level": 1,
+      "gutterPx": 8,
+      "meanEdgeGutterMAE": 15.0244,
+      "maxCellMAE": 30.7698
+    },
+    {
+      "map": "basecolor",
+      "level": 2,
+      "gutterPx": 4,
+      "meanEdgeGutterMAE": 15.5275,
+      "maxCellMAE": 30.4407
+    },
+    {
+      "map": "basecolor",
+      "level": 3,
+      "gutterPx": 2,
+      "meanEdgeGutterMAE": 15.6781,
+      "maxCellMAE": 30.252
+    },
+    {
+      "map": "basecolor",
+      "level": 4,
+      "gutterPx": 1,
+      "meanEdgeGutterMAE": 15.9585,
+      "maxCellMAE": 29.001
+    },
+    {
+      "map": "normal",
+      "level": 0,
+      "gutterPx": 16,
+      "meanEdgeGutterMAE": 3.3922,
+      "maxCellMAE": 5.9097
+    },
+    {
+      "map": "normal",
+      "level": 1,
+      "gutterPx": 8,
+      "meanEdgeGutterMAE": 3.9944,
+      "maxCellMAE": 7.3235
+    },
+    {
+      "map": "normal",
+      "level": 2,
+      "gutterPx": 4,
+      "meanEdgeGutterMAE": 4.0484,
+      "maxCellMAE": 8.187
+    },
+    {
+      "map": "normal",
+      "level": 3,
+      "gutterPx": 2,
+      "meanEdgeGutterMAE": 3.6261,
+      "maxCellMAE": 8.0535
+    },
+    {
+      "map": "normal",
+      "level": 4,
+      "gutterPx": 1,
+      "meanEdgeGutterMAE": 2.8086,
+      "maxCellMAE": 7.0742
+    },
+    {
+      "map": "roughness",
+      "level": 0,
+      "gutterPx": 16,
+      "meanEdgeGutterMAE": 10.161,
+      "maxCellMAE": 18.5754
+    },
+    {
+      "map": "roughness",
+      "level": 1,
+      "gutterPx": 8,
+      "meanEdgeGutterMAE": 11.6495,
+      "maxCellMAE": 20.5132
+    },
+    {
+      "map": "roughness",
+      "level": 2,
+      "gutterPx": 4,
+      "meanEdgeGutterMAE": 13.3619,
+      "maxCellMAE": 24.2514
+    },
+    {
+      "map": "roughness",
+      "level": 3,
+      "gutterPx": 2,
+      "meanEdgeGutterMAE": 11.8207,
+      "maxCellMAE": 21.1721
+    },
+    {
+      "map": "roughness",
+      "level": 4,
+      "gutterPx": 1,
+      "meanEdgeGutterMAE": 12.0078,
+      "maxCellMAE": 21.4072
+    },
+    {
+      "map": "emissive",
+      "level": 0,
+      "gutterPx": 16,
+      "meanEdgeGutterMAE": 0.0,
+      "maxCellMAE": 0.0
+    },
+    {
+      "map": "emissive",
+      "level": 1,
+      "gutterPx": 8,
+      "meanEdgeGutterMAE": 0.0,
+      "maxCellMAE": 0.0
+    },
+    {
+      "map": "emissive",
+      "level": 2,
+      "gutterPx": 4,
+      "meanEdgeGutterMAE": 0.0,
+      "maxCellMAE": 0.0
+    },
+    {
+      "map": "emissive",
+      "level": 3,
+      "gutterPx": 2,
+      "meanEdgeGutterMAE": 0.4801,
+      "maxCellMAE": 0.4814
+    },
+    {
+      "map": "emissive",
+      "level": 4,
+      "gutterPx": 1,
+      "meanEdgeGutterMAE": 0.4372,
+      "maxCellMAE": 0.5039
+    }
+  ],
+  "reviewedMaterials": [
+    "Plaster004",
+    "Bricks060",
+    "Rocks025",
+    "Concrete034",
+    "Asphalt025A",
+    "PavingStones036"
+  ],
+  "sheet": "ktx2-high-atlas-mip-gutter-review.png",
+  "limitations": [
+    "This inspects the offline source-derived mip chain and dilated gutters. Runtime GPU sampling and projected-detail appearance still require a visible game capture."
+  ]
+}
