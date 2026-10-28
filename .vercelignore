@@ -5,7 +5,8 @@ agent-tools
 benchmarks
 output
 screenshots
-scripts
+scripts/*
+!scripts/stamp-sw-revision.mjs
 terminals
 tests
 *.log
