@@ -62,3 +62,12 @@ describe('road material weather inheritance', () => {
     expect(roadMaterialCount()).toBe(initialCount);
   });
 });
+
+describe('interior mapping lighting', () => {
+  it('clamps the shared window-room intensity without rebuilding materials', async () => {
+    const { setInteriorMappingLighting } = await import('../lib/engine/materials.js');
+    expect(setInteriorMappingLighting(0.6)).toBeCloseTo(0.6);
+    expect(setInteriorMappingLighting(2)).toBe(1);
+    expect(setInteriorMappingLighting(-1)).toBe(0);
+  });
+});

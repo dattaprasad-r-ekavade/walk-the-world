@@ -110,13 +110,23 @@ Decisions taken from the research:
   pass after OutputPass on composer tiers. Time-of-day fog tint and density,
   plus one grading pass (exposure, contrast, saturation, vignette) on tiers
   that already run the composer. No new fullscreen pass on the low tier.
-- [ ] **A3 — Interior-mapping windows (M).** Fake rooms behind facade windows
-  within ~40–60 m, lit at dusk/night. Highest visual gain per millisecond.
-  Start from three-fenestra (MIT, MeshStandardMaterial subclass) or port the
-  ray-box shader; small shared room cubemap atlas (4–8 rooms).
-- [ ] **A4 — Sidewalks, kerbs and lane markings (M).** Offset road edges into
-  sidewalk polygons (sidewalk=* tags, default when missing), 15 cm kerb,
-  paving texture, centre/edge/lane markings from lanes/width/oneway.
+- [x] **A3 — Interior-mapping windows (M).** Facade windows now ray-box sample
+  a shared eight-room, six-face atlas. The shader fades interiors from full
+  strength at 40 m to zero at 60 m, and follows the existing dusk/night window
+  glow. Four-city matched captures and a visible-Chrome smoke are in [the A3
+  rehearsal](screenshots/demo-track/rehearsal-2026-10-28-a3-after/). The 300-frame
+  p95 matched the A4 baseline in Pune, Edinburgh and Tokyo, and improved 0.5%
+  in New York. Details are in the [A3 acceptance note](screenshots/demo-track/rehearsal-2026-10-28-a3-after/a3-acceptance.md).
+- [x] **A4 — Sidewalks, kerbs and lane markings (M).** The initial 70 m and
+  streamed cells now add sidewalk polygons from `sidewalk=*` tags (with local
+  street defaults), 15 cm kerbs and deterministic 1 m paving slabs. Road atlas
+  markings use `lanes`, `width`, and `oneway` profiles. Four-city captures and
+  a settled visible-Chrome smoke are in [the A4 rehearsal](screenshots/demo-track/rehearsal-2026-10-28-a4-after/).
+  Against the D1 baseline, 300-frame p95 changed 0% in Pune, Edinburgh and
+  Tokyo, and +0.5% in New York. The local preview used a server-side R2 CORS
+  shim because the public bucket omits browser CORS headers; `/api/assets`
+  returned its expected 501 without local R2 credentials. Details are in the
+  [A4 acceptance note](screenshots/demo-track/rehearsal-2026-10-28-a4-after/a4-acceptance.md).
 - [ ] **A5 — Full roof shapes and building parts (M).** styles.js already reads
   roof:shape for the pitched-roof heuristic. Add gabled, hipped, skillion,
   pyramidal and dome roofs plus building:part/min_height. Candidate:

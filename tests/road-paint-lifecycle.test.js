@@ -6,6 +6,7 @@ vi.mock('@/lib/engine/materials', () => ({
   getBuildingMaterial: vi.fn(() => ({})),
   getRoofMaterial: vi.fn(() => ({})),
   getRoadMaterial: vi.fn(() => ({ transparent: true, depthWrite: false })),
+  getSidewalkMaterial: vi.fn(() => ({})),
   getRailMaterial: vi.fn(() => ({})),
   getSimpleStandard: vi.fn(() => ({})),
 }));

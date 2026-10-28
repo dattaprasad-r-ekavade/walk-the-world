@@ -1,0 +1,348 @@
+{
+  "base": "http://localhost:3456",
+  "dataProxy": "Playwright route fetches public R2 server-side and adds CORS for local preview",
+  "headed": true,
+  "at": "2026-10-28T16:39:51.230Z",
+  "places": [
+    {
+      "name": "Pune",
+      "preset": {
+        "hour": 17,
+        "weather": 0,
+        "headingDeg": 270
+      },
+      "ready": true,
+      "readyMs": 4140,
+      "settled": true,
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 501 (Not Implemented)"
+      ],
+      "cellResponses": [
+        {
+          "status": 200,
+          "url": "/wtw_city6_18.541_73.896.json"
+        },
+        {
+          "status": 200,
+          "url": "/wtw_city6_18.541_73.901.json"
+        },
+        {
+          "status": 200,
+          "url": "/wtw_city6_18.546_73.896.json"
+        },
+        {
+          "status": 200,
+          "url": "/wtw_city6_18.535_73.896.json"
+        },
+        {
+          "status": 200,
+          "url": "/wtw_city6_18.541_73.890.json"
+        },
+        {
+          "status": 200,
+          "url": "/wtw_city6_18.535_73.901.json"
+        },
+        {
+          "status": 200,
+          "url": "/wtw_city6_18.546_73.901.json"
+        },
+        {
+          "status": 200,
+          "url": "/wtw_city6_18.546_73.890.json"
+        },
+        {
+          "status": 200,
+          "url": "/wtw_city6_18.535_73.890.json"
+        }
+      ],
+      "screenshot": "screenshots\\demo-track\\rehearsal-2026-10-28-a4-after\\pune.jpg",
+      "frameP50": 13.8,
+      "frameP95": 14,
+      "note": "",
+      "spawn": {
+        "framing": {
+          "mode": "arrival",
+          "cls": "residential",
+          "movedM": 7,
+          "score": 0.81,
+          "coverage": 0.81,
+          "openness": 1,
+          "headingSource": "demo-preset",
+          "headingDeg": 270
+        },
+        "player": {
+          "x": -4.9,
+          "z": -0.3,
+          "heading": 4.71238898038469
+        },
+        "residentCellCount": 9,
+        "loadedKeys": [
+          "wtw_city6_18.535_73.890",
+          "wtw_city6_18.535_73.896",
+          "wtw_city6_18.535_73.901",
+          "wtw_city6_18.541_73.890",
+          "wtw_city6_18.541_73.896",
+          "wtw_city6_18.541_73.901",
+          "wtw_city6_18.546_73.890",
+          "wtw_city6_18.546_73.896",
+          "wtw_city6_18.546_73.901"
+        ]
+      }
+    },
+    {
+      "name": "Edinburgh",
+      "preset": {
+        "hour": 17.5,
+        "weather": 0,
+        "headingDeg": 349
+      },
+      "ready": true,
+      "readyMs": 5001,
+      "settled": true,
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 501 (Not Implemented)"
+      ],
+      "cellResponses": [
+        {
+          "status": 200,
+          "url": "/wtw_city6_55.950_-3.188.json"
+        },
+        {
+          "status": 200,
+          "url": "/wtw_city6_55.945_-3.188.json"
+        },
+        {
+          "status": 200,
+          "url": "/wtw_city6_55.950_-3.182.json"
+        },
+        {
+          "status": 200,
+          "url": "/wtw_city6_55.950_-3.193.json"
+        },
+        {
+          "status": 200,
+          "url": "/wtw_city6_55.956_-3.188.json"
+        },
+        {
+          "status": 200,
+          "url": "/wtw_city6_55.945_-3.182.json"
+        },
+        {
+          "status": 200,
+          "url": "/wtw_city6_55.945_-3.193.json"
+        },
+        {
+          "status": 200,
+          "url": "/wtw_city6_55.956_-3.182.json"
+        },
+        {
+          "status": 200,
+          "url": "/wtw_city6_55.956_-3.193.json"
+        }
+      ],
+      "screenshot": "screenshots\\demo-track\\rehearsal-2026-10-28-a4-after\\edinburgh.jpg",
+      "frameP50": 13.9,
+      "frameP95": 20.8,
+      "note": "",
+      "spawn": {
+        "framing": {
+          "mode": "arrival",
+          "cls": "pedestrian",
+          "movedM": 58,
+          "score": 1,
+          "coverage": 1,
+          "openness": 1,
+          "headingSource": "demo-preset",
+          "headingDeg": 349
+        },
+        "player": {
+          "x": -45.3,
+          "z": 31.1,
+          "heading": 6.09119908946021
+        },
+        "residentCellCount": 9,
+        "loadedKeys": [
+          "wtw_city6_55.945_-3.182",
+          "wtw_city6_55.945_-3.188",
+          "wtw_city6_55.945_-3.193",
+          "wtw_city6_55.950_-3.182",
+          "wtw_city6_55.950_-3.188",
+          "wtw_city6_55.950_-3.193",
+          "wtw_city6_55.956_-3.182",
+          "wtw_city6_55.956_-3.188",
+          "wtw_city6_55.956_-3.193"
+        ]
+      }
+    },
+    {
+      "name": "Tokyo",
+      "preset": {
+        "hour": 19,
+        "weather": 0,
+        "headingDeg": 317
+      },
+      "ready": true,
+      "readyMs": 6512,
+      "settled": true,
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 501 (Not Implemented)"
+      ],
+      "cellResponses": [
+        {
+          "status": 200,
+          "url": "/wtw_city6_35.660_139.701.json"
+        },
+        {
+          "status": 200,
+          "url": "/wtw_city6_35.660_139.706.json"
+        },
+        {
+          "status": 200,
+          "url": "/wtw_city6_35.665_139.701.json"
+        },
+        {
+          "status": 200,
+          "url": "/wtw_city6_35.654_139.701.json"
+        },
+        {
+          "status": 200,
+          "url": "/wtw_city6_35.660_139.695.json"
+        },
+        {
+          "status": 200,
+          "url": "/wtw_city6_35.665_139.706.json"
+        },
+        {
+          "status": 200,
+          "url": "/wtw_city6_35.654_139.706.json"
+        },
+        {
+          "status": 200,
+          "url": "/wtw_city6_35.665_139.695.json"
+        },
+        {
+          "status": 200,
+          "url": "/wtw_city6_35.654_139.695.json"
+        }
+      ],
+      "screenshot": "screenshots\\demo-track\\rehearsal-2026-10-28-a4-after\\tokyo.jpg",
+      "frameP50": 13.9,
+      "frameP95": 20.8,
+      "note": "",
+      "spawn": {
+        "framing": {
+          "mode": "arrival",
+          "cls": "pedestrian",
+          "movedM": 29,
+          "score": 1,
+          "coverage": 1,
+          "openness": 1,
+          "headingSource": "demo-preset",
+          "headingDeg": 317
+        },
+        "player": {
+          "x": -15.7,
+          "z": -25,
+          "heading": 5.532693728822025
+        },
+        "residentCellCount": 9,
+        "loadedKeys": [
+          "wtw_city6_35.654_139.695",
+          "wtw_city6_35.654_139.701",
+          "wtw_city6_35.654_139.706",
+          "wtw_city6_35.660_139.695",
+          "wtw_city6_35.660_139.701",
+          "wtw_city6_35.660_139.706",
+          "wtw_city6_35.665_139.695",
+          "wtw_city6_35.665_139.701",
+          "wtw_city6_35.665_139.706"
+        ]
+      }
+    },
+    {
+      "name": "New York",
+      "preset": {
+        "hour": 18,
+        "weather": 0,
+        "headingDeg": 292
+      },
+      "ready": true,
+      "readyMs": 3757,
+      "settled": true,
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 501 (Not Implemented)"
+      ],
+      "cellResponses": [
+        {
+          "status": 200,
+          "url": "/wtw_city6_40.758_-73.986.json"
+        },
+        {
+          "status": 200,
+          "url": "/wtw_city6_40.764_-73.986.json"
+        },
+        {
+          "status": 200,
+          "url": "/wtw_city6_40.758_-73.980.json"
+        },
+        {
+          "status": 200,
+          "url": "/wtw_city6_40.758_-73.991.json"
+        },
+        {
+          "status": 200,
+          "url": "/wtw_city6_40.764_-73.991.json"
+        },
+        {
+          "status": 200,
+          "url": "/wtw_city6_40.764_-73.980.json"
+        },
+        {
+          "status": 200,
+          "url": "/wtw_city6_40.752_-73.986.json"
+        },
+        {
+          "status": 200,
+          "url": "/wtw_city6_40.752_-73.991.json"
+        },
+        {
+          "status": 200,
+          "url": "/wtw_city6_40.752_-73.980.json"
+        }
+      ],
+      "screenshot": "screenshots\\demo-track\\rehearsal-2026-10-28-a4-after\\new-york.jpg",
+      "frameP50": 13.9,
+      "frameP95": 20.9,
+      "note": "",
+      "spawn": {
+        "framing": {
+          "mode": "arrival",
+          "cls": "footway",
+          "movedM": 11,
+          "score": 0.905,
+          "coverage": 0.905,
+          "openness": 1,
+          "headingSource": "demo-preset",
+          "headingDeg": 292
+        },
+        "player": {
+          "x": -5.6,
+          "z": -11.2,
+          "heading": 5.096361415823442
+        },
+        "residentCellCount": 9,
+        "loadedKeys": [
+          "wtw_city6_40.752_-73.980",
+          "wtw_city6_40.752_-73.986",
+          "wtw_city6_40.752_-73.991",
+          "wtw_city6_40.758_-73.980",
+          "wtw_city6_40.758_-73.986",
+          "wtw_city6_40.758_-73.991",
+          "wtw_city6_40.764_-73.980",
+          "wtw_city6_40.764_-73.986",
+          "wtw_city6_40.764_-73.991"
+        ]
+      }
+    }
+  ]
+}

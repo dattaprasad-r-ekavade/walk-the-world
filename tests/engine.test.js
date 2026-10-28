@@ -416,7 +416,7 @@ describe('city builder core (19.1)', () => {
         {
           type: 'way',
           id: 2,
-          tags: { highway: 'residential' },
+          tags: { highway: 'residential', lanes: '4', oneway: 'yes', width: '13m' },
           geometry: [
             { lat: 18.5199, lon: 73.8549 },
             { lat: 18.5202, lon: 73.8552 },
@@ -439,6 +439,7 @@ describe('city builder core (19.1)', () => {
     expect(result.walls.length).toBeGreaterThan(0);
     expect(result.walls[0].geo.position.array).toBeInstanceOf(Float32Array);
     expect(result.meta.roadPaths.length).toBe(1);
+    expect(result.roadDecals[0].markingProfile).toEqual({ lanes: 4, oneWay: true });
     const roadGeo = result.roadDecals[0].geo;
     const roadPositions = roadGeo.position.array;
     const roadIndices = roadGeo.index;
@@ -473,12 +474,46 @@ describe('near street treatment', () => {
     });
     expect(result.sidewalks?.getAttribute('position').count).toBeGreaterThan(0);
     expect(result.curbs?.getAttribute('position').count).toBeGreaterThan(0);
+    expect(result.sidewalks?.getAttribute('uv').count).toBe(result.sidewalks?.getAttribute('position').count);
     const sidewalkPositions = result.sidewalks.getAttribute('position');
     for (let i = 0; i < sidewalkPositions.count; i++) {
       const x = sidewalkPositions.getX(i);
       const z = sidewalkPositions.getZ(i);
       expect(Math.hypot(x, z)).toBeLessThan(86);
     }
+  });
+
+  it('can treat every road in a streamed cell and assigns metre-scaled paving UVs', async () => {
+    const { buildNearStreetTreatmentGeometry } = await import('../lib/engine/street/near-street-treatment.js');
+    const result = await buildNearStreetTreatmentGeometry({
+      player: { x: 0, z: 0 },
+      radius: Infinity,
+      roadPaths: [{
+        width: 7,
+        tags: { highway: 'residential' },
+        pts: [{ x: -20, y: 160 }, { x: 20, y: 160 }],
+      }],
+    });
+    const positions = result.sidewalks.getAttribute('position');
+    const uvs = result.sidewalks.getAttribute('uv');
+    expect(positions.count).toBeGreaterThan(0);
+    expect(uvs.count).toBe(positions.count);
+    const farthest = Math.max(...Array.from({ length: positions.count }, (_, i) =>
+      Math.hypot(positions.getX(i), positions.getZ(i))
+    ));
+    expect(farthest).toBeGreaterThan(160);
+  });
+});
+
+describe('road marking profiles', () => {
+  it('uses lane direction tags first and infers a bounded lane count from width', async () => {
+    const { roadMarkingProfile } = await import('../lib/engine/road-markings.js');
+    expect(roadMarkingProfile({ lanes: '3', 'lanes:forward': '2', 'lanes:backward': '2', oneway: 'yes' }))
+      .toEqual({ lanes: 3, oneWay: true });
+    expect(roadMarkingProfile({ width: "26'", oneway: '-1' }))
+      .toEqual({ lanes: 2, oneWay: true });
+    expect(roadMarkingProfile({ width: '80m' }))
+      .toEqual({ lanes: 8, oneWay: false });
   });
 });
 

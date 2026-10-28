@@ -17,7 +17,7 @@ import { createCityBuilderPool } from "@/lib/engine/city-builder";
 import { assembleCityFromBuild, primeStationLabelMetrics } from "@/lib/engine/street/assemble-city";
 import { createCellStreamer } from "@/lib/engine/street/cell-stream";
 import { clipElementsToCell } from "@/lib/engine/cell-clip";
-import { getSimpleStandard, installBuildingTextureMaps, installBuildingNearTextureMaps, clearBuildingNearTextureMaps, setBuildingTextureQuality, setRoadWetness, setRoadEnvironment, setWetRoadMapCandidate, wetRoadMapStats, sharedMaterialTextures, materialFactoryInventory, disposeMaterialCache } from "@/lib/engine/materials";
+import { getSimpleStandard, installBuildingTextureMaps, installBuildingNearTextureMaps, clearBuildingNearTextureMaps, setBuildingTextureQuality, setInteriorMappingLighting, setRoadWetness, setRoadEnvironment, setWetRoadMapCandidate, wetRoadMapStats, sharedMaterialTextures, materialFactoryInventory, disposeMaterialCache } from "@/lib/engine/materials";
 import { createKtx2BuildingTextureLoader } from "@/lib/engine/ktx2-textures";
 import { createVehicleController } from "@/lib/engine/street/vehicle";
 import { createPostFx, getPostFxPassState } from "@/lib/engine/post-fx";
@@ -581,6 +581,7 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false, demo
       setRoadEnvironment(scene.environment);
       // windows light up as the sun sets (elev < ~0.08 → fully lit)
       const winGlow = Math.max(0, Math.min(1, (0.08 - elev) * 9)) * 0.85;
+      setInteriorMappingLighting(winGlow);
       for (const bm of runtime.current.buildingMats || []) bm.emissiveIntensity = winGlow;
       currentStreetLightNight = winGlow;
       streetLights?.setNight(qualityTier === "high" ? winGlow : 0);
