@@ -703,8 +703,13 @@ street/assemble-city.js and StreetEngine.js.
   current weather. Roughness/environment response is an approximation, not mirror
   reflection. Keep SSR and planar reflection deferred.
   - New materials now inherit the current wetness, with a unit test covering
-    creation after the weather change. Real-GPU reflection and visual acceptance
-    remain open.
+    creation after the weather change. The 28 October current-main checkpoint
+    passed 121 tests and the production build, then completed five valid visible
+    Chrome runs each for night/clear and night/rain using the recorded Rome
+    fixture. Frame-p95 medians were 33.9 ms clear and 33.6 ms rain; the 3D engine
+    stayed near 92% median utilization on this machine. The captures show rain
+    clearly, but the road-reflection difference is subtle, so close-up visual
+    acceptance remains open. See the [current-code checkpoint](benchmarks/results/stage4/current-main-local-fallback-rome-night.md).
 - [ ] 4.4 Verify existing four-light high-tier pool reassignment, newly streamed/
   evicted lamp markers and quality transitions. Stable light counts avoid shader
   churn, but visible zero-intensity lights can still cost shading; measure policy.
@@ -904,17 +909,16 @@ for Cesium, imagery and model resources. SSR, volumetrics, displacement, dense
 skeletal crowds and shadowed lamp arrays require separate high-tier budgets.
 None is a prerequisite for this sequence.
 
-**Next bounded work:** Stages 3.7 and 3.8 and Stage 4.1 are implemented; Stage
-4.2 road ribbons are refined and documented in
-[the road-ribbon review](benchmarks/results/stage4/road-ribbons.md). Proceed to
-Stage 4.3: tune existing wetness and verify newly streamed road materials
-inherit current weather, including real-GPU reflection and visual review. The
-Rome night capture still shows very dark asphalt on unlit road, so reassess it
-with wetness and nearby light pools. Stage 0.8 dense live-city cold/warm
-walk/drive, Stage 1 mobile assembly and input latency, Stage 1.3 low-core worker
-plus KTX2 contention/memory, and lower-memory/mobile high-atlas checks remain
-release gates. Recorded Rome replay is client/streaming evidence, not live
-Overpass evidence.
+**Next bounded work:** Stages 3.7 and 3.8 and Stages 4.1–4.2 are implemented;
+road-ribbon evidence is in [the road-ribbon review](benchmarks/results/stage4/road-ribbons.md).
+Stage 4.3 now has a valid current-code performance and material-inheritance
+checkpoint, but its close-up wet-road appearance still needs review. Continue
+with a controlled near-road/light-pool capture, then Stage 4.4's streamed lamp
+reassignment and quality-transition checks. Stage 0.8 dense live-city
+cold/warm walk/drive, Stage 1 mobile assembly and input latency, Stage 1.3
+low-core worker plus KTX2 contention/memory, and lower-memory/mobile high-atlas
+checks remain release gates. Recorded Rome replay is client/streaming evidence,
+not live Overpass evidence.
 
 **Open acceptance gate:** Stage 0.8 still needs matched dense live-city cold/
 warm and walk/drive boundary measurements. The 28 October Manhattan retries
@@ -928,6 +932,7 @@ exposes no ACPI thermal readings. The desktop resource soak passed, but mobile
 thermal checks and direct thermal measurements remain open. Keep Rust/Wasm/SIMD deferred: worker compute was 25.9 ms median versus
 729.4 ms roundtrip on the earlier synthetic trace, so kernel acceleration is
 not yet the measured opportunity. The Stage 2.5 far-material experiment was
-completed and rejected; Stage 2.6 shader/shadow parity is complete. Stage 3.1
-and 3.2 curation, 3.3 offline conversion and 3.4 KTX2 comparison are complete;
-runtime KTX2 adoption is the next content checkpoint.
+completed and rejected; Stage 2.6 shader/shadow parity is complete. Stages
+3.1–3.8 implementation and asset curation are complete; the Stage 3.8
+offline/failure browser check and lower-memory/mobile atlas review remain
+release gates, as recorded above.
