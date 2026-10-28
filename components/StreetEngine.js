@@ -694,7 +694,7 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false, demo
       onStage: setStage, onProgress: setReadyPct,
     });
     const { terrainTiles, tileCanvases } = terrain;
-    const { addFootprint, insideBuilding, footprintAt, removeFootprintsByCell } = createCollision(GRID);
+    const { addFootprint, insideBuilding, footprintAt, footprintsNear, removeFootprintsByCell } = createCollision(GRID);
     const ghRef = { fn: () => 0 };
     const vehicle = createVehicleController({
       insideBuilding,
@@ -1704,6 +1704,7 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false, demo
           models: popModels,
           signals: (runtime.current.propMarkers || []).filter((p) => p.kind === "signals"),
           insideBuilding,
+          footprintsNear,
           maxPeds: qualityTier === "low" ? 52 : qualityTier === "medium" ? 96 : 140,
           maxCars: qualityTier === "low" ? 24 : qualityTier === "medium" ? 48 : 70,
           maxBirds: qualityTier === "low" ? 12 : qualityTier === "medium" ? 24 : 36,

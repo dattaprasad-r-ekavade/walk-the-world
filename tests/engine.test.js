@@ -279,6 +279,31 @@ describe('nameplate exterior placement', () => {
     expect(inside(out.x, out.z)).toBe(false);
     expect(out.z).toBeGreaterThan(4);
   });
+
+  it('mounts signs flat on the street-facing wall, sized to the wall', async () => {
+    const { mountOnFacade } = await import('../lib/engine/population.js');
+    // 10 x 6 building, road runs along z = 12 (south of the +z wall)
+    const fp = { poly: [[-5, -3], [5, -3], [5, 3], [-5, 3]], meta: { id: 1 } };
+    const roads = [{ pts: [{ x: -30, y: 12 }, { x: 30, y: 12 }] }];
+    const m = mountOnFacade(4, 0, [fp], { roadPaths: roads, halfW: 7 });
+    expect(m.faceX).toBeCloseTo(0);
+    expect(m.faceZ).toBeCloseTo(1);
+    expect(m.z).toBeCloseTo(3.12);
+    expect(m.halfW).toBeLessThanOrEqual(4.7); // fits inside the 10 m wall
+    expect(Math.abs(m.x) + m.halfW).toBeLessThanOrEqual(5);
+    // same building with the ring reversed: outward normal must not flip inward
+    const rev = mountOnFacade(4, 0, [{ ...fp, poly: [...fp.poly].reverse() }], { roadPaths: roads, halfW: 7 });
+    expect(rev.faceZ).toBeCloseTo(1);
+  });
+
+  it('skips party walls whose outside is another building', async () => {
+    const { mountOnFacade } = await import('../lib/engine/population.js');
+    const fp = { poly: [[0, 0], [6, 0], [6, 6], [0, 6]] };
+    const neighbour = (x, z) => x > 6 && x < 12 && z > 0 && z < 6;
+    const roads = [{ pts: [{ x: 9, y: -40 }, { x: 9, y: 40 }] }]; // road beyond the neighbour
+    const m = mountOnFacade(5.5, 3, [fp], { roadPaths: roads, halfW: 2, insideBuilding: neighbour });
+    expect(m.faceX).not.toBeCloseTo(1); // never on the shared x = 6 wall
+  });
 });
 
 describe('tier-0 traffic heuristics', () => {
