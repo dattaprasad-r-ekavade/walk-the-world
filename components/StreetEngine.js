@@ -68,6 +68,7 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false, demo
   trackRender();
   const router = useRouter();
   const hudDomRef = useRef(null);
+  const assetListPromiseRef = useRef(null);
   const panel = useGameStore((s) => s.panel);
   const setPanel = useGameStore((s) => s.setPanel);
   const togglePanel = useGameStore((s) => s.togglePanel);
@@ -116,8 +117,8 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false, demo
 
   useEffect(() => {
     if (uiMode !== "editor") return;
-    fetch("/api/assets")
-      .then((r) => (r.ok ? r.json() : []))
+    // Reuse the boot-time request when the engine already started one.
+    (assetListPromiseRef.current || fetch("/api/assets").then((r) => (r.ok ? r.json() : [])).catch(() => []))
       .then((d) => setAssetList(Array.isArray(d) ? d : d.assets || []))
       .catch(() => setAssetList([]));
   }, [uiMode]);
@@ -250,6 +251,7 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false, demo
     const assetListPromise = fetch("/api/assets", { signal })
       .then((r) => (r.ok ? r.json() : []))
       .catch(() => []);
+    assetListPromiseRef.current = assetListPromise;
     const editsKey = cityCacheKey(lat0, lon0);
     const editsPromise = fetch(`/api/edits/${editsKey}`, { signal })
       .then((r) => (r.ok ? r.json() : null))
