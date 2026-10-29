@@ -1,8 +1,8 @@
 # Walk the World — Performance and Visuals Implementation Plan
 
-Updated: 29 October 2026 (evening). Current base: `71e66a0` on `origin/main`.
+Updated: 29 October 2026 (evening). Reviewed base: `e1d8289` on `origin/main`.
 Demo gates D1–D8 are closed. The smoothness track (section 0a) closed S1–S6 from
-live-deploy profiling; S7–S9 stay open. The suite now has 216 tests; tests and
+live-deploy profiling; S7–S9 stay open. The suite now has 217 tests; tests and
 the production build pass. The dependency audit gate below is still open.
 This is the active plan. The [previous detailed checkpoint](docs/PLAN-CHECKPOINT-2026-10-28-BEFORE-REVIEW.md)
 preserves the full experiment history; its status is historical.
@@ -150,7 +150,13 @@ Open:
 - [ ] **S7 — Confirm the fixes on the live deploy.** Run the tour once against
   production after the `71e66a0` deploy. One browser at a time; do not run
   back-to-back profiling on the demo laptop. Acceptance: no frame over 500 ms
-  in the walk, night switch and travel segments, and zero console errors.
+  in the walk, night switch and travel segments, and zero console errors. A
+  29 Oct visible run against the live deployment reached Tokyo but measured a
+  909.6 ms maximum frame during globe travel and saw a 404 plus a reverse-
+  geocode timeout. The run stopped before walking/night/city-to-city segments
+  because the harness selected the brand icon canvas. It was on an i7-13650HX
+  system rather than the Intel UHD demo laptop, so it does not close S7. See
+  [the partial live smoke](benchmarks/results/stage0/s7-live-deploy-2026-10-29.md).
 - [ ] **S8 — Walking cost on weak GPUs.** Walking is GPU-bound on Intel UHD
   (fill rate, not draw calls). Candidates, in order: cheaper interior-window
   shader at distance (drop the ray-box sample beyond about 40 m instead of
@@ -312,10 +318,11 @@ mobile, offline and several visual gates remain open.
 | 3 Assets | 3.1–3.8 implemented; compressed maps and optimized props | Offline/failure browser checks, lower-memory/mobile residency and far mip seams |
 | 4 Roads/lights | 4.1, 4.2 and desktop 4.4 complete | Wetness, bloom/contact shading, shadows and facade variation |
 | 5 Detail/weather | Planned | LOD, spatial instances, vegetation and analytic precipitation |
-| 6–8 Alternatives | B1 overlap filtering with 64-key cap, sampled terrain keys, height-only preflight, steady-window diagnostics, and browser edit/503 fallback smoke measured; Stage 6/7 deferred | B1 revision-safe cold-terrain caching, integrated/mobile parity, editor save/reload and upload-cost acceptance |
+| 6–8 Alternatives | B1 infrastructure measured and parked (not shipped); Stage 6/7 deferred | Reopen B1 only through B1b cached elevation grids; other B1 acceptance remains outside the active track |
 | 9 Integration | Open | Full regression, hardware/visual acceptance and release records |
 
-Latest validation: all 216 tests and the production build pass on `71e66a0`.
+Latest validation: all 217 tests and the production build pass on the `e1d8289`
+review base with the R7 opt-in prebuilt-loader change.
 Earlier review run: all 207 tests across 33 files and the production build passed,
 including the B1 codec, frame transform, terrain revision and streamed-cell
 overlap-index fallback checks. Raw and prebuilt production builds both pass.
@@ -426,17 +433,22 @@ Preserve gameplay and fallbacks.
   The current-main recorded-Rome run reached valid movement, but its browser
   diagnostics failed on four app-origin 404 responses. A bounded follow-up found
   `/prebuilt-cells/index.json` missing in this checkout; the prebuilt loader
-  returns `null` on that miss and continues through the raw-data path. Confirm
-  whether the production build should ship an index for this scenario or disable
-  the optional prebuilt lookup when none is configured, then account for every
-  404 in a clean run. The recorded smoke captured only 14 frames during startup,
+  returned `null` on that miss and continued through the raw-data path. Since
+  B1 artifacts are intentionally not shipped, the loader now skips prebuilt
+  lookup unless `NEXT_PUBLIC_PREBUILT_CELL_BASE` is explicitly configured. A
+  regression check verifies that an unconfigured base causes no request; the
+  full suite and production build pass. A direct production request confirms
+  `/prebuilt-cells/index.json` returns 404. The partial S7 run also logged a
+  generic 404 and a BigDataCloud timeout; its 404 was not URL-correlated. Still
+  account for every 404 in a clean post-deploy run. The recorded smoke captured
+  only 14 frames during startup,
   with a 1.067-second window, so its 13 FPS and 216.8 ms p95 are not usable for
   performance acceptance. Separately verify the public-R2 CORS response from
   the actual app origin in live-data mode: an unrecorded localhost check was
   blocked by CORS, while the fixture-backed run does not validate that path.
   Repeat a settled five-second visible-browser smoke after these checks; use the
-  matched repetitions already required by the plan before accepting a default or
-  quality-tier change.
+  matched repetitions already required by the plan before accepting a default
+  or quality-tier change.
 
 ### Evidence/documentation corrections
 

@@ -33,9 +33,19 @@ function response(body) {
 }
 
 describe("prebuilt cell runtime loader", () => {
+  it("does not look for artifacts unless a base is explicitly configured", async () => {
+    const fetchImpl = vi.fn();
+    await expect(fetchPrebuiltCell(key, {
+      expectedBuilderRevision: "b".repeat(64),
+      expectedMaterialRevision: "c".repeat(16),
+      fetchImpl,
+    })).resolves.toBeNull();
+    expect(fetchImpl).not.toHaveBeenCalled();
+  });
+
   it("asks for a missing index only once per root", async () => {
     const fetchImpl = vi.fn(async () => ({ ok: false, status: 404 }));
-    const opts = { expectedBuilderRevision: "b".repeat(64), expectedMaterialRevision: "c".repeat(16), fetchImpl };
+    const opts = { base: "/prebuilt-cells", expectedBuilderRevision: "b".repeat(64), expectedMaterialRevision: "c".repeat(16), fetchImpl };
     await expect(fetchPrebuiltCell(key, opts)).resolves.toBeNull();
     await expect(fetchPrebuiltCell("wtw_city6_35.665_139.701", opts)).resolves.toBeNull();
     expect(fetchImpl).toHaveBeenCalledTimes(1);
@@ -75,6 +85,7 @@ describe("prebuilt cell runtime loader", () => {
       cells: { [key]: entry },
     }));
     await expect(fetchPrebuiltCell(key, {
+      base: "/prebuilt-cells",
       expectedBuilderRevision: "b".repeat(64),
       expectedMaterialRevision: "c".repeat(16),
       fetchImpl: mismatchFetch,
@@ -89,6 +100,7 @@ describe("prebuilt cell runtime loader", () => {
       cells: { [key]: { ...entry, file: "../outside.wtwc.gz" } },
     }));
     await expect(fetchPrebuiltCell(key, {
+      base: "/prebuilt-cells",
       expectedBuilderRevision: "b".repeat(64),
       expectedMaterialRevision: "c".repeat(16),
       fetchImpl: unsafeFetch,
@@ -107,6 +119,7 @@ describe("prebuilt cell runtime loader", () => {
       }))
       .mockResolvedValueOnce({ ok: true, arrayBuffer: async () => new Uint8Array([1]).buffer });
     await expect(fetchPrebuiltCell(key, {
+      base: "/prebuilt-cells",
       expectedBuilderRevision: "b".repeat(64),
       expectedMaterialRevision: "c".repeat(16),
       fetchImpl,
@@ -124,6 +137,7 @@ describe("prebuilt cell runtime loader", () => {
     }));
 
     await expect(fetchPrebuiltCell(key, {
+      base: "/prebuilt-cells",
       expectedBuilderRevision: "b".repeat(64),
       expectedMaterialRevision: "c".repeat(16),
       fetchImpl,
@@ -149,6 +163,7 @@ describe("prebuilt cell runtime loader", () => {
       }))
       .mockResolvedValueOnce({ ok: true, arrayBuffer: async () => new Uint8Array([1]).buffer });
     const pending = fetchPrebuiltCell(key, {
+      base: "/prebuilt-cells",
       expectedBuilderRevision: "b".repeat(64),
       expectedMaterialRevision: "c".repeat(16),
       fetchImpl,
@@ -179,6 +194,7 @@ describe("prebuilt cell runtime loader", () => {
     const validateEntry = vi.fn(async () => true);
 
     await expect(fetchPrebuiltCell(key, {
+      base: "/prebuilt-cells",
       expectedBuilderRevision: "b".repeat(64),
       expectedMaterialRevision: "c".repeat(16),
       fetchImpl,
@@ -206,6 +222,7 @@ describe("prebuilt cell runtime loader", () => {
     });
     const decode = vi.fn(async () => ({ metadata, result }));
     const pending = fetchPrebuiltCell(key, {
+      base: "/prebuilt-cells",
       expectedBuilderRevision: "b".repeat(64),
       expectedMaterialRevision: "c".repeat(16),
       fetchImpl,
