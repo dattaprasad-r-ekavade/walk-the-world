@@ -17,6 +17,12 @@ const nextConfig = {
     NEXT_PUBLIC_PREBUILT_CELL_BUILDER_REVISION: computePrebuiltBuilderRevision(root, threeVersion),
     NEXT_PUBLIC_PREBUILT_CELL_MATERIAL_REVISION: materialRevision,
   },
+  // The public R2 bucket only allows the production origin. Local previews read
+  // cells through this same-origin proxy instead (see lib/engine/cityData.js).
+  async rewrites() {
+    const base = process.env.NEXT_PUBLIC_R2_PUBLIC_BASE;
+    return base ? [{ source: "/r2-public/:path*", destination: `${base}/:path*` }] : [];
+  },
   experimental: {
     // DuckDB is a native server dependency used only by the Overture API.
     serverComponentsExternalPackages: ["duckdb"],

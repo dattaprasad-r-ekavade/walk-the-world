@@ -33,6 +33,14 @@ function response(body) {
 }
 
 describe("prebuilt cell runtime loader", () => {
+  it("asks for a missing index only once per root", async () => {
+    const fetchImpl = vi.fn(async () => ({ ok: false, status: 404 }));
+    const opts = { expectedBuilderRevision: "b".repeat(64), expectedMaterialRevision: "c".repeat(16), fetchImpl };
+    await expect(fetchPrebuiltCell(key, opts)).resolves.toBeNull();
+    await expect(fetchPrebuiltCell("wtw_city6_35.665_139.701", opts)).resolves.toBeNull();
+    expect(fetchImpl).toHaveBeenCalledTimes(1);
+  });
+
   it("loads only entries matching the app's builder/material revisions", async () => {
     const fetchImpl = vi.fn()
       .mockResolvedValueOnce(response({
