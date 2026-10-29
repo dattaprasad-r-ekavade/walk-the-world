@@ -1,9 +1,10 @@
 # Walk the World — Performance and Visuals Implementation Plan
 
-Updated: 29 October 2026 (evening). Reviewed base: `23a34cc` on `origin/main`.
+Updated: 29 October 2026 (evening). Reviewed base: `adf8fb4` on `origin/main`.
 Demo gates D1–D8 are closed. The smoothness track (section 0a) closed S1–S6 from
-live-deploy profiling; S7–S9 stay open. The suite now has 217 tests; tests and
-the production build pass. The dependency audit gate below is still open.
+live-deploy profiling; S7–S9 stay open. The last full test and production-build
+check on `23a34cc` passed (217 tests); the S8 shader candidate below still needs
+its post-deploy runtime comparison. The dependency audit gate below is open.
 This is the active plan. The [previous detailed checkpoint](docs/PLAN-CHECKPOINT-2026-10-28-BEFORE-REVIEW.md)
 preserves the full experiment history; its status is historical.
 
@@ -169,7 +170,14 @@ Open:
   shader at distance (drop the ray-box sample beyond about 40 m instead of
   fading it), simpler distant buildings (feeds C2), then a lower default render
   scale on integrated GPUs. Acceptance: matched four-city captures and walk p95
-  improvement of at least 10% on the Intel laptop.
+  improvement of at least 10% on the Intel laptop. A pre-change production
+  baseline on 29 Oct used the four demo cities, 8-second live-data walks, and
+  Chrome 156 at 1280×720 on the i7-13650HX host's Intel UHD 0xA78B renderer.
+  Walk p95 was 27.9 ms in Tokyo, 14.1 ms in Pune, 20.9 ms in Edinburgh, and
+  20.9 ms in New York; host telemetry showed 96.85–97.49% average peak use on
+  the Intel 3D engine. The distance cutoff is now implemented as a candidate,
+  completing the room fade by 40 m. S8 remains open pending the matched
+  post-change captures and the target i5-1035G1 laptop measurement.
 - [ ] **S9 — Intermittent globe hang after orbit plus zoom.** Seen only under
   scripted input; the browser trace showed no long page or GPU task, so it is
   most likely an automation artefact. Check once with a real mouse and wheel;

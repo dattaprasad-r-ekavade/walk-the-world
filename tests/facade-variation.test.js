@@ -39,7 +39,7 @@ describe("facade variation", () => {
     expect(shader.uniforms.wtwRoomAtlas.value).toBe(roomAtlas);
     expect(shader.uniforms.wtwInteriorIntensity).toBe(intensity);
     expect(shader.vertexShader).toContain("vWtwWorldPosition = ( modelMatrix * vec4( transformed, 1.0 ) ).xyz;");
-    expect(shader.fragmentShader).toContain("smoothstep(40.0, 60.0");
+    expect(shader.fragmentShader).toContain("smoothstep(32.0, 40.0");
     expect(shader.fragmentShader).toContain("wtwSampleInteriorRoom( vMapUv");
     expect(shader.fragmentShader).toContain("totalEmissiveRadiance += wtwInteriorSample.rgb");
   });

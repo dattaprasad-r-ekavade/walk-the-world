@@ -17,6 +17,21 @@ the R7 smoke/diagnostics gap. It does not replace the full S7 travel threshold
 check: the preceding full tour on `71450de` still had an 881.9 ms globe-travel
 frame, and neither tour used the target Intel UHD i5-1035G1 laptop.
 
+## Unprofiled startup follow-up on `23a34cc`
+
+A separate visible, focused production capture on 29 Oct measured the Tokyo
+globe-to-street startup for 7.9 seconds on the same i7-13650HX / Intel UHD
+0xA78B host. Frame p95 was 34.7 ms and maximum was 958.2 ms. The Long
+Animation Frames API attributed a 619.9 ms long frame to Cesium loading and a
+974.9 ms long frame to the Terrarium elevation tile's image `onload` handler.
+The page had zero console errors and zero HTTP responses >=400. These are
+startup attributions, not proof that the image decoder itself is the cause;
+the earlier CPU-profiled run showed Three.js uniform binding and
+`renderBufferDirect` work, with profiler overhead raising its maximum to
+1173.3 ms. This remains a diagnostic run on the wrong laptop, not a passing S7
+tour. Raw diagnostics are in the ignored sibling directory
+`benchmarks/results/stage0/s7-outlier-diagnostic-2026-10-29/`.
+
 ## Complete follow-up on `71450de`
 
 The production alias `https://walk-the-world-delta.vercel.app` returned HTTP
