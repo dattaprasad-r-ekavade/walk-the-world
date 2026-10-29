@@ -1,9 +1,9 @@
 # Walk the World — Performance and Visuals Implementation Plan
 
-Updated: 29 October 2026. Reviewed base: `6c79a3d` on `origin/main`; current work
-closes demo gates D1–D8. D3's hardware acceptance uses the local production
-preview described below. This review ran the current 207-test suite and production
-build, and added the dependency audit gate below.
+Updated: 29 October 2026 (evening). Current base: `71e66a0` on `origin/main`.
+Demo gates D1–D8 are closed. The smoothness track (section 0a) closed S1–S6 from
+live-deploy profiling; S7–S9 stay open. The suite now has 216 tests; tests and
+the production build pass. The dependency audit gate below is still open.
 This is the active plan. The [previous detailed checkpoint](docs/PLAN-CHECKPOINT-2026-10-28-BEFORE-REVIEW.md)
 preserves the full experiment history; its status is historical.
 
@@ -99,6 +99,68 @@ Process rules for every stage:
   change what a viewer sees or feels. Raw benchmark output stays out of git.
 - Update this plan in place. Do not add new root plan files; archive superseded
   plans under `docs/archive/`.
+
+## 0a. Smoothness track — priority 0 (live-deploy profiling, 29 Oct)
+
+Goal: no visible freeze or stutter anywhere in the demo path (menu, globe,
+fly-to-city, street boot, walk, time switch, travel). Measured with a scripted
+visible-Chrome tour of the Vercel deploy on the Intel UHD laptop (i5-1035G1,
+ANGLE D3D11). The tour and profiling scripts live outside the repo; numbers
+below compare production before the fixes with the new build on the same host.
+
+Root cause of most stalls: three.js links shader programs synchronously on
+first draw. Any change to a program key (composer on or off, shadow state,
+per-family cache keys) recompiled hundreds of programs on the main thread.
+
+Done:
+
+- [x] **S1 — Fly-to-city transition (`e401e9d`).** The globe hides Cesium
+  buildings and skips the render-scale governor during the flight, reuses the
+  cached ground height, and navigates on arrival with client routing. The street
+  engine, city data and spawn terrain start loading on departure (`warmStreet`).
+  Demo cities keep their preset time, weather and heading on arrival.
+- [x] **S2 — Street shader stalls (`1ba4246`).** Building materials share one
+  program key instead of 23. The scene draws through the composer on medium even
+  with no effect on, so dusk only toggles bloom. The automatic quality step no
+  longer flips shadows or the composer. New city roots and streamed cells stay
+  hidden until `renderer.compileAsync` has compiled them against the composer
+  target. Result: walk 21 to 43 fps (2.9 s freeze gone), travel main-thread
+  blocking 5.3 s to 1.2 s, Tokyo boot 4.7 s to 3.4 s, first night switch 3.2 s
+  freeze to 0.2 s.
+- [x] **S3 — Prop materials (`ba834b7`).** Traffic lights, bus stops, cranes and
+  chimneys share cached materials, so prop baking merges them. Draw calls went
+  from 448 to 384 and materials from 921 to 257 at the Tokyo start.
+- [x] **S4 — Globe cost on medium (`ba834b7`, `71e66a0`).** The ocean water
+  effect and Cesium OSM Buildings run only on the high tier. Buildings load
+  lazily below 20 km and on walk entry. Globe load blocking went from 4.7–6.7 s
+  to 2.5–3.4 s; zoom-in blocking from 3.5–6.8 s to 0.65–1.4 s at 39 fps.
+- [x] **S5 — Sign boards (`5de5606`).** Shop and name signs mount on the
+  road-facing wall of their own building, clamp to the wall length and skip
+  overlaps, with the old outside placement as fallback.
+- [x] **S6 — Build and repo hygiene.** Vercel build fixed (`.vercelignore` keeps
+  the build-time scripts). Node 22 pinned (`.nvmrc`, engines, Dockerfile),
+  non-interactive ESLint config, `npm run check` and a CI workflow. In-range
+  dependencies refreshed; React Query removed; major upgrades assessed in
+  [docs/UPGRADE-ASSESSMENT.md](docs/UPGRADE-ASSESSMENT.md) (feeds SEC1).
+  Localhost reads public R2 through the `/r2-public` rewrite, so local previews
+  no longer hit the bucket's missing CORS headers.
+
+Open:
+
+- [ ] **S7 — Confirm the fixes on the live deploy.** Run the tour once against
+  production after the `71e66a0` deploy. One browser at a time; do not run
+  back-to-back profiling on the demo laptop. Acceptance: no frame over 500 ms
+  in the walk, night switch and travel segments, and zero console errors.
+- [ ] **S8 — Walking cost on weak GPUs.** Walking is GPU-bound on Intel UHD
+  (fill rate, not draw calls). Candidates, in order: cheaper interior-window
+  shader at distance (drop the ray-box sample beyond about 40 m instead of
+  fading it), simpler distant buildings (feeds C2), then a lower default render
+  scale on integrated GPUs. Acceptance: matched four-city captures and walk p95
+  improvement of at least 10% on the Intel laptop.
+- [ ] **S9 — Intermittent globe hang after orbit plus zoom.** Seen only under
+  scripted input; the browser trace showed no long page or GPU task, so it is
+  most likely an automation artefact. Check once with a real mouse and wheel;
+  close if it does not reproduce.
 
 ## 0b. Outside-view roadmap — priority 1 (after the demo track)
 
@@ -253,7 +315,8 @@ mobile, offline and several visual gates remain open.
 | 6–8 Alternatives | B1 overlap filtering with 64-key cap, sampled terrain keys, height-only preflight, steady-window diagnostics, and browser edit/503 fallback smoke measured; Stage 6/7 deferred | B1 revision-safe cold-terrain caching, integrated/mobile parity, editor save/reload and upload-cost acceptance |
 | 9 Integration | Open | Full regression, hardware/visual acceptance and release records |
 
-Latest validation: all 207 tests across 33 files and the production build pass,
+Latest validation: all 216 tests and the production build pass on `71e66a0`.
+Earlier review run: all 207 tests across 33 files and the production build passed,
 including the B1 codec, frame transform, terrain revision and streamed-cell
 overlap-index fallback checks. Raw and prebuilt production builds both pass.
 The four-city production rehearsal loaded all 36 nearby
@@ -763,6 +826,9 @@ matched settings, tested hardware, thresholds and remaining gates.
 
 ## 15. Next action and deferred choices
 
+0. Finish the smoothness track (section 0a): S7 live confirmation first, then
+   S8 walking GPU cost, then close S9. SEC1 (Next.js upgrade) must close before
+   any public release; use [docs/UPGRADE-ASSESSMENT.md](docs/UPGRADE-ASSESSMENT.md).
 1. B1 is parked (see its 29 Oct decision): artifacts stay local and are not
    published. Next data work is B3 (procedural landuse ground, most visible for
    the demo), then B2 (Overpass independence) and B4 (Overture attribute gap
