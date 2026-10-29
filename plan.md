@@ -1,6 +1,6 @@
 # Walk the World — Performance and Visuals Implementation Plan
 
-Updated: 29 October 2026 (evening). Reviewed base: `71450de` on `origin/main`.
+Updated: 29 October 2026 (evening). Reviewed base: `23a34cc` on `origin/main`.
 Demo gates D1–D8 are closed. The smoothness track (section 0a) closed S1–S6 from
 live-deploy profiling; S7–S9 stay open. The suite now has 217 tests; tests and
 the production build pass. The dependency audit gate below is still open.
@@ -159,8 +159,10 @@ Open:
   R2 Tokyo cell returned 200 and was CORS-readable. This is not the target
   Intel UHD i5-1035G1 demo laptop, so it does not close S7. The Edinburgh
   screenshot also showed the Travel panel and prior Shibuya label after arrival;
-  the current changes close the panel and clear the old label on travel, pending
-  post-deploy confirmation. See
+  commit `23a34cc` closes the panel and clears the old label. Its post-deploy
+  verification confirmed the Edinburgh label and recorded a separate five-
+  second window at p95 20.9 ms, max 152.8 ms, with no console or HTTP errors.
+  S7 still fails the globe-travel threshold and needs the target laptop. See
   [the live-deploy report](benchmarks/results/stage0/s7-live-deploy-2026-10-29.md).
 - [ ] **S8 — Walking cost on weak GPUs.** Walking is GPU-bound on Intel UHD
   (fill rate, not draw calls). Candidates, in order: cheaper interior-window
@@ -326,8 +328,8 @@ mobile, offline and several visual gates remain open.
 | 6–8 Alternatives | B1 infrastructure measured and parked (not shipped); Stage 6/7 deferred | Reopen B1 only through B1b cached elevation grids; other B1 acceptance remains outside the active track |
 | 9 Integration | Open | Full regression, hardware/visual acceptance and release records |
 
-Latest local validation: all 217 tests and the production build pass on the
-`71450de` base with the R7 opt-in loader and street-travel UI fix.
+Latest local validation: all 217 tests and the production build pass on
+`23a34cc`, including the R7 opt-in loader and street-travel UI fix.
 Earlier review run: all 207 tests across 33 files and the production build passed,
 including the B1 codec, frame transform, terrain revision and streamed-cell
 overlap-index fallback checks. Raw and prebuilt production builds both pass.
@@ -346,7 +348,7 @@ sampled only 14 frames over 1.067 seconds while startup and cell loading were
 active, so its 13 FPS and 216.8 ms p95 are not performance acceptance data. A
 separate local check had also seen the configured public-R2 city fetch blocked
 by CORS. The post-deploy `71450de` tour now accounts for that path and returned no
-HTTP errors; R7 remains open for its settled five-second smoke. See R7 and the
+HTTP errors; the `23a34cc` settled five-second smoke closes R7. See R7 and the
 [S7 live-deploy report](benchmarks/results/stage0/s7-live-deploy-2026-10-29.md).
 
 ### Priority issues found in this review
@@ -435,7 +437,7 @@ Preserve gameplay and fallbacks.
   host load varied, so it cannot establish performance. See the [smoke report](benchmarks/results/stage4/wet-road-map-smoke.md).
   Keep 4.3 open for further visual work.
 
-- [ ] **R7 — P2: Close the current production-smoke diagnostics and live-data gap.**
+- [x] **R7 — P2: Close the current production-smoke diagnostics and live-data gap.**
   The current-main recorded-Rome run reached valid movement, but its browser
   diagnostics failed on four app-origin 404 responses. A bounded follow-up found
   `/prebuilt-cells/index.json` missing in this checkout; the prebuilt loader
@@ -449,11 +451,13 @@ Preserve gameplay and fallbacks.
   `71450de` recorded no HTTP responses >=400 and no console errors. A GET of the
   live Tokyo R2 cell from the production origin returned 200 JSON with 3,665
   elements and was readable by page JavaScript, closing the earlier R2 CORS
-  uncertainty. The recorded smoke captured only 14 frames during startup, with
-  a 1.067-second window, so its 13 FPS and 216.8 ms p95 remain unusable for
-  performance acceptance. Still run a separate settled five-second visible-
-  browser smoke; use the matched repetitions already required by the plan
-  before accepting a default or quality-tier change.
+  uncertainty. A separate settled five-second visible-browser smoke on
+  `23a34cc` recorded 377 frames at p95 20.9 ms and max 152.8 ms, with the page
+  visible/focused and no console or HTTP errors. It also confirmed that fast
+  travel closes its panel and updates the destination label. The earlier
+  startup-only 14-frame sample remains invalid for performance acceptance; this
+  single settled window does not replace the matched repetitions required before
+  accepting a default or quality-tier change.
 
 ### Evidence/documentation corrections
 

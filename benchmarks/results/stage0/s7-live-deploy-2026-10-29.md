@@ -1,5 +1,22 @@
 # S7 live-deploy smoke — 29 October 2026
 
+## Post-fix production verification on `23a34cc`
+
+The production alias returned HTTP 200 and served service-worker revision
+`3bb316b8cfff7f70`, matching the build for `23a34cc`. A visible, focused Chrome
+session at 1280×720 traveled from Tokyo to Edinburgh. At arrival the Fast Travel
+panel was closed; the location button showed “Edinburgh, United Kingdom of Great
+Britain and Northern Ireland” after 1.5 seconds and still showed it after the
+five-second settled window. The screenshot is in the ignored sibling directory
+`benchmarks/results/stage0/s7-live-deploy-2026-10-29-after-23a34cc/`.
+
+The settled window captured 377 animation-frame intervals (p95 20.9 ms, maximum
+152.8 ms). The page remained visible and focused. There were zero console errors
+and zero HTTP responses >=400. This verifies the street-travel UI fix and closes
+the R7 smoke/diagnostics gap. It does not replace the full S7 travel threshold
+check: the preceding full tour on `71450de` still had an 881.9 ms globe-travel
+frame, and neither tour used the target Intel UHD i5-1035G1 laptop.
+
 ## Complete follow-up on `71450de`
 
 The production alias `https://walk-the-world-delta.vercel.app` returned HTTP
