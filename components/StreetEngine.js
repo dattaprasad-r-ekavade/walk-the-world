@@ -2338,7 +2338,7 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false, demo
           />
           {typeof window !== "undefined" && !localStorage.getItem("wtw_editor_key") && (
             <p className="mb-2 text-[11px] leading-snug text-amber-300/90">
-              You can explore every tool without a key — it's only required to 💾 Save.
+              You can explore every tool without a key — it&apos;s only required to 💾 Save.
               The key is the EDITOR_SECRET env var of this deployment.
             </p>
           )}
@@ -2387,7 +2387,7 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false, demo
             <div>✈ Scroll zoom · MMB orbit · Shift+MMB pan · RMB look · WASD fly · Space/C up/down</div>
             <div>1-5 tools · click to apply · Ctrl+Z undo · Esc deselect · E exit</div>
             <div>Selected asset: G move · R rotate · [ ] scale · X delete</div>
-            <div>Hover shows what you'd pick; Hide removes OSM features on reload.</div>
+            <div>Hover shows what you&apos;d pick; Hide removes OSM features on reload.</div>
           </div>
         </div>
       )}
