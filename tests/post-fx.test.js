@@ -8,18 +8,32 @@ import { createPostFx, getPostFxPassState } from '../lib/engine/post-fx.js';
 
 describe('post-processing quality policy', () => {
   it('keeps both passes on for high quality at any time', () => {
-    expect(getPostFxPassState('high', 0)).toEqual({ active: true, ssao: true });
-    expect(getPostFxPassState('high', 1)).toEqual({ active: true, ssao: true });
+    expect(getPostFxPassState('high', 0)).toEqual({ active: true, ssao: true, composer: true });
+    expect(getPostFxPassState('high', 1)).toEqual({ active: true, ssao: true, composer: true });
   });
 
   it('enables bloom alone for medium night and disables it in daylight', () => {
-    expect(getPostFxPassState('medium', 0.85)).toEqual({ active: true, ssao: false });
-    expect(getPostFxPassState('medium', 0.15)).toEqual({ active: false, ssao: false });
+    expect(getPostFxPassState('medium', 0.85)).toEqual({ active: true, ssao: false, composer: true });
+    expect(getPostFxPassState('medium', 0.15)).toEqual({ active: false, ssao: false, composer: true });
   });
 
   it('keeps both passes off on low quality', () => {
-    expect(getPostFxPassState('low', 1)).toEqual({ active: false, ssao: false });
+    expect(getPostFxPassState('low', 1)).toEqual({ active: false, ssao: false, composer: false });
   });
+});
+
+it('keeps drawing through the composer when effects turn off, so program keys do not change', () => {
+  const renderer = { getSize: (size) => size.set(320, 180), getPixelRatio: () => 1 };
+  const fx = createPostFx(renderer, new THREE.Scene(), new THREE.PerspectiveCamera());
+  fx.setEnabled(false, false, true);
+  expect(fx.active).toBe(false);
+  expect(fx.composerActive).toBe(true);
+  expect(fx.sceneTarget).not.toBeNull();
+  fx.setEnabled(true, false, true); // dusk: bloom on, same target
+  expect(fx.bloomActive).toBe(true);
+  fx.setEnabled(false, false, false);
+  expect(fx.sceneTarget).toBeNull();
+  fx.dispose();
 });
 
 it('releases every owned post-processing pass and the SSAO resources omitted by Three.js', () => {

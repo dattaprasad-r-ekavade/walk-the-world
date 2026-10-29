@@ -537,7 +537,36 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false, demo
 
     postFx = createPostFx(renderer, scene, camera);
     postFx.setSize(mount.clientWidth, mount.clientHeight);
-    applyQuality = (q) => {
+
+    // City groups stay hidden until this resolves. Drawing a mesh with a new
+    // material links its shader program synchronously on first use; on an Intel
+    // UHD laptop the spawn city's ~40 programs froze the page for ~6 s that way.
+    // compileAsync links them in parallel (KHR_parallel_shader_compile) and
+    // compiles hidden objects too, using the scene's lights.
+    // compileAsync does its synchronous compile() before returning, so the
+    // render target only needs to be swapped around that call.
+    const warmCellShaders = async (group, label = "city.cell-shader-warmup") => {
+      if (typeof renderer.compileAsync !== "function") return;
+      try {
+        await measurePerfAsync(label, () => {
+          const previous = renderer.getRenderTarget();
+          renderer.setRenderTarget(postFx?.sceneTarget ?? null);
+          try {
+            return renderer.compileAsync(group, camera, scene);
+          } finally {
+            renderer.setRenderTarget(previous);
+          }
+        });
+      } catch (error) {
+        console.warn("[street] shader warm-up failed:", error?.message || error);
+      }
+    };
+    // auto: a runtime step from the fps guard. It must not touch anything in a
+    // shader's program key (shadowMap.enabled, castShadow): flipping those
+    // recompiles every lit material at once, a multi-second freeze on weak GPUs
+    // exactly when the frame rate is already struggling. Shadows stay on (with
+    // the low tier's small map) until the visitor picks "low" themselves.
+    applyQuality = (q, { auto = false } = {}) => {
       const quality = q || "medium";
       basePixelRatio =
         quality === "low"
@@ -549,8 +578,10 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false, demo
       renderScaleState = createRenderScaleState(1);
       frameWindowCount = 0;
       renderer.setPixelRatio(basePixelRatio);
-      renderer.shadowMap.enabled = quality !== "low";
-      sun.castShadow = quality !== "low";
+      if (!auto) {
+        renderer.shadowMap.enabled = quality !== "low";
+        sun.castShadow = quality !== "low";
+      }
       if (quality === "low") sun.shadow.mapSize.set(512, 512);
       else if (quality === "medium") sun.shadow.mapSize.set(1024, 1024);
       else sun.shadow.mapSize.set(2048, 2048);
@@ -572,7 +603,8 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false, demo
         markPerf("ktx2-high-textures-released", { estimatedGpuBytes: sharedKtx2GpuBytes });
       }
       const postFxState = postFxOverride || getPostFxPassState(quality, currentStreetLightNight);
-      postFx.setEnabled(postFxState.active, postFxState.ssao);
+      // an auto step keeps the composer as it is (see getPostFxPassState)
+      postFx.setEnabled(postFxState.active, postFxState.ssao, auto ? postFx.composerActive : postFxState.composer);
       setPerfMetadata({
         qualityTier: quality,
         pixelRatio: renderer.getPixelRatio(),
@@ -644,7 +676,8 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false, demo
       // 21.0 night grade: commit to darkness. Bloom on at night for medium+,
       // sky/fog go deep blue-black, non-emissive fill drops so lamps read.
       const postFxState = postFxOverride || getPostFxPassState(qualityTier, winGlow);
-      postFx.setEnabled(postFxState.active, postFxState.ssao);
+      // time of day only toggles effects; the composer stays as the tier set it
+      postFx.setEnabled(postFxState.active, postFxState.ssao, postFx.composerActive);
       setPerfMetadata({
         hour,
         weather: weatherAmt * 100,
@@ -884,6 +917,8 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false, demo
       setStage(prebuilt ? "Loading prebuilt city…" : `Building city (${elements.length} features)…`);
       setReadyPct((p) => Math.max(p, 60));
       const cityRoot = new THREE.Group();
+      // Hidden until its shaders are compiled (see warmCellShaders).
+      cityRoot.visible = false;
       scene.add(cityRoot);
       try {
         if (disposed) return false;
@@ -927,13 +962,10 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false, demo
           resumedPosition,
           skipOverture: window.__BENCH_MODE === true,
         }), { elements: elementCount, prebuilt });
-        if (prebuilt && typeof renderer.compileAsync === "function") {
-          try {
-            await measurePerfAsync("city.prebuilt-shader-warmup", () => renderer.compileAsync(cityRoot, camera, scene));
-          } catch (error) {
-            console.warn("[street] prebuilt shader warm-up failed:", error?.message || error);
-          }
-        }
+        await warmCellShaders(cityRoot, prebuilt ? "city.prebuilt-shader-warmup" : "city.spawn-shader-warmup");
+        if (disposed) return false;
+        cityRoot.visible = true;
+        renderer.shadowMap.needsUpdate = true;
         return true;
       } catch (e) {
         disposeSceneGroup(cityRoot, scene, sharedMaterialTextures());
@@ -1542,7 +1574,7 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false, demo
             qualityGuardGood = 0;
             lastQualityGuard = now;
             qualityTier = nextQuality;
-            applyQuality(nextQuality);
+            applyQuality(nextQuality, { auto: true });
             changeSettingStore({ quality: nextQuality, qualityMode: "auto" });
           }
         }
@@ -1728,7 +1760,7 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false, demo
             patchTerrain(c.x, c.z, tp.radius || 10, tp.height);
           }
         },
-        warmPrebuiltCell: (group) => renderer.compileAsync?.(group, camera, scene),
+        warmCellShaders,
         isDisposed: () => disposed,
         onLoading: (n) => {
           if (disposed) return;
