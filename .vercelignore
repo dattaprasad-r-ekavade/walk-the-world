@@ -6,6 +6,7 @@ benchmarks
 output
 screenshots
 scripts/*
+!scripts/prebuilt-cell-revision.mjs
 !scripts/stamp-sw-revision.mjs
 terminals
 tests
