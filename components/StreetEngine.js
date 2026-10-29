@@ -164,7 +164,7 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false, demo
     if (patch.hour !== undefined) engineRef.current.setTime?.(patch.hour);
     if (patch.weather !== undefined) {
       engineRef.current.setWeather?.(patch.weather);
-      engineRef.current.setPrecip?.(patch.weather >= 85 ? "rain" : null);
+      engineRef.current.setPrecip?.(patch.weather >= STREET.PRECIP_WEATHER_THRESHOLD ? "rain" : null);
     }
     if (patch.quality) engineRef.current.setQuality?.(patch.quality);
     if (patch.music !== undefined) engineRef.current.setMusic?.(patch.music);
@@ -1580,11 +1580,11 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false, demo
       if (demoApplied) changeSettingStore({ hour: initialHour, weather: initialWeather });
       runtime.current.setTime(initialHour);
       runtime.current.setWeather(initialWeather);
-      runtime.current.setPrecip(initialWeather >= 85 ? "rain" : null);
+      runtime.current.setPrecip(initialWeather >= STREET.PRECIP_WEATHER_THRESHOLD ? "rain" : null);
       setPerfMetadata({
         hour: initialHour,
         weather: initialWeather,
-        precipitationMode: initialWeather >= 85 ? "rain" : null,
+        precipitationMode: initialWeather >= STREET.PRECIP_WEATHER_THRESHOLD ? "rain" : null,
       });
       loadAvatar();
       loop();
