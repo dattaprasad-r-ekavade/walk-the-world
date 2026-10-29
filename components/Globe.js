@@ -129,13 +129,35 @@ export default function Globe({ controllerRef, onReady, onStatus, onProgress, po
 
       // Clean extruded buildings: Cesium OSM Buildings, styled by height so
       // the city reads as a designed game world (no melted photogrammetry).
+      // High tier only, loaded the first time the camera comes within
+      // BUILDINGS_LOAD_HEIGHT of the ground. Their tileset JSON and lit shaders
+      // roughly doubled main-thread blocking on an Intel UHD laptop (globe load
+      // 5.7-6.4 s vs 3.0-3.7 s without, zoom-in 4.0-5.0 s vs 2.2-2.5 s), and
+      // loading them lazily on medium only moved that cost into the zoom. The
+      // street engine carries the city detail; flights to it hide these anyway.
+      const BUILDINGS_LOAD_HEIGHT = 20000; // metres above the ellipsoid
       let osmBuildings = null;
-      progress(75, "Raising buildings…");
-      if (ionToken) {
+      let osmBuildingsLoad = null;
+      let facadeShaderRef = null;
+      let currentTier = "medium";
+      const applyBuildingTier = () => {
+        if (!osmBuildings) return;
+        osmBuildings.maximumScreenSpaceError = 20;
+        osmBuildings.customShader = facadeShaderRef;
+        osmBuildings.show = currentTier === "high";
+      };
+      const ensureOsmBuildings = () => {
+        if (osmBuildingsLoad || !ionToken) return osmBuildingsLoad;
+        osmBuildingsLoad = (async () => {
         try {
-          osmBuildings = await Cesium.createOsmBuildingsAsync({
+          const tileset = await Cesium.createOsmBuildingsAsync({
             maximumScreenSpaceError: 24, // building LOD (default 16)
           });
+          if (destroyed) {
+            tileset.destroy?.();
+            return null;
+          }
+          osmBuildings = tileset;
           osmBuildings.dynamicScreenSpaceError = true;
           osmBuildings.dynamicScreenSpaceErrorDensity = 0.002;
           // Facade "mask": NOTE — Cesium cannot combine Cesium3DTileStyle
@@ -181,11 +203,17 @@ export default function Globe({ controllerRef, onReady, onStatus, onProgress, po
           } catch (e) {
             console.warn("[cesium] facade shader unavailable:", e?.message);
           }
+          facadeShaderRef = osmBuildings.customShader || null;
+          applyBuildingTier();
           scene.primitives.add(osmBuildings);
+          return osmBuildings;
         } catch (e) {
           console.warn("[cesium] OSM Buildings unavailable:", e?.message);
+          return null;
         }
-      }
+        })();
+        return osmBuildingsLoad;
+      };
 
       // ---- Painted roads: fetch OSM highways around the walker and draw
       // ground-clamped corridors colored + sized by road class. ----
@@ -472,6 +500,7 @@ export default function Globe({ controllerRef, onReady, onStatus, onProgress, po
       };
 
       const enterWalk = async (latDeg, lonDeg) => {
+        ensureOsmBuildings(); // walking inside Cesium collides with them
         let lon, lat;
         if (latDeg !== undefined) {
           lon = Cesium.Math.toRadians(lonDeg);
@@ -548,7 +577,7 @@ export default function Globe({ controllerRef, onReady, onStatus, onProgress, po
         try {
           scene.globe.maximumScreenSpaceError = on ? 8 : 2.5;
           if (osmBuildings) {
-            osmBuildings.maximumScreenSpaceError = on ? 64 : 28;
+            osmBuildings.maximumScreenSpaceError = on ? 64 : 20;
             // Profiled on an Intel UHD laptop: during a street-bound flight the
             // building tileset spent ~0.8 s parsing tileset JSON and ~1.5 s
             // linking shaders on the main thread, for buildings that are never
@@ -688,6 +717,11 @@ export default function Globe({ controllerRef, onReady, onStatus, onProgress, po
           } else if (fps > 55 && viewer.resolutionScale < 1.0) {
             viewer.resolutionScale = Math.min(1.0, viewer.resolutionScale + 0.05);
           }
+          // a street-bound flight hides buildings anyway; don't start loading them then
+          if (!osmBuildingsLoad && currentTier === "high" && !flying &&
+              camera.positionCartographic.height < BUILDINGS_LOAD_HEIGHT) {
+            ensureOsmBuildings();
+          }
         }
         if (walker.active) {
           const dt = walker.lastTime
@@ -790,10 +824,11 @@ export default function Globe({ controllerRef, onReady, onStatus, onProgress, po
       };
       scene.preUpdate.addEventListener(tickListener);
 
-      let facadeShaderRef = osmBuildings ? osmBuildings.customShader : null;
       let manualQuality = useGameStore.getState().settings?.qualityMode === "manual";
       const applyQualityTier = (quality) => {
         if (!quality) return;
+        currentTier = quality;
+        applyBuildingTier();
         // Animated ocean is its own globe shader variant per tile type. With it
         // off, zooming toward a city spent ~30% less main-thread time linking
         // shaders on an Intel UHD laptop (2.7-2.9 s vs 3.9-4.2 s), so only the
@@ -803,26 +838,14 @@ export default function Globe({ controllerRef, onReady, onStatus, onProgress, po
           viewer.resolutionScale = 0.65;
           scene.globe.maximumScreenSpaceError = 3.5;
           scene.postProcessStages.fxaa.enabled = false;
-          if (osmBuildings) {
-            osmBuildings.maximumScreenSpaceError = 44;
-            osmBuildings.customShader = undefined;
-          }
         } else if (quality === "medium") {
           viewer.resolutionScale = 0.85;
           scene.globe.maximumScreenSpaceError = 2.5;
           scene.postProcessStages.fxaa.enabled = false;
-          if (osmBuildings) {
-            osmBuildings.maximumScreenSpaceError = 28;
-            osmBuildings.customShader = facadeShaderRef;
-          }
         } else {
           viewer.resolutionScale = 1.0;
           scene.globe.maximumScreenSpaceError = 2.0;
           scene.postProcessStages.fxaa.enabled = true;
-          if (osmBuildings) {
-            osmBuildings.maximumScreenSpaceError = 20;
-            osmBuildings.customShader = facadeShaderRef;
-          }
         }
       };
       // 16.3: auto-pick once if user hasn't locked a preset
@@ -879,7 +902,7 @@ export default function Globe({ controllerRef, onReady, onStatus, onProgress, po
       }
       progress(100, "Ready");
       if (onReady)
-        onReady({ hasTiles: !!osmBuildings, hasBuildings: !!osmBuildings, hasTerrain });
+        onReady({ hasTiles: !!ionToken, hasBuildings: !!ionToken, hasTerrain });
       emitStatus();
     })().catch(e => { if (!destroyed) setError(e); });
 
