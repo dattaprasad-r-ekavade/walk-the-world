@@ -8,6 +8,7 @@ vi.mock('@/lib/engine/ground-tiles', () => ({
 
 import { drawGroundTileImage } from '@/lib/engine/ground-tiles';
 import { createTerrainSystem } from '@/lib/engine/street/terrain';
+import { prefetchSpawnTerrain, spawnTerrainTileKey, takeSpawnTerrainPrefetch } from '@/lib/engine/street/terrain-prefetch';
 
 const imageInstances = [];
 
@@ -162,6 +163,94 @@ describe('terrain tile lifecycle', () => {
     expect(imageInstances).toHaveLength(5);
     expect(scene.children).toHaveLength(2);
     expect(terrain.tileCanvases).toHaveLength(1);
+    terrain.dispose();
+  });
+  it('reuses the street page spawn-tile request once, then asks the network again', async () => {
+    vi.stubGlobal('Image', PendingImage);
+    vi.stubGlobal('document', {
+      createElement: () => {
+        const canvas = { width: 0, height: 0 };
+        const context = {
+          canvas,
+          drawImage: vi.fn(),
+          getImageData: vi.fn(() => ({ data: new Uint8ClampedArray(256 * 256 * 4) })),
+          putImageData: vi.fn(),
+          fillRect: vi.fn(),
+        };
+        canvas.getContext = () => context;
+        return canvas;
+      },
+    });
+    const lat0 = 40.758;
+    const lon0 = -73.9855;
+    const key = spawnTerrainTileKey(lat0, lon0);
+
+    prefetchSpawnTerrain(lat0, lon0);
+    prefetchSpawnTerrain(lat0, lon0); // idempotent for the same tile
+    expect(imageInstances).toHaveLength(1);
+    expect(imageInstances[0]._src).toContain(`/terrarium/14/${key}.png`);
+
+    const terrain = createTerrainSystem({
+      scene: new THREE.Scene(),
+      lat0,
+      lon0,
+      toLocal: (lat, lon) => ({ x: lon, z: lat }),
+      groundSource: 'osm',
+      signal: new AbortController().signal,
+      onStage: vi.fn(),
+      onProgress: vi.fn(),
+    });
+    const load = terrain.ensureHeightTiles([key]);
+    await flushImages();
+    expect(imageInstances).toHaveLength(1); // no second request for the same tile
+    resolveImage(0);
+    await expect(load).resolves.toBe(true);
+    expect(takeSpawnTerrainPrefetch(key)).toBeNull();
+
+    terrain.evictFar(0, 0, 0);
+    const reload = terrain.ensureHeightTiles([key]);
+    await vi.waitFor(() => expect(imageInstances).toHaveLength(2));
+    resolveImage(1);
+    await expect(reload).resolves.toBe(true);
+    terrain.dispose();
+  });
+
+  it('retries the spawn tile when the early request failed', async () => {
+    vi.stubGlobal('Image', PendingImage);
+    vi.stubGlobal('document', {
+      createElement: () => {
+        const canvas = { width: 0, height: 0 };
+        const context = {
+          canvas,
+          drawImage: vi.fn(),
+          getImageData: vi.fn(() => ({ data: new Uint8ClampedArray(256 * 256 * 4) })),
+          putImageData: vi.fn(),
+          fillRect: vi.fn(),
+        };
+        canvas.getContext = () => context;
+        return canvas;
+      },
+    });
+    const lat0 = 55.9505;
+    const lon0 = -3.1875;
+    const key = spawnTerrainTileKey(lat0, lon0);
+    prefetchSpawnTerrain(lat0, lon0);
+    imageInstances[0].onerror();
+
+    const terrain = createTerrainSystem({
+      scene: new THREE.Scene(),
+      lat0,
+      lon0,
+      toLocal: (lat, lon) => ({ x: lon, z: lat }),
+      groundSource: 'osm',
+      signal: new AbortController().signal,
+      onStage: vi.fn(),
+      onProgress: vi.fn(),
+    });
+    const load = terrain.ensureHeightTiles([key]);
+    await vi.waitFor(() => expect(imageInstances).toHaveLength(2));
+    resolveImage(1);
+    await expect(load).resolves.toBe(true);
     terrain.dispose();
   });
 });
