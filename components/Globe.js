@@ -8,6 +8,7 @@ import { trackStatusUpdate } from "@/lib/perf";
 import { touchInputRef, readTouchMovement } from "@/lib/touch-input";
 import { applyAutoQuality } from "@/lib/engine/gpu-tier";
 import { useGameStore } from "@/stores/game-store";
+import { streetUrl } from "@/lib/geo";
 
 // CesiumJS 3D globe — stylized single-player walking game.
 //
@@ -23,10 +24,13 @@ const AVATAR_URL =
   "https://cdn.jsdelivr.net/gh/KhronosGroup/glTF-Sample-Models@master/2.0/RiggedFigure/glTF-Binary/RiggedFigure.glb";
 const AVATAR_HEADING_OFFSET = Math.PI / 2; // glTF forward-axis correction
 
-export default function Globe({ controllerRef, onReady, onStatus, onProgress, posRef }) {
+export default function Globe({ controllerRef, onReady, onStatus, onProgress, posRef, onDepart, onArrive }) {
   const [error, setError] = useState(null);
   const containerRef = useRef(null);
   const statusRef = useRef(onStatus);
+  // street hand-off: onDepart when a street-bound flight starts, onArrive when it lands
+  const handoffRef = useRef({ onDepart, onArrive });
+  handoffRef.current = { onDepart, onArrive };
   statusRef.current = onStatus;
 
   useEffect(() => {
@@ -536,17 +540,34 @@ export default function Globe({ controllerRef, onReady, onStatus, onProgress, po
        * flight, restore it on arrival (the user is moving too fast to notice
        * the detail drop, but they do notice dropped frames).
        */
-      const flightLod = (on) => {
+      // Also freezes the adaptive resolution below: each resolutionScale step
+      // resizes every framebuffer, which is itself a hitch mid-flight.
+      let flying = false;
+      const flightLod = (on, hideBuildings = false) => {
+        flying = on;
         try {
           scene.globe.maximumScreenSpaceError = on ? 8 : 2.5;
-          if (osmBuildings) osmBuildings.maximumScreenSpaceError = on ? 64 : 28;
+          if (osmBuildings) {
+            osmBuildings.maximumScreenSpaceError = on ? 64 : 28;
+            // Profiled on an Intel UHD laptop: during a street-bound flight the
+            // building tileset spent ~0.8 s parsing tileset JSON and ~1.5 s
+            // linking shaders on the main thread, for buildings that are never
+            // seen because the street engine replaces the globe on arrival.
+            osmBuildings.show = !(on && hideBuildings);
+          }
         } catch { /* tileset not ready yet */ }
       };
 
-      const flyToStreet = async (lat, lon) => {
+      const flyToStreet = async (lat, lon, { demo = false } = {}) => {
         exitWalk();
-        flightLod(true);
-        const ground = await preciseGroundHeight(lon, lat);
+        const toStreet = walkEngine === "street";
+        flightLod(true, toStreet);
+        if (toStreet) handoffRef.current.onDepart?.(lat, lon);
+        // The exact height only matters when walking inside Cesium; waiting
+        // for it held the camera still for about a second after the click.
+        const ground = toStreet
+          ? saneHeight(scene.globe.getHeight(Cesium.Cartographic.fromDegrees(lon, lat))) ?? 0
+          : await preciseGroundHeight(lon, lat);
         if (destroyed) return;
         viewer.camera.flyTo({
           destination: Cesium.Cartesian3.fromDegrees(lon, lat, ground + 260),
@@ -557,14 +578,17 @@ export default function Globe({ controllerRef, onReady, onStatus, onProgress, po
           },
           duration: 3,
           complete: () => {
-            flightLod(false);
             if (destroyed) return;
-            if (walkEngine === "street") {
-              window.location.href = `/street?lat=${lat.toFixed(5)}&lon=${lon.toFixed(5)}`;
+            if (toStreet) {
+              // keep buildings hidden: the page is about to swap to the street engine
+              if (handoffRef.current.onArrive) handoffRef.current.onArrive(lat, lon, { demo });
+              else window.location.href = streetUrl(lat, lon, { demo });
             } else {
+              flightLod(false);
               enterWalk(lat, lon);
             }
           },
+          cancel: () => flightLod(false),
         });
       };
 
@@ -657,8 +681,8 @@ export default function Globe({ controllerRef, onReady, onStatus, onProgress, po
           fpsTime = now;
           // Adaptive resolution: drop render scale when struggling, restore
           // when there is headroom — keeps interaction near 60 FPS.
-          if (manualQuality) {
-            /* user picked a quality preset — don't fight it */
+          if (manualQuality || flying) {
+            /* user picked a quality preset, or a flight is running — don't resize now */
           } else if (fps > 0 && fps < 40 && viewer.resolutionScale > 0.7) {
             viewer.resolutionScale = Math.max(0.7, viewer.resolutionScale - 0.1);
           } else if (fps > 55 && viewer.resolutionScale < 1.0) {

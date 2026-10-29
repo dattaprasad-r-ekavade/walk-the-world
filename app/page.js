@@ -101,8 +101,21 @@ export default function Home() {
     setScreen('play');
     setPanel(null);
     setPhotoMode(false);
-    if (globeEnabled && globeReady) controllerRef.current?.flyToStreet(lat, lon);
+    if (globeEnabled && globeReady && controllerRef.current) controllerRef.current.flyToStreet(lat, lon, { demo });
     else router.push(streetUrl(lat, lon, { demo }));
+  };
+
+  // Use the 3 s globe flight to download what the street view needs first:
+  // the engine chunk, the spawn city cell (kept in cityData's module cache,
+  // which survives the client-side navigation) and the spawn terrain tile.
+  const warmStreet = (lat, lon) => {
+    import('@/components/StreetEngine').catch(() => {});
+    import('@/lib/engine/cityData')
+      .then((m) => m.fetchCityData(lat, lon, { readonly: true }))
+      .catch(() => {});
+    import('@/lib/engine/street/terrain-prefetch')
+      .then((m) => m.prefetchSpawnTerrain(lat, lon))
+      .catch(() => {});
   };
 
   // Warm the HTTP/SW cache with the shared KTX2 facade set + Basis decoder
@@ -233,6 +246,8 @@ export default function Home() {
           onStatus={publishStatus}
           onProgress={setProgress}
           posRef={posRef}
+          onDepart={warmStreet}
+          onArrive={(lat, lon, { demo }) => router.push(streetUrl(lat, lon, { demo }))}
         />}
       </EngineErrorBoundary>
 
