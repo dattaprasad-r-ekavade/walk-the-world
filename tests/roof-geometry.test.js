@@ -21,4 +21,10 @@ describe('building roof templates', () => {
     expect(createRoofGeometry(reversed, 0, 2, 'skillion')).toBeTruthy();
     expect(createRoofGeometry(rectangle, 0, 2, 'flat')).toBeNull();
   });
+
+  it('gives every shape the same layout so one colour batch can merge', async () => {
+    const { mergeGeometries } = await import('three/examples/jsm/utils/BufferGeometryUtils.js');
+    const geos = ['gabled', 'hipped', 'skillion', 'pyramidal', 'dome'].map((shape) => createRoofGeometry(rectangle, 12, 3, shape));
+    expect(mergeGeometries(geos, false)).toBeTruthy();
+  });
 });
