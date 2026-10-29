@@ -683,7 +683,12 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false, demo
     let precip = null;
     runtime.current.setPrecip = (mode) => {
       // mode: null | "rain" | "snow"
-      if (precip) { scene.remove(precip.points); precip = null; }
+      if (precip) {
+        scene.remove(precip.points);
+        precip.geo.dispose();
+        precip.points.material.dispose();
+        precip = null;
+      }
       if (!mode) return;
       const N2 = mode === "rain" ? 1600 : 900;
       const pos2 = new Float32Array(N2 * 3);
@@ -1061,7 +1066,7 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false, demo
             else if (u.type === "asset") {
               const rec = editor.placed.pop();
               if (rec) {
-                scene.remove(rec.group);
+                disposeSceneGroup(rec.group, scene);
                 const arr = runtime.current.edits.assets || [];
                 const ai = arr.indexOf(rec.entry);
                 if (ai >= 0) arr.splice(ai, 1);
@@ -1095,7 +1100,7 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false, demo
             if (e.code === "BracketLeft") { rec.group.scale.setScalar((rec.entry.scale = Math.max(0.1, (rec.entry.scale || 1) * 0.9))); editorTools.selectionBox?.update(); }
             if (e.code === "BracketRight") { rec.group.scale.setScalar((rec.entry.scale = Math.min(50, (rec.entry.scale || 1) * 1.1))); editorTools.selectionBox?.update(); }
             if (e.code === "KeyX") {
-              scene.remove(rec.group);
+              disposeSceneGroup(rec.group, scene);
               editor.placed.splice(editor.selected, 1);
               const arr = runtime.current.edits.assets || [];
               const ai = arr.indexOf(rec.entry);
@@ -1762,10 +1767,14 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false, demo
           ];
           for (const [mkey, file, target, mode] of specs) {
             if (!names.has(file)) continue;
+            // The merge copies geometry, so the per-mesh clones and the GLB's own
+            // geometries are freed once we are done with them.
+            const geos = [];
+            let root = null;
             try {
-              const root = await loadGLB(`/api/assets/${file}`);
+              root = await loadGLB(`/api/assets/${file}`);
               root.updateMatrixWorld(true);
-              const geos = [], mats = [];
+              const mats = [];
               root.traverse((o) => {
                 // skip skinned/rigged meshes — InstancedMesh can't drive them
                 if (o.isMesh && !o.isSkinnedMesh && o.geometry) {
@@ -1806,6 +1815,9 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false, demo
               console.log(`[population] using ${file} for ${mkey}`);
             } catch (err) {
               console.warn(`[population] ${file}:`, err?.message);
+            } finally {
+              for (const g of geos) g.dispose();
+              root?.traverse((o) => o.geometry?.dispose?.());
             }
           }
         } catch { /* library unreachable — built-ins */ }
@@ -2099,7 +2111,7 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false, demo
             const line = [d.locality || d.city, d.countryName].filter(Boolean).join(", ");
             if (line) setPlace(line);
           })
-          .catch(() => {});
+          .catch((e) => console.warn("[street] reverse geocode:", e?.message));
       }
     })().catch(error => {
       if (!disposed) { setStage(error.message || "Unable to load world"); setBootError(error); }
@@ -2128,6 +2140,7 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false, demo
       window.removeEventListener("keyup", onKey);
       document.removeEventListener("mousemove", onMouse);
       document.removeEventListener("pointerlockchange", onLock);
+      if (document.pointerLockElement === canvas) document.exitPointerLock?.();
       window.removeEventListener("resize", onResize);
       population?.dispose();
       streetLights?.dispose();
