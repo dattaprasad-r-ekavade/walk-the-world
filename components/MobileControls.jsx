@@ -26,9 +26,10 @@ export function MobileControls({ enabled = true }) {
   const knobRef = useRef(null);
 
   useEffect(() => {
-    touchInputRef.current = stateRef.current;
+    const touchState = stateRef.current;
+    touchInputRef.current = touchState;
     return () => {
-      if (touchInputRef.current === stateRef.current) touchInputRef.current = null;
+      if (touchInputRef.current === touchState) touchInputRef.current = null;
     };
   }, []);
 
