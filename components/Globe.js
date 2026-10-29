@@ -794,6 +794,11 @@ export default function Globe({ controllerRef, onReady, onStatus, onProgress, po
       let manualQuality = useGameStore.getState().settings?.qualityMode === "manual";
       const applyQualityTier = (quality) => {
         if (!quality) return;
+        // Animated ocean is its own globe shader variant per tile type. With it
+        // off, zooming toward a city spent ~30% less main-thread time linking
+        // shaders on an Intel UHD laptop (2.7-2.9 s vs 3.9-4.2 s), so only the
+        // high tier keeps it; the OSM imagery still paints water blue.
+        scene.globe.showWaterEffect = hasTerrain && quality === "high";
         if (quality === "low") {
           viewer.resolutionScale = 0.65;
           scene.globe.maximumScreenSpaceError = 3.5;
