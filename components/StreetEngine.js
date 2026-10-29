@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { LoadingScreen } from "@/components/hud/Panels";
-import { lon2tx, lat2ty, tx2lon, ty2lat, makeLocalFrame } from "@/lib/engine/geo";
+import { lon2tx, lat2ty, makeLocalFrame } from "@/lib/engine/geo";
 import { fetchCityData, cityCacheKey } from "@/lib/engine/cityData";
 import { fetchPrebuiltCell } from "@/lib/engine/prebuilt-cell-runtime";
 import { rebasePrebuiltCityResult } from "@/lib/engine/prebuilt-cell-transform";
@@ -14,7 +14,6 @@ import { createStreetEditor } from "@/lib/engine/street/editor";
 import { createPopulation } from "@/lib/engine/population";
 import { createAmbience } from "@/lib/engine/ambience";
 import { createStreetLights } from "@/lib/engine/street-lights";
-import { drawGroundTileImage, groundTileUrl } from "@/lib/engine/ground-tiles";
 import { whereAmIRound } from "@/lib/daily";
 import { createEnvController } from "@/lib/engine/env-map";
 import { createCityBuilderPool } from "@/lib/engine/city-builder";
@@ -38,7 +37,6 @@ import { STREET } from "@/lib/engine/street/constants";
 import { createCollision } from "@/lib/engine/street/collision";
 import { createTerrainSystem } from "@/lib/engine/street/terrain";
 import { disposeSceneGroup } from "@/lib/engine/street/resources";
-import { createHudRef } from "@/lib/engine/street/hud-ref";
 import { GameShell } from "@/components/game-shell/GameShell";
 import { useRouter } from "next/navigation";
 import { demoHeadingRadians, streetUrl } from "@/lib/geo";
@@ -796,7 +794,6 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false, demo
     const lampGlows = [];
     let avatar = null;
     let running = true;
-    let hudDom = null;
     const loadTerrain = terrain.load;
     const loadTerrainTile = terrain.loadTile;
     // ---- buildings + roads (Worker geometry + main-thread assemble) ----
@@ -1192,7 +1189,6 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false, demo
     const onLock = () => {
       const locked = document.pointerLockElement === canvas;
       setHudLocked(locked);
-      if (hudDomRef.current?.__hudApi) hudDomRef.current.__hudApi.setLocked(locked);
     };
     const onResize = () => {
       camera.aspect = mount.clientWidth / mount.clientHeight;
@@ -1545,16 +1541,7 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false, demo
         }
       }
       if (++hudTick % 20 === 0) {
-        if (!hudDom && hudDomRef.current) {
-          hudDom = createHudRef(hudDomRef.current);
-        }
         recordFpsSample(fpsVal);
-        hudDom?.update({
-          fps: fpsVal,
-          elev: Math.round(gy),
-          locked: document.pointerLockElement === canvas,
-          third: player.third,
-        });
         // GameShell reads React `status.fps` — keep it in sync (data-hud-fps is gone).
         // Each setLiveHud re-renders the React tree; elevation changes every
         // metre while walking slopes, so cap at ~2 Hz.
