@@ -1,6 +1,6 @@
 # Walk the World — Performance and Visuals Implementation Plan
 
-Updated: 29 October 2026 (evening). Reviewed base: `e1d8289` on `origin/main`.
+Updated: 29 October 2026 (evening). Reviewed base: `71450de` on `origin/main`.
 Demo gates D1–D8 are closed. The smoothness track (section 0a) closed S1–S6 from
 live-deploy profiling; S7–S9 stay open. The suite now has 217 tests; tests and
 the production build pass. The dependency audit gate below is still open.
@@ -148,15 +148,20 @@ Done:
 Open:
 
 - [ ] **S7 — Confirm the fixes on the live deploy.** Run the tour once against
-  production after the `71e66a0` deploy. One browser at a time; do not run
-  back-to-back profiling on the demo laptop. Acceptance: no frame over 500 ms
-  in the walk, night switch and travel segments, and zero console errors. A
-  29 Oct visible run against the live deployment reached Tokyo but measured a
-  909.6 ms maximum frame during globe travel and saw a 404 plus a reverse-
-  geocode timeout. The run stopped before walking/night/city-to-city segments
-  because the harness selected the brand icon canvas. It was on an i7-13650HX
-  system rather than the Intel UHD demo laptop, so it does not close S7. See
-  [the partial live smoke](benchmarks/results/stage0/s7-live-deploy-2026-10-29.md).
+  production after `71450de`. Acceptance: no frame over 500 ms in the walk,
+  night-switch and travel segments, and zero console errors. A visible Chrome
+  tour on 29 Oct completed globe travel to Tokyo, walking, the night switch and
+  street travel to Edinburgh. On this Intel Core i7-13650HX host using ANGLE
+  Intel UHD Graphics (0xA78B), frame maxima were 881.9 ms for globe travel,
+  90.3 ms for walking, 41.6 ms for the night switch and 243 ms for street
+  travel. The globe segment therefore misses the threshold. The browser had no
+  console errors or HTTP responses >=400. A production-origin GET of the live
+  R2 Tokyo cell returned 200 and was CORS-readable. This is not the target
+  Intel UHD i5-1035G1 demo laptop, so it does not close S7. The Edinburgh
+  screenshot also showed the Travel panel and prior Shibuya label after arrival;
+  the current changes close the panel and clear the old label on travel, pending
+  post-deploy confirmation. See
+  [the live-deploy report](benchmarks/results/stage0/s7-live-deploy-2026-10-29.md).
 - [ ] **S8 — Walking cost on weak GPUs.** Walking is GPU-bound on Intel UHD
   (fill rate, not draw calls). Candidates, in order: cheaper interior-window
   shader at distance (drop the ray-box sample beyond about 40 m instead of
@@ -321,8 +326,8 @@ mobile, offline and several visual gates remain open.
 | 6–8 Alternatives | B1 infrastructure measured and parked (not shipped); Stage 6/7 deferred | Reopen B1 only through B1b cached elevation grids; other B1 acceptance remains outside the active track |
 | 9 Integration | Open | Full regression, hardware/visual acceptance and release records |
 
-Latest validation: all 217 tests and the production build pass on the `e1d8289`
-review base with the R7 opt-in prebuilt-loader change.
+Latest local validation: all 217 tests and the production build pass on the
+`71450de` base with the R7 opt-in loader and street-travel UI fix.
 Earlier review run: all 207 tests across 33 files and the production build passed,
 including the B1 codec, frame transform, terrain revision and streamed-cell
 overlap-index fallback checks. Raw and prebuilt production builds both pass.
@@ -333,15 +338,16 @@ rerun the full device performance matrix or prove release readiness. The new
 regression covers the reproduced streamed prebuilt ownership conflict; device,
 editor and lifecycle acceptance remain open.
 
-The 29 October current-main recorded-Rome smoke reached movement but failed its
-browser diagnostic gate with four app-origin HTTP 404 responses. A short follow-up
-identified a missing local `/prebuilt-cells/index.json`; the prebuilt loader treats
-an unavailable index as a cache miss and falls back to raw city data. The recorded
-run sampled only 14 frames over 1.067 seconds while startup and cell loading were
-still active, so its 13 FPS and 216.8 ms p95 are not performance acceptance data.
-A separate unrecorded local browser check also saw the configured public-R2 city
-fetch blocked by CORS; the recorded fixture run did not exercise that live-data
-path. See R7 for the required rerun and deployment-origin checks.
+The earlier 29 October recorded-Rome smoke reached movement but failed its
+browser diagnostic gate with four app-origin HTTP 404 responses. A follow-up
+identified a missing local `/prebuilt-cells/index.json`; the R7 change makes
+prebuilt lookup opt-in because B1 artifacts are not published. That recorded run
+sampled only 14 frames over 1.067 seconds while startup and cell loading were
+active, so its 13 FPS and 216.8 ms p95 are not performance acceptance data. A
+separate local check had also seen the configured public-R2 city fetch blocked
+by CORS. The post-deploy `71450de` tour now accounts for that path and returned no
+HTTP errors; R7 remains open for its settled five-second smoke. See R7 and the
+[S7 live-deploy report](benchmarks/results/stage0/s7-live-deploy-2026-10-29.md).
 
 ### Priority issues found in this review
 
@@ -438,17 +444,16 @@ Preserve gameplay and fallbacks.
   lookup unless `NEXT_PUBLIC_PREBUILT_CELL_BASE` is explicitly configured. A
   regression check verifies that an unconfigured base causes no request; the
   full suite and production build pass. A direct production request confirms
-  `/prebuilt-cells/index.json` returns 404. The partial S7 run also logged a
-  generic 404 and a BigDataCloud timeout; its 404 was not URL-correlated. Still
-  account for every 404 in a clean post-deploy run. The recorded smoke captured
-  only 14 frames during startup,
-  with a 1.067-second window, so its 13 FPS and 216.8 ms p95 are not usable for
-  performance acceptance. Separately verify the public-R2 CORS response from
-  the actual app origin in live-data mode: an unrecorded localhost check was
-  blocked by CORS, while the fixture-backed run does not validate that path.
-  Repeat a settled five-second visible-browser smoke after these checks; use the
-  matched repetitions already required by the plan before accepting a default
-  or quality-tier change.
+  `/prebuilt-cells/index.json` returns 404, while the opt-in loader no longer
+  requests it when no base is configured. The complete post-deploy S7 tour on
+  `71450de` recorded no HTTP responses >=400 and no console errors. A GET of the
+  live Tokyo R2 cell from the production origin returned 200 JSON with 3,665
+  elements and was readable by page JavaScript, closing the earlier R2 CORS
+  uncertainty. The recorded smoke captured only 14 frames during startup, with
+  a 1.067-second window, so its 13 FPS and 216.8 ms p95 remain unusable for
+  performance acceptance. Still run a separate settled five-second visible-
+  browser smoke; use the matched repetitions already required by the plan
+  before accepting a default or quality-tier change.
 
 ### Evidence/documentation corrections
 

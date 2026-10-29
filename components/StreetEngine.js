@@ -116,6 +116,10 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false, demo
   }, [place]);
 
   useEffect(() => {
+    setPlace(null);
+  }, [lat0, lon0]);
+
+  useEffect(() => {
     if (uiMode !== "editor") return;
     // Reuse the boot-time request when the engine already started one.
     (assetListPromiseRef.current || fetch("/api/assets").then((r) => (r.ok ? r.json() : [])).catch(() => []))
@@ -2230,7 +2234,10 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false, demo
           place={whereAmI && !whereAmI.revealed ? null : place}
           settings={settings}
           onSettingChange={changeSetting}
-          onTravel={(la, lo, demo) => router.push(streetUrl(la, lo, { demo: !!demo }))}
+          onTravel={(la, lo, demo) => {
+            setPanel(null);
+            router.push(streetUrl(la, lo, { demo: !!demo }));
+          }}
           savedPlaces={savedPlaces}
           onSavePlace={() => {
             const cur = posRef.current || { lat: lat0, lon: lon0 };
