@@ -29,3 +29,5 @@ benchmarks/results/**/*.png
 benchmarks/results/**/*.jpg
 benchmarks/results.json
 !benchmarks/results/**/*.md
+# rehearsal run reports (already-tracked ones remain tracked; acceptance *.md and PNGs stay)
+screenshots/**/*.json

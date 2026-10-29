@@ -181,80 +181,28 @@ Decisions taken from the research:
 
 ### Phase B — data foundation
 
-- [ ] **B1 — Prebuilt cell format (M).** Compact per-cell binary (quantized,
-  meshopt-compressed) produced by a baker that reuses city-builder-core, so the
-  browser skips Overpass JSON parsing and geometry building for baked cells.
-  Add frame-sliced GPU uploads and renderer.compileAsync shader warm-up.
-  Supersedes Stage 8 (8.1–8.5) and the Stage 6 prerequisite question.
-  The runtime and local artifact index are now connected. Builder/material
-  revisions gate loading; source, terrain-grid and edit revisions identify
-  immutable artifacts. Spawn and streamed cells reuse baked geometry only when
-  terrain and editor state match, otherwise they rebuild from raw JSON. Local
-  ENU rebasing, the existing frame-budgeted assembly and `compileAsync` are in
-  the path. A frozen Tokyo source cell baked to 761,486 B from 1,890,378 B raw
-  JSON (0.403×), with 1,644 clipped features, 16 terrain tiles, 121.5 ms builder
-  time and 135.7 ms encode time. A local production-preview smoke loaded the
-  baked spawn cell without requesting its raw JSON, then streamed the eight
-  neighboring cells from the frozen snapshot. It reached ready in 6.99 s and
-  settled 8 resident cells with one existing failed neighbor; the two console
-  errors were the known local assets 501 and geometry-merge warning. The 16.8 ms
-  p95 is headless only, not hardware acceptance. See the [B1 smoke evidence](screenshots/demo-track/rehearsal-2026-10-29-b1-prebuilt-smoke/).
-  The first matched 29 October headless run showed the baked path fetching nine
-  artifacts before discovering neighbor ID overlaps: 20,313,264 B total and
-  4.486 s cold median, versus 15,473,747 B and 3.515 s raw. The baker now writes
-  verified cell-to-cell overlap hints in the index, and the streamer skips known
-  conflicts before artifact fetch while retaining its decoded-ID check for old,
-  incomplete or capped indexes. Each entry now stores at most 64 overlap keys;
-  the 1,024-cell stress test with one shared feature produced 4,160 directed
-  links total. The nine-cell Tokyo index is now 9.5 KB; all eight
-  neighbors share IDs with spawn. The baker records only the terrain tiles
-  actually sampled by geometry, while loading a one-tile safety margin to keep
-  edge samples covered. The spawn uses four tiles (the other Tokyo cells use
-  two to five), down from 16 in the previous index. Runtime validation loads
-  height grids without creating terrain meshes or requesting ground imagery;
-  normal terrain streaming upgrades those grids to visuals without refetching
-  elevation. In the latest matched three-run headless comparison, raw reached
-  ready at 3.406 s cold / 1.793 s warm median and transferred 15,473,747 B.
-  Prebuilt reached ready at 3.567 s / 1.689 s and transferred 13,583,369 B raw
-  neighbors plus one 745,555 B spawn artifact (14,328,924 B total, 7.4% less).
-  Both settled at eight resident cells, the same one failed neighbor and zero
-  deferred cells, with the same known local assets 501 and geometry-merge
-  warning. Prebuilt was 4.7% slower cold and 5.8% faster warm in this run.
-  Headless host variance remains visible in both modes. The four-height-tile
-  phase still takes 1.82–2.10 s cold; hashing takes 6.8–9 ms. Unit tests now
-  cover editor-change fallback, cancellation of an in-flight prebuilt request,
-  and eviction/revisit through the prebuilt path. A 29 October matched visible-
-  Chrome comparison on an NVIDIA RTX 4060 Laptop GPU reached ready at 3.302 s
-  cold / 1.992 s warm raw and 3.440 s / 1.827 s prebuilt medians. Prebuilt was
-  4.2% slower cold, 8.3% faster warm and transferred 7.3% fewer bytes. The
-  four-height-tile validation took 1.58–2.01 s (1.72 s median); hashing took
-  6.8–9.7 ms. Both paths settled at eight resident cells, with the same failed
-  neighbor, zero deferred cells and known local errors. The WebGL2 renderer was
-  ANGLE/D3D11 on the RTX 4060; GPU timer and frame samples were captured, but
-  startup spikes make those short p95 windows diagnostic rather than acceptance.
-  WebGL does not expose reliable VRAM totals or per-geometry upload bytes.
-  Visual spot checks matched after baking at the exact Tokyo demo origin; the
-  rounded-key bake clipped 1,569 features versus 1,644 raw, while exact-origin
-  baking matched the raw clip count. A fixed five-second post-settle visible-
-  Chrome rerun captured about 300 frame and GPU samples per visit: frame p95
-  remained 16.8–16.9 ms in both modes, while GPU p95 ranged from 4.85 to 16.91
-  ms with a near-refresh-interval outlier in raw warm, prebuilt cold and
-  prebuilt warm windows. This
-  steady window does not isolate per-geometry upload submission. In this run,
-  raw/prebuilt cold medians were 3.431/3.590 s and warm medians were
-  1.765/1.868 s; prebuilt transferred 7.3% fewer cold bytes. B1 remains open
-  for integrated/mobile parity, editor Hide/save/reload acceptance and
-  upload-cost investigation. A phase-level
-  terrain trace found four cold sampled-tile image loads at 1.21–2.22 s each;
-  canvas reads took 0.9–2.0 ms and 65×65 downsampling 0.0–0.6 ms per tile.
-  Hash packing took 6.9–8.4 ms and SHA-256 completion 0.4–0.6 ms. The cold
-  terrain gate is dominated by image obtain/decode, so a hash rewrite is not a
-  useful target; evaluate a revision-aware cache only if it preserves mismatch
-  fallback.
-  See [the B1 decision](benchmarks/results/stage8/b1-matched-2026-10-29/decision.md);
-  detailed reports and screenshots remain ignored under
-  `benchmarks/results/stage8/b1-steady-visible-chrome-2026-10-29/`.
-  Artifacts remain local; production R2 publication needs its own release task.
+- [ ] **B1 — Prebuilt cell format (M). Infrastructure done; not shipped.**
+  Baker (`scripts/build-prebuilt-cells.mjs`) reuses city-builder-core and writes
+  quantized per-cell artifacts plus an index with bounded overlap hints.
+  Runtime (`lib/engine/prebuilt-cell-runtime.js`) loads them only when builder,
+  material, terrain and editor revisions match; otherwise it rebuilds from raw
+  JSON. `compileAsync` and the frame-budgeted assembly are in the path. A
+  Tokyo cell bakes to 0.40× raw JSON size.
+  - Result (29 Oct, matched Tokyo 3×3, RTX 4060 visible Chrome): 4.2% slower
+    cold, 8.3% faster warm, 7.3% fewer bytes than raw. Steady frame p95 is the
+    same in both modes (16.8–16.9 ms).
+  - Why cold is not faster: the terrain-match check must download and decode
+    four elevation tiles first (1.6–2.2 s cold). Hashing costs under 10 ms.
+  - Decision (29 Oct): do not publish artifacts to production R2 for the
+    demo. The gain does not pay for the extra release step. Keep the code; it
+    falls back to raw cells cleanly.
+  - Reopen only with **B1b**: cache sampled elevation grids per terrain
+    revision (or ship them inside the artifact) so cold loads skip the image
+    decode, while keeping the mismatch fallback. Still open after that:
+    integrated/mobile GPU parity, editor Hide/save/reload acceptance, upload
+    cost, and an R2 release task.
+  - Full numbers: [B1 decision](benchmarks/results/stage8/b1-matched-2026-10-29/decision.md)
+    and [B1 smoke](screenshots/demo-track/rehearsal-2026-10-29-b1-prebuilt-smoke/).
 - [ ] **B2 — Overpass independence (M).** Self-hosted Overpass on a small VPS
   for target regions behind a Cloudflare Worker, or a custom Planetiler
   profile (Protomaps' basemap schema drops roof, lane and colour tags).
@@ -815,14 +763,10 @@ matched settings, tested hardware, thresholds and remaining gates.
 
 ## 15. Next action and deferred choices
 
-1. Complete B1's integrated/mobile parity and browser editor Hide/save/reload
-   acceptance; evaluate whether a revision-aware cache can safely avoid cold
-   terrain image fetches. Continue investigating upload cost because the visible
-   steady window does not expose per-geometry
-   submission time. Keep local artifacts private unless a separate release task
-   authorizes publication. Then work through B2 (Overpass
-   independence), B3 (procedural landuse ground) and B4 (Overture attribute gap
-   fill).
+1. B1 is parked (see its 29 Oct decision): artifacts stay local and are not
+   published. Next data work is B3 (procedural landuse ground, most visible for
+   the demo), then B2 (Overpass independence) and B4 (Overture attribute gap
+   fill). Reopen B1 only through B1b (cached elevation grids for cold loads).
 2. Consider C1–C3 only after the data foundation, and only when a measured
    viewer-visible benefit justifies their cost. The remaining release gates
    include 0.8 live dense-city baselines, 1.3 physical low-core validation,
