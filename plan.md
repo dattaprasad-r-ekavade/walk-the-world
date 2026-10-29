@@ -1,10 +1,33 @@
 # Walk the World — Performance and Visuals Implementation Plan
 
-Updated: 29 October 2026. Reviewed base: `9ad177e` on `origin/main`; current work
+Updated: 29 October 2026. Reviewed base: `6c79a3d` on `origin/main`; current work
 closes demo gates D1–D8. D3's hardware acceptance uses the local production
-preview described below.
+preview described below. This review ran the current 207-test suite and production
+build, and added the dependency audit gate below.
 This is the active plan. The [previous detailed checkpoint](docs/PLAN-CHECKPOINT-2026-10-28-BEFORE-REVIEW.md)
 preserves the full experiment history; its status is historical.
+
+## Release gate — supported framework and dependency audit
+
+- [ ] **SEC1 — P1 before public release: Upgrade the unsupported Next.js 14 tree.**
+  On `6c79a3d`, `npm ci` installed Next.js 14.2.35, React/React DOM 18.3.1,
+  DuckDB 1.4.4 and Sharp 0.35.5. `npm audit --omit=dev` reported 11 production
+  dependency findings (10 high, 1 critical); the full install audit reported 19
+  including development dependencies. Next.js is a direct dependency with an
+  aggregated critical severity, and npm reports 16.4.3 as its available fix,
+  which is a major upgrade. DuckDB is also a direct high-severity finding with
+  no automated fix reported. See the [vendor support policy](https://nextjs.org/support-policy),
+  the [SVG image-optimizer advisory](https://github.com/vercel/next.js/security/advisories/GHSA-2464-fhr4-w9xw),
+  and the [Windows-hosted advisory](https://github.com/vercel/next.js/security/advisories/GHSA-p293-qw3h-jr36).
+  Next 14 is unsupported; Next 15 maintenance security support currently ends
+  31 January 2027. The current source has no `next/image`, AVIF image config,
+  Server Actions or Cache Components, and Sharp 0.35.5 meets the vendor's stated
+  workaround for the SVG advisory. These facts narrow some advisory paths; they
+  do not clear the full audit or prove every Next finding unreachable. The
+  Windows-only advisory also needs the real deployment host checked. Select a
+  supported Next/React pair, resolve the DuckDB dependency chain, then rerun the
+  full audit, tests, build, API-route and four-city acceptance before closing.
+  Do not use a forced blanket audit fix or suppress findings to pass this gate.
 
 ## 0. Demo track — priority 0
 
@@ -282,7 +305,7 @@ mobile, offline and several visual gates remain open.
 | 6–8 Alternatives | B1 overlap filtering with 64-key cap, sampled terrain keys, height-only preflight, steady-window diagnostics, and browser edit/503 fallback smoke measured; Stage 6/7 deferred | B1 revision-safe cold-terrain caching, integrated/mobile parity, editor save/reload and upload-cost acceptance |
 | 9 Integration | Open | Full regression, hardware/visual acceptance and release records |
 
-Latest validation: all 206 tests across 33 files and the production build pass,
+Latest validation: all 207 tests across 33 files and the production build pass,
 including the B1 codec, frame transform, terrain revision and streamed-cell
 overlap-index fallback checks. Raw and prebuilt production builds both pass.
 The four-city production rehearsal loaded all 36 nearby
@@ -291,6 +314,16 @@ the baked Tokyo spawn cell and settled its neighbor stream. This review does not
 rerun the full device performance matrix or prove release readiness. The new
 regression covers the reproduced streamed prebuilt ownership conflict; device,
 editor and lifecycle acceptance remain open.
+
+The 29 October current-main recorded-Rome smoke reached movement but failed its
+browser diagnostic gate with four app-origin HTTP 404 responses. A short follow-up
+identified a missing local `/prebuilt-cells/index.json`; the prebuilt loader treats
+an unavailable index as a cache miss and falls back to raw city data. The recorded
+run sampled only 14 frames over 1.067 seconds while startup and cell loading were
+still active, so its 13 FPS and 216.8 ms p95 are not performance acceptance data.
+A separate unrecorded local browser check also saw the configured public-R2 city
+fetch blocked by CORS; the recorded fixture run did not exercise that live-data
+path. See R7 for the required rerun and deployment-origin checks.
 
 ### Priority issues found in this review
 
@@ -377,6 +410,22 @@ Preserve gameplay and fallbacks.
   smoke showed no clear road-specific visual gain; the sample is too short and
   host load varied, so it cannot establish performance. See the [smoke report](benchmarks/results/stage4/wet-road-map-smoke.md).
   Keep 4.3 open for further visual work.
+
+- [ ] **R7 — P2: Close the current production-smoke diagnostics and live-data gap.**
+  The current-main recorded-Rome run reached valid movement, but its browser
+  diagnostics failed on four app-origin 404 responses. A bounded follow-up found
+  `/prebuilt-cells/index.json` missing in this checkout; the prebuilt loader
+  returns `null` on that miss and continues through the raw-data path. Confirm
+  whether the production build should ship an index for this scenario or disable
+  the optional prebuilt lookup when none is configured, then account for every
+  404 in a clean run. The recorded smoke captured only 14 frames during startup,
+  with a 1.067-second window, so its 13 FPS and 216.8 ms p95 are not usable for
+  performance acceptance. Separately verify the public-R2 CORS response from
+  the actual app origin in live-data mode: an unrecorded localhost check was
+  blocked by CORS, while the fixture-backed run does not validate that path.
+  Repeat a settled five-second visible-browser smoke after these checks; use the
+  matched repetitions already required by the plan before accepting a default or
+  quality-tier change.
 
 ### Evidence/documentation corrections
 
