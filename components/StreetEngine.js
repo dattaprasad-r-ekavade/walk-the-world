@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { LoadingScreen } from "@/components/hud/Panels";
-import { lon2tx, lat2ty, tx2lon, ty2lat, makeLocalFrame } from "@/lib/engine/geo";
+import { lon2tx, lat2ty, makeLocalFrame } from "@/lib/engine/geo";
 import { fetchCityData, cityCacheKey } from "@/lib/engine/cityData";
 import { fetchPrebuiltCell } from "@/lib/engine/prebuilt-cell-runtime";
 import { rebasePrebuiltCityResult } from "@/lib/engine/prebuilt-cell-transform";
@@ -14,7 +14,6 @@ import { createStreetEditor } from "@/lib/engine/street/editor";
 import { createPopulation } from "@/lib/engine/population";
 import { createAmbience } from "@/lib/engine/ambience";
 import { createStreetLights } from "@/lib/engine/street-lights";
-import { drawGroundTileImage, groundTileUrl } from "@/lib/engine/ground-tiles";
 import { whereAmIRound } from "@/lib/daily";
 import { createEnvController } from "@/lib/engine/env-map";
 import { createCityBuilderPool } from "@/lib/engine/city-builder";
@@ -38,7 +37,6 @@ import { STREET } from "@/lib/engine/street/constants";
 import { createCollision } from "@/lib/engine/street/collision";
 import { createTerrainSystem } from "@/lib/engine/street/terrain";
 import { disposeSceneGroup } from "@/lib/engine/street/resources";
-import { createHudRef } from "@/lib/engine/street/hud-ref";
 import { GameShell } from "@/components/game-shell/GameShell";
 import { useRouter } from "next/navigation";
 import { demoHeadingRadians, streetUrl } from "@/lib/geo";
@@ -70,6 +68,7 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false, demo
   trackRender();
   const router = useRouter();
   const hudDomRef = useRef(null);
+  const assetListPromiseRef = useRef(null);
   const panel = useGameStore((s) => s.panel);
   const setPanel = useGameStore((s) => s.setPanel);
   const togglePanel = useGameStore((s) => s.togglePanel);
@@ -118,8 +117,8 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false, demo
 
   useEffect(() => {
     if (uiMode !== "editor") return;
-    fetch("/api/assets")
-      .then((r) => (r.ok ? r.json() : []))
+    // Reuse the boot-time request when the engine already started one.
+    (assetListPromiseRef.current || fetch("/api/assets").then((r) => (r.ok ? r.json() : [])).catch(() => []))
       .then((d) => setAssetList(Array.isArray(d) ? d : d.assets || []))
       .catch(() => setAssetList([]));
   }, [uiMode]);
@@ -166,7 +165,7 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false, demo
     if (patch.hour !== undefined) engineRef.current.setTime?.(patch.hour);
     if (patch.weather !== undefined) {
       engineRef.current.setWeather?.(patch.weather);
-      engineRef.current.setPrecip?.(patch.weather >= 85 ? "rain" : null);
+      engineRef.current.setPrecip?.(patch.weather >= STREET.PRECIP_WEATHER_THRESHOLD ? "rain" : null);
     }
     if (patch.quality) engineRef.current.setQuality?.(patch.quality);
     if (patch.music !== undefined) engineRef.current.setMusic?.(patch.music);
@@ -252,6 +251,7 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false, demo
     const assetListPromise = fetch("/api/assets", { signal })
       .then((r) => (r.ok ? r.json() : []))
       .catch(() => []);
+    assetListPromiseRef.current = assetListPromise;
     const editsKey = cityCacheKey(lat0, lon0);
     const editsPromise = fetch(`/api/edits/${editsKey}`, { signal })
       .then((r) => (r.ok ? r.json() : null))
@@ -685,7 +685,12 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false, demo
     let precip = null;
     runtime.current.setPrecip = (mode) => {
       // mode: null | "rain" | "snow"
-      if (precip) { scene.remove(precip.points); precip = null; }
+      if (precip) {
+        scene.remove(precip.points);
+        precip.geo.dispose();
+        precip.points.material.dispose();
+        precip = null;
+      }
       if (!mode) return;
       const N2 = mode === "rain" ? 1600 : 900;
       const pos2 = new Float32Array(N2 * 3);
@@ -796,7 +801,6 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false, demo
     const lampGlows = [];
     let avatar = null;
     let running = true;
-    let hudDom = null;
     const loadTerrain = terrain.load;
     const loadTerrainTile = terrain.loadTile;
     // ---- buildings + roads (Worker geometry + main-thread assemble) ----
@@ -1064,7 +1068,7 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false, demo
             else if (u.type === "asset") {
               const rec = editor.placed.pop();
               if (rec) {
-                scene.remove(rec.group);
+                disposeSceneGroup(rec.group, scene);
                 const arr = runtime.current.edits.assets || [];
                 const ai = arr.indexOf(rec.entry);
                 if (ai >= 0) arr.splice(ai, 1);
@@ -1098,7 +1102,7 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false, demo
             if (e.code === "BracketLeft") { rec.group.scale.setScalar((rec.entry.scale = Math.max(0.1, (rec.entry.scale || 1) * 0.9))); editorTools.selectionBox?.update(); }
             if (e.code === "BracketRight") { rec.group.scale.setScalar((rec.entry.scale = Math.min(50, (rec.entry.scale || 1) * 1.1))); editorTools.selectionBox?.update(); }
             if (e.code === "KeyX") {
-              scene.remove(rec.group);
+              disposeSceneGroup(rec.group, scene);
               editor.placed.splice(editor.selected, 1);
               const arr = runtime.current.edits.assets || [];
               const ai = arr.indexOf(rec.entry);
@@ -1192,7 +1196,6 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false, demo
     const onLock = () => {
       const locked = document.pointerLockElement === canvas;
       setHudLocked(locked);
-      if (hudDomRef.current?.__hudApi) hudDomRef.current.__hudApi.setLocked(locked);
     };
     const onResize = () => {
       camera.aspect = mount.clientWidth / mount.clientHeight;
@@ -1545,16 +1548,7 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false, demo
         }
       }
       if (++hudTick % 20 === 0) {
-        if (!hudDom && hudDomRef.current) {
-          hudDom = createHudRef(hudDomRef.current);
-        }
         recordFpsSample(fpsVal);
-        hudDom?.update({
-          fps: fpsVal,
-          elev: Math.round(gy),
-          locked: document.pointerLockElement === canvas,
-          third: player.third,
-        });
         // GameShell reads React `status.fps` — keep it in sync (data-hud-fps is gone).
         // Each setLiveHud re-renders the React tree; elevation changes every
         // metre while walking slopes, so cap at ~2 Hz.
@@ -1593,11 +1587,11 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false, demo
       if (demoApplied) changeSettingStore({ hour: initialHour, weather: initialWeather });
       runtime.current.setTime(initialHour);
       runtime.current.setWeather(initialWeather);
-      runtime.current.setPrecip(initialWeather >= 85 ? "rain" : null);
+      runtime.current.setPrecip(initialWeather >= STREET.PRECIP_WEATHER_THRESHOLD ? "rain" : null);
       setPerfMetadata({
         hour: initialHour,
         weather: initialWeather,
-        precipitationMode: initialWeather >= 85 ? "rain" : null,
+        precipitationMode: initialWeather >= STREET.PRECIP_WEATHER_THRESHOLD ? "rain" : null,
       });
       loadAvatar();
       loop();
@@ -1775,10 +1769,14 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false, demo
           ];
           for (const [mkey, file, target, mode] of specs) {
             if (!names.has(file)) continue;
+            // The merge copies geometry, so the per-mesh clones and the GLB's own
+            // geometries are freed once we are done with them.
+            const geos = [];
+            let root = null;
             try {
-              const root = await loadGLB(`/api/assets/${file}`);
+              root = await loadGLB(`/api/assets/${file}`);
               root.updateMatrixWorld(true);
-              const geos = [], mats = [];
+              const mats = [];
               root.traverse((o) => {
                 // skip skinned/rigged meshes — InstancedMesh can't drive them
                 if (o.isMesh && !o.isSkinnedMesh && o.geometry) {
@@ -1819,6 +1817,9 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false, demo
               console.log(`[population] using ${file} for ${mkey}`);
             } catch (err) {
               console.warn(`[population] ${file}:`, err?.message);
+            } finally {
+              for (const g of geos) g.dispose();
+              root?.traverse((o) => o.geometry?.dispose?.());
             }
           }
         } catch { /* library unreachable — built-ins */ }
@@ -2112,7 +2113,7 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false, demo
             const line = [d.locality || d.city, d.countryName].filter(Boolean).join(", ");
             if (line) setPlace(line);
           })
-          .catch(() => {});
+          .catch((e) => console.warn("[street] reverse geocode:", e?.message));
       }
     })().catch(error => {
       if (!disposed) { setStage(error.message || "Unable to load world"); setBootError(error); }
@@ -2141,6 +2142,7 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false, demo
       window.removeEventListener("keyup", onKey);
       document.removeEventListener("mousemove", onMouse);
       document.removeEventListener("pointerlockchange", onLock);
+      if (document.pointerLockElement === canvas) document.exitPointerLock?.();
       window.removeEventListener("resize", onResize);
       population?.dispose();
       streetLights?.dispose();
