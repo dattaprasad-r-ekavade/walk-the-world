@@ -471,12 +471,13 @@ HTTP errors; the `23a34cc` settled five-second smoke closes R7. See R7 and the
 
 ### Priority issues found in this review
 
-R1–R3 have implementation changes and unit checks; their remaining device and
-browser validation gates are listed below. R4 is closed with browser and WebGL
-object-count evidence. R6's evidence labels are reconciled. Preserve gameplay
-and fallbacks.
+R1 closed on 30 October after matched close-up captures, five-run clear/rain
+comparisons and a current-main WebGL intensity audit. R2–R3 have implementation
+changes and unit checks; their remaining teardown validation gates are listed
+below. R4 is closed with browser and WebGL object-count evidence. R6's evidence
+labels are reconciled. Preserve gameplay and fallbacks.
 
-- [ ] **R1 — P1: Validate the road-specific environment intensity fix.**
+- [x] **R1 — P1: Validate the road-specific environment intensity fix.**
   Previously [materials.js](lib/engine/materials.js) changed `material.envMapIntensity`
   without binding an explicit `envMap`; [env-map.js](lib/engine/env-map.js)
   supplied `scene.environment`. In the installed Three.js 0.170.0,
@@ -487,16 +488,19 @@ and fallbacks.
   to existing and newly streamed roads with shared ownership. Validate matched clear/rain captures;
   compare GPU/frame cost before accepting. Retain explicit environment binding
   whenever relying on the road-specific intensity.
-  Roads now explicitly bind the current PMREM texture, including newly streamed
+  Roads explicitly bind the current PMREM texture, including newly streamed
   materials; the shared-resource list protects it during cell eviction. A unit
-  check covers replacement and inheritance. A visible Chrome recorded-Rome
-  night/rain smoke completed with a valid five-second window, 33.5 ms frame p95,
-  22.31 ms GPU timer p95 and no reported errors. This single run is not a matched
-  performance comparison; paired visual review and repeated performance
-  comparisons remain open. A WebGL audit observed the expected 2.71 wet-road
-  intensity among uploaded uniform values; see the [environment audit](benchmarks/results/stage4/environment-resource-audit.md).
-  The local screenshot still shows
-  a subtle road response, and the wet-map prototype was also active in this run.
+  check covers replacement and inheritance. On 30 October, visible Chrome
+  recorded-Rome close-ups showed a restrained wet sheen against the matched
+  matte clear road. Five valid runs per condition had identical 41.70 ms frame
+  p95 medians; GPU timer p95 medians were 26.67 ms clear and 27.15 ms rain, with
+  overlapping ranges. The current-main WebGL audit observed the expected 2.71
+  road intensity and stable 22 framebuffer / 2 renderbuffer counts over seven
+  snapshots. See the [close-up and performance report](benchmarks/results/stage4/r1-closeup-environment-check-2026-10-30.md)
+  and [environment audit](benchmarks/results/stage4/environment-resource-audit.md).
+  The 3D engine ran near 93% utilization on this Intel UHD host; target-device
+  behavior is not established. Stage 4.3's wider wet-road tuning and acceptance
+  remains open.
 
 - [ ] **R2 — P1: Validate PMREM output target ownership.**
   Previously [env-map.js](lib/engine/env-map.js) kept only

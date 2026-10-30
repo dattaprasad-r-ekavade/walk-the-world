@@ -2,7 +2,7 @@
 /**
  * Performance benchmark for Walk the World refactor.
  * Usage: node scripts/bench-perf.mjs [--base-url http://127.0.0.1:3456] [--out benchmarks/before.json]
- * Optional fixed walking pose: --pose-x <meters> --pose-z <meters> --heading <radians>.
+ * Optional fixed walking pose: --pose-x <meters> --pose-z <meters> --heading <radians> [--pose-pitch <radians>].
  */
 import { chromium } from 'playwright';
 import { writeFileSync, mkdirSync, readFileSync } from 'fs';
@@ -100,8 +100,10 @@ if (suppliedPoseOptions.length > 0) {
     x: Number(option('--pose-x', '')),
     z: Number(option('--pose-z', '')),
     heading: Number(option('--heading', '')),
+    pitch: Number(option('--pose-pitch', '0')),
   };
   if (!Object.values(fixedPose).every(Number.isFinite)) throw new Error('Fixed-pose values must be finite numbers');
+  if (Math.abs(fixedPose.pitch) > 1.45) throw new Error('--pose-pitch must be between -1.45 and 1.45 radians');
   if (driving || crossCell) throw new Error('Fixed-pose options cannot be combined with --drive or --cross-cell');
 }
 if (!['low', 'medium', 'high'].includes(qualityPreset)) throw new Error('--preset must be low, medium, or high');
@@ -635,7 +637,7 @@ async function benchStreet(page) {
       player.x = pose.x;
       player.z = pose.z;
       player.heading = pose.heading;
-      player.pitch = 0;
+      player.pitch = pose.pitch;
       player.moving = false;
     }
     return { x: player.x, z: player.z, heading: player.heading, pitch: player.pitch };
