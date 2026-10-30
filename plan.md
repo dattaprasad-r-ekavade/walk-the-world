@@ -1,6 +1,6 @@
 # Walk the World — Performance and Visuals Implementation Plan
 
-Updated: 31 October 2026. Reviewed base: `0b8ac85` on `origin/main`.
+Updated: 31 October 2026. Reviewed base: `2ba3a39` on `origin/main`.
 Demo gates D1–D8 are closed. The smoothness track (section 0a) closed S1–S6 from
 live-deploy profiling; S7–S8 stay open. S9's real-input check did not reproduce
 the hang on 30 October. S7 has a candidate fix (`be2ff98`,
@@ -360,7 +360,9 @@ Decisions taken from the research:
 - [ ] **B2 — Overpass independence (M).** Self-hosted Overpass on a small VPS
   for target regions behind a Cloudflare Worker, or a custom Planetiler
   profile (Protomaps' basemap schema drops roof, lane and colour tags).
-  `npm run seed:direct` remains the stopgap.
+  `npm run seed:direct` remains the stopgap. **31 Oct:** server fetches can now
+  prefer an `OVERPASS_ENDPOINT` deployment while retaining the public mirrors
+  as fallbacks; no self-hosted endpoint is configured or acceptance-tested yet.
 - [ ] **B3 — Procedural landuse ground (S–M).** Asphalt, grass, paving and
   water materials from landuse polygons instead of the near-white Carto
   raster; extends D1.
@@ -400,9 +402,15 @@ Decisions taken from the research:
     itself remains unverified: the primary endpoint returned 406 without the
     app User-Agent and timed out with it; both configured mirrors timed out.
     See [the live-data check](benchmarks/results/stage0/b3-multipolygon-live-check-2026-10-30.md).
-  - Open: (1) verify the new relation query against a live Overpass response
-    and a full city build when public Overpass is reachable. (2) Reseed the
-    demo cells so cached data carries the new tags (writes to R2; ask first).
+  - 31 Oct follow-up: the full Edinburgh request exhausted the three-mirror
+    budget; the focused relation query got HTTP 502 at the primary (queue full)
+    and timed out on both backups. A real OSM API relation passed through
+    `buildCityGeometry` and produced one closed 32-point ring. This confirms
+    builder integration, not Overpass query delivery or a full-city build.
+    See the [updated live-data check](benchmarks/results/stage0/b3-multipolygon-live-check-2026-10-30.md).
+  - Open: (1) verify the new relation query and full city build when public
+    Overpass is reachable. (2) Reseed demo cells so cached data carries the new
+    tags (writes to R2; prepare a reviewable change and ask first).
 - [ ] **B4 — Overture gap fill (S).** The Overture footprint fallback already
   exists for sparse cells. Remaining: merge Overture height, num_floors,
   roof_shape, roof_color, facade_color and facade_material into OSM buildings

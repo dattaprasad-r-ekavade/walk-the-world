@@ -32,3 +32,20 @@ chains.
 This confirms that the stitcher can reconstruct an actual OSM relation's way
 topology. It does not prove that Overpass returns this query successfully or
 that the relation is drawn in a complete city build. No R2 data was written.
+
+## 31 October follow-up
+
+The production Edinburgh cell request was retried through the app's current
+three-mirror path. The full request exhausted its 85 s budget. A separate,
+bounded run of the exact land-use relation subquery returned HTTP 502 from
+`overpass-api.de` (the server reported its query queue was full); Kumi and
+Private Coffee each timed out after 15 s. The responses point to endpoint
+capacity as the current blocker; no endpoint returned a parser or invalid-data
+response. No further retries or R2 writes were made.
+
+The OSM API's read-only `relation/2344206/full.json` response was also passed
+in memory through `buildCityGeometry` as an Overpass-shaped relation. The
+builder emitted one closed cemetery land-use ring with 32 points from ten
+member ways. This verifies the real relation geometry through the builder
+integration path, but it is not an Overpass response or a full-city build. The
+Overpass query and R2 demo-cell reseed remain open.
