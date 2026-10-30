@@ -981,7 +981,7 @@ matched settings, tested hardware, thresholds and remaining gates.
 2. Consider C1–C3 only after the data foundation, and only when a measured
    viewer-visible benefit justifies their cost. The remaining release gates
    include 0.8 live dense-city baselines, 1.3 physical low-core validation,
-   R1–R4 ownership/fallback checks, 4.3/4.5/4.6 visual and shadow checks, and
+   R1–R3 ownership/resource checks, 4.3/4.5/4.6 visual and shadow checks, and
    Stages 5 and 9 integration/hardware acceptance.
 3. Keep R5 wet-road work and conditional Stages 6–8 deferred unless a demo
    viewer or measured profile makes them a priority.
