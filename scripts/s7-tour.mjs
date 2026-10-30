@@ -4,6 +4,7 @@
 // Headless mode validates the flow only; its timings are not hardware evidence.
 //
 //   node scripts/s7-tour.mjs --headed
+//   node scripts/s7-tour.mjs --headed --quality=medium
 //   node scripts/s7-tour.mjs --headless --out=benchmarks/results/stage0/s7-tour-control.json
 
 import fs from "node:fs";
@@ -25,6 +26,7 @@ function parseArgs(argv) {
     targetI5Confirmed: false,
     cpuProfileCity: null,
     disableGpuProgramCache: false,
+    qualityOverride: null,
     help: false,
     readyTimeoutMs: 120000,
     settleTimeoutMs: 45000,
@@ -46,6 +48,7 @@ function parseArgs(argv) {
     else if (arg === "--cpu-profile-arrival") options.cpuProfileCity = "Tokyo";
     else if (arg === "--cpu-profile-edinburgh") options.cpuProfileCity = "Edinburgh";
     else if (arg === "--disable-gpu-program-cache") options.disableGpuProgramCache = true;
+    else if (arg === "--quality" || arg.startsWith("--quality=")) options.qualityOverride = value("--quality");
     else if (arg === "--base-url" || arg.startsWith("--base-url=")) options.baseUrl = value("--base-url");
     else if (arg === "--out" || arg.startsWith("--out=")) options.out = value("--out");
     else if (arg === "--screenshots" || arg.startsWith("--screenshots=")) options.screenshots = value("--screenshots");
@@ -57,6 +60,9 @@ function parseArgs(argv) {
     else options.baseUrl = arg;
   }
   options.baseUrl = options.baseUrl.replace(/\/$/, "");
+  if (options.qualityOverride && !["low", "medium", "high"].includes(options.qualityOverride)) {
+    throw new Error("--quality must be low, medium, or high");
+  }
   if (!Number.isFinite(options.readyTimeoutMs) || options.readyTimeoutMs < 1000) throw new Error("--ready-timeout-ms must be at least 1000");
   if (!Number.isFinite(options.walkMs) || options.walkMs < 1000) throw new Error("--walk-ms must be at least 1000");
   return options;
@@ -263,7 +269,7 @@ const profilerInit = () => {
 async function main(argv = process.argv.slice(2)) {
   const options = parseArgs(argv);
   if (options.help) {
-    console.log("Usage: node scripts/s7-tour.mjs [baseUrl] [--headed --confirm-target-i5-1035g1] [--headless] [--cpu-profile-arrival|--cpu-profile-edinburgh] [--disable-gpu-program-cache] [--fixture=FILE] [--out=FILE] [--screenshots=DIR] [--walk-ms=5000]");
+    console.log("Usage: node scripts/s7-tour.mjs [baseUrl] [--headed --confirm-target-i5-1035g1] [--headless] [--quality=low|medium|high] [--cpu-profile-arrival|--cpu-profile-edinburgh] [--disable-gpu-program-cache] [--fixture=FILE] [--out=FILE] [--screenshots=DIR] [--walk-ms=5000]");
     console.log("Run visibly on the target i5-1035G1 laptop and confirm the target device explicitly. Headless timings are control-flow evidence only.");
     return 0;
   }
@@ -316,6 +322,36 @@ async function main(argv = process.argv.slice(2)) {
       route.fulfill({ status: 200, contentType: "application/json", body: "[]" })
     );
   }
+  if (options.qualityOverride) {
+    await context.addInitScript((quality) => {
+      const key = "wtw-game";
+      try {
+        const parsed = JSON.parse(localStorage.getItem(key) || "{}");
+        const persisted = parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed : {};
+        const state = persisted.state && typeof persisted.state === "object" ? persisted.state : {};
+        const settings = state.settings && typeof state.settings === "object" ? state.settings : {};
+        localStorage.setItem(key, JSON.stringify({
+          ...persisted,
+          state: {
+            ...state,
+            settings: {
+              hour: 12,
+              weather: 0,
+              quality: "medium",
+              qualityMode: "auto",
+              engine: "street",
+              groundSource: "osm",
+              music: true,
+              developerMode: false,
+              ...settings,
+              quality,
+              qualityMode: "manual",
+            },
+          },
+        }));
+      } catch { /* Storage may be unavailable on an originless bootstrap document. */ }
+    }, options.qualityOverride);
+  }
   await context.addInitScript(profilerInit);
   const page = await context.newPage();
   let cpuProfilerSession = null;
@@ -346,6 +382,7 @@ async function main(argv = process.argv.slice(2)) {
     baseUrl: options.baseUrl,
     startedAt: new Date().toISOString(),
     runMode: options.headed ? "visible" : "headless-control-flow-only",
+    qualityOverride: options.qualityOverride,
     browserLaunchArgs: browserArgs,
     targetDeviceConfirmed: false,
     evidenceNote: options.headed
@@ -545,6 +582,9 @@ async function main(argv = process.argv.slice(2)) {
       return {
         userAgent: navigator.userAgent,
         renderer,
+        qualityTier: window.__perfCounters?.metadata?.qualityTier || null,
+        renderScale: window.__perfCounters?.metadata?.renderScale ?? null,
+        pixelRatio: window.__perfCounters?.metadata?.pixelRatio ?? null,
         engineReady: window.__engineReady === true,
         inputReadyMarks: timeline.filter((item) => item.type === "mark" && item.name === "input-ready").length,
         pmremTimings: timeline.filter((item) => item.type === "timing" && /pmrem/i.test(item.name)),

@@ -10,6 +10,10 @@
     "renderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 4060 Laptop GPU (0x000028E0) Direct3D11 vs_5_0 ps_5_0, D3D11)",
     "browser": "Chrome 156"
   },
+  "originalRunsQuality": {
+    "tier": "high",
+    "basis": "Inference: fresh benchmark contexts use store default qualityMode=auto, and applyAutoQuality selects high for the RTX adapter. Those original runs did not record the tier."
+  },
   "fixture": {
     "id": "s7-full-two-city-3x3-replay",
     "capturedBytes": 35415953,
@@ -76,6 +80,46 @@
         "residentCells": { "tokyo": 9, "edinburgh": 9 },
         "errors": { "console": 0, "page": 0, "http": 0, "requestFailures": 0 },
         "targetDeviceConfirmed": false
+      }
+    ]
+  },
+  "mediumTierDiagnostic": {
+    "qualityOverride": "medium",
+    "runnerChange": "scripts/s7-tour.mjs working-tree diagnostic option; app quality defaults unchanged",
+    "actualTierRecorded": true,
+    "hostAdapter": "NVIDIA GeForce RTX 4060 Laptop GPU",
+    "targetDeviceConfirmed": false,
+    "runs": [
+      {
+        "id": "medium-normal-cache-profiled",
+        "cpuProfiled": true,
+        "initialPmremBuildMs": 149.9,
+        "tokyoArrival": { "maxMs": 450.1, "p95Ms": 183.3 },
+        "firstRendererProgramEvent": { "durationMs": 267.4, "programCountBefore": 3, "programCountAfter": 15, "newProgramCount": 12 },
+        "gateSegmentMaxMs": { "globeTravelToTokyo": 183.4, "walk": 17.0, "nightSwitch": 17.1, "streetTravelToEdinburgh": 33.0 },
+        "residentCells": { "tokyo": 9, "edinburgh": 9 },
+        "errors": { "console": 0, "page": 0, "http": 0, "requestFailures": 0 }
+      },
+      {
+        "id": "medium-normal-cache-repeat",
+        "cpuProfiled": false,
+        "initialPmremBuildMs": 148.0,
+        "tokyoArrival": { "maxMs": 450.0, "p95Ms": 133.3 },
+        "firstRendererProgramEvent": { "durationMs": 272.2, "programCountBefore": 3, "programCountAfter": 15, "newProgramCount": 12 },
+        "gateSegmentMaxMs": { "globeTravelToTokyo": 183.4, "walk": 33.5, "nightSwitch": 33.1, "streetTravelToEdinburgh": 50.0 },
+        "residentCells": { "tokyo": 9, "edinburgh": 9 },
+        "errors": { "console": 0, "page": 0, "http": 0, "requestFailures": 0 }
+      },
+      {
+        "id": "medium-gpu-cache-disabled",
+        "cpuProfiled": true,
+        "initialPmremBuildMs": 159.6,
+        "tokyoArrival": { "maxMs": 499.9, "p95Ms": 183.6 },
+        "longestTokyoArrivalLongTaskMs": 499.0,
+        "firstRendererProgramEvent": { "durationMs": 286.4, "programCountBefore": 3, "programCountAfter": 15, "newProgramCount": 12 },
+        "gateSegmentMaxMs": { "globeTravelToTokyo": 199.9, "walk": 17.1, "nightSwitch": 33.1, "streetTravelToEdinburgh": 33.4 },
+        "residentCells": { "tokyo": 9, "edinburgh": 9 },
+        "errors": { "console": 0, "page": 0, "http": 0, "requestFailures": 0 }
       }
     ]
   },

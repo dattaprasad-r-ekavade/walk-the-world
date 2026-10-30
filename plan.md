@@ -323,9 +323,15 @@ Open:
   behavior on the target i5-1035G1. The profiled candidate's remaining 591 ms
   Long Task included a 386.6 ms first-render event linking 16 ordinary renderer
   programs; `getProgramInfoLog` accounted for 251.7 ms on that path. This points
-  to first-city-render shader linking as the residual startup cost. Next:
-  investigate that path, then repeat the live visible gate and ground/terrain
-  review on the target laptop. S7 remains open. See the [PMREM sample
+  to first-city-render shader linking as the residual startup cost. The S7
+  runner now supports `--quality=medium` and records the actual tier. Three
+  medium-quality runs on the RTX 4060 measured 450.0–450.1 ms Tokyo arrival
+  with the normal cache and 499.9 ms with the GPU program cache disabled; the
+  first renderer event added 12 programs in 267–286 ms. All named gate segments
+  stayed below 200 ms, but a 499.9 ms frame gives no useful margin and the RTX
+  is not the target i5. Next: investigate the first-city-render shader-link
+  path, then repeat the live visible gate and ground/terrain review on the
+  target laptop. S7 remains open. See the [PMREM sample
   report](benchmarks/results/stage0/s7-pmrem-ggx32-2026-10-31.md) and its
   [machine-readable results](benchmarks/results/stage0/s7-pmrem-ggx32-2026-10-31.json).
   These RTX 4060 / i7 results do not close S7. See the [full 3×3 report](benchmarks/results/stage0/s7-full-city-3x3-profile-2026-10-31.md),
