@@ -2,11 +2,10 @@
 
 Updated: 30 October 2026. Reviewed base: `87d26dc` on `origin/main`.
 Demo gates D1–D8 are closed. The smoothness track (section 0a) closed S1–S6 from
-live-deploy profiling; S7–S9 stay open. The `87d26dc` interior-window cutoff
-candidate has a 7.0% pooled frame-p95 gain across seven valid night-run pairs,
-but GPU timer p95 did not improve and the result varies by city. S8 still needs
-the target-laptop measurement and its next candidate. The dependency audit gate
-below is open.
+live-deploy profiling; S7–S9 stay open. S7 has a candidate fix (`be2ff98`,
+off-thread tile decode) awaiting one target-laptop run. The `87d26dc`
+interior-window cutoff was reverted: no repeatable gain, shorter interior
+view. The dependency audit gate below is open.
 This is the active plan. The [previous detailed checkpoint](docs/PLAN-CHECKPOINT-2026-10-28-BEFORE-REVIEW.md)
 preserves the full experiment history; its status is historical.
 
@@ -167,6 +166,13 @@ Open:
   second window at p95 20.9 ms, max 152.8 ms, with no console or HTTP errors.
   S7 still fails the globe-travel threshold and needs the target laptop. See
   [the live-deploy report](benchmarks/results/stage0/s7-live-deploy-2026-10-29.md).
+  Candidate fix `be2ff98`: the long frame was attributed to the elevation
+  tile's image `onload` handler, where an `<img>` decodes lazily inside the
+  first `drawImage`. Elevation and street map tiles now load with `fetch` and
+  decode with `createImageBitmap` off the main thread (no colour conversion,
+  so encoded heights stay exact). Next: one tour on the target laptop; check
+  that ground imagery and hills still appear. The 620 ms Cesium-loading frame
+  at globe start is not addressed.
 - [ ] **S8 — Walking cost on weak GPUs.** Walking is GPU-bound on Intel UHD
   (fill rate, not draw calls). Candidates, in order: cheaper interior-window
   shader at distance (drop the ray-box sample beyond about 40 m instead of
@@ -180,7 +186,9 @@ Open:
   (Tokyo 27.9 ms, Pune 14.1 ms, Edinburgh 20.9 ms, New York 20.9 ms) had zero
   interior-window glow and is not evidence for this shader change. S8 remains
   open: use simpler distant buildings as the next candidate, then measure on
-  the target i5-1035G1 laptop. See the [cutoff comparison report](benchmarks/results/stage0/s8-interior-distance-cutoff-2026-10-30.md).
+  the target i5-1035G1 laptop. Decision (30 Oct): the cutoff is reverted to the
+  40–60 m fade. The gain was not repeatable, and interiors disappeared sooner;
+  the shader keeps its early return beyond 60 m. See the [cutoff comparison report](benchmarks/results/stage0/s8-interior-distance-cutoff-2026-10-30.md).
 - [ ] **S9 — Intermittent globe hang after orbit plus zoom.** Seen only under
   scripted input; the browser trace showed no long page or GPU task, so it is
   most likely an automation artefact. Check once with a real mouse and wheel;
