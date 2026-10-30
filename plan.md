@@ -2,12 +2,14 @@
 
 Updated: 30 October 2026. Reviewed base: `19caebb` on `origin/main`.
 Demo gates D1–D8 are closed. The smoothness track (section 0a) closed S1–S6 from
-live-deploy profiling; S7–S9 stay open. S7 has a candidate fix (`be2ff98`,
+live-deploy profiling; S7–S8 stay open. S9's real-input check did not reproduce
+the hang on 30 October. S7 has a candidate fix (`be2ff98`,
 off-thread tile decode) awaiting one target-laptop run. The `87d26dc`
 interior-window cutoff was reverted: its gain was not repeatable and it shortened
 the interior view. A separate far-facade detail fade was rejected after GPU-timer
-p95 increased in all four cities. S8 next needs the render-scale candidate and
-target-laptop measurement. The dependency audit gate below is open.
+p95 increased in all four cities. S8's 0.85 integrated-Intel render-scale
+candidate passed the four-city host comparison; target-laptop measurement
+remains. The dependency audit gate below is open.
 This is the active plan. The [previous detailed checkpoint](docs/PLAN-CHECKPOINT-2026-10-28-BEFORE-REVIEW.md)
 preserves the full experiment history; its status is historical.
 
@@ -223,10 +225,12 @@ Open:
   report](benchmarks/results/stage0/s8-interior-distance-cutoff-2026-10-30.md),
   [far-detail report](benchmarks/results/stage0/s8-far-building-detail-2026-10-30.md),
   and [render-scale report](benchmarks/results/stage0/s8-intel-render-scale-2026-10-30.md).
-- [ ] **S9 — Intermittent globe hang after orbit plus zoom.** Seen only under
-  scripted input; the browser trace showed no long page or GPU task, so it is
-  most likely an automation artefact. Check once with a real mouse and wheel;
-  close if it does not reproduce.
+- [x] **S9 — Intermittent globe hang after orbit plus zoom.** Seen only under
+  scripted input; the browser trace showed no long page or GPU task. A real
+  drag orbit followed by wheel zoom on the 30 Oct local production build did not
+  reproduce it: camera coordinates and map view updated, and the page remained
+  responsive through a two-second follow-up. See the [real-input check
+  report](benchmarks/results/stage0/s9-real-input-check-2026-10-30.md).
 
 ## 0b. Outside-view roadmap — priority 1 (after the demo track)
 
@@ -933,8 +937,9 @@ matched settings, tested hardware, thresholds and remaining gates.
 
 ## 15. Next action and deferred choices
 
-0. Finish the smoothness track (section 0a): S7 live confirmation first, then
-   S8 walking GPU cost, then close S9. SEC1 (Next.js upgrade) must close before
+0. Finish the smoothness track (section 0a): S7 live confirmation on the target
+   laptop, then S8 render-scale confirmation on that laptop. S9's real-input
+   check is closed. SEC1 (Next.js upgrade) must close before
    any public release; use [docs/UPGRADE-ASSESSMENT.md](docs/UPGRADE-ASSESSMENT.md).
 1. B1 is parked (see its 29 Oct decision): artifacts stay local and are not
    published. Next data work is B3 (procedural landuse ground, most visible for
