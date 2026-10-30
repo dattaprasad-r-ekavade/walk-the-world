@@ -244,7 +244,20 @@ Open:
   hidden while the loading screen is visible and appears when input-ready; see
   the [loader capture](benchmarks/results/stage0/s7-loader-canvas-2026-10-31.md).
   The [PMREM size comparison](benchmarks/results/stage0/s7-pmrem-resolution-ab-2026-10-31.md)
-  is not target-device evidence.
+  is not target-device evidence. A full-tour runner is now available as
+  `npm run bench:s7`; it follows the actual globe flight to Tokyo, walk, night
+  switch, and street flight to Edinburgh, recording frame intervals and
+  readiness/renderer diagnostics. Its 31 Oct headless control-flow run reached
+  both cities, moved 3.5 m, observed 17 city-cell HTTP 200 responses, and had
+  zero console/page/HTTP errors. SwiftShader and headless RAF throttling make
+  its frame times invalid for the 500 ms gate; Tokyo (7 resident, 2 pending)
+  and Edinburgh (5 resident, 4 pending) also had unfinished neighboring-cell
+  streams after 45 seconds. Terrain diagnostics saw one elevation tile in each
+  city with no flat fallback, but this does not prove visible relief or imagery.
+  Next: run the visible tour on the target i5-1035G1, review its ground/terrain
+  screenshots, and use the recorded frame/error results. See the [control-flow
+  report](benchmarks/results/stage0/s7-tour-control-2026-10-31.md) and [JSON
+  capture](benchmarks/results/stage0/s7-tour-control-2026-10-31.json).
 - [ ] **S8 — Walking cost on weak GPUs.** Walking is GPU-bound on Intel UHD
   (fill rate, not draw calls). Candidates, in order: cheaper interior-window
   shader at distance (drop the ray-box sample beyond about 40 m instead of

@@ -17,6 +17,7 @@
     "check": "npm run lint && npm test && npm run build",
     "portfolio:check": "npm test && npm run build",
     "bench": "node scripts/bench-perf.mjs",
+    "bench:s7": "node scripts/s7-tour.mjs",
     "fixtures:build": "node scripts/build-benchmark-fixtures.mjs",
     "fixtures:build:rome": "node scripts/build-osm-fixture.mjs",
     "bench:street": "node scripts/validate-street.mjs",
