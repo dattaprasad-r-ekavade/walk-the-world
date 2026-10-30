@@ -215,11 +215,14 @@ Open:
   20.9 ms, New York 20.9 ms) had zero interior-window glow and is not evidence
   for the shader change. A follow-up facade/normal detail fade from 45–60 m
   changed frame p95 by -5.5% on average, but GPU-timer p95 increased 4.4% in
-  all four cities; that candidate was rejected and is not retained. Next
-  evaluate a lower default render scale on integrated GPUs, then measure on the
-  target i5-1035G1 laptop. See the [cutoff comparison
-  report](benchmarks/results/stage0/s8-interior-distance-cutoff-2026-10-30.md)
-  and [far-detail report](benchmarks/results/stage0/s8-far-building-detail-2026-10-30.md).
+  all four cities; that candidate was rejected and is not retained. The 0.85
+  Intel auto-scale candidate reduced median frame p95 by 20.4–33.0% across five
+  matched captures in each of four cities on a Lenovo 83DV using its Intel UHD
+  renderer. Keep the candidate for target confirmation; S8 remains open until
+  it is measured on the target i5-1035G1 laptop. See the [cutoff comparison
+  report](benchmarks/results/stage0/s8-interior-distance-cutoff-2026-10-30.md),
+  [far-detail report](benchmarks/results/stage0/s8-far-building-detail-2026-10-30.md),
+  and [render-scale report](benchmarks/results/stage0/s8-intel-render-scale-2026-10-30.md).
 - [ ] **S9 — Intermittent globe hang after orbit plus zoom.** Seen only under
   scripted input; the browser trace showed no long page or GPU task, so it is
   most likely an automation artefact. Check once with a real mouse and wheel;
