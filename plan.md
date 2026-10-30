@@ -1,6 +1,6 @@
 # Walk the World — Performance and Visuals Implementation Plan
 
-Updated: 31 October 2026. Reviewed base: `4d761c7` on `origin/main`.
+Updated: 31 October 2026. Reviewed base: `26cb647` on `origin/main`.
 Demo gates D1–D8 are closed. The smoothness track (section 0a) closed S1–S6 from
 live-deploy profiling; S7–S8 stay open. S9's real-input check did not reproduce
 the hang on 30 October. S7 has two changes awaiting target-laptop confirmation:
@@ -230,7 +230,12 @@ Open:
   prefiltered environment. Surrounding terrain visuals are now started one per
   animation frame, cardinal neighbours first, to spread canvas texture uploads;
   this change still needs a target-laptop profile and a visual check of ground
-  imagery and hills.
+  imagery and hills. A 31 Oct headless production smoke confirmed `26cb647` was
+  deployed: Edinburgh loaded all 9/9 cells (HTTP 200), settled with nine resident
+  cells, and logged zero console errors. The 120 stationary frame samples had
+  p95 16.9 ms; this is not hardware evidence and does not cover walking, travel,
+  night switch, or visible terrain relief. See the [smoke report](benchmarks/results/stage0/s7-live-terrain-stagger-2026-10-31.md)
+  and [capture](screenshots/performance-visuals/stage0/s7-terrain-stagger/edinburgh-live-headless-2026-10-31.jpg).
 - [ ] **S8 — Walking cost on weak GPUs.** Walking is GPU-bound on Intel UHD
   (fill rate, not draw calls). Candidates, in order: cheaper interior-window
   shader at distance (drop the ray-box sample beyond about 40 m instead of
