@@ -1,6 +1,6 @@
 # Walk the World — Performance and Visuals Implementation Plan
 
-Updated: 30 October 2026. Reviewed base: `19caebb` on `origin/main`.
+Updated: 30 October 2026. Reviewed base: `021f55b` on `origin/main`.
 Demo gates D1–D8 are closed. The smoothness track (section 0a) closed S1–S6 from
 live-deploy profiling; S7–S8 stay open. S9's real-input check did not reproduce
 the hang on 30 October. S7 has a candidate fix (`be2ff98`,
@@ -9,7 +9,10 @@ interior-window cutoff was reverted: its gain was not repeatable and it shortene
 the interior view. A separate far-facade detail fade was rejected after GPU-timer
 p95 increased in all four cities. S8's 0.85 integrated-Intel render-scale
 candidate passed the four-city host comparison; target-laptop measurement
-remains. The dependency audit gate below is open.
+remains. The dependency audit is clean, but SEC1's live-data browser acceptance
+is still open. B3 now includes multipolygon relation support; the real OSM
+member geometry stitched successfully, while the Overpass query and R2 reseed
+remain open (see B3 below).
 This is the active plan. The [previous detailed checkpoint](docs/PLAN-CHECKPOINT-2026-10-28-BEFORE-REVIEW.md)
 preserves the full experiment history; its status is historical.
 
@@ -22,13 +25,23 @@ preserves the full experiment history; its status is historical.
   replacing the deprecated `duckdb` package and its node-gyp/tar chain, plus
   non-forced `npm audit fix`. Next 15.5.28 was skipped: its bundled postcss
   still audits high. Route handlers await `params`; `serverExternalPackages`
-  replaces the experimental key. Result: `npm audit` 0 findings (full and
-  `--omit=dev`), 220 tests, lint 0 errors (15 React Compiler warnings), build
-  passes, and a local `next start` served `/`, `/street`, `/editor` and the
-  city/edit/asset API routes with expected status codes. Not yet checked: the
-  DuckDB Overture query against live S3 (it writes results to R2), React 19
-  Strict Mode mount/unmount of Globe and StreetEngine, globe-to-street client
-  navigation, and the four-city run. Merge after one browser pass.
+  replaces the experimental key. On 30 Oct at `021f55b`, both full and
+  production-only `npm audit` reported 0 findings, all 234 tests passed, lint
+  had 0 errors (15 warnings), and the production build passed. Earlier local
+  `next start` checks served `/`, `/street`, `/editor` and city/edit/asset API
+  routes with expected status codes.
+  A private-window dev browser pass on 30 Oct, with `reactStrictMode: true`,
+  exercised globe → Pune street → globe navigation. The route mounted and
+  returned without a Next.js issue badge, but city data stayed at “Streaming
+  city”: the Pune API request returned 502 after 85 s, then 200 after a 16.9 s
+  retry, without rendering nearby streets. Local R2 and the public cell base
+  were both unconfigured, so no cache write was possible. A separate regular
+  Brave run showed a hydration mismatch caused by extension-injected `<html>`
+  and `<body>` attributes; it did not appear in the private window. See [the
+  browser acceptance check](benchmarks/results/stage0/sec1-next16-browser-acceptance-2026-10-30.md).
+  Still open: the live DuckDB Overture query against S3 (writes results to R2)
+  and a full four-city run with usable city data. Do not close SEC1 on this
+  partial local route check.
   On `6c79a3d`, `npm ci` installed Next.js 14.2.35, React/React DOM 18.3.1,
   DuckDB 1.4.4 and Sharp 0.35.5. `npm audit --omit=dev` reported 11 production
   dependency findings (10 high, 1 critical); the full install audit reported 19
