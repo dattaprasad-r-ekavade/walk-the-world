@@ -18,7 +18,7 @@ import {
 } from "@aws-sdk/client-s3";
 import { PLACES } from "../lib/geo.js";
 import { SEED_GROUPS } from "../lib/seedPlaces.js";
-import { deriveCellEnrichment } from "../lib/engine/cell-enrichment.js";
+import { deriveCellEnrichment, deriveOvertureBuildingPatches } from "../lib/engine/cell-enrichment.js";
 
 config({ path: ".env.local" });
 
@@ -205,19 +205,29 @@ for (const key of keys) {
   if (!city?.elements?.length) { console.warn(`skip ${key}: not present in R2`); continue; }
 
   const sidecar = await readSidecar(key);
-  const extra = mergeExtras(sidecar);
+  const extra = mergeExtras({ patches: city.enrichment?.patches || {} }, sidecar);
+  const overtureStats = { matched: 0, fields: 0, added: 0 };
 
-  if (USE_OVERTURE && city.elements.filter((e) => e.tags?.building).length < 120) {
+  if (USE_OVERTURE) {
     try {
       const { queryBuildings } = await import("../lib/overtureServer.js");
       const d = 0.007;
       const result = await queryBuildings(coords.lat - d, coords.lat + d, coords.lon - d, coords.lon + d);
       if (result.status === "ok") {
-        extra.sources.push("overture");
-        extra.features.push(...result.buildings.slice(0, 250).map((b) => ({
-          kind: "building", source: "overture", geometry: b.ring,
-          properties: { tags: { building: "yes", height: String(b.h) } },
-        })));
+        const merged = deriveOvertureBuildingPatches(city, result.buildings, extra.patches);
+        extra.patches = Object.assign({}, extra.patches, merged.patches);
+        overtureStats.matched = merged.matched;
+        overtureStats.fields = merged.fields;
+
+        if (city.elements.filter((e) => e.tags?.building).length < 120) {
+          const fallbackBuildings = result.buildings.slice(0, 250);
+          extra.features.push(...fallbackBuildings.map((b) => ({
+            kind: "building", source: "overture", geometry: b.ring,
+            properties: { tags: { building: "yes", height: String(b.h) } },
+          })));
+          overtureStats.added = fallbackBuildings.length;
+        }
+        if (overtureStats.fields || overtureStats.added) extra.sources.push("overture");
       }
     } catch (error) {
       console.warn(`  overture unavailable: ${error.message}`);
@@ -245,7 +255,10 @@ for (const key of keys) {
   }
   totalBytes += compressed.length;
   ready++;
-  console.log(`${UPLOAD ? "upload" : "would upload"} ${key}: ${(compressed.length / 1024).toFixed(1)} KB, ${enrichment.features.length} source features, urban ${enrichment.density.urban}`);
+  const overtureNote = USE_OVERTURE
+    ? `; Overture matched ${overtureStats.matched} OSM buildings, filled ${overtureStats.fields} tags, added ${overtureStats.added} fallback footprints`
+    : "";
+  console.log(`${UPLOAD ? "upload" : "would upload"} ${key}: ${(compressed.length / 1024).toFixed(1)} KB, ${enrichment.features.length} source features, urban ${enrichment.density.urban}${overtureNote}`);
   if (UPLOAD) await putJson(key, body, compressed);
 }
 

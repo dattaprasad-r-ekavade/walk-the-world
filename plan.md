@@ -1,6 +1,6 @@
 # Walk the World — Performance and Visuals Implementation Plan
 
-Updated: 31 October 2026. Reviewed base: `2ba3a39` on `origin/main`.
+Updated: 31 October 2026. Reviewed base: `7af0734` on `origin/main`.
 Demo gates D1–D8 are closed. The smoothness track (section 0a) closed S1–S6 from
 live-deploy profiling; S7–S8 stay open. S9's real-input check did not reproduce
 the hang on 30 October. S7 has a candidate fix (`be2ff98`,
@@ -414,7 +414,14 @@ Decisions taken from the research:
 - [ ] **B4 — Overture gap fill (S).** The Overture footprint fallback already
   exists for sparse cells. Remaining: merge Overture height, num_floors,
   roof_shape, roof_color, facade_color and facade_material into OSM buildings
-  that lack them, in the baker (fields exist in the schema; coverage is sparse).
+  that lack them, in the baker (coverage is sparse). **31 Oct implementation:**
+  Overture query rows now carry those fields and their OpenStreetMap source way
+  IDs; the baker matches IDs such as `w…@version` and patches only missing OSM
+  tags. Existing OSM values take precedence, and facade/roof color spelling
+  plus Overture material enums reach the current renderer. Production build
+  passes; lint passes with 15 existing warnings. An Edinburgh dry run could not
+  start because `.env.local` has no R2 configuration, so coverage and upload
+  acceptance remain open. See the [Overture Building schema](https://docs.overturemaps.org/schema/reference/buildings/building/).
   Overture segments have no lanes or sidewalk fields, so A4 uses OSM tags.
 
 ### Phase C — larger bets, only with measured benefit
