@@ -186,6 +186,21 @@ Open:
   so encoded heights stay exact). Next: one tour on the target laptop; check
   that ground imagery and hills still appear. The 620 ms Cesium-loading frame
   at globe start is not addressed.
+  Profiled on the target i5-1035G1 laptop (30 Oct, local production build,
+  Long Animation Frames plus CPU samples, one run per variant). Worst arrival
+  frames: 1,470 ms at boot, from synchronous shader linking
+  (`getProgramInfoLog`) in the first PMREM environment build that `setTime`
+  triggers; 803 ms in a later render with 168 ms of program linking plus a
+  220 ms response handler; 720 ms of render-phase time with almost no script
+  (GPU or texture upload, likely the 1–2k terrain canvases); 422 ms of Cesium
+  shader linking on the globe. Two fixes were tried and reverted: (a)
+  pre-compiling PMREM's blur and GGX materials with `compileAsync` before the
+  first `setTime` left a 2.1 s frame in the continuation (no gain on this
+  ANGLE/D3D11 driver); (b) warming the whole scene instead of the city group
+  produced a 2.9 s frame inside the `compileAsync` poll. Next candidates:
+  build the boot environment while the loading screen is static (hide the
+  canvas so a freeze is not visible), or replace the PMREM sky with a smaller
+  prefiltered environment; split the terrain canvas upload.
 - [ ] **S8 — Walking cost on weak GPUs.** Walking is GPU-bound on Intel UHD
   (fill rate, not draw calls). Candidates, in order: cheaper interior-window
   shader at distance (drop the ray-box sample beyond about 40 m instead of
