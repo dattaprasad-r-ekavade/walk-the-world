@@ -471,8 +471,7 @@ HTTP errors; the `23a34cc` settled five-second smoke closes R7. See R7 and the
 
 ### Priority issues found in this review
 
-R1 and R2 closed on 30 October after current-main browser and WebGL audits.
-R3's post-processing pass-specific teardown validation remains open. R4 is
+R1–R3 closed on 30 October after current-main browser and WebGL audits. R4 is
 closed with browser and WebGL object-count evidence. R6's evidence labels are
 reconciled. Preserve gameplay and fallbacks.
 
@@ -523,16 +522,28 @@ reconciled. Preserve gameplay and fallbacks.
   This is one Intel UHD/Chrome run; other GPUs and multi-hour soak behavior are
   not established.
 
-- [ ] **R3 — P2: Validate post-processing pass disposal.**
+- [x] **R3 — P2: Validate post-processing pass disposal.**
   Previously [post-fx.js](lib/engine/post-fx.js) called only `composer.dispose()`.
-  Three.js 0.170.0's EffectComposer disposes its two buffers and copy pass, but
+  Three.js 0.186.1's EffectComposer disposes its two buffers and copy pass, but
   does not dispose added SSAO, bloom or output passes. The owned passes are now
   disposed exactly once before releasing the composer. Check repeated
   engine entry/exit and their render-target/material cleanup; the existing
   quality-policy tests do not exercise teardown.
   The controller now disposes these passes once, including the SSAO material
-  and noise texture omitted by Three.js 0.170's pass disposer. A lifecycle unit
-  check covers repeated disposal; real-GPU entry/exit resource checks remain open.
+  and noise texture omitted by Three.js's SSAO pass disposer. The lifecycle
+  unit check covers repeated disposal. On 30 October, three full high-quality
+  StreetEngine entries/exits in headed Chrome 156 on Intel UHD each started
+  with 22 framebuffers and 2 renderbuffers. Teardown explicitly deleted 19
+  framebuffers, both renderbuffers, 51–55 textures and 64–65 shader programs
+  per cycle. The same 3 framebuffer, 6 texture and 5 program handles remained
+  tracked before context loss in every cycle; creation stacks identify the
+  framebuffers as Three.js renderer scratch targets, while the texture/program
+  handles are not individually attributed. All three canvases detached and
+  their contexts were lost with no browser or network errors. The separate
+  six-cycle PMREM audit also held steady at 22/2. See the [post-processing
+  teardown report](benchmarks/results/stage4/r3-postfx-teardown-2026-10-30.md).
+  This is one device/browser run; it does not measure VRAM bytes or establish
+  behavior on other GPUs.
 
 - [x] **R4 — P2: Validate atlas-layout fallback and texture disposal.**
   Previously [ktx2-textures.js](lib/engine/ktx2-textures.js) parsed the layout

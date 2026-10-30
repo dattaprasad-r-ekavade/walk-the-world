@@ -4,6 +4,7 @@
  * Usage: node scripts/bench-perf.mjs [--base-url http://127.0.0.1:3456] [--out benchmarks/before.json]
  * Optional fixed walking pose: --pose-x <meters> --pose-z <meters> --heading <radians> [--pose-pitch <radians>].
  * Environment lifecycle audit: --environment-audit [--environment-audit-cycles <count>] [--engine-teardown-audit].
+ * Engine teardown audit: --engine-teardown-audit [--engine-teardown-cycles <count>].
  */
 import { chromium } from 'playwright';
 import { writeFileSync, mkdirSync, readFileSync } from 'fs';
@@ -85,6 +86,7 @@ const lightTransitionEnabled = args.includes('--light-transition');
 const environmentAuditEnabled = args.includes('--environment-audit');
 const engineTeardownAuditEnabled = args.includes('--engine-teardown-audit');
 const environmentAuditCycles = Number(option('--environment-audit-cycles', '6'));
+const engineTeardownCycles = Number(option('--engine-teardown-cycles', '3'));
 const ktx2DisposalAuditEnabled = args.includes('--ktx2-disposal-audit');
 const invalidFacadeLayoutSchema = args.includes('--invalid-facade-layout-schema');
 const invalidFacadeLayout = args.includes('--invalid-facade-layout') || invalidFacadeLayoutSchema;
@@ -171,6 +173,13 @@ if (environmentAuditEnabled && (dataMode !== 'recorded' || benchmarkEnvironment.
 }
 if (engineTeardownAuditEnabled && !environmentAuditEnabled) {
   throw new Error('--engine-teardown-audit requires --environment-audit');
+}
+if (engineTeardownAuditEnabled && (dataMode !== 'recorded' || qualityPreset !== 'high' || qualityMode !== 'manual' ||
+    rendererMode !== 'browser-default' || browserChannel !== 'chrome' || !headed || postFxMode !== 'preset')) {
+  throw new Error('--engine-teardown-audit requires recorded data, manual high quality with post FX enabled, headed Chrome and browser-default rendering');
+}
+if (!Number.isInteger(engineTeardownCycles) || engineTeardownCycles < 1 || engineTeardownCycles > 10) {
+  throw new Error('--engine-teardown-cycles must be an integer from 1 to 10');
 }
 if (!Number.isInteger(environmentAuditCycles) || environmentAuditCycles < 1 || environmentAuditCycles > 50) {
   throw new Error('--environment-audit-cycles must be an integer from 1 to 50');
@@ -552,8 +561,10 @@ async function benchStreet(page) {
     });
   }
   if (environmentAuditEnabled) {
-    await page.addInitScript(() => {
-      const framebuffers = new Set(), renderbuffers = new Set(), names = new WeakMap(), values = new Set(), framebufferOrigins = new WeakMap();
+    await page.addInitScript((captureExtendedResources) => {
+      const framebuffers = new Set(), renderbuffers = new Set(), textures = new Set(), programs = new Set();
+      const names = new WeakMap(), values = new Set(), framebufferOrigins = new WeakMap();
+      const textureOrigins = new WeakMap(), programOrigins = new WeakMap();
       const contextRecords = [], recordsByContext = new WeakMap();
       let deletedFramebuffers = 0, deletedRenderbuffers = 0;
       const recordFor = (context) => {
@@ -564,8 +575,12 @@ async function benchStreet(page) {
             context,
             framebuffers: new Set(),
             renderbuffers: new Set(),
+            textures: new Set(),
+            programs: new Set(),
             deletedFramebuffers: 0,
             deletedRenderbuffers: 0,
+            deletedTextures: 0,
+            deletedPrograms: 0,
           };
           recordsByContext.set(context, record);
           contextRecords.push(record);
@@ -575,8 +590,14 @@ async function benchStreet(page) {
       const prototypes = [WebGLRenderingContext.prototype];
       if (typeof WebGL2RenderingContext !== 'undefined') prototypes.push(WebGL2RenderingContext.prototype);
       for (const proto of prototypes) {
-        for (const [type, live] of [['Framebuffer', framebuffers], ['Renderbuffer', renderbuffers]]) {
-          const recordKey = type === 'Framebuffer' ? 'framebuffers' : 'renderbuffers';
+        const trackedTypes = [
+          ['Framebuffer', framebuffers, 'framebuffers'],
+          ['Renderbuffer', renderbuffers, 'renderbuffers'],
+        ];
+        if (captureExtendedResources) {
+          trackedTypes.push(['Texture', textures, 'textures'], ['Program', programs, 'programs']);
+        }
+        for (const [type, live, recordKey] of trackedTypes) {
           for (const action of ['create', 'delete']) {
             const name = action + type;
             if (!Object.hasOwn(proto, name)) continue;
@@ -587,19 +608,20 @@ async function benchStreet(page) {
               if (action === 'create' && result) {
                 live.add(result);
                 record[recordKey].add(result);
-                if (type === 'Framebuffer') {
+                if (captureExtendedResources && type === 'Framebuffer') {
                   framebufferOrigins.set(result, new Error().stack?.split('\n').slice(2, 9).join('\n') || 'stack unavailable');
+                } else if (type === 'Texture') {
+                  textureOrigins.set(result, new Error().stack?.split('\n').slice(2, 9).join('\n') || 'stack unavailable');
+                } else if (type === 'Program') {
+                  programOrigins.set(result, new Error().stack?.split('\n').slice(2, 9).join('\n') || 'stack unavailable');
                 }
               }
               if (action === 'delete' && args[0] && live.delete(args[0])) {
                 record[recordKey].delete(args[0]);
-                if (type === 'Framebuffer') {
-                  deletedFramebuffers++;
-                  record.deletedFramebuffers++;
-                } else {
-                  deletedRenderbuffers++;
-                  record.deletedRenderbuffers++;
-                }
+                const deletedKey = `deleted${type}s`;
+                if (type === 'Framebuffer') deletedFramebuffers++;
+                if (type === 'Renderbuffer') deletedRenderbuffers++;
+                record[deletedKey]++;
               }
               return result;
             };
@@ -622,28 +644,41 @@ async function benchStreet(page) {
         }
       }
       window.__environmentAudit = (includeOrigins = false) => ({
+        extendedResourceTracking: captureExtendedResources,
         framebuffers: contextRecords.reduce((count, record) => count + (record.context.isContextLost?.() ? 0 : record.framebuffers.size), 0),
         renderbuffers: contextRecords.reduce((count, record) => count + (record.context.isContextLost?.() ? 0 : record.renderbuffers.size), 0),
+        textures: captureExtendedResources ? contextRecords.reduce((count, record) => count + (record.context.isContextLost?.() ? 0 : record.textures.size), 0) : null,
+        programs: captureExtendedResources ? contextRecords.reduce((count, record) => count + (record.context.isContextLost?.() ? 0 : record.programs.size), 0) : null,
         deletedFramebuffers,
         deletedRenderbuffers,
+        deletedTextures: captureExtendedResources ? contextRecords.reduce((count, record) => count + record.deletedTextures, 0) : null,
+        deletedPrograms: captureExtendedResources ? contextRecords.reduce((count, record) => count + record.deletedPrograms, 0) : null,
         envMapIntensityValues: [...values].sort((a, b) => a - b),
         contexts: contextRecords.map((record) => ({
           id: record.id,
           framebuffers: record.context.isContextLost?.() ? 0 : record.framebuffers.size,
           renderbuffers: record.context.isContextLost?.() ? 0 : record.renderbuffers.size,
+          textures: captureExtendedResources ? (record.context.isContextLost?.() ? 0 : record.textures.size) : null,
+          programs: captureExtendedResources ? (record.context.isContextLost?.() ? 0 : record.programs.size) : null,
           trackedFramebuffers: record.framebuffers.size,
           trackedRenderbuffers: record.renderbuffers.size,
+          trackedTextures: captureExtendedResources ? record.textures.size : null,
+          trackedPrograms: captureExtendedResources ? record.programs.size : null,
           deletedFramebuffers: record.deletedFramebuffers,
           deletedRenderbuffers: record.deletedRenderbuffers,
+          deletedTextures: captureExtendedResources ? record.deletedTextures : null,
+          deletedPrograms: captureExtendedResources ? record.deletedPrograms : null,
           contextLost: record.context.isContextLost?.() === true,
           canvasConnected: record.context.canvas?.isConnected === true,
           canvasId: record.context.canvas?.id || '',
           canvasClass: String(record.context.canvas?.className || ''),
           canvasParentClass: String(record.context.canvas?.parentElement?.className || ''),
-          trackedFramebufferOrigins: includeOrigins ? [...record.framebuffers].map((framebuffer) => framebufferOrigins.get(framebuffer)) : undefined,
+          trackedFramebufferOrigins: includeOrigins && captureExtendedResources ? [...record.framebuffers].map((framebuffer) => framebufferOrigins.get(framebuffer)) : undefined,
+          trackedTextureOrigins: includeOrigins && captureExtendedResources ? [...record.textures].map((texture) => textureOrigins.get(texture)) : undefined,
+          trackedProgramOrigins: includeOrigins && captureExtendedResources ? [...record.programs].map((program) => programOrigins.get(program)) : undefined,
         })),
       });
-    });
+    }, engineTeardownAuditEnabled);
   }
   if (lightTransitionEnabled && inactiveLightsMode === 'hidden') {
     await page.addInitScript(() => {
@@ -1569,6 +1604,7 @@ async function main() {
       environmentAuditEnabled,
       engineTeardownAuditEnabled,
       environmentAuditCycles,
+      engineTeardownCycles,
       ktx2DisposalAuditEnabled,
       invalidFacadeLayout,
       invalidFacadeLayoutSchema,
@@ -1678,48 +1714,82 @@ async function main() {
       console.log(`    screenshot: ${screenshotPath}`);
     }
     if (engineTeardownAuditEnabled) {
-      const before = await page.evaluate(() => window.__environmentAudit?.() || null);
-      if (!before) throw new Error('WebGL environment audit is unavailable before engine teardown');
-      const streetContextIds = before.contexts
-        .filter((context) => context.canvasParentClass.includes('cesium-container'))
-        .map((context) => context.id);
-      await page.locator('button[title="Globe view"]').click();
-      await page.waitForFunction(() => location.pathname === '/' && window.__engineReady !== true && !window.__streetDebug, null, {
-        timeout: 20_000,
-      });
-      await page.waitForFunction((ids) => {
-        const contexts = window.__environmentAudit?.().contexts || [];
-        return ids.length > 0 && ids.every((id) => contexts.find((context) => context.id === id)?.contextLost === true);
-      }, streetContextIds, { timeout: 5_000 });
-      const after = await page.evaluate(() => window.__environmentAudit?.(true) || null);
-      if (!after) throw new Error('WebGL environment audit is unavailable after engine teardown');
-      result.engineTeardownAudit = {
-        before,
-        after,
-        deletedFramebuffers: after.deletedFramebuffers - before.deletedFramebuffers,
-        deletedRenderbuffers: after.deletedRenderbuffers - before.deletedRenderbuffers,
-        streetContexts: before.contexts
-          .filter((context) => context.canvasParentClass.includes('cesium-container'))
-          .map((context) => {
-            const afterContext = after.contexts.find((entry) => entry.id === context.id);
-            return {
-              id: context.id,
-              beforeFramebuffers: context.framebuffers,
-              beforeRenderbuffers: context.renderbuffers,
-              afterFramebuffers: afterContext?.framebuffers ?? null,
-              afterRenderbuffers: afterContext?.renderbuffers ?? null,
-              contextLostAfter: afterContext?.contextLost ?? null,
-              canvasConnectedAfter: afterContext?.canvasConnected ?? null,
-              released: !!afterContext && afterContext.contextLost && afterContext.framebuffers === 0 &&
-                afterContext.renderbuffers === 0 && !afterContext.canvasConnected,
-            };
-          }),
-        elapsedMs: Date.now() - new Date(result.timestamp).getTime(),
-      };
-      if (result.engineTeardownAudit.deletedFramebuffers < 1 || after.framebuffers > before.framebuffers || after.renderbuffers > before.renderbuffers ||
-          !result.engineTeardownAudit.streetContexts.length || result.engineTeardownAudit.streetContexts.some((context) => !context.released)) {
-        throw new Error(`Engine teardown did not release tracked WebGL targets: ${JSON.stringify(result.engineTeardownAudit)}`);
+      const cycles = [];
+      for (let cycle = 0; cycle < engineTeardownCycles; cycle++) {
+        const before = await page.evaluate(() => window.__environmentAudit?.() || null);
+        if (!before) throw new Error('WebGL environment audit is unavailable before engine teardown');
+        const streetContexts = before.contexts.filter((context) => context.canvasParentClass.includes('cesium-container'));
+        const streetContextIds = streetContexts.map((context) => context.id);
+        if (!streetContexts.length) throw new Error('No StreetEngine WebGL context was captured before teardown');
+        await page.locator('button[title="Globe view"]').click();
+        await page.waitForFunction(() => location.pathname === '/' && window.__engineReady !== true && !window.__streetDebug, null, {
+          timeout: 20_000,
+        });
+        await page.waitForFunction((ids) => {
+          const contexts = window.__environmentAudit?.().contexts || [];
+          return ids.every((id) => contexts.find((context) => context.id === id)?.contextLost === true);
+        }, streetContextIds, { timeout: 5_000 });
+        const after = await page.evaluate(() => window.__environmentAudit?.(true) || null);
+        if (!after) throw new Error('WebGL environment audit is unavailable after engine teardown');
+        const contexts = streetContexts.map((context) => {
+          const afterContext = after.contexts.find((entry) => entry.id === context.id);
+          return {
+            id: context.id,
+            before: {
+              framebuffers: context.framebuffers,
+              renderbuffers: context.renderbuffers,
+              textures: context.textures,
+              programs: context.programs,
+            },
+            deleted: {
+              framebuffers: (afterContext?.deletedFramebuffers ?? 0) - context.deletedFramebuffers,
+              renderbuffers: (afterContext?.deletedRenderbuffers ?? 0) - context.deletedRenderbuffers,
+              textures: (afterContext?.deletedTextures ?? 0) - context.deletedTextures,
+              programs: (afterContext?.deletedPrograms ?? 0) - context.deletedPrograms,
+            },
+            remaining: {
+              framebuffers: afterContext?.framebuffers ?? null,
+              renderbuffers: afterContext?.renderbuffers ?? null,
+              textures: afterContext?.textures ?? null,
+              programs: afterContext?.programs ?? null,
+            },
+            trackedAtContextLoss: {
+              framebuffers: afterContext?.trackedFramebuffers ?? null,
+              renderbuffers: afterContext?.trackedRenderbuffers ?? null,
+              textures: afterContext?.trackedTextures ?? null,
+              programs: afterContext?.trackedPrograms ?? null,
+            },
+            contextLostAfter: afterContext?.contextLost ?? null,
+            canvasConnectedAfter: afterContext?.canvasConnected ?? null,
+            released: !!afterContext && afterContext.contextLost && afterContext.framebuffers === 0 &&
+              afterContext.renderbuffers === 0 && afterContext.textures === 0 && afterContext.programs === 0 &&
+              !afterContext.canvasConnected,
+          };
+        });
+        const deleted = Object.fromEntries(['framebuffers', 'renderbuffers', 'textures', 'programs'].map((key) => [
+          key,
+          contexts.reduce((total, context) => total + context.deleted[key], 0),
+        ]));
+        const cycleResult = { cycle: cycle + 1, before, after, deleted, contexts };
+        cycles.push(cycleResult);
+        if (deleted.framebuffers < 1 || deleted.textures < 1 || contexts.some((context) => !context.released)) {
+          throw new Error(`Engine teardown cycle ${cycle + 1} did not release tracked WebGL resources: ${JSON.stringify(cycleResult)}`);
+        }
+        if (cycles.length > 1) {
+          const residue = (entries) => JSON.stringify(entries.map(({ trackedAtContextLoss }) => trackedAtContextLoss));
+          if (residue(contexts) !== residue(cycles[0].contexts)) {
+            throw new Error(`Engine teardown cycle ${cycle + 1} changed the context-loss residue: ${JSON.stringify(cycleResult)}`);
+          }
+        }
+        if (cycle + 1 < engineTeardownCycles) {
+          await page.goto(streetUrl(), { waitUntil: 'domcontentloaded', timeout: 60_000 });
+          await page.waitForFunction(() => window.__engineReady === true && !!window.__streetDebug?.player &&
+            !!window.__streetDebug?.population?.(), null, { timeout: READY_TIMEOUT });
+          await page.waitForFunction(() => window.__streetDebug?.cellStream?.()?.pendingCount === 0, null, { timeout: READY_TIMEOUT });
+          await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+        }
       }
+      result.engineTeardownAudit = { cycles, elapsedMs: Date.now() - new Date(result.timestamp).getTime() };
     }
     if (!resourceSoakEnabled && !result.street.measurementWindow?.valid) {
       throw new Error(`Measurement window is invalid: ${result.street.measurementWindow?.reasons?.join('; ') || 'missing window diagnostics'}`);
