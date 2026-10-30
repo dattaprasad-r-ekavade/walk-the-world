@@ -313,11 +313,18 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false, demo
       onSample: (durationMs) => appendGpuFrameTime(getPerfCounters(), durationMs),
     });
     const rendererInfo = gl.getExtension("WEBGL_debug_renderer_info");
+    const gpuVendor = String(rendererInfo
+      ? gl.getParameter(rendererInfo.UNMASKED_VENDOR_WEBGL) || ""
+      : gl.getParameter(gl.VENDOR) || "");
+    const gpuRenderer = String(rendererInfo
+      ? gl.getParameter(rendererInfo.UNMASKED_RENDERER_WEBGL) || ""
+      : gl.getParameter(gl.RENDERER) || "");
+    const isIntelIntegratedGpu = /Intel/i.test(`${gpuVendor} ${gpuRenderer}`) && !/\bArc\b/i.test(gpuRenderer);
     setPerfEnvironment({
       webgl: {
         version: gl.getParameter(gl.VERSION),
-        vendor: rendererInfo ? gl.getParameter(rendererInfo.UNMASKED_VENDOR_WEBGL) : gl.getParameter(gl.VENDOR),
-        renderer: rendererInfo ? gl.getParameter(rendererInfo.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER),
+        vendor: gpuVendor,
+        renderer: gpuRenderer,
         webgl2: renderer.capabilities.isWebGL2,
         debugRendererInfoAvailable: !!rendererInfo,
       },
@@ -331,7 +338,15 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false, demo
     // Dynamic render-scale governor: the tier sets a base pixel ratio; the
     // governor scales it between 0.6x and 1x. Disabled in benchmark mode.
     let basePixelRatio = Math.min(window.devicePixelRatio || 1, useMsaa ? 1.5 : 1.25);
-    let renderScaleState = createRenderScaleState(1);
+    const defaultRenderScaleFor = (quality) =>
+      isIntelIntegratedGpu &&
+      quality !== "low" &&
+      useGameStore.getState().settings?.qualityMode !== "manual"
+        ? 0.85
+        : 1;
+    let renderScaleState = createRenderScaleState(
+      defaultRenderScaleFor(useGameStore.getState().settings?.quality || "medium"),
+    );
     const governorEnabled = window.__BENCH_MODE !== true;
     const frameWindow = new Float32Array(256);
     let frameWindowCount = 0;
@@ -342,7 +357,7 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false, demo
         postFx.setFxaa(!useMsaa && renderScaleState.scale < 1);
       }
     };
-    renderer.setPixelRatio(basePixelRatio);
+    renderer.setPixelRatio(basePixelRatio * renderScaleState.scale);
     // filmic tone mapping: richer sky gradients, softer highlights, deeper
     // shadow color — the single cheapest whole-scene visual upgrade
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -578,10 +593,11 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false, demo
           : quality === "medium"
             ? Math.min(window.devicePixelRatio || 1, 1.25)
             : Math.min(window.devicePixelRatio || 1, 1.5);
-      // new tier -> restart the governor from full scale
-      renderScaleState = createRenderScaleState(1);
+      // Auto mode starts integrated Intel GPUs below native scale so the first
+      // frames stay inside the governor target. Manual presets retain full scale.
+      renderScaleState = createRenderScaleState(defaultRenderScaleFor(quality));
       frameWindowCount = 0;
-      renderer.setPixelRatio(basePixelRatio);
+      renderer.setPixelRatio(basePixelRatio * renderScaleState.scale);
       if (!auto) {
         renderer.shadowMap.enabled = quality !== "low";
         sun.castShadow = quality !== "low";
@@ -591,7 +607,7 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false, demo
       else sun.shadow.mapSize.set(2048, 2048);
       renderer.setSize(mount.clientWidth, mount.clientHeight);
       postFx.setSize(mount.clientWidth, mount.clientHeight);
-      postFx.setFxaa(false);
+      postFx.setFxaa(!useMsaa && renderScaleState.scale < 1);
       // remember the tier; applySky re-evaluates so night can turn bloom on
       qualityTier = quality;
       const nearTextures = ktx2TextureLoader.setQuality(quality);
@@ -612,6 +628,8 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false, demo
       setPerfMetadata({
         qualityTier: quality,
         pixelRatio: renderer.getPixelRatio(),
+        renderScale: renderScaleState.scale,
+        integratedGpu: isIntelIntegratedGpu,
         shadowMapEnabled: renderer.shadowMap.enabled,
         postFxActive: postFx.active,
         ssaoActive: postFx.ssaoActive,
@@ -1555,7 +1573,9 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false, demo
         // Require several consecutive samples before changing quality so a
         // one-off streamed cell does not cause visible preset thrashing.
         const currentSettings = useGameStore.getState().settings;
-        if (currentSettings.qualityMode !== "manual") {
+        // Auto benchmarks retain the GPU-detected boot tier; live sessions
+        // continue to adapt presets after the render-scale governor bottoms.
+        if (currentSettings.qualityMode !== "manual" && window.__BENCH_MODE !== true) {
           if (fpsVal > 0 && fpsVal < 30) {
             qualityGuardLow += 1;
             qualityGuardGood = 0;

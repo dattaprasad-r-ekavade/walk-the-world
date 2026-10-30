@@ -56,6 +56,7 @@ const fixturePath = isAbsolute(fixtureOption) ? fixtureOption : resolve(ROOT, fi
 const cacheMode = option('--cache-mode', ['live', 'recorded'].includes(dataMode) ? 'cold' : 'none');
 const route = option('--route', '/street');
 const qualityPreset = option('--preset', 'medium');
+const qualityMode = option('--quality-mode', 'manual');
 const ssaoMode = option('--ssao-mode', 'preset');
 const postFxMode = option('--postfx-mode', 'preset');
 const inactiveLightsMode = option('--inactive-lights', 'visible');
@@ -99,6 +100,7 @@ if (suppliedPoseOptions.length > 0) {
   if (driving || crossCell) throw new Error('Fixed-pose options cannot be combined with --drive or --cross-cell');
 }
 if (!['low', 'medium', 'high'].includes(qualityPreset)) throw new Error('--preset must be low, medium, or high');
+if (!['manual', 'auto'].includes(qualityMode)) throw new Error('--quality-mode must be manual or auto');
 if (!['preset', 'on', 'off'].includes(ssaoMode)) throw new Error('--ssao-mode must be preset, on, or off');
 if (ssaoMode !== 'preset' && qualityPreset !== 'high') {
   throw new Error('--ssao-mode on/off controls the high-tier SSAO pass and requires --preset high');
@@ -910,6 +912,7 @@ async function benchStreet(page) {
         x: window.__streetDebug.player.x,
         z: window.__streetDebug.player.z,
       } : null,
+      renderScale: window.__streetDebug?.renderScale?.() ?? null,
       vehicleActive: window.__streetDebug?.vehicle?.active === true,
       streetLighting: window.__streetDebug?.streetLightStats?.() || null,
       wetRoadMap: window.__streetDebug?.wetRoadMapStats?.() || null,
@@ -1105,6 +1108,11 @@ async function benchStreet(page) {
     cellStreaming,
     streamLifecycle,
     preset: qualityPreset,
+    qualityTier: metrics.perf?.metadata?.qualityTier || null,
+    qualityMode,
+    pixelRatio: metrics.perf?.metadata?.pixelRatio ?? null,
+    renderScale: metrics.renderScale,
+    integratedGpu: metrics.perf?.metadata?.integratedGpu ?? null,
     fpsSamples: samples,
     frameSummary,
     measurementWindow,
@@ -1171,7 +1179,7 @@ async function main() {
   mkdirSync(dirname(outPath), { recursive: true });
 
   console.log(`  Fixture: ${fixturePath}`);
-  console.log(`  Route: ${route}; data: ${dataMode}; cache: ${cacheMode}; preset: ${qualityPreset}; post FX: ${postFxMode}; SSAO: ${ssaoMode}; inactive lights: ${inactiveLightsMode}; light transition: ${lightTransitionEnabled}; geometry workers: ${geometryWorkers}; city data copy: ${cityDataCopyMode}; road query: ${roadQueryMode}; browser: ${browserChannel}; renderer: ${rendererMode}; hour: ${benchmarkEnvironment.hour}; weather: ${benchmarkEnvironment.weather}; walk: ${walkDurationMs}ms${crossCell ? '; crossing a cell boundary' : ''}${resourceSoakEnabled ? '; resource soak' : ''}${streamLifecycleEnabled ? '; streamed lamp lifecycle' : ''}`);
+  console.log(`  Route: ${route}; data: ${dataMode}; cache: ${cacheMode}; preset: ${qualityPreset} (${qualityMode}); post FX: ${postFxMode}; SSAO: ${ssaoMode}; inactive lights: ${inactiveLightsMode}; light transition: ${lightTransitionEnabled}; geometry workers: ${geometryWorkers}; city data copy: ${cityDataCopyMode}; road query: ${roadQueryMode}; browser: ${browserChannel}; renderer: ${rendererMode}; hour: ${benchmarkEnvironment.hour}; weather: ${benchmarkEnvironment.weather}; walk: ${walkDurationMs}ms${crossCell ? '; crossing a cell boundary' : ''}${resourceSoakEnabled ? '; resource soak' : ''}${streamLifecycleEnabled ? '; streamed lamp lifecycle' : ''}`);
 
   const launchOptions = {
     headless: !headed,
@@ -1202,7 +1210,7 @@ async function main() {
       routeRequest.fulfill({ status: 200, contentType: 'application/json', body: '[]' })
     );
   }
-  await context.addInitScript(({ fixture, schemaVersion, preset, seed, pose, environment, geometryWorkers, cityDataCopyMode, profileCityQueries, roadQueryMode }) => {
+  await context.addInitScript(({ fixture, schemaVersion, preset, qualityMode, seed, pose, environment, geometryWorkers, cityDataCopyMode, profileCityQueries, roadQueryMode }) => {
     if (location.origin !== 'null') {
       try {
         const saved = JSON.parse(localStorage.getItem('wtw-game') || '{}');
@@ -1211,7 +1219,7 @@ async function main() {
           settings: {
             ...(saved.state?.settings || {}),
             quality: preset,
-            qualityMode: 'manual',
+            qualityMode,
             hour: environment.hour,
             weather: environment.weather,
           },
@@ -1254,6 +1262,7 @@ async function main() {
     fixture: dataMode === 'fixture' ? BENCH_FIXTURE : null,
     schemaVersion: PERF_SCHEMA_VERSION,
     preset: qualityPreset,
+    qualityMode,
     seed,
     pose: fixedPose,
     environment: benchmarkEnvironment,
@@ -1349,6 +1358,7 @@ async function main() {
       latitude: location.lat,
       longitude: location.lon,
       qualityPreset,
+      qualityMode,
       ssaoMode,
       postFxMode,
       inactiveLightsMode,
