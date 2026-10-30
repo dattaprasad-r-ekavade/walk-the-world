@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "evidenceType": "s7-full-city-3x3-profile-summary",
-  "recordedAt": "2026-10-30T21:35:02.309Z",
+  "recordedAt": "2026-10-30T21:43:29.375Z",
   "host": {
     "cpu": "13th Gen Intel Core i7-13650HX"
   },
@@ -2094,6 +2094,353 @@
         }
       ],
       "note": "Cache-disabled visible replay on i7-13650HX. New program owners included terrain ground-detail and shared building-wall materials. The ground-detail key changed only in Three.js numSpotLights (2 to 6), matching addition of the four-light high-tier streetlamp pool after spawn-city warmup; A/B validation remains pending."
+    },
+    {
+      "id": "gpu-cache-disabled-tokyo-conditional-streetlight-prewarm",
+      "startedAt": "2026-10-30T21:43:03.190Z",
+      "status": "visible-run-needs-review",
+      "runMode": "visible",
+      "targetDeviceConfirmed": false,
+      "renderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 4060 Laptop GPU (0x000028E0) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+      "browserLaunchArgs": [
+        "--disable-gpu-program-cache"
+      ],
+      "segments": {
+        "tokyoArrival": {
+          "durationMs": 5375.3,
+          "frameCount": 49,
+          "p95Ms": 333.3,
+          "maxFrameMs": 2466,
+          "framesOver500Ms": 2
+        },
+        "edinburghArrival": {
+          "durationMs": 3327.4,
+          "frameCount": 135,
+          "p95Ms": 99.9,
+          "maxFrameMs": 216.6,
+          "framesOver500Ms": 0
+        }
+      },
+      "cityReadiness": {
+        "Tokyo": {
+          "cellsSettled": true,
+          "loadedCellCount": 9,
+          "failedCellCount": 0,
+          "loadedTiles": 1,
+          "flatFallback": false
+        },
+        "Edinburgh": {
+          "cellsSettled": true,
+          "loadedCellCount": 9,
+          "failedCellCount": 0,
+          "loadedTiles": 1,
+          "flatFallback": false
+        }
+      },
+      "errors": {
+        "console": 0,
+        "page": 0,
+        "http": 0,
+        "requestFailures": 0
+      },
+      "profile": {
+        "city": "Tokyo",
+        "segment": "tokyoArrival",
+        "startedAtPageMs": 6156.600000143051,
+        "endedAtPageMs": 11502.100000143051,
+        "sampleCount": 3126,
+        "sampledDurationMs": 5315.7,
+        "profileAttribution": "full call-stack keyed; overlapping Long Tasks only",
+        "longestOverlappingLongTask": {
+          "startTimeMs": 9000.4,
+          "durationMs": 2453,
+          "sampledMs": 2453,
+          "topFrames": [
+            {
+              "functionName": "getProgramInfoLog",
+              "sampledSelfMs": 2387.3,
+              "callStack": "(root) > ao > tr > (anonymous) > qualityTier > render > render > render > render > e3 > e4 > e9 > renderBufferDirect > (anonymous) > getUniforms > T > getProgramInfoLog"
+            },
+            {
+              "functionName": "getShaderInfoLog",
+              "sampledSelfMs": 24.3,
+              "callStack": "(root) > ao > tr > (anonymous) > qualityTier > render > render > render > render > e3 > e4 > e9 > renderBufferDirect > (anonymous) > getUniforms > T > getShaderInfoLog"
+            },
+            {
+              "functionName": "shaderSource",
+              "sampledSelfMs": 8,
+              "callStack": "(root) > ao > tr > (anonymous) > qualityTier > render > render > render > render > e3 > e4 > e9 > renderBufferDirect > (anonymous) > e5 > acquireProgram > to > eX > shaderSource"
+            },
+            {
+              "functionName": "e2",
+              "sampledSelfMs": 7.3,
+              "callStack": "(root) > ao > tr > (anonymous) > qualityTier > render > render > render > render > e3 > e4 > e9 > renderBufferDirect > (anonymous) > e5 > acquireProgram > to > e2"
+            },
+            {
+              "functionName": "getProgramInfoLog",
+              "sampledSelfMs": 4.9,
+              "callStack": "(root) > ao > tr > (anonymous) > qualityTier > render > render > render > _renderOverride > render > e3 > e4 > e9 > renderBufferDirect > (anonymous) > getUniforms > T > getProgramInfoLog"
+            }
+          ]
+        }
+      },
+      "warmupEvents": [
+        {
+          "label": "city.spawn-shader-warmup",
+          "atMs": 8301.2,
+          "spotLightCount": 2,
+          "programCountBefore": 19,
+          "programCountAfter": 40,
+          "newProgramCount": 21
+        },
+        {
+          "label": "city.cell-shader-warmup",
+          "atMs": 11472,
+          "spotLightCount": 6,
+          "programCountBefore": 48,
+          "programCountAfter": 71,
+          "newProgramCount": 23
+        }
+      ],
+      "programKeyComparison": {
+        "earlierProgramId": 3,
+        "laterProgramId": 49,
+        "shaderKeySuffix": "ground-detail-v1",
+        "changedParameterIndex": 38,
+        "changedParameter": "numSpotLights",
+        "earlierValue": 2,
+        "laterValue": 6
+      },
+      "correlatedEvents": [
+        {
+          "type": "timing",
+          "name": "renderer.long-frame-programs",
+          "atMs": 11453.1,
+          "durationMs": 2451.4,
+          "programCountBefore": 49,
+          "programCountAfter": 71,
+          "newProgramCount": 22,
+          "newPrograms": [
+            {
+              "id": 49,
+              "type": "MeshStandardMaterial",
+              "numSpotLightsKeyToken": "6",
+              "cacheKeySuffix": "e,false,,true,false,0,,0,1,0,6,0,1,0,0,1,0,0,0,0,1,0,0,0,0,8388624,8520707,srgb,ground-detail-v1",
+              "ownerCount": 8,
+              "cellKeys": [],
+              "materialFamilies": []
+            },
+            {
+              "id": 50,
+              "type": "MeshStandardMaterial",
+              "numSpotLightsKeyToken": "6",
+              "cacheKeySuffix": "false,0,,0,1,0,6,0,1,0,0,1,0,0,0,0,1,0,0,0,0,8389712,8520707,srgb,wtw-building-atlas-interior-v3",
+              "ownerCount": 7,
+              "cellKeys": [],
+              "materialFamilies": [
+                "other",
+                "concrete",
+                "metal",
+                "glass",
+                "brick"
+              ]
+            },
+            {
+              "id": 51,
+              "type": "MeshStandardMaterial",
+              "numSpotLightsKeyToken": "6",
+              "cacheKeySuffix": "alse,,true,false,0,,0,1,0,6,0,1,0,0,1,0,0,0,0,1,0,0,0,0,8388688,8520707,srgb,onBeforeCompile(){}",
+              "ownerCount": 3,
+              "cellKeys": [
+                "wtw_city6_35.660_139.706"
+              ],
+              "materialFamilies": []
+            },
+            {
+              "id": 52,
+              "type": "MeshStandardMaterial",
+              "numSpotLightsKeyToken": "6",
+              "cacheKeySuffix": "alse,,true,false,0,,0,1,0,6,0,1,0,0,1,0,0,0,0,1,0,0,0,0,8388624,8520707,srgb,onBeforeCompile(){}",
+              "ownerCount": 48,
+              "cellKeys": [],
+              "materialFamilies": []
+            },
+            {
+              "id": 53,
+              "type": "MeshStandardMaterial",
+              "numSpotLightsKeyToken": "6",
+              "cacheKeySuffix": "alse,,true,false,0,,0,1,0,6,0,1,0,0,1,0,0,0,0,1,0,0,0,0,8389648,8520707,srgb,onBeforeCompile(){}",
+              "ownerCount": 2,
+              "cellKeys": [
+                "wtw_city6_35.660_139.706"
+              ],
+              "materialFamilies": []
+            },
+            {
+              "id": 54,
+              "type": "MeshStandardMaterial",
+              "numSpotLightsKeyToken": "6",
+              "cacheKeySuffix": "alse,,true,false,0,,0,1,0,6,0,1,0,0,1,0,0,0,0,1,0,0,0,0,8388624,8522755,srgb,onBeforeCompile(){}",
+              "ownerCount": 2,
+              "cellKeys": [
+                "wtw_city6_35.660_139.706"
+              ],
+              "materialFamilies": []
+            },
+            {
+              "id": 55,
+              "type": "MeshStandardMaterial",
+              "numSpotLightsKeyToken": "6",
+              "cacheKeySuffix": "alse,,true,false,0,,0,1,0,6,0,1,0,0,1,0,0,0,0,1,0,0,0,0,8388624,8520707,srgb,onBeforeCompile(){}",
+              "ownerCount": 3,
+              "cellKeys": [
+                "wtw_city6_35.660_139.706"
+              ],
+              "materialFamilies": []
+            },
+            {
+              "id": 56,
+              "type": "MeshStandardMaterial",
+              "numSpotLightsKeyToken": "6",
+              "cacheKeySuffix": "alse,,true,false,0,,0,1,0,6,0,1,0,0,1,0,0,0,0,1,0,0,0,0,8388688,8520707,srgb,onBeforeCompile(){}",
+              "ownerCount": 2,
+              "cellKeys": [
+                "wtw_city6_35.660_139.706"
+              ],
+              "materialFamilies": []
+            },
+            {
+              "id": 57,
+              "type": "MeshStandardMaterial",
+              "numSpotLightsKeyToken": "6",
+              "cacheKeySuffix": "alse,,true,false,0,,0,1,0,6,0,1,0,0,1,0,0,0,0,1,0,0,0,0,8389649,8520711,srgb,onBeforeCompile(){}",
+              "ownerCount": 2,
+              "cellKeys": [
+                "wtw_city6_35.660_139.706"
+              ],
+              "materialFamilies": []
+            },
+            {
+              "id": 58,
+              "type": "MeshStandardMaterial",
+              "numSpotLightsKeyToken": "6",
+              "cacheKeySuffix": "alse,,true,false,0,,0,1,0,6,0,1,0,0,1,0,0,0,0,1,0,0,0,0,8388688,8522755,srgb,onBeforeCompile(){}",
+              "ownerCount": 26,
+              "cellKeys": [],
+              "materialFamilies": []
+            },
+            {
+              "id": 59,
+              "type": "MeshStandardMaterial",
+              "numSpotLightsKeyToken": "6",
+              "cacheKeySuffix": "alse,,true,false,0,,0,1,0,6,0,1,0,0,1,0,0,0,0,1,0,0,0,0,8388624,8522755,srgb,onBeforeCompile(){}",
+              "ownerCount": 48,
+              "cellKeys": [],
+              "materialFamilies": []
+            },
+            {
+              "id": 60,
+              "type": "MeshLambertMaterial",
+              "numSpotLightsKeyToken": "1",
+              "cacheKeySuffix": "lse,0,true,false,0,,0,1,0,6,0,1,0,0,1,0,0,0,0,1,0,0,0,0,8388624,8520707,srgb,onBeforeCompile(){}",
+              "ownerCount": 3,
+              "cellKeys": [],
+              "materialFamilies": []
+            },
+            {
+              "id": 61,
+              "type": "MeshPhongMaterial",
+              "numSpotLightsKeyToken": "1",
+              "cacheKeySuffix": "e,0,true,false,0,,0,1,0,6,0,1,0,0,1,0,0,0,0,1,0,0,0,0,8388627,8520707,srgb,wtw-walk-ped-color-v2",
+              "ownerCount": 1,
+              "cellKeys": [],
+              "materialFamilies": []
+            },
+            {
+              "id": 62,
+              "type": "MeshLambertMaterial",
+              "numSpotLightsKeyToken": "1",
+              "cacheKeySuffix": "lse,0,true,false,0,,0,1,0,6,0,1,0,0,1,0,0,0,0,1,0,0,0,0,8388627,8520707,srgb,onBeforeCompile(){}",
+              "ownerCount": 1,
+              "cellKeys": [],
+              "materialFamilies": []
+            },
+            {
+              "id": 63,
+              "type": "MeshStandardMaterial",
+              "numSpotLightsKeyToken": "6",
+              "cacheKeySuffix": "alse,,true,false,0,,0,1,0,6,0,1,0,0,1,0,0,0,0,1,0,0,0,0,8388688,8520707,srgb,onBeforeCompile(){}",
+              "ownerCount": 41,
+              "cellKeys": [],
+              "materialFamilies": []
+            },
+            {
+              "id": 64,
+              "type": "MeshStandardMaterial",
+              "numSpotLightsKeyToken": "6",
+              "cacheKeySuffix": "alse,,true,false,0,,0,1,0,6,0,1,0,0,1,0,0,0,0,1,0,0,0,0,8388688,8522755,srgb,onBeforeCompile(){}",
+              "ownerCount": 1,
+              "cellKeys": [],
+              "materialFamilies": []
+            },
+            {
+              "id": 65,
+              "type": "MeshLambertMaterial",
+              "numSpotLightsKeyToken": "1",
+              "cacheKeySuffix": "lse,0,true,false,0,,0,1,0,6,0,1,0,0,1,0,0,0,0,1,0,0,0,0,8388624,8389635,srgb,onBeforeCompile(){}",
+              "ownerCount": 1,
+              "cellKeys": [],
+              "materialFamilies": []
+            },
+            {
+              "id": 66,
+              "type": "MeshBasicMaterial",
+              "numSpotLightsKeyToken": "1",
+              "cacheKeySuffix": "lse,0,true,false,0,,0,1,0,6,0,1,0,0,1,0,0,0,0,1,0,0,0,0,8388608,8393731,srgb,onBeforeCompile(){}",
+              "ownerCount": 5,
+              "cellKeys": [],
+              "materialFamilies": []
+            },
+            {
+              "id": 67,
+              "type": "MeshBasicMaterial",
+              "numSpotLightsKeyToken": "1",
+              "cacheKeySuffix": "lse,0,true,false,0,,0,1,0,6,0,1,0,0,1,0,0,0,0,1,0,0,0,0,8388608,8389635,srgb,onBeforeCompile(){}",
+              "ownerCount": 5,
+              "cellKeys": [],
+              "materialFamilies": []
+            },
+            {
+              "id": 68,
+              "type": "MeshNormalMaterial",
+              "numSpotLightsKeyToken": "1",
+              "cacheKeySuffix": "alse,,true,false,0,,0,1,0,6,0,1,0,0,1,0,0,0,0,1,0,0,0,0,8388609,8389633,srgb,onBeforeCompile(){}",
+              "ownerCount": 0,
+              "cellKeys": [],
+              "materialFamilies": []
+            },
+            {
+              "id": 69,
+              "type": "MeshNormalMaterial",
+              "numSpotLightsKeyToken": "1",
+              "cacheKeySuffix": "alse,,true,false,0,,0,1,0,6,0,1,0,0,1,0,0,0,0,1,0,0,0,0,8388608,8389633,srgb,onBeforeCompile(){}",
+              "ownerCount": 0,
+              "cellKeys": [],
+              "materialFamilies": []
+            },
+            {
+              "id": 70,
+              "type": "MeshNormalMaterial",
+              "numSpotLightsKeyToken": "1",
+              "cacheKeySuffix": "alse,,true,false,0,,0,1,0,6,0,1,0,0,1,0,0,0,0,1,0,0,0,0,8388611,8389633,srgb,onBeforeCompile(){}",
+              "ownerCount": 0,
+              "cellKeys": [],
+              "materialFamilies": []
+            }
+          ]
+        }
+      ],
+      "note": "Cache-disabled visible replay on i7-13650HX. Conditional prewarm did not create the high-tier pool because the spawn cell had no lamp markers: its warmup saw two spotlights. The later six-spot warmup completed only after the 2.451 s render task. This run did not show a material performance improvement; pre-create the high-tier pool before markers are available and repeat."
     }
   ],
   "screenshots": {

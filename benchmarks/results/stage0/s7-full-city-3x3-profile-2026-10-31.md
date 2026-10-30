@@ -24,14 +24,15 @@ not the target i5-1035G1 acceptance run.
 | GPU program cache disabled, 32-frame stack | 2,532.4 / 333.3 ms | 449.8 / 50.0 ms |
 | GPU program cache disabled, frame-program diagnostic | 2,482.7 / 433.2 ms | 449.9 / 49.9 ms |
 | GPU program cache disabled, program-owner trace | 2,566.0 / 350.0 ms | 383.3 / 66.8 ms |
+| Spawn-marker streetlight prewarm attempt | 2,466.0 / 333.3 ms | 216.6 / 99.9 ms |
 
 The first Tokyo arrival contained two frames over 500 ms, including a 2,582.9
 ms frame and a 2,586 ms Long Task. Three ordinary repeats reached
-832.8–850.1 ms. Four additional tours launched Chrome with
-`--disable-gpu-program-cache` and reproduced 2.48–2.57 s Tokyo arrival frames.
+832.8–850.1 ms. Five additional tours launched Chrome with
+`--disable-gpu-program-cache` and reproduced 2.47–2.57 s Tokyo arrival frames.
 That makes the stall reproducible when the program cache is disabled; those
 forced-cache runs are diagnostic and are not ordinary S7 timing runs.
-Edinburgh stayed below 500 ms in the four ordinary captures and all four
+Edinburgh stayed below 500 ms in the four ordinary captures and all five
 cache-disabled captures.
 
 ## CPU profile findings
@@ -92,6 +93,15 @@ the cause of the program burst; an A/B warmup run is still needed to measure
 the performance effect. The cache-key comparison used Three.js 0.186.1's
 `WebGLPrograms.getProgramCacheKeyParameters` and its `numSpotLights` field.
 
+A conditional prewarm attempt tried to create the high-quality pool before the
+spawn-city warmup when spawn-cell lamp markers were present. This fixture had
+no spawn-cell lamps: the spawn warmup still saw two spotlights and grew the
+program count from 19 to 40. A later cell warmup saw six spotlights and added
+23 programs, but only after the 2,451 ms render task. Tokyo's 2,466 ms maximum
+did not show a material improvement over the cache-disabled baseline. Next,
+create the high-quality pool before shader warmup even when the spawn cell has
+no lamps, so later streamed lamp markers cannot change the scene light count.
+
 ## Visual check and next work
 
 The [Tokyo capture](../../../screenshots/performance-visuals/stage0/s7-full-city-3x3-stack-aware-2026-10-31/tokyo-arrival.jpg)
@@ -100,8 +110,11 @@ show the street surfaces and assembled city geometry on this host. Both cities
 reported a loaded terrain tile without flat fallback. This does not replace
 the target-device ground and terrain review.
 
-Next, create the high-quality streetlamp pool before the spawn-city shader
-warmup and compare a cache-disabled replay to the baseline. Then repeat the
-visible gate and terrain review on the target i5-1035G1. S7 remains open. The
+The conditional pool-prewarm attempt found no lamp markers in the spawn cell;
+the initial warmup still saw two spotlights, and a later six-spot cell warmup
+followed the 2,451 ms render stall. Next, create the high-quality pool before
+warmup even when the spawn cell has no lamps, then compare another
+cache-disabled replay to the baseline. Repeat the visible gate and terrain
+review on the target i5-1035G1. S7 remains open. The
 [machine-readable summary](s7-full-city-3x3-2026-10-31.json) contains the
 complete cell request list and profile captures.

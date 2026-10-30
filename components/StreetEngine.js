@@ -683,6 +683,10 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false, demo
     const warmCellShaders = async (group, label = "city.cell-shader-warmup") => {
       if (typeof renderer.compileAsync !== "function") return;
       try {
+        const diagnosticsEnabled = window.__perfCounters?.diagnosticsEnabled === true;
+        const programIdsBefore = diagnosticsEnabled
+          ? new Set((renderer.info.programs || []).map((program) => program.id))
+          : null;
         await measurePerfAsync(label, () => {
           const previous = renderer.getRenderTarget();
           renderer.setRenderTarget(postFx?.sceneTarget ?? null);
@@ -692,6 +696,20 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false, demo
             renderer.setRenderTarget(previous);
           }
         });
+        if (diagnosticsEnabled) {
+          let spotLightCount = 0;
+          scene.traverseVisible((object) => {
+            if (object.isSpotLight && object.layers.test(camera.layers)) spotLightCount += 1;
+          });
+          const programs = renderer.info.programs || [];
+          markPerf("renderer.shader-warmup-complete", {
+            label,
+            spotLightCount,
+            programCountBefore: programIdsBefore.size,
+            programCountAfter: programs.length,
+            newProgramCount: programs.filter((program) => !programIdsBefore.has(program.id)).length,
+          });
+        }
       } catch (error) {
         console.warn("[street] shader warm-up failed:", error?.message || error);
       }
@@ -936,8 +954,7 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false, demo
     const groundHeight = terrain.height;
     const patchTerrain = terrain.patch;
     ghRef.fn = groundHeight;
-    syncStreetLightQuality = () => {
-      if (!streetLightWorldReady) return;
+    const ensureStreetLightPool = () => {
       const markers = runtime.current.propMarkers || [];
       if (markers !== streetLampSource) {
         streetLampSource = markers;
@@ -955,6 +972,11 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false, demo
         streetLightEnabledTier = null;
         streetLights.setLamps(streetLampMarkers, groundHeight);
       }
+      return streetLights;
+    };
+    syncStreetLightQuality = () => {
+      if (!streetLightWorldReady) return;
+      ensureStreetLightPool();
       if (!streetLights) return;
       const enabled = qualityTier === "high";
       if (streetLightEnabledTier !== enabled) {
@@ -1112,6 +1134,10 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false, demo
           resumedPosition,
           skipOverture: window.__BENCH_MODE === true,
         }), { elements: elementCount, prebuilt });
+        // Keep the scene's light count stable across shader warmup and first render.
+        // High quality may add four pooled street spotlights once lamp markers exist;
+        // creating them here makes warmCellShaders compile the six-spot variants.
+        if (qualityTier === "high") ensureStreetLightPool();
         await warmCellShaders(cityRoot, prebuilt ? "city.prebuilt-shader-warmup" : "city.spawn-shader-warmup");
         if (disposed) return false;
         cityRoot.visible = true;

@@ -286,17 +286,19 @@ Open:
   stack. In the corrected Edinburgh capture, a 299 ms Long Task included
   212.2 ms in renderer `getProgramInfoLog`; PMREM `getProgramInfoLog` accounted
   for 31.6 ms elsewhere in the arrival, and its 42.3 ms build event ended about
-  799 ms before the task. Three additional tours with Chrome's GPU program
-  cache disabled reproduced 2.48–2.57 s Tokyo arrival frames. The corrected
-  profiles sampled 2.42–2.49 s in `getProgramInfoLog` on the regular renderer
+  799 ms before the task. Five additional tours with Chrome's GPU program
+  cache disabled reproduced 2.47–2.57 s Tokyo arrival frames. The corrected
+  profiles sampled 2.39–2.49 s in `getProgramInfoLog` on the regular renderer
   path, with no PMREM or `compileAsync` caller visible. A program-owner trace
   tied the new variants to terrain and building materials and one adjacent
   cell. Comparing the earlier and newly created `ground-detail-v1` keys showed
   the only difference was Three.js `numSpotLights` changing from 2 to 6.
   Three.js derives this field from `lights.spot.length`; the engine starts with
   two headlights, then creates four streetlamp pool lights after the spawn
-  city shader warmup. This ordering explains the new lit-material variants.
-  Next: create the high-quality streetlamp pool before spawn-city warmup and
+  city shader warmup. A conditional prewarm found no lamp markers in the spawn
+  cell: the initial warmup still saw two spotlights, and a later six-spot
+  neighbor warmup followed the 2.45 s render stall. Next: pre-create the
+  high-tier light pool before warmup even when the spawn cell has no lamps,
   compare a cache-disabled replay, then repeat the visible gate and
   ground/terrain review on the target i5-1035G1.
   These RTX 4060 / i7 results do not close S7. See the [full 3×3 report](benchmarks/results/stage0/s7-full-city-3x3-profile-2026-10-31.md),
