@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import * as THREE from 'three';
-import { GROUND_SURFACE_STYLE, buildDrapedSurface, groundSurfaceKind, worldPlanarUVs } from '@/lib/engine/ground-surfaces';
+import { GROUND_SURFACE_STYLE, buildDrapedSurface, groundSurfaceKind, orientUrbanGroundRing, worldPlanarUVs } from '@/lib/engine/ground-surfaces';
 import { createGroundHeight } from '@/lib/engine/street/ground-height';
 import { buildCityGeometry } from '@/lib/engine/city-builder-core';
 
@@ -168,5 +168,69 @@ describe('urban land-use ground paint', () => {
     expect(kind).toBe('residential');
     expect(ring).toHaveLength(5);
     expect(ring[1][1]).toBeCloseTo(-11.1, 0); // 0.0001° north is about 11 m at -z
+  });
+
+  it('stitches urban multipolygon relations and preserves inner rings', () => {
+    const a = { lat: 0, lon: 0 };
+    const b = { lat: 0.001, lon: 0 };
+    const c = { lat: 0.001, lon: 0.001 };
+    const d = { lat: 0, lon: 0.001 };
+    const hole = [
+      { lat: 0.0003, lon: 0.0003 },
+      { lat: 0.0007, lon: 0.0003 },
+      { lat: 0.0007, lon: 0.0007 },
+      { lat: 0.0003, lon: 0.0007 },
+      { lat: 0.0003, lon: 0.0003 },
+    ];
+    const { result } = buildCityGeometry({
+      elements: [{
+        type: 'relation',
+        id: 99,
+        tags: { type: 'multipolygon', landuse: 'residential' },
+        members: [
+          { type: 'way', role: 'outer', geometry: [c, b] },
+          { type: 'way', role: 'outer', geometry: [a, b] },
+          { type: 'way', role: 'outer', geometry: [c, d] },
+          { type: 'way', role: 'outer', geometry: [a, d] },
+          { type: 'way', role: 'inner', geometry: hole },
+        ],
+      }],
+      lat0: 0,
+      lon0: 0,
+      terrainTiles: [],
+    });
+
+    expect(result.meta.landuseRings.map(({ role }) => role).sort()).toEqual(['inner', 'outer']);
+    for (const { ring } of result.meta.landuseRings) {
+      expect(ring.length).toBe(5);
+      expect(ring[0]).toEqual(ring.at(-1));
+    }
+    const area = (ring) => ring.reduce((sum, point, i) => {
+      const next = ring[(i + 1) % ring.length];
+      return sum + point[0] * next[1] - next[0] * point[1];
+    }, 0);
+    const outer = result.meta.landuseRings.find(({ role }) => role === 'outer').ring;
+    const inner = result.meta.landuseRings.find(({ role }) => role === 'inner').ring;
+    expect(area(orientUrbanGroundRing(outer, 'outer'))).toBeGreaterThan(0);
+    expect(area(orientUrbanGroundRing(inner, 'inner'))).toBeLessThan(0);
+  });
+
+  it('drops an incomplete relation ring instead of closing a false polygon', () => {
+    const { result } = buildCityGeometry({
+      elements: [{
+        type: 'relation',
+        id: 100,
+        tags: { type: 'multipolygon', landuse: 'residential' },
+        members: [{
+          type: 'way',
+          role: 'outer',
+          geometry: [{ lat: 0, lon: 0 }, { lat: 0.001, lon: 0 }],
+        }],
+      }],
+      lat0: 0,
+      lon0: 0,
+      terrainTiles: [],
+    });
+    expect(result.meta.landuseRings).toEqual([]);
   });
 });
