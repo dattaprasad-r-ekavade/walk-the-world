@@ -1,6 +1,6 @@
 # Walk the World — Performance and Visuals Implementation Plan
 
-Updated: 30 October 2026. Reviewed base: `293eee6` on `origin/main`.
+Updated: 30 October 2026. Reviewed base: `5416644` on `origin/main`.
 Demo gates D1–D8 are closed. The smoothness track (section 0a) closed S1–S6 from
 live-deploy profiling; S7–S8 stay open. S9's real-input check did not reproduce
 the hang on 30 October. S7 has a candidate fix (`be2ff98`,
@@ -811,9 +811,13 @@ Publication is separate release work.
   See the [Stage 4.5 closeout](benchmarks/results/stage4/stage45-postfx-acceptance-2026-10-30.md),
   [SSAO comparison](benchmarks/results/stage4/postfx-ssao-checkpoint.md), and
   [R3 teardown audit](benchmarks/results/stage4/r3-postfx-teardown-2026-10-30.md).
-- [ ] 4.6 Retain quantized PMREM/shadow updates; validate R2 ownership. Measure
-  small-object shadow pruning and contact approximations without losing important
-  silhouettes. Do not regenerate environments every frame.
+- [x] 4.6 Retain quantized PMREM/shadow updates and validate R2 ownership. Two
+  order-reversed rooftop comparisons removed 3 shadow draw calls and 2,228
+  shadow triangles, but shadow-submit CPU cost was only 0–0.1 ms and full-frame
+  GPU changes reversed with run order. Pruning also removed visible contact
+  shadows under rooftop props. Keep their shadows enabled; retain the existing
+  batched tile shadows as the contact baseline. See the [Stage 4.6 acceptance](benchmarks/results/stage4/stage46-shadow-acceptance-2026-10-30.md)
+  and [R2 ownership audit](benchmarks/results/stage4/r2-pmrem-target-teardown-2026-10-30.md).
 - [ ] 4.7 Improve facade/storefront variation and baked trim/dirt/reveals.
   Use geometry for near entrances, roofs and silhouettes; avoid default parallax,
   displacement or fragment noise. Triplanar needs a measured steep-slope use case.
@@ -1023,8 +1027,8 @@ matched settings, tested hardware, thresholds and remaining gates.
 2. Consider C1–C3 only after the data foundation, and only when a measured
    viewer-visible benefit justifies their cost. The remaining release gates
    include 0.8 live dense-city baselines, 1.3 physical low-core validation,
-   R1–R3 ownership/resource checks, 4.3/4.5/4.6 visual and shadow checks, and
-   Stages 5 and 9 integration/hardware acceptance.
+    cross-device confirmation for R1–R3, Stage 4 mobile visual/performance
+    review, and Stages 5 and 9 integration/hardware acceptance.
 3. Keep R5 wet-road work and conditional Stages 6–8 deferred unless a demo
    viewer or measured profile makes them a priority.
 

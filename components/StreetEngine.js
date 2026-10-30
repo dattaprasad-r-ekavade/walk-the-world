@@ -304,6 +304,42 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false, demo
       antialias: useMsaa,
       powerPreference: "high-performance",
     });
+    const shadowAudit = { enabled: false, forceEveryFrame: false, samples: [] };
+    const shadowRefreshRequests = Object.create(null);
+    let shadowSunHourBucket = null;
+    const requestShadowRefresh = (reason) => {
+      renderer.shadowMap.needsUpdate = true;
+      shadowRefreshRequests[reason] = (shadowRefreshRequests[reason] || 0) + 1;
+    };
+    const updateSunShadowBucket = (hour) => {
+      const bucket = Math.round(hour * 2) / 2;
+      if (bucket === shadowSunHourBucket) return false;
+      shadowSunHourBucket = bucket;
+      requestShadowRefresh("sun-bucket");
+      return true;
+    };
+    if (window.__BENCH_MODE === true && typeof renderer.shadowMap.render === "function") {
+      const renderShadowMap = renderer.shadowMap.render;
+      renderer.shadowMap.render = function (...args) {
+        const shouldSample = shadowAudit.enabled && this.enabled &&
+          (this.autoUpdate || this.needsUpdate) && args[0]?.length > 0;
+        const startedAt = shouldSample ? performance.now() : 0;
+        const callsBefore = shouldSample ? renderer.info.render.calls : 0;
+        const trianglesBefore = shouldSample ? renderer.info.render.triangles : 0;
+        try {
+          return renderShadowMap.apply(this, args);
+        } finally {
+          if (shouldSample) {
+            shadowAudit.samples.push({
+              cpuSubmitMs: performance.now() - startedAt,
+              drawCalls: renderer.info.render.calls - callsBefore,
+              triangles: renderer.info.render.triangles - trianglesBefore,
+            });
+            if (shadowAudit.samples.length > 512) shadowAudit.samples.shift();
+          }
+        }
+      };
+    }
     // Keep renderer counters cumulative across the app's complete logical
     // frame, including composer passes. The counters are reset after each draw.
     renderer.info.autoReset = false;
@@ -370,7 +406,7 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false, demo
     // refresh only when the sun moves (applySky) or the player leaves the
     // area the current map covers.
     renderer.shadowMap.autoUpdate = false;
-    renderer.shadowMap.needsUpdate = true;
+    requestShadowRefresh("engine-init");
     mount.appendChild(renderer.domElement);
     markPerfMeasurementUnavailable(
       "ktx2GpuUploadCompletionMs",
@@ -483,6 +519,9 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false, demo
 
     const renderMeasuredFrame = () => {
       const diagnosticsEnabled = window.__perfCounters?.diagnosticsEnabled === true;
+      if (shadowAudit.enabled && shadowAudit.forceEveryFrame) {
+        requestShadowRefresh("shadow-audit-frame");
+      }
       if (diagnosticsEnabled && renderer.info.autoReset) renderer.info.autoReset = false;
       const timerStarted = diagnosticsEnabled && gpuTimer.beginFrame();
       try {
@@ -587,6 +626,9 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false, demo
     // the low tier's small map) until the visitor picks "low" themselves.
     applyQuality = (q, { auto = false } = {}) => {
       const quality = q || "medium";
+      const previousShadowEnabled = renderer.shadowMap.enabled;
+      const previousSunShadowEnabled = sun.castShadow;
+      const previousShadowMapSize = sun.shadow.mapSize.x;
       basePixelRatio =
         quality === "low"
           ? 0.75
@@ -605,6 +647,11 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false, demo
       if (quality === "low") sun.shadow.mapSize.set(512, 512);
       else if (quality === "medium") sun.shadow.mapSize.set(1024, 1024);
       else sun.shadow.mapSize.set(2048, 2048);
+      if (previousShadowEnabled !== renderer.shadowMap.enabled ||
+          previousSunShadowEnabled !== sun.castShadow ||
+          previousShadowMapSize !== sun.shadow.mapSize.x) {
+        requestShadowRefresh("quality-change");
+      }
       renderer.setSize(mount.clientWidth, mount.clientHeight);
       postFx.setSize(mount.clientWidth, mount.clientHeight);
       postFx.setFxaa(!useMsaa && renderScaleState.scale < 1);
@@ -694,7 +741,7 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false, demo
       renderer.toneMappingExposure =
         elev > 0.2 ? 1.08 : elev > 0 ? 1.2 : 0.92 + winGlow * 0.25;
       postFx?.setNightBloom(winGlow);
-      renderer.shadowMap.needsUpdate = true; // sun moved → re-bake shadows
+      updateSunShadowBucket(hour);
       // 21.0 night grade: commit to darkness. Bloom on at night for medium+,
       // sky/fog go deep blue-black, non-emissive fill drops so lamps read.
       const postFxState = postFxOverride || getPostFxPassState(qualityTier, winGlow);
@@ -735,7 +782,10 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false, demo
       runtimeHour = h;
       origSetTime(h);
     };
-    runtime.current.refreshEnvironment = () => applySky(runtimeHour);
+    runtime.current.refreshEnvironment = () => {
+      applySky(runtimeHour);
+      requestShadowRefresh("scene-geometry-ready");
+    };
     // ---- precipitation particles (rain/snow) ----
     let precip = null;
     runtime.current.setPrecip = (mode) => {
@@ -954,6 +1004,7 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false, demo
               terrainTiles,
               profileQueries: profileCityQueries,
               roadQueryMode: benchmarkRoadQueryMode,
+              collectShadowTargets: window.__BENCH_SHADOW_TARGETS === true,
               onProgress: (done, total) => {
                 setStage(`Building city (${done}/${total})…`);
                 setReadyPct((p) => Math.max(p, 60 + Math.floor((done / Math.max(1, total)) * 25)));
@@ -987,7 +1038,7 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false, demo
         await warmCellShaders(cityRoot, prebuilt ? "city.prebuilt-shader-warmup" : "city.spawn-shader-warmup");
         if (disposed) return false;
         cityRoot.visible = true;
-        renderer.shadowMap.needsUpdate = true;
+        requestShadowRefresh("city-root-visible");
         return true;
       } catch (e) {
         disposeSceneGroup(cityRoot, scene, sharedMaterialTextures());
@@ -1533,7 +1584,7 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false, demo
       ) {
         lastShadowX = player.x;
         lastShadowZ = player.z;
-        renderer.shadowMap.needsUpdate = true;
+        requestShadowRefresh("player-moved");
       }
       {
         const g = toGeo(player.x, player.z);
@@ -1764,7 +1815,7 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false, demo
       const cellStreamer = createCellStreamer({
         scene,
         // Shadows are baked manually; refresh once streamed cells finish rising.
-        onRiseEnd: () => { renderer.shadowMap.needsUpdate = true; },
+        onRiseEnd: () => { requestShadowRefresh("streamed-cell-rise"); },
         lat0,
         lon0,
         toLocal,
@@ -1798,7 +1849,12 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false, demo
         },
         onCellLoaded: () => { if (!disposed) window.__engineReady = true; },
         maxCells: 10,
-        buildCity: (args) => cityBuilder.build({ ...args, profileQueries: profileCityQueries, roadQueryMode: benchmarkRoadQueryMode }),
+        buildCity: (args) => cityBuilder.build({
+          ...args,
+          profileQueries: profileCityQueries,
+          roadQueryMode: benchmarkRoadQueryMode,
+          collectShadowTargets: window.__BENCH_SHADOW_TARGETS === true,
+        }),
       });
       if (cityBuilt) {
         cellStreamer.markLoaded(cityCacheKey(lat0, lon0), lat0, lon0);
@@ -1963,6 +2019,123 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false, demo
         });
       }
 
+      const getRooftopClutterShadowStats = () => {
+        let meshCount = 0;
+        let visibleMeshCount = 0;
+        let castShadowMeshCount = 0;
+        let triangles = 0;
+        const objects = [];
+        let nearestTarget = null;
+        let nearestTargetDistance = Infinity;
+        scene.traverse((object) => {
+          if (!object.isMesh || object.userData?.shadowPruningRole !== "rooftop-clutter") return;
+          meshCount++;
+          if (object.visible) visibleMeshCount++;
+          if (object.castShadow) castShadowMeshCount++;
+          const geometry = object.geometry;
+          const objectTriangles = geometry?.index
+            ? geometry.index.count / 3
+            : (geometry?.attributes?.position?.count || 0) / 3;
+          triangles += objectTriangles;
+          const bounds = new THREE.Box3().setFromObject(object);
+          objects.push({
+            center: bounds.getCenter(new THREE.Vector3()).toArray(),
+            min: bounds.min.toArray(),
+            max: bounds.max.toArray(),
+            triangles: objectTriangles,
+          });
+          for (const position of object.userData?.shadowPruningTargets || []) {
+            const worldPosition = object.localToWorld(new THREE.Vector3(...position));
+            const distance = Math.hypot(worldPosition.x - player.x, worldPosition.z - player.z);
+            if (distance < nearestTargetDistance) {
+              nearestTargetDistance = distance;
+              nearestTarget = {
+                x: worldPosition.x,
+                y: worldPosition.y,
+                z: worldPosition.z,
+                distance,
+              };
+            }
+          }
+        });
+        return {
+          meshCount,
+          visibleMeshCount,
+          castShadowMeshCount,
+          triangles,
+          casts: runtime.current.rooftopClutterShadowEnabled !== false,
+          objects,
+          nearestTarget,
+        };
+      };
+      const setRooftopClutterShadowCasting = (casts) => {
+        const enabled = casts === true;
+        runtime.current.rooftopClutterShadowEnabled = enabled;
+        let changedMeshCount = 0;
+        scene.traverse((object) => {
+          if (!object.isMesh || object.userData?.shadowPruningRole !== "rooftop-clutter") return;
+          if (object.castShadow === enabled) return;
+          object.castShadow = enabled;
+          changedMeshCount++;
+        });
+        if (changedMeshCount > 0) requestShadowRefresh("rooftop-clutter-shadow-toggle");
+        return { ...getRooftopClutterShadowStats(), changedMeshCount };
+      };
+      const getShadowAuditState = () => ({
+        enabled: shadowAudit.enabled,
+        forceEveryFrame: shadowAudit.forceEveryFrame,
+        sunHourBucket: shadowSunHourBucket,
+        refreshRequests: { ...shadowRefreshRequests },
+        rooftopClutter: getRooftopClutterShadowStats(),
+        samples: shadowAudit.samples.slice(),
+      });
+      const setShadowAuditState = ({
+        enabled = false,
+        forceEveryFrame = false,
+        rooftopClutterCasts,
+        resetMeasurements = false,
+      } = {}) => {
+        if (window.__BENCH_MODE !== true) return null;
+        if (typeof rooftopClutterCasts === "boolean") {
+          setRooftopClutterShadowCasting(rooftopClutterCasts);
+        }
+        if (resetMeasurements) shadowAudit.samples.length = 0;
+        shadowAudit.enabled = enabled === true;
+        shadowAudit.forceEveryFrame = shadowAudit.enabled && forceEveryFrame === true;
+        if (shadowAudit.forceEveryFrame) requestShadowRefresh("shadow-audit");
+        return getShadowAuditState();
+      };
+      const setShadowAuditCamera = ({ enabled = true, position, target } = {}) => {
+        if (window.__BENCH_MODE !== true) return null;
+        if (!enabled) {
+          fly.photo = false;
+          return { enabled: false };
+        }
+        if (!position || !target ||
+            ![position.x, position.y, position.z, target.x, target.y, target.z].every(Number.isFinite)) {
+          return null;
+        }
+        const dx = target.x - position.x;
+        const dy = target.y - position.y;
+        const dz = target.z - position.z;
+        const distance = Math.hypot(dx, dy, dz);
+        if (distance < 1) return null;
+        fly.photo = true;
+        fly.x = position.x;
+        fly.y = position.y;
+        fly.z = position.z;
+        fly.heading = Math.atan2(dx, -dz);
+        fly.pitch = Math.asin(Math.max(-1, Math.min(1, dy / distance)));
+        fly.orbit = null;
+        fly.pan = false;
+        return {
+          enabled: true,
+          position: { x: fly.x, y: fly.y, z: fly.z },
+          target,
+          heading: fly.heading,
+          pitch: fly.pitch,
+        };
+      };
       window.__streetDebug = {
         player,
         setQuality: (quality) => {
@@ -2025,6 +2198,16 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false, demo
         spawnFraming: () => runtime.current.spawnFraming || null,
         cellStream: () => runtime.current.cellStreamer?.debugState?.() || null,
         cityBuilder: () => cityBuilder.debugState(),
+        environmentState: () => envCtrl.debugState?.() || null,
+        rooftopClutterShadowStats: getRooftopClutterShadowStats,
+        shadowRefreshState: () => ({
+          sunHourBucket: shadowSunHourBucket,
+          pending: renderer.shadowMap.needsUpdate,
+          requestCounts: { ...shadowRefreshRequests },
+        }),
+        shadowAuditState: getShadowAuditState,
+        setShadowAuditState,
+        setShadowAuditCamera,
         setPostFxState: ({ active, ssao, bloom }) => {
           if (!postFx) return null;
           const bloomEnabled = bloom === undefined ? active === true : bloom === true;
@@ -2043,6 +2226,7 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false, demo
         tickPopulation: () => population?.update?.(1 / 60, player, runtimeHour, false),
         fly,
         setTime: (h) => runtime.current.setTime?.(h),
+        setWeather: (w) => runtime.current.setWeather?.(w),
         pickAt: (cx, cy) => {
           const h = pickPoint({ clientX: cx, clientY: cy });
           return h ? resolveOsmAt(h) : null;

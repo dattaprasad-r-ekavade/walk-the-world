@@ -8,6 +8,7 @@
  * Wet-road audit: --wet-road-map-audit [--screenshot-before-walk --screenshot <path>].
  * High-tier post FX isolation: --ssao-mode preset|on|off --bloom-mode preset|on|off.
  * Matched pass screenshots: --postfx-pair bloom|ssao --screenshot-before-walk --screenshot <path>.
+ * High-tier rooftop clutter shadow audit: --shadow-prune-pair --screenshot-before-walk --screenshot <path>.
  */
 import { chromium } from 'playwright';
 import { writeFileSync, mkdirSync, readFileSync } from 'fs';
@@ -36,6 +37,18 @@ import {
 
 const __dir = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dir, '..');
+function summarizeCountSamples(values = []) {
+  const samples = values.filter((value) => Number.isFinite(value) && value >= 0).sort((a, b) => a - b);
+  if (!samples.length) return { sampleCount: 0, mean: null, p50: null, p95: null, p99: null };
+  const percentile = (fraction) => samples[Math.max(0, Math.ceil(samples.length * fraction) - 1)];
+  return {
+    sampleCount: samples.length,
+    mean: samples.reduce((sum, value) => sum + value, 0) / samples.length,
+    p50: percentile(0.50),
+    p95: percentile(0.95),
+    p99: percentile(0.99),
+  };
+}
 
 const args = process.argv.slice(2);
 function option(name, fallback) {
@@ -66,6 +79,8 @@ const qualityMode = option('--quality-mode', 'manual');
 const ssaoMode = option('--ssao-mode', 'preset');
 const bloomMode = option('--bloom-mode', 'preset');
 const postFxPairMode = option('--postfx-pair', 'none');
+const shadowPrunePairEnabled = args.includes('--shadow-prune-pair');
+const shadowPruneFirst = option('--shadow-prune-first', 'baseline');
 const postFxMode = option('--postfx-mode', 'preset');
 const inactiveLightsMode = option('--inactive-lights', 'visible');
 const wetRoadMapMode = option('--wet-road-map', 'baseline');
@@ -138,6 +153,18 @@ if (postFxPairMode !== 'none' && (qualityPreset !== 'high' || postFxMode !== 'pr
 }
 if (postFxPairMode !== 'none' && (!screenshotBeforeWalk || !screenshotPath)) {
   throw new Error('--postfx-pair requires --screenshot-before-walk and --screenshot <path>');
+}
+if (shadowPrunePairEnabled && (
+  dataMode !== 'recorded' || qualityPreset !== 'high' || qualityMode !== 'manual' ||
+  postFxMode !== 'preset' || ssaoMode !== 'preset' || bloomMode !== 'preset' ||
+  postFxPairMode !== 'none' || benchmarkEnvironment.hour !== 12 || benchmarkEnvironment.weather !== 0 ||
+  rendererMode !== 'browser-default' || browserChannel !== 'chrome' || !headed || !skipGlobe ||
+  !fixedPose || driving || crossCell || !screenshotBeforeWalk || !screenshotPath
+)) {
+  throw new Error('--shadow-prune-pair requires recorded data, manual High, default post FX, 12:00 clear weather, headed Chrome/browser-default, --skip-globe, a fixed pose and a screenshot path');
+}
+if (!['baseline', 'pruned'].includes(shadowPruneFirst)) {
+  throw new Error('--shadow-prune-first must be baseline or pruned');
 }
 if (!['visible', 'hidden'].includes(inactiveLightsMode)) {
   throw new Error('--inactive-lights must be visible or hidden');
@@ -1134,6 +1161,183 @@ async function benchStreet(page) {
       lightTransitionDiagnostics.push(phase);
     }
   }
+  let shadowPrunePair = null;
+  if (shadowPrunePairEnabled) {
+    const quantization = await page.evaluate(() => {
+      const debug = window.__streetDebug;
+      const read = () => ({
+        environment: debug?.environmentState?.(),
+        shadows: debug?.shadowRefreshState?.(),
+      });
+      const base = read();
+      debug?.setTime?.(12.1);
+      debug?.setWeather?.(1);
+      const sameBucket = read();
+      debug?.setTime?.(12.3);
+      const nextBucket = read();
+      debug?.setWeather?.(0);
+      debug?.setTime?.(12);
+      const restored = read();
+      const sunRequests = (snapshot) => snapshot?.shadows?.requestCounts?.['sun-bucket'] || 0;
+      return {
+        base,
+        sameBucket,
+        nextBucket,
+        restored,
+        valid:
+          base.environment?.key === '12_0' &&
+          sameBucket.environment?.pmremBuildCount === base.environment.pmremBuildCount &&
+          sameBucket.shadows?.sunHourBucket === base.shadows?.sunHourBucket &&
+          sunRequests(sameBucket) === sunRequests(base) &&
+          nextBucket.environment?.pmremBuildCount === sameBucket.environment.pmremBuildCount + 1 &&
+          nextBucket.shadows?.sunHourBucket === 12.5 &&
+          sunRequests(nextBucket) === sunRequests(sameBucket) + 1 &&
+          restored.environment?.key === base.environment.key &&
+          restored.shadows?.sunHourBucket === base.shadows?.sunHourBucket,
+      };
+    });
+    if (!quantization?.valid) {
+      throw new Error(`PMREM/shadow quantization audit failed: ${JSON.stringify(quantization)}`);
+    }
+
+    shadowPrunePair = {
+      quantization,
+      firstState: shadowPruneFirst,
+      forcedShadowRefreshDurationMs: 4000,
+      states: [],
+      images: [],
+    };
+    const clutterScene = await page.evaluate(() => ({
+      clutter: window.__streetDebug?.rooftopClutterShadowStats?.() || null,
+    }));
+    const target = clutterScene.clutter?.nearestTarget;
+    if (!target) {
+      throw new Error(`Rooftop shadow review fixture has no rooftop clutter: ${JSON.stringify(clutterScene.clutter)}`);
+    }
+    const auditCamera = await page.evaluate(({ position, target: cameraTarget }) =>
+      window.__streetDebug?.setShadowAuditCamera?.({ enabled: true, position, target: cameraTarget }), {
+      position: {
+        x: target.x + 7,
+        y: target.y + 8,
+        z: target.z + 7,
+      },
+      target,
+    });
+    if (!auditCamera?.enabled) throw new Error(`Could not aim the rooftop shadow review camera: ${JSON.stringify({ target, auditCamera })}`);
+    shadowPrunePair.auditCamera = auditCamera;
+    await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() =>
+      requestAnimationFrame(() => setTimeout(resolve, 250)))));
+    const resetFrameSamples = () => page.evaluate(() => {
+      const counters = window.__perfCounters;
+      if (!counters) throw new Error('Performance counters are unavailable for shadow audit');
+      counters.frameIntervalsMs.length = 0;
+      counters.frameIntervalCursor = 0;
+      counters.rendererFrames.length = 0;
+      counters.rendererFrameCursor = 0;
+      counters.gpuFrameTimesMs.length = 0;
+      counters.gpuFrameTimeCursor = 0;
+    });
+    const states = [
+      { label: 'baseline', rooftopClutterCasts: true },
+      { label: 'pruned', rooftopClutterCasts: false },
+    ];
+    if (shadowPruneFirst === 'pruned') states.reverse();
+    for (const shadowState of states) {
+      const prepared = await page.evaluate(({ rooftopClutterCasts }) =>
+        window.__streetDebug?.setShadowAuditState?.({
+          enabled: false,
+          forceEveryFrame: false,
+          rooftopClutterCasts,
+          resetMeasurements: true,
+        }), shadowState);
+      if (!prepared || prepared.rooftopClutter.meshCount < 1 || prepared.rooftopClutter.triangles < 1) {
+        throw new Error(`Rooftop clutter shadow audit needs visible clutter geometry: ${JSON.stringify(prepared)}`);
+      }
+      await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() =>
+        requestAnimationFrame(() => setTimeout(resolve, 250)))));
+      const armed = await page.evaluate(({ rooftopClutterCasts }) =>
+        window.__streetDebug?.setShadowAuditState?.({
+          enabled: true,
+          forceEveryFrame: true,
+          rooftopClutterCasts,
+          resetMeasurements: true,
+        }), shadowState);
+      if (!armed?.forceEveryFrame ||
+          armed.rooftopClutter.castShadowMeshCount !== (shadowState.rooftopClutterCasts ? armed.rooftopClutter.meshCount : 0)) {
+        throw new Error(`Could not arm rooftop clutter shadow state ${shadowState.label}: ${JSON.stringify(armed)}`);
+      }
+      await resetFrameSamples();
+      const auditStartedAt = Date.now();
+      await page.waitForTimeout(shadowPrunePair.forcedShadowRefreshDurationMs);
+      const auditWallElapsedMs = Date.now() - auditStartedAt;
+      const sample = await page.evaluate(() => ({
+        shadow: window.__streetDebug?.shadowAuditState?.(),
+        frames: window.__perfCounters?.frameIntervalsMs?.slice() || [],
+        rendererFrames: window.__perfCounters?.rendererFrames?.slice() || [],
+        gpuFrameTimesMs: window.__perfCounters?.gpuFrameTimesMs?.slice() || [],
+        gpuTimer: window.__perfCounters?.gpuTimer || null,
+        visibilityState: document.visibilityState,
+        pageHasFocus: document.hasFocus(),
+      }));
+      const shadowSamples = sample.shadow?.samples || [];
+      const gpuFrameSummary = summarizeDurationSamples(sample.gpuFrameTimesMs);
+      const cpuSubmitSummary = summarizeDurationSamples(shadowSamples.map((item) => item.cpuSubmitMs));
+      const drawCallSummary = summarizeCountSamples(shadowSamples.map((item) => item.drawCalls));
+      const shadowTriangleSummary = summarizeCountSamples(shadowSamples.map((item) => item.triangles));
+      const frameSummary = summarizeFrameIntervals(sample.frames);
+      const rendererSummary = summarizeRendererFrames(sample.rendererFrames);
+      const measurementWindow = validateBenchmarkMeasurement({
+        requestedWalkMs: shadowPrunePair.forcedShadowRefreshDurationMs,
+        wallElapsedMs: auditWallElapsedMs,
+        frameDurationMs: frameSummary.durationMs,
+        frameSampleCount: sample.frames.length,
+        rendererSampleCount: sample.rendererFrames.length,
+        gpuSampleCount: sample.gpuFrameTimesMs.length,
+        visibilityState: sample.visibilityState,
+        pageHasFocus: sample.pageHasFocus,
+      });
+      const entry = {
+        label: shadowState.label,
+        rooftopClutterCasts: shadowState.rooftopClutterCasts,
+        rooftopClutter: sample.shadow?.rooftopClutter || null,
+        forcedShadowRefreshDurationMs: shadowPrunePair.forcedShadowRefreshDurationMs,
+        shadowRenderCpuSubmitMs: cpuSubmitSummary,
+        shadowRenderDrawCalls: drawCallSummary,
+        shadowRenderTriangles: shadowTriangleSummary,
+        fullFrameGpuMs: gpuFrameSummary,
+        fullFrameFrameTimeMs: frameSummary,
+        fullFrameRenderer: rendererSummary,
+        gpuTimer: sample.gpuTimer,
+        measurementWindow,
+        validated: shadowSamples.length >= 20 &&
+          sample.frames.length >= 20 &&
+          sample.rendererFrames.length >= 20 &&
+          (!sample.gpuTimer?.supported || sample.gpuFrameTimesMs.length >= 20) &&
+          measurementWindow.valid &&
+          sample.shadow?.forceEveryFrame === true &&
+          sample.shadow?.rooftopClutter.castShadowMeshCount === (shadowState.rooftopClutterCasts
+            ? sample.shadow.rooftopClutter.meshCount
+            : 0),
+      };
+      if (!entry.validated) throw new Error(`Rooftop clutter shadow audit window failed: ${JSON.stringify(entry)}`);
+      shadowPrunePair.states.push(entry);
+
+      const pairPath = screenshotPath.replace(/(\.[^.\\/]+)?$/u, `-${shadowState.label}$1`);
+      mkdirSync(dirname(pairPath), { recursive: true });
+      await page.screenshot({ path: pairPath, animations: 'disabled' });
+      shadowPrunePair.images.push({ state: shadowState.label, path: pairPath });
+      console.log(`    rooftop clutter shadows ${shadowState.label}: ${pairPath}; CPU shadow p95 ${cpuSubmitSummary.p95Ms?.toFixed(2) ?? 'n/a'}ms; full-frame GPU p95 ${gpuFrameSummary.p95Ms?.toFixed(2) ?? 'n/a'}ms`);
+    }
+    await page.evaluate(() => window.__streetDebug?.setShadowAuditState?.({
+      enabled: false,
+      forceEveryFrame: false,
+      rooftopClutterCasts: true,
+      resetMeasurements: true,
+    }));
+    await page.evaluate(() => window.__streetDebug?.setShadowAuditCamera?.({ enabled: false }));
+    await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() =>
+      requestAnimationFrame(resolve))));
+  }
   let postFxPairImages = null;
   if (postFxPairMode !== 'none') {
     postFxPairImages = [];
@@ -1154,7 +1358,7 @@ async function benchStreet(page) {
       postFxPairImages.push({ state: pairState.label, path: pairPath });
       console.log(`    pre-walk ${postFxPairMode} ${pairState.label}: ${pairPath}`);
     }
-  } else if (screenshotBeforeWalk) {
+  } else if (screenshotBeforeWalk && !shadowPrunePairEnabled) {
     await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
     mkdirSync(dirname(screenshotPath), { recursive: true });
     await page.screenshot({ path: screenshotPath, animations: 'disabled' });
@@ -1483,6 +1687,7 @@ async function benchStreet(page) {
     loadMs,
     avgFps,
     postFxPairImages,
+    shadowPrunePair,
     movement: {
       start: playerStart,
       end: metrics.player,
@@ -1566,7 +1771,7 @@ async function main() {
   mkdirSync(dirname(outPath), { recursive: true });
 
   console.log(`  Fixture: ${fixturePath}`);
-  console.log(`  Route: ${route}; data: ${dataMode}; cache: ${cacheMode}; preset: ${qualityPreset} (${qualityMode}); post FX: ${postFxMode}; SSAO: ${ssaoMode}; bloom: ${bloomMode}; post FX pair: ${postFxPairMode}; inactive lights: ${inactiveLightsMode}; light transition: ${lightTransitionEnabled}; geometry workers: ${geometryWorkers}; city data copy: ${cityDataCopyMode}; road query: ${roadQueryMode}; browser: ${browserChannel}; renderer: ${rendererMode}; hour: ${benchmarkEnvironment.hour}; weather: ${benchmarkEnvironment.weather}; walk: ${walkDurationMs}ms${crossCell ? '; crossing a cell boundary' : ''}${resourceSoakEnabled ? '; resource soak' : ''}${streamLifecycleEnabled ? '; streamed lamp lifecycle' : ''}`);
+  console.log(`  Route: ${route}; data: ${dataMode}; cache: ${cacheMode}; preset: ${qualityPreset} (${qualityMode}); post FX: ${postFxMode}; SSAO: ${ssaoMode}; bloom: ${bloomMode}; post FX pair: ${postFxPairMode}; shadow prune pair: ${shadowPrunePairEnabled}/${shadowPruneFirst}-first; inactive lights: ${inactiveLightsMode}; light transition: ${lightTransitionEnabled}; geometry workers: ${geometryWorkers}; city data copy: ${cityDataCopyMode}; road query: ${roadQueryMode}; browser: ${browserChannel}; renderer: ${rendererMode}; hour: ${benchmarkEnvironment.hour}; weather: ${benchmarkEnvironment.weather}; walk: ${walkDurationMs}ms${crossCell ? '; crossing a cell boundary' : ''}${resourceSoakEnabled ? '; resource soak' : ''}${streamLifecycleEnabled ? '; streamed lamp lifecycle' : ''}`);
 
   const launchOptions = {
     headless: !headed,
@@ -1597,7 +1802,7 @@ async function main() {
       routeRequest.fulfill({ status: 200, contentType: 'application/json', body: '[]' })
     );
   }
-  await context.addInitScript(({ fixture, schemaVersion, preset, qualityMode, seed, pose, environment, geometryWorkers, cityDataCopyMode, profileCityQueries, roadQueryMode }) => {
+  await context.addInitScript(({ fixture, schemaVersion, preset, qualityMode, seed, pose, environment, geometryWorkers, cityDataCopyMode, profileCityQueries, roadQueryMode, collectShadowTargets }) => {
     if (location.origin !== 'null') {
       try {
         const saved = JSON.parse(localStorage.getItem('wtw-game') || '{}');
@@ -1619,6 +1824,7 @@ async function main() {
     window.__BENCH_CITY_DATA_COPY_MODE = cityDataCopyMode;
     window.__BENCH_PROFILE_CITY_QUERIES = profileCityQueries;
     window.__BENCH_ROAD_QUERY_MODE = roadQueryMode;
+    window.__BENCH_SHADOW_TARGETS = collectShadowTargets;
     window.__BENCH_SEED = seed;
     window.__BENCH_FIXTURE = fixture;
     window.__BENCH_START_POSE = pose;
@@ -1657,6 +1863,7 @@ async function main() {
     cityDataCopyMode,
     roadQueryMode,
     profileCityQueries,
+    collectShadowTargets: shadowPrunePairEnabled,
   });
 
   let cache = dataMode === 'fixture'
@@ -1749,6 +1956,8 @@ async function main() {
       ssaoMode,
       bloomMode,
       postFxPairMode,
+      shadowPrunePairEnabled,
+      shadowPruneFirst,
       postFxMode,
       inactiveLightsMode,
       wetRoadMapMode,
@@ -1795,6 +2004,14 @@ async function main() {
     }
     console.log('  Street engine…');
     result.street = await benchStreet(page);
+    if (shadowPrunePairEnabled) {
+      const pair = result.street.shadowPrunePair;
+      const labels = pair?.states?.map((state) => state.label).sort();
+      if (!pair?.quantization?.valid || labels?.join(',') !== 'baseline,pruned' ||
+          pair.states.some((state) => !state.validated) || pair.images?.length !== 2) {
+        throw new Error(`Rooftop shadow comparison failed validation: ${JSON.stringify(pair)}`);
+      }
+    }
     if (result.street.cityBuilder?.workerCount !== geometryWorkers) {
       throw new Error(`Requested ${geometryWorkers} geometry worker(s), but the engine reported ${result.street.cityBuilder?.workerCount ?? 'unknown'}`);
     }
