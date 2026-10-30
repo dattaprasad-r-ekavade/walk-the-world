@@ -367,14 +367,20 @@ Decisions taken from the research:
     and painted into the terrain ground canvas under roads and building
     shadows, replacing the pale map raster there. Painting instead of meshing
     adds no draw calls or overdraw, and rides on the existing canvas upload.
-  - Open: (1) live verification — public Overpass was unreachable from the dev
-    machine on 30 Oct, so the new query is untested against live data; the
-    OSM API shows modest coverage at the demo starts (Edinburgh: commercial,
-    retail, railway, cemetery, construction; Tokyo: construction, commercial,
-    brownfield; Pune: one residential; New York: commercial). (2) Reseed the
+  - 30 Oct, fourth step: tagged urban land-use multipolygon relations are now
+    requested from Overpass and their way members are stitched into closed
+    outer/inner rings. Incomplete chains are dropped, and ring winding is
+    normalized so inner holes remain empty in the shared nonzero-fill canvas
+    path. Focused tests cover reversed/out-of-order members, holes and broken
+    chains. A read-only OSM API sample from Edinburgh relation `2344206`
+    (cemetery; 10 outer member ways) stitched into one closed 32-point ring.
+    The OSM API sample validates real member geometry, but the Overpass query
+    itself remains unverified: the primary endpoint returned 406 without the
+    app User-Agent and timed out with it; both configured mirrors timed out.
+    See [the live-data check](benchmarks/results/stage0/b3-multipolygon-live-check-2026-10-30.md).
+  - Open: (1) verify the new relation query against a live Overpass response
+    and a full city build when public Overpass is reachable. (2) Reseed the
     demo cells so cached data carries the new tags (writes to R2; ask first).
-    (3) Multipolygon land-use relations are not read yet; many large
-    residential areas are mapped that way.
 - [ ] **B4 — Overture gap fill (S).** The Overture footprint fallback already
   exists for sparse cells. Remaining: merge Overture height, num_floors,
   roof_shape, roof_color, facade_color and facade_material into OSM buildings
