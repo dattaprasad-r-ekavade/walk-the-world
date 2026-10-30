@@ -780,15 +780,18 @@ Publication is separate release work.
 - [x] 4.1 Fixed reference poses and day/dusk/night/rain lighting controls.
 - [x] 4.2 Refined existing road ribbons, markings, scale and terrain fit.
   [Review](benchmarks/results/stage4/road-ribbons.md).
-- [ ] 4.3 Finish wet-road tuning and close-up acceptance. New materials inherit
-  weather; procedural textures are seeded and diffuse darkening is reversible.
-  Five clear/rain runs had frame-p95 medians 33.9/33.6 ms; a matched seeded pair
-  had 33.5 ms for both. Captures still show little road-specific change.
-  R1 is validated and R5's benchmark map was rejected: its threshold adds
-  patchy highlights without a measured frame/GPU benefit. Keep the baseline
-  map while broader close-up tuning remains open. See the [R5 evaluation](benchmarks/results/stage4/r5-wet-road-map-evaluation-2026-10-30.md) and
-  [current-code report](benchmarks/results/stage4/current-main-local-fallback-rome-night.md).
-  Roughness/PMREM approximates wetness; SSR/planar reflection remains deferred.
+- [x] 4.3 Finish wet-road tuning and close-up acceptance. New materials inherit
+  weather; procedural textures are seeded and diffuse
+  darkening is reversible. Current-build fixed-pose captures at 21:00 show the
+  baseline road matte in clear weather and a restrained blue sheen with a lamp
+  reflection in rain. The five-run R1 frame p95 medians were both 41.70 ms;
+  GPU p95 medians 26.67/27.15 ms had overlapping ranges. R5 rejected the
+  thresholded texture for its abrupt patch pattern and lack of measured gain.
+  Keep the baseline map. See the [Stage 4.3 acceptance report](benchmarks/results/stage4/stage4-wet-road-acceptance-2026-10-30.md),
+  [R1 validation](benchmarks/results/stage4/r1-closeup-environment-check-2026-10-30.md),
+  and [R5 evaluation](benchmarks/results/stage4/r5-wet-road-map-evaluation-2026-10-30.md).
+  SSR/planar reflection and mobile portability remain deferred to stage-wide
+  review.
 - [x] 4.4 Desktop four-light pool, quality/time transitions and streamed/evicted
   markers verified. Five static runs per policy: hiding inactive lights reduced
   median GPU p95 13.18 → 10.68 ms, with overlapping ranges. Two transition pairs

@@ -44,8 +44,9 @@ failed assets, or HTTP error responses.
 ## Decision
 
 Keep the baseline roughness map as the product default. Retain the candidate
-only for future benchmark work. Stage 4.3 remains open for broader wet-road
-visual tuning and close-up acceptance.
+only for future benchmark work. Stage 4.3 close-up acceptance was still pending
+at this candidate evaluation; a later fixed-pose baseline pair accepted the
+existing wet-road response. See the [Stage 4.3 closeout report](stage4-wet-road-acceptance-2026-10-30.md).
 
 Matched captures:
 
