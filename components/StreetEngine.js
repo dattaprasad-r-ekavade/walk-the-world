@@ -2208,6 +2208,7 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false, demo
       window.removeEventListener("resize", onResize);
       population?.dispose();
       streetLights?.dispose();
+      sun.shadow.dispose();
       postFx?.dispose();
       editorTools.dispose();
       ambience.dispose();
@@ -2221,6 +2222,7 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false, demo
       if (engineRef.current === runtime.current) engineRef.current = {};
       gpuTimer.dispose();
       renderer.dispose();
+      renderer.forceContextLoss();
       mount.removeChild(renderer.domElement);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps

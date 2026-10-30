@@ -3,6 +3,7 @@
  * Performance benchmark for Walk the World refactor.
  * Usage: node scripts/bench-perf.mjs [--base-url http://127.0.0.1:3456] [--out benchmarks/before.json]
  * Optional fixed walking pose: --pose-x <meters> --pose-z <meters> --heading <radians> [--pose-pitch <radians>].
+ * Environment lifecycle audit: --environment-audit [--environment-audit-cycles <count>] [--engine-teardown-audit].
  */
 import { chromium } from 'playwright';
 import { writeFileSync, mkdirSync, readFileSync } from 'fs';
@@ -82,6 +83,8 @@ const resourceSoakEnabled = args.includes('--resource-soak');
 const streamLifecycleEnabled = args.includes('--stream-lifecycle');
 const lightTransitionEnabled = args.includes('--light-transition');
 const environmentAuditEnabled = args.includes('--environment-audit');
+const engineTeardownAuditEnabled = args.includes('--engine-teardown-audit');
+const environmentAuditCycles = Number(option('--environment-audit-cycles', '6'));
 const ktx2DisposalAuditEnabled = args.includes('--ktx2-disposal-audit');
 const invalidFacadeLayoutSchema = args.includes('--invalid-facade-layout-schema');
 const invalidFacadeLayout = args.includes('--invalid-facade-layout') || invalidFacadeLayoutSchema;
@@ -165,6 +168,12 @@ if (lightTransitionEnabled && (driving || crossCell || resourceSoakEnabled || st
 }
 if (environmentAuditEnabled && (dataMode !== 'recorded' || benchmarkEnvironment.hour !== 21 || benchmarkEnvironment.weather !== 90 || driving || crossCell)) {
   throw new Error('--environment-audit requires recorded, stationary pedestrian data at 21:00 and weather 90');
+}
+if (engineTeardownAuditEnabled && !environmentAuditEnabled) {
+  throw new Error('--engine-teardown-audit requires --environment-audit');
+}
+if (!Number.isInteger(environmentAuditCycles) || environmentAuditCycles < 1 || environmentAuditCycles > 50) {
+  throw new Error('--environment-audit-cycles must be an integer from 1 to 50');
 }
 if (invalidFacadeLayout && (dataMode !== 'recorded' || qualityPreset !== 'high')) {
   throw new Error('--invalid-facade-layout modes require --data-mode recorded and --preset high');
@@ -544,19 +553,54 @@ async function benchStreet(page) {
   }
   if (environmentAuditEnabled) {
     await page.addInitScript(() => {
-      const framebuffers = new Set(), renderbuffers = new Set(), names = new WeakMap(), values = new Set();
+      const framebuffers = new Set(), renderbuffers = new Set(), names = new WeakMap(), values = new Set(), framebufferOrigins = new WeakMap();
+      const contextRecords = [], recordsByContext = new WeakMap();
+      let deletedFramebuffers = 0, deletedRenderbuffers = 0;
+      const recordFor = (context) => {
+        let record = recordsByContext.get(context);
+        if (!record) {
+          record = {
+            id: contextRecords.length + 1,
+            context,
+            framebuffers: new Set(),
+            renderbuffers: new Set(),
+            deletedFramebuffers: 0,
+            deletedRenderbuffers: 0,
+          };
+          recordsByContext.set(context, record);
+          contextRecords.push(record);
+        }
+        return record;
+      };
       const prototypes = [WebGLRenderingContext.prototype];
       if (typeof WebGL2RenderingContext !== 'undefined') prototypes.push(WebGL2RenderingContext.prototype);
       for (const proto of prototypes) {
         for (const [type, live] of [['Framebuffer', framebuffers], ['Renderbuffer', renderbuffers]]) {
+          const recordKey = type === 'Framebuffer' ? 'framebuffers' : 'renderbuffers';
           for (const action of ['create', 'delete']) {
             const name = action + type;
             if (!Object.hasOwn(proto, name)) continue;
             const original = proto[name];
             proto[name] = function (...args) {
               const result = original.apply(this, args);
-              if (action === 'create' && result) live.add(result);
-              if (action === 'delete' && args[0]) live.delete(args[0]);
+              const record = recordFor(this);
+              if (action === 'create' && result) {
+                live.add(result);
+                record[recordKey].add(result);
+                if (type === 'Framebuffer') {
+                  framebufferOrigins.set(result, new Error().stack?.split('\n').slice(2, 9).join('\n') || 'stack unavailable');
+                }
+              }
+              if (action === 'delete' && args[0] && live.delete(args[0])) {
+                record[recordKey].delete(args[0]);
+                if (type === 'Framebuffer') {
+                  deletedFramebuffers++;
+                  record.deletedFramebuffers++;
+                } else {
+                  deletedRenderbuffers++;
+                  record.deletedRenderbuffers++;
+                }
+              }
               return result;
             };
           }
@@ -577,7 +621,28 @@ async function benchStreet(page) {
           };
         }
       }
-      window.__environmentAudit = () => ({ framebuffers: framebuffers.size, renderbuffers: renderbuffers.size, envMapIntensityValues: [...values].sort((a, b) => a - b) });
+      window.__environmentAudit = (includeOrigins = false) => ({
+        framebuffers: contextRecords.reduce((count, record) => count + (record.context.isContextLost?.() ? 0 : record.framebuffers.size), 0),
+        renderbuffers: contextRecords.reduce((count, record) => count + (record.context.isContextLost?.() ? 0 : record.renderbuffers.size), 0),
+        deletedFramebuffers,
+        deletedRenderbuffers,
+        envMapIntensityValues: [...values].sort((a, b) => a - b),
+        contexts: contextRecords.map((record) => ({
+          id: record.id,
+          framebuffers: record.context.isContextLost?.() ? 0 : record.framebuffers.size,
+          renderbuffers: record.context.isContextLost?.() ? 0 : record.renderbuffers.size,
+          trackedFramebuffers: record.framebuffers.size,
+          trackedRenderbuffers: record.renderbuffers.size,
+          deletedFramebuffers: record.deletedFramebuffers,
+          deletedRenderbuffers: record.deletedRenderbuffers,
+          contextLost: record.context.isContextLost?.() === true,
+          canvasConnected: record.context.canvas?.isConnected === true,
+          canvasId: record.context.canvas?.id || '',
+          canvasClass: String(record.context.canvas?.className || ''),
+          canvasParentClass: String(record.context.canvas?.parentElement?.className || ''),
+          trackedFramebufferOrigins: includeOrigins ? [...record.framebuffers].map((framebuffer) => framebufferOrigins.get(framebuffer)) : undefined,
+        })),
+      });
     });
   }
   if (lightTransitionEnabled && inactiveLightsMode === 'hidden') {
@@ -654,19 +719,19 @@ async function benchStreet(page) {
   let environmentAudit = null;
   if (environmentAuditEnabled) {
     await page.waitForFunction(() => window.__streetDebug?.cellStream?.()?.pendingCount === 0, null, { timeout: READY_TIMEOUT });
-    environmentAudit = await page.evaluate(async () => {
+    environmentAudit = await page.evaluate(async (cycleCount) => {
       const debug = window.__streetDebug;
       const frame = () => new Promise((resolve) => requestAnimationFrame(resolve));
       for (const hour of [12, 21, 12]) { debug.setTime(hour); await frame(); }
       const snapshots = [window.__environmentAudit()];
-      for (let i = 0; i < 6; i++) {
+      for (let i = 0; i < cycleCount; i++) {
         debug.setTime(21); await frame();
         debug.setTime(12); await frame();
         snapshots.push(window.__environmentAudit());
       }
       debug.setTime(21); await frame();
       return { snapshots, final: window.__environmentAudit() };
-    });
+    }, environmentAuditCycles);
     const first = environmentAudit.snapshots[0];
     environmentAudit.stable = first.framebuffers > 0 && first.renderbuffers > 0 &&
       environmentAudit.snapshots.every((sample) => sample.framebuffers === first.framebuffers && sample.renderbuffers === first.renderbuffers);
@@ -1502,6 +1567,8 @@ async function main() {
       wetRoadMapMode,
       lightTransitionEnabled,
       environmentAuditEnabled,
+      engineTeardownAuditEnabled,
+      environmentAuditCycles,
       ktx2DisposalAuditEnabled,
       invalidFacadeLayout,
       invalidFacadeLayoutSchema,
@@ -1609,6 +1676,50 @@ async function main() {
       mkdirSync(dirname(screenshotPath), { recursive: true });
       await page.screenshot({ path: screenshotPath, animations: 'disabled' });
       console.log(`    screenshot: ${screenshotPath}`);
+    }
+    if (engineTeardownAuditEnabled) {
+      const before = await page.evaluate(() => window.__environmentAudit?.() || null);
+      if (!before) throw new Error('WebGL environment audit is unavailable before engine teardown');
+      const streetContextIds = before.contexts
+        .filter((context) => context.canvasParentClass.includes('cesium-container'))
+        .map((context) => context.id);
+      await page.locator('button[title="Globe view"]').click();
+      await page.waitForFunction(() => location.pathname === '/' && window.__engineReady !== true && !window.__streetDebug, null, {
+        timeout: 20_000,
+      });
+      await page.waitForFunction((ids) => {
+        const contexts = window.__environmentAudit?.().contexts || [];
+        return ids.length > 0 && ids.every((id) => contexts.find((context) => context.id === id)?.contextLost === true);
+      }, streetContextIds, { timeout: 5_000 });
+      const after = await page.evaluate(() => window.__environmentAudit?.(true) || null);
+      if (!after) throw new Error('WebGL environment audit is unavailable after engine teardown');
+      result.engineTeardownAudit = {
+        before,
+        after,
+        deletedFramebuffers: after.deletedFramebuffers - before.deletedFramebuffers,
+        deletedRenderbuffers: after.deletedRenderbuffers - before.deletedRenderbuffers,
+        streetContexts: before.contexts
+          .filter((context) => context.canvasParentClass.includes('cesium-container'))
+          .map((context) => {
+            const afterContext = after.contexts.find((entry) => entry.id === context.id);
+            return {
+              id: context.id,
+              beforeFramebuffers: context.framebuffers,
+              beforeRenderbuffers: context.renderbuffers,
+              afterFramebuffers: afterContext?.framebuffers ?? null,
+              afterRenderbuffers: afterContext?.renderbuffers ?? null,
+              contextLostAfter: afterContext?.contextLost ?? null,
+              canvasConnectedAfter: afterContext?.canvasConnected ?? null,
+              released: !!afterContext && afterContext.contextLost && afterContext.framebuffers === 0 &&
+                afterContext.renderbuffers === 0 && !afterContext.canvasConnected,
+            };
+          }),
+        elapsedMs: Date.now() - new Date(result.timestamp).getTime(),
+      };
+      if (result.engineTeardownAudit.deletedFramebuffers < 1 || after.framebuffers > before.framebuffers || after.renderbuffers > before.renderbuffers ||
+          !result.engineTeardownAudit.streetContexts.length || result.engineTeardownAudit.streetContexts.some((context) => !context.released)) {
+        throw new Error(`Engine teardown did not release tracked WebGL targets: ${JSON.stringify(result.engineTeardownAudit)}`);
+      }
     }
     if (!resourceSoakEnabled && !result.street.measurementWindow?.valid) {
       throw new Error(`Measurement window is invalid: ${result.street.measurementWindow?.reasons?.join('; ') || 'missing window diagnostics'}`);

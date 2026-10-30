@@ -471,11 +471,10 @@ HTTP errors; the `23a34cc` settled five-second smoke closes R7. See R7 and the
 
 ### Priority issues found in this review
 
-R1 closed on 30 October after matched close-up captures, five-run clear/rain
-comparisons and a current-main WebGL intensity audit. R2–R3 have implementation
-changes and unit checks; their remaining teardown validation gates are listed
-below. R4 is closed with browser and WebGL object-count evidence. R6's evidence
-labels are reconciled. Preserve gameplay and fallbacks.
+R1 and R2 closed on 30 October after current-main browser and WebGL audits.
+R3's post-processing pass-specific teardown validation remains open. R4 is
+closed with browser and WebGL object-count evidence. R6's evidence labels are
+reconciled. Preserve gameplay and fallbacks.
 
 - [x] **R1 — P1: Validate the road-specific environment intensity fix.**
   Previously [materials.js](lib/engine/materials.js) changed `material.envMapIntensity`
@@ -502,7 +501,7 @@ labels are reconciled. Preserve gameplay and fallbacks.
   behavior is not established. Stage 4.3's wider wet-road tuning and acceptance
   remains open.
 
-- [ ] **R2 — P1: Validate PMREM output target ownership.**
+- [x] **R2 — P1: Validate PMREM output target ownership.**
   Previously [env-map.js](lib/engine/env-map.js) kept only
   `pmrem.fromEquirectangular(tex).texture` and disposed that texture on updates.
   The returned render target owns framebuffer/depth attachments; the installed
@@ -512,12 +511,17 @@ labels are reconciled. Preserve gameplay and fallbacks.
   and shutdown, with scene references cleared safely. Verify repeated time/weather
   cycles on one renderer with framebuffer/renderbuffer accounting, since stable
   `renderer.info.memory.textures` alone cannot establish this.
-  Implementation now retains and disposes each PMREM target, clears only its own
+  Implementation retains and disposes each PMREM target, clears only its own
   scene reference, and preserves the previous environment if generation fails.
-  The lifecycle unit check passes. A visible Intel UHD/WebGL2 audit recorded
-  stable 19 framebuffer and 16 renderbuffer counts over six repeated day/night
-  cycles; [details and limitations](benchmarks/results/stage4/environment-resource-audit.md).
-  Real-GPU engine teardown and longer/device-specific checks remain open.
+  On 30 October, 24 day/night cycles produced 25 snapshots with stable counts
+  of 22 framebuffers and 2 renderbuffers; `envMapIntensity` included 2.71. A
+  real Globe-view navigation unmounted StreetEngine and released all active
+  WebGL objects: counts fell from 22/2 to 0/0 after the detached context was
+  lost, with 19 framebuffer and 2 renderbuffer deletions observed. The teardown
+  audit also found and fixed a missing directional-light shadow-target dispose.
+  See the [PMREM and engine teardown report](benchmarks/results/stage4/r2-pmrem-target-teardown-2026-10-30.md).
+  This is one Intel UHD/Chrome run; other GPUs and multi-hour soak behavior are
+  not established.
 
 - [ ] **R3 — P2: Validate post-processing pass disposal.**
   Previously [post-fx.js](lib/engine/post-fx.js) called only `composer.dispose()`.
