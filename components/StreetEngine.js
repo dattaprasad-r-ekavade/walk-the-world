@@ -702,12 +702,56 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false, demo
             if (object.isSpotLight && object.layers.test(camera.layers)) spotLightCount += 1;
           });
           const programs = renderer.info.programs || [];
+          const newPrograms = programs.filter((program) => !programIdsBefore.has(program.id));
+          const newProgramIds = new Set(newPrograms.map((program) => program.id));
+          const programOwners = new Map();
+          try {
+            if (newProgramIds.size && typeof renderer.properties?.has === "function" &&
+                typeof renderer.properties?.get === "function") {
+              group.traverse((object) => {
+                const materials = Array.isArray(object.material)
+                  ? object.material
+                  : object.material ? [object.material] : [];
+                for (const material of materials) {
+                  if (!renderer.properties.has(material)) continue;
+                  const materialPrograms = renderer.properties.get(material).programs;
+                  if (!materialPrograms?.values) continue;
+                  for (const program of materialPrograms.values()) {
+                    if (!newProgramIds.has(program.id)) continue;
+                    let owners = programOwners.get(program.id);
+                    if (!owners) {
+                      owners = { count: 0, sample: [] };
+                      programOwners.set(program.id, owners);
+                    }
+                    owners.count += 1;
+                    if (owners.sample.length < 4) owners.sample.push({
+                      objectType: object.type,
+                      objectName: object.name || null,
+                      materialType: material.type,
+                      materialName: material.name || null,
+                      materialFamily: material.userData?.materialFamily || null,
+                    });
+                  }
+                }
+              });
+            }
+          } catch { /* owner attribution is best-effort debug data */ }
           markPerf("renderer.shader-warmup-complete", {
             label,
             spotLightCount,
             programCountBefore: programIdsBefore.size,
             programCountAfter: programs.length,
-            newProgramCount: programs.filter((program) => !programIdsBefore.has(program.id)).length,
+            newProgramCount: newPrograms.length,
+            newPrograms: newPrograms.slice(0, 32).map((program) => ({
+              id: program.id,
+              type: program.type,
+              name: program.name,
+              usedTimes: program.usedTimes,
+              cacheKeyLength: String(program.cacheKey || "").length,
+              cacheKeyPrefix: String(program.cacheKey || "").slice(0, 320),
+              ownerCount: programOwners.get(program.id)?.count || 0,
+              owners: programOwners.get(program.id)?.sample || [],
+            })),
           });
         }
       } catch (error) {

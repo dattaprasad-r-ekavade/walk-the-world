@@ -1,5 +1,5 @@
 const CACHE_PREFIX = 'wtw-shell-';
-const CACHE_REVISION = "18e792a950c96dd0";
+const CACHE_REVISION = "929db72c91d4582b";
 const CACHE = CACHE_PREFIX + CACHE_REVISION;
 const SHELL = ['/', '/icon.svg'];
 
