@@ -1,6 +1,6 @@
 # Walk the World — Performance and Visuals Implementation Plan
 
-Updated: 30 October 2026. Reviewed base: `5416644` on `origin/main`.
+Updated: 31 October 2026. Reviewed base: `9231712` on `origin/main`.
 Demo gates D1–D8 are closed. The smoothness track (section 0a) closed S1–S6 from
 live-deploy profiling; S7–S8 stay open. S9's real-input check did not reproduce
 the hang on 30 October. S7 has a candidate fix (`be2ff98`,
@@ -819,8 +819,13 @@ Publication is separate release work.
   batched tile shadows as the contact baseline. See the [Stage 4.6 acceptance](benchmarks/results/stage4/stage46-shadow-acceptance-2026-10-30.md)
   and [R2 ownership audit](benchmarks/results/stage4/r2-pmrem-target-teardown-2026-10-30.md).
 - [ ] 4.7 Improve facade/storefront variation and baked trim/dirt/reveals.
-  Use geometry for near entrances, roofs and silhouettes; avoid default parallax,
-  displacement or fragment noise. Triplanar needs a measured steep-slope use case.
+  **In progress, 31 Oct:** wall UVs now follow the facade tangent so the shared
+  atlas keeps a consistent world-space repeat on angled walls. The close Rome
+  capture loaded all High facade maps without browser errors, but its main wall
+  is axis-aligned and does not validate the change on diagonal facades. Review
+  shared storefront variation and near-entrance geometry next; avoid default
+  parallax, displacement or fragment noise. See the [facade UV checkpoint](benchmarks/results/stage4/stage47-facade-uv-review-2026-10-31.md).
+  Triplanar needs a measured steep-slope use case.
 
 Exit: approved visuals at matched DPR/population/view distance and measured tier
 GPU budgets, including visible real-GPU night/bloom and mobile review.
