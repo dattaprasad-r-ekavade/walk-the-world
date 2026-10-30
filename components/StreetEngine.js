@@ -961,7 +961,7 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false, demo
         streetLampMarkers = markers.filter((marker) => marker.kind === "lamp");
         streetLights?.setLamps(streetLampMarkers, groundHeight);
       }
-      if (qualityTier === "high" && !streetLights && streetLampMarkers.length) {
+      if (qualityTier === "high" && !streetLights) {
         const benchHideInactiveLights =
           typeof window !== "undefined" && window.__BENCH_MODE === true && window.__BENCH_HIDE_INACTIVE_STREET_LIGHTS === true;
         streetLights = createStreetLights(scene, {
@@ -1135,8 +1135,8 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false, demo
           skipOverture: window.__BENCH_MODE === true,
         }), { elements: elementCount, prebuilt });
         // Keep the scene's light count stable across shader warmup and first render.
-        // High quality may add four pooled street spotlights once lamp markers exist;
-        // creating them here makes warmCellShaders compile the six-spot variants.
+        // High quality reserves four pooled street spotlights even when this cell
+        // has no lamps, since later streamed cells may add lamp markers.
         if (qualityTier === "high") ensureStreetLightPool();
         await warmCellShaders(cityRoot, prebuilt ? "city.prebuilt-shader-warmup" : "city.spawn-shader-warmup");
         if (disposed) return false;

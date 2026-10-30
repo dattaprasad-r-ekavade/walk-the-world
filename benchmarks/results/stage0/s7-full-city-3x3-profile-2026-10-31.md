@@ -25,15 +25,16 @@ not the target i5-1035G1 acceptance run.
 | GPU program cache disabled, frame-program diagnostic | 2,482.7 / 433.2 ms | 449.9 / 49.9 ms |
 | GPU program cache disabled, program-owner trace | 2,566.0 / 350.0 ms | 383.3 / 66.8 ms |
 | Spawn-marker streetlight prewarm attempt | 2,466.0 / 333.3 ms | 216.6 / 99.9 ms |
+| Early pool prewarm, before spawn shader warmup | 816.5 / 416.6 ms | 199.9 / 83.5 ms |
 
 The first Tokyo arrival contained two frames over 500 ms, including a 2,582.9
 ms frame and a 2,586 ms Long Task. Three ordinary repeats reached
-832.8–850.1 ms. Five additional tours launched Chrome with
-`--disable-gpu-program-cache` and reproduced 2.47–2.57 s Tokyo arrival frames.
-That makes the stall reproducible when the program cache is disabled; those
-forced-cache runs are diagnostic and are not ordinary S7 timing runs.
-Edinburgh stayed below 500 ms in the four ordinary captures and all five
-cache-disabled captures.
+832.8–850.1 ms. Six additional tours launched Chrome with
+`--disable-gpu-program-cache`. Five reached 2.47–2.57 s; precreating the
+high-tier light pool before spawn shader warmup reduced the sixth Tokyo maximum
+to 816.5 ms. It still had one frame over 500 ms. These forced-cache runs are
+diagnostic and are not ordinary S7 timing runs. Edinburgh stayed below 500 ms
+in the four ordinary captures and all six cache-disabled captures.
 
 ## CPU profile findings
 
