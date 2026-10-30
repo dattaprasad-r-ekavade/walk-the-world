@@ -15,6 +15,7 @@ export const PREBUILT_BUILDER_INPUTS = Object.freeze([
   "lib/engine/facade-uv.js",
   "lib/engine/roof-geometry.js",
   "lib/engine/cell-clip.js",
+  "lib/engine/ground-surfaces.js",
 ]);
 
 export function readThreeVersion(root) {

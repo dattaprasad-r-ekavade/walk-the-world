@@ -317,6 +317,20 @@ Decisions taken from the research:
 - [ ] **B3 — Procedural landuse ground (S–M).** Asphalt, grass, paving and
   water materials from landuse polygons instead of the near-white Carto
   raster; extends D1.
+  - 30 Oct, branch `b3-landuse`, first step: `lib/engine/ground-surfaces.js`
+    classifies areas into surface kinds. Parks, gardens, grass and pitches get
+    a tiling grass texture; car parks get asphalt grain; pedestrian areas and
+    squares get the sidewalk paving (pedestrian areas stay walkable roads).
+    Surfaces use world-space UVs and merge into one mesh per kind per cell,
+    which also cuts draw calls (previously one mesh per area). This uses tags
+    already in cached cells (Tokyo start cell: 44 car parks, 17 pedestrian
+    areas, 28 park/grass; Edinburgh: 79, 16, 63; Pune: few), so no reseed is
+    needed. Unit tests cover classification, UVs and merging.
+  - Open: browser screenshots in the four cities; then urban land use
+    (residential, commercial, industrial) to replace the raster between
+    buildings. That needs a new Overpass query term, a reseed, and draping
+    large areas onto the terrain first: flat areas sit at their highest
+    terrain point and would float on slopes such as Edinburgh's.
 - [ ] **B4 — Overture gap fill (S).** The Overture footprint fallback already
   exists for sparse cells. Remaining: merge Overture height, num_floors,
   roof_shape, roof_color, facade_color and facade_material into OSM buildings
