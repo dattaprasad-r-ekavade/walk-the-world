@@ -542,9 +542,9 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false, demo
         if (timerStarted) gpuTimer.endFrame();
         if (diagnosticsEnabled) {
           const renderDurationMs = performance.now() - renderStartedAt;
-          if (renderDurationMs >= 50) {
-            const programs = renderer.info.programs || [];
-            const newPrograms = programs.filter((program) => !programsBefore.has(program.id));
+          const programs = renderer.info.programs || [];
+          const newPrograms = programs.filter((program) => !programsBefore.has(program.id));
+          if (renderDurationMs >= 50 || newPrograms.length) {
             const newProgramIds = new Set(newPrograms.map((program) => program.id));
             const programOwners = new Map();
             try {
@@ -592,24 +592,30 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false, demo
                 });
               }
             } catch { /* owner attribution is best-effort debug data */ }
-            recordPerfTiming("renderer.long-frame-programs", renderDurationMs, {
-              programCountBefore: programsBefore.size,
-              programCountAfter: programs.length,
-              newProgramCount: newPrograms.length,
-              newPrograms: newPrograms.slice(0, 32).map((program) => {
-                const cacheKey = String(program.cacheKey || "");
-                return {
-                  id: program.id,
-                  name: program.name,
-                  type: program.type,
-                  usedTimes: program.usedTimes,
-                  cacheKeyLength: cacheKey.length,
-                  cacheKeyPrefix: cacheKey.slice(0, 320),
-                  ownerCount: programOwners.get(program.id)?.count || 0,
-                  owners: programOwners.get(program.id)?.sample || [],
-                };
-              }),
-            });
+            recordPerfTiming(
+              renderDurationMs >= 50
+                ? "renderer.long-frame-programs"
+                : "renderer.program-link-frame",
+              renderDurationMs,
+              {
+                programCountBefore: programsBefore.size,
+                programCountAfter: programs.length,
+                newProgramCount: newPrograms.length,
+                newPrograms: newPrograms.slice(0, 32).map((program) => {
+                  const cacheKey = String(program.cacheKey || "");
+                  return {
+                    id: program.id,
+                    name: program.name,
+                    type: program.type,
+                    usedTimes: program.usedTimes,
+                    cacheKeyLength: cacheKey.length,
+                    cacheKeyPrefix: cacheKey.slice(0, 320),
+                    ownerCount: programOwners.get(program.id)?.count || 0,
+                    owners: programOwners.get(program.id)?.sample || [],
+                  };
+                }),
+              },
+            );
           }
           const counters = getPerfCounters();
           const render = renderer.info.render;

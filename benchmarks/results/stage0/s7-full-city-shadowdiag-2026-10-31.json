@@ -1,0 +1,406 @@
+{
+  "schemaVersion": 1,
+  "capturedAt": "2026-10-30T23:16:39.892Z",
+  "gitBaseRevision": "c72b73a",
+  "build": "local Next.js production build with NEXT_PUBLIC_ENABLE_BENCH=1",
+  "browser": {
+    "visibleChrome": true,
+    "renderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 4060 Laptop GPU (0x000028E0) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+    "gpuProgramCacheDisabled": true,
+    "viewport": "1280x720",
+    "qualityTier": "medium"
+  },
+  "fixture": {
+    "source": "recorded Tokyo city fixture",
+    "cellsRequested": 9,
+    "cellsResident": 9,
+    "pendingCells": 0,
+    "elementCount": 31064.0,
+    "responses": [
+      {
+        "key": "wtw_city6_35.654_139.695",
+        "elements": 3606
+      },
+      {
+        "key": "wtw_city6_35.654_139.701",
+        "elements": 3664
+      },
+      {
+        "key": "wtw_city6_35.654_139.706",
+        "elements": 3649
+      },
+      {
+        "key": "wtw_city6_35.660_139.695",
+        "elements": 2127
+      },
+      {
+        "key": "wtw_city6_35.660_139.701",
+        "elements": 3665
+      },
+      {
+        "key": "wtw_city6_35.660_139.706",
+        "elements": 3652
+      },
+      {
+        "key": "wtw_city6_35.665_139.695",
+        "elements": 3435
+      },
+      {
+        "key": "wtw_city6_35.665_139.701",
+        "elements": 3617
+      },
+      {
+        "key": "wtw_city6_35.665_139.706",
+        "elements": 3649
+      }
+    ]
+  },
+  "frames": {
+    "allSamples": 483,
+    "allP95Ms": 33.3,
+    "allMaxMs": 366.4,
+    "settledSamples": 315,
+    "settledP95Ms": 16.9,
+    "settledMaxMs": 17.1
+  },
+  "inputReady": {
+    "type": "mark",
+    "name": "input-ready",
+    "atMs": 2008.7000000476837,
+    "details": {
+      "terrainTiles": 1
+    }
+  },
+  "programEvents": [
+    {
+      "name": "renderer.long-frame-programs",
+      "atMs": 2008.6,
+      "durationMs": 185.0,
+      "programCountBefore": 13,
+      "programCountAfter": 15,
+      "newProgramCount": 2,
+      "newPrograms": [
+        {
+          "type": "MeshStandardMaterial",
+          "cacheKeyPrefix": "physical,STANDARD,,highp,srgb-linear,306,512,uv,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,false,0,,0,1,0,2,0,1,0,0,1,0,0,0,0,1,0,0,0,0,8388624,8520707,srgb,ground-detail-v1"
+        },
+        {
+          "type": "MeshBasicMaterial",
+          "cacheKeyPrefix": "basic,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,1,0,2,0,1,0,0,1,0,0,0,0,1,0,0,0,0,8388608,8522755,srgb,onBeforeCompile(){}"
+        }
+      ]
+    },
+    {
+      "name": "renderer.long-frame-programs",
+      "atMs": 3233.5,
+      "durationMs": 118.3,
+      "programCountBefore": 40,
+      "programCountAfter": 40,
+      "newProgramCount": 0,
+      "newPrograms": []
+    },
+    {
+      "name": "renderer.long-frame-programs",
+      "atMs": 3860.4,
+      "durationMs": 96.9,
+      "programCountBefore": 43,
+      "programCountAfter": 43,
+      "newProgramCount": 0,
+      "newPrograms": []
+    },
+    {
+      "name": "renderer.long-frame-programs",
+      "atMs": 4734.4,
+      "durationMs": 170.9,
+      "programCountBefore": 43,
+      "programCountAfter": 43,
+      "newProgramCount": 0,
+      "newPrograms": []
+    }
+  ],
+  "warmupEvents": [
+    {
+      "name": "renderer.postfx-shader-warmup-complete",
+      "atMs": 827.6,
+      "durationMs": 297.0,
+      "label": null,
+      "newProgramCount": 10,
+      "spotLightCount": null,
+      "programTypes": []
+    },
+    {
+      "name": "input-ready",
+      "atMs": 2008.7,
+      "durationMs": null,
+      "label": null,
+      "newProgramCount": null,
+      "spotLightCount": null,
+      "programTypes": []
+    },
+    {
+      "name": "city.spawn-shader-warmup",
+      "atMs": 3002.5,
+      "durationMs": 494.9,
+      "label": null,
+      "newProgramCount": null,
+      "spotLightCount": null,
+      "programTypes": []
+    },
+    {
+      "name": "renderer.shader-warmup-complete",
+      "atMs": 3003.0,
+      "durationMs": null,
+      "label": "city.spawn-shader-warmup",
+      "newProgramCount": 20,
+      "spotLightCount": 2,
+      "programTypes": [
+        "MeshBasicMaterial",
+        "MeshLambertMaterial",
+        "MeshStandardMaterial"
+      ]
+    },
+    {
+      "name": "city.spawn-shadow-depth-warmup",
+      "atMs": 3060.1,
+      "durationMs": 55.9,
+      "label": null,
+      "newProgramCount": null,
+      "spotLightCount": null,
+      "programTypes": []
+    },
+    {
+      "name": "renderer.shader-warmup-complete",
+      "atMs": 3060.3,
+      "durationMs": null,
+      "label": "city.spawn-shadow-depth-warmup",
+      "newProgramCount": 2,
+      "spotLightCount": 2,
+      "programTypes": [
+        "MeshDepthMaterial"
+      ]
+    },
+    {
+      "name": "streaming-complete",
+      "atMs": 3060.3,
+      "durationMs": null,
+      "label": null,
+      "newProgramCount": null,
+      "spotLightCount": null,
+      "programTypes": []
+    },
+    {
+      "name": "city.population-shader-warmup",
+      "atMs": 3236.9,
+      "durationMs": 129.3,
+      "label": null,
+      "newProgramCount": null,
+      "spotLightCount": null,
+      "programTypes": []
+    },
+    {
+      "name": "renderer.shader-warmup-complete",
+      "atMs": 3237.0,
+      "durationMs": null,
+      "label": "city.population-shader-warmup",
+      "newProgramCount": 3,
+      "spotLightCount": 2,
+      "programTypes": [
+        "MeshBasicMaterial",
+        "MeshLambertMaterial",
+        "MeshPhongMaterial"
+      ]
+    },
+    {
+      "name": "city.population-shadow-depth-warmup",
+      "atMs": 3259.5,
+      "durationMs": 22.2,
+      "label": null,
+      "newProgramCount": null,
+      "spotLightCount": null,
+      "programTypes": []
+    },
+    {
+      "name": "renderer.shader-warmup-complete",
+      "atMs": 3259.5,
+      "durationMs": null,
+      "label": "city.population-shadow-depth-warmup",
+      "newProgramCount": 1,
+      "spotLightCount": 2,
+      "programTypes": [
+        "MeshDepthMaterial"
+      ]
+    },
+    {
+      "name": "city.population-depth-shader-warmup",
+      "atMs": 3281.5,
+      "durationMs": 21.9,
+      "label": null,
+      "newProgramCount": null,
+      "spotLightCount": null,
+      "programTypes": []
+    },
+    {
+      "name": "renderer.shader-warmup-complete",
+      "atMs": 3281.6,
+      "durationMs": null,
+      "label": "city.population-depth-shader-warmup",
+      "newProgramCount": 1,
+      "spotLightCount": 2,
+      "programTypes": [
+        "MeshDepthMaterial"
+      ]
+    },
+    {
+      "name": "city.cell-shader-warmup",
+      "atMs": 3715.1,
+      "durationMs": 152.4,
+      "label": null,
+      "newProgramCount": null,
+      "spotLightCount": null,
+      "programTypes": []
+    },
+    {
+      "name": "renderer.shader-warmup-complete",
+      "atMs": 3715.3,
+      "durationMs": null,
+      "label": "city.cell-shader-warmup",
+      "newProgramCount": 1,
+      "spotLightCount": 2,
+      "programTypes": [
+        "MeshBasicMaterial"
+      ]
+    },
+    {
+      "name": "city.cell-shader-warmup",
+      "atMs": 3728.0,
+      "durationMs": 0.4,
+      "label": null,
+      "newProgramCount": null,
+      "spotLightCount": null,
+      "programTypes": []
+    },
+    {
+      "name": "renderer.shader-warmup-complete",
+      "atMs": 3728.1,
+      "durationMs": null,
+      "label": "city.cell-shader-warmup",
+      "newProgramCount": 0,
+      "spotLightCount": 2,
+      "programTypes": []
+    },
+    {
+      "name": "city.cell-shader-warmup",
+      "atMs": 4117.9,
+      "durationMs": 3.2,
+      "label": null,
+      "newProgramCount": null,
+      "spotLightCount": null,
+      "programTypes": []
+    },
+    {
+      "name": "renderer.shader-warmup-complete",
+      "atMs": 4118.0,
+      "durationMs": null,
+      "label": "city.cell-shader-warmup",
+      "newProgramCount": 0,
+      "spotLightCount": 2,
+      "programTypes": []
+    },
+    {
+      "name": "city.cell-shader-warmup",
+      "atMs": 4351.4,
+      "durationMs": 2.0,
+      "label": null,
+      "newProgramCount": null,
+      "spotLightCount": null,
+      "programTypes": []
+    },
+    {
+      "name": "renderer.shader-warmup-complete",
+      "atMs": 4351.4,
+      "durationMs": null,
+      "label": "city.cell-shader-warmup",
+      "newProgramCount": 0,
+      "spotLightCount": 2,
+      "programTypes": []
+    },
+    {
+      "name": "city.cell-shader-warmup",
+      "atMs": 4416.7,
+      "durationMs": 1.0,
+      "label": null,
+      "newProgramCount": null,
+      "spotLightCount": null,
+      "programTypes": []
+    },
+    {
+      "name": "renderer.shader-warmup-complete",
+      "atMs": 4416.9,
+      "durationMs": null,
+      "label": "city.cell-shader-warmup",
+      "newProgramCount": 0,
+      "spotLightCount": 2,
+      "programTypes": []
+    },
+    {
+      "name": "city.cell-shader-warmup",
+      "atMs": 4521.7,
+      "durationMs": 1.0,
+      "label": null,
+      "newProgramCount": null,
+      "spotLightCount": null,
+      "programTypes": []
+    },
+    {
+      "name": "renderer.shader-warmup-complete",
+      "atMs": 4521.9,
+      "durationMs": null,
+      "label": "city.cell-shader-warmup",
+      "newProgramCount": 0,
+      "spotLightCount": 2,
+      "programTypes": []
+    },
+    {
+      "name": "city.cell-shader-warmup",
+      "atMs": 4562.6,
+      "durationMs": 1.4,
+      "label": null,
+      "newProgramCount": null,
+      "spotLightCount": null,
+      "programTypes": []
+    },
+    {
+      "name": "renderer.shader-warmup-complete",
+      "atMs": 4562.6,
+      "durationMs": null,
+      "label": "city.cell-shader-warmup",
+      "newProgramCount": 0,
+      "spotLightCount": 2,
+      "programTypes": []
+    },
+    {
+      "name": "city.cell-shader-warmup",
+      "atMs": 4838.6,
+      "durationMs": 1.9,
+      "label": null,
+      "newProgramCount": null,
+      "spotLightCount": null,
+      "programTypes": []
+    },
+    {
+      "name": "renderer.shader-warmup-complete",
+      "atMs": 4838.7,
+      "durationMs": null,
+      "label": "city.cell-shader-warmup",
+      "newProgramCount": 0,
+      "spotLightCount": 2,
+      "programTypes": []
+    }
+  ],
+  "errors": {
+    "console": [],
+    "page": [],
+    "requests": []
+  },
+  "screenshot": "screenshots/performance-visuals/stage0/s7-full-3x3-shadowdiag/tokyo-three-by-three-2026-10-31.png"
+}

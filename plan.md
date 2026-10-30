@@ -355,6 +355,16 @@ Open:
   tour and ground/terrain review. See the [staged post-FX warmup report](benchmarks/results/stage0/s7-postfx-staged-warmup-2026-10-31.md),
   the [city shader attribution report](benchmarks/results/stage0/s7-city-shader-attribution-2026-10-31.md),
   and the [shadow-depth warmup report](benchmarks/results/stage0/s7-shadow-depth-staged-warmup-2026-10-31.md).
+  A follow-up visible local production replay loaded all nine Tokyo 3×3 fixture
+  cells (31,064 elements; zero pending) with no console/page errors or failed
+  requests. Settled p95/max were 16.9/17.1 ms on the RTX 4060. The new renderer
+  diagnostic records newly added shader programs even on frames below 50 ms;
+  the replay found no such additions. Its screenshot shows the street ground,
+  roadway and buildings, but the flat urban view cannot establish terrain
+  relief. This does not cover the full globe tour or the target i5. Keep S7 open.
+  See the [full-city shader diagnostic report](benchmarks/results/stage0/s7-full-city-shadowdiag-2026-10-31.md),
+  [JSON capture](benchmarks/results/stage0/s7-full-city-shadowdiag-2026-10-31.json),
+  and [screenshot](screenshots/performance-visuals/stage0/s7-full-3x3-shadowdiag/tokyo-three-by-three-2026-10-31.png).
 - [ ] **S8 — Walking cost on weak GPUs.** Walking is GPU-bound on Intel UHD
   (fill rate, not draw calls). Candidates, in order: cheaper interior-window
   shader at distance (drop the ray-box sample beyond about 40 m instead of
