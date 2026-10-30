@@ -462,9 +462,10 @@ HTTP errors; the `23a34cc` settled five-second smoke closes R7. See R7 and the
 
 ### Priority issues found in this review
 
-R1–R4 have implementation changes and unit checks; their remaining device and
-browser validation gates are listed below. R6's evidence labels are reconciled.
-Preserve gameplay and fallbacks.
+R1–R3 have implementation changes and unit checks; their remaining device and
+browser validation gates are listed below. R4 is closed with browser and WebGL
+object-count evidence. R6's evidence labels are reconciled. Preserve gameplay
+and fallbacks.
 
 - [ ] **R1 — P1: Validate the road-specific environment intensity fix.**
   Previously [materials.js](lib/engine/materials.js) changed `material.envMapIntensity`
@@ -516,16 +517,15 @@ Preserve gameplay and fallbacks.
   and noise texture omitted by Three.js 0.170's pass disposer. A lifecycle unit
   check covers repeated disposal; real-GPU entry/exit resource checks remain open.
 
-- [ ] **R4 — P2: Finish atlas-layout fallback acceptance.**
+- [x] **R4 — P2: Validate atlas-layout fallback and texture disposal.**
   Previously [ktx2-textures.js](lib/engine/ktx2-textures.js) parsed the layout
   after transcodes and outside the cleanup-protected callback block. Invalid JSON
   could bypass `disposeParsed()`. The loader now validates the layout before
   transcodes and guards payload construction. Verify malformed JSON and
   missing/invalid rectangle entries keep procedural/shared maps operational and
-  release all successfully decoded textures once. Persistent GPU leakage on this
-  path has not been measured; this is a confirmed explicit-cleanup gap.
-  The loader now validates required atlas rectangles and dimensions before high
-  transcodes, and guards all subsequent payload construction and installation.
+  release all successfully decoded textures once. The loader now validates
+  required atlas rectangles and dimensions before high transcodes, and guards
+  all subsequent payload construction and installation.
   Unit checks cover invalid JSON/rectangles, shared fallback and disposal after an
   installation error. A visible Chrome run with service workers blocked injected
   invalid JSON, observed the fallback, retained shared maps and moved 4.09 m;
@@ -536,8 +536,12 @@ Preserve gameplay and fallbacks.
   [schema-invalid browser evidence](benchmarks/results/stage3/invalid-layout-schema-browser-check.md).
   Cached asset/route offline responses and an uncached network failure are now
   verified in Chrome. The follow-up run also confirmed the uncached request
-  rejects with Chrome offline and no cache entry. Real-GPU disposal measurement
-  remains open. [Latest service-worker report](benchmarks/results/stage3/service-worker-offline-miss-check-2026-10-30.md);
+  rejects with Chrome offline and no cache entry. A live GPU disposal audit
+  recorded four high KTX2 texture allocations, followed by 21 WebGL texture
+  deletions and a 21-handle live-count decrease during the low-quality transition
+  on Intel UHD Graphics. This is renderer object-count evidence, not a direct
+  VRAM-byte measurement. [GPU disposal report](benchmarks/results/stage3/ktx2-disposal-audit-2026-10-30.md).
+  [Latest service-worker report](benchmarks/results/stage3/service-worker-offline-miss-check-2026-10-30.md);
   [earlier cache-only report](benchmarks/results/stage3/service-worker-offline-check.md).
 
 - [ ] **R5 — P2, benchmark prototype: Wet-map transition and acceptance are unfinished.**
@@ -726,9 +730,8 @@ Preserve visual/editor parity; real-city/mobile acceptance remains open.
   and deferred texture loading after input-ready.
   [Asset index](benchmarks/results/stage3/runtime-asset-index.md).
 
-Exit remains open: R4 real-GPU disposal measurement, lower-memory/mobile
-residency, and far mip seams (gutters fall
-below one pixel after mip 4). Production browser checks verified
+Exit remains open: lower-memory/mobile residency, and far mip seams (gutters
+fall below one pixel after mip 4). Production browser checks verified
 offline service-worker responses for shared/high facade KTX2, the atlas layout,
 the Basis WASM decoder, and the cached street route. Its local loopback server
 remained reachable with Chromium offline mode enabled, so that run could not
@@ -736,7 +739,8 @@ verify an uncached failure. A later Chrome run forced an uncached network reset
 and separately checked an uncached fetch while offline; see
 [the follow-up report](benchmarks/results/stage3/service-worker-offline-miss-check-2026-10-30.md).
 This does not exercise an interactive scene with a missing runtime atlas.
-Three.js exposes combined worker/WASM/transcode
+The live disposal audit counts renderer texture objects and WebGL deletion calls;
+it cannot report physical VRAM bytes. Three.js exposes combined worker/WASM/transcode
 timing and upload submission, not separate compile or GPU-upload completion.
 Publication is separate release work.
 

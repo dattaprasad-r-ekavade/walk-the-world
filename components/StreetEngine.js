@@ -1965,6 +1965,12 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false, demo
 
       window.__streetDebug = {
         player,
+        setQuality: (quality) => {
+          if (window.__BENCH_MODE !== true || !["low", "medium", "high"].includes(quality)) return false;
+          runtime.current.setQuality?.(quality);
+          return true;
+        },
+        rendererTextureCount: () => renderer.info.memory.textures,
         renderScale: () => renderScaleState.scale,
         setWetRoadMapCandidate: (enabled) => window.__BENCH_MODE === true ? setWetRoadMapCandidate(enabled) : null,
         wetRoadMapStats: () => window.__BENCH_MODE === true ? wetRoadMapStats() : null,

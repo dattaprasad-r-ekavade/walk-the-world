@@ -82,6 +82,7 @@ const resourceSoakEnabled = args.includes('--resource-soak');
 const streamLifecycleEnabled = args.includes('--stream-lifecycle');
 const lightTransitionEnabled = args.includes('--light-transition');
 const environmentAuditEnabled = args.includes('--environment-audit');
+const ktx2DisposalAuditEnabled = args.includes('--ktx2-disposal-audit');
 const invalidFacadeLayoutSchema = args.includes('--invalid-facade-layout-schema');
 const invalidFacadeLayout = args.includes('--invalid-facade-layout') || invalidFacadeLayoutSchema;
 if (args.includes('--invalid-facade-layout') && invalidFacadeLayoutSchema) {
@@ -165,6 +166,10 @@ if (environmentAuditEnabled && (dataMode !== 'recorded' || benchmarkEnvironment.
 }
 if (invalidFacadeLayout && (dataMode !== 'recorded' || qualityPreset !== 'high')) {
   throw new Error('--invalid-facade-layout modes require --data-mode recorded and --preset high');
+}
+if (ktx2DisposalAuditEnabled && (dataMode !== 'recorded' || qualityPreset !== 'high' || qualityMode !== 'manual' ||
+    rendererMode !== 'browser-default' || browserChannel !== 'chrome' || !headed || invalidFacadeLayout)) {
+  throw new Error('--ktx2-disposal-audit requires recorded data, manual high quality, headed Chrome with browser-default rendering, and no invalid-layout injection');
 }
 const READY_TIMEOUT = 180_000;
 const HOST_TELEMETRY_READY_MARKER = '__BENCH_HOST_TELEMETRY_READY__';
@@ -500,6 +505,41 @@ function startHostTelemetry(sampleSeconds) {
 
 async function benchStreet(page) {
   const t0 = Date.now();
+  if (ktx2DisposalAuditEnabled) {
+    await page.addInitScript(() => {
+      const liveTextures = new Set();
+      let createdTextures = 0;
+      let deletedTextures = 0;
+      const prototypes = new Set();
+      if (typeof WebGLRenderingContext !== 'undefined') prototypes.add(WebGLRenderingContext.prototype);
+      if (typeof WebGL2RenderingContext !== 'undefined') prototypes.add(WebGL2RenderingContext.prototype);
+      for (const proto of prototypes) {
+        if (Object.hasOwn(proto, 'createTexture')) {
+          const original = proto.createTexture;
+          proto.createTexture = function (...args) {
+            const texture = original.apply(this, args);
+            if (texture) {
+              createdTextures++;
+              liveTextures.add(texture);
+            }
+            return texture;
+          };
+        }
+        if (Object.hasOwn(proto, 'deleteTexture')) {
+          const original = proto.deleteTexture;
+          proto.deleteTexture = function (texture) {
+            if (texture && liveTextures.delete(texture)) deletedTextures++;
+            return original.call(this, texture);
+          };
+        }
+      }
+      window.__ktx2WebglTextureAudit = () => ({
+        createdTextures,
+        deletedTextures,
+        liveTextures: liveTextures.size,
+      });
+    });
+  }
   if (environmentAuditEnabled) {
     await page.addInitScript(() => {
       const framebuffers = new Set(), renderbuffers = new Set(), names = new WeakMap(), values = new Set();
@@ -949,6 +989,81 @@ async function benchStreet(page) {
   // Material census runs after the frame window is frozen so its scene walk
   // cannot perturb the measured movement interval.
   const materialInventory = await page.evaluate(() => window.__streetDebug?.materialInventory?.() || null);
+  let ktx2DisposalAudit = null;
+  if (ktx2DisposalAuditEnabled) {
+    await page.waitForFunction(() =>
+      !!window.__perfCounters?.marks?.['ktx2-high-textures-ready'] &&
+      window.__streetDebug?.materialInventory?.()?.factoryCache?.textureFamilies?.highFacadeAtlases === true,
+    null, { timeout: READY_TIMEOUT });
+    await page.waitForFunction(() => window.__streetDebug?.cellStream?.()?.pendingCount === 0, null, { timeout: READY_TIMEOUT });
+    await page.waitForTimeout(500);
+    const transition = await page.evaluate(() => {
+      const debug = window.__streetDebug;
+      const snapshot = () => ({
+        rendererTextureCount: debug?.rendererTextureCount?.() ?? null,
+        webgl: window.__ktx2WebglTextureAudit?.() ?? null,
+        highFacadeAtlases: debug?.materialInventory?.()?.factoryCache?.textureFamilies?.highFacadeAtlases ?? null,
+      });
+      const before = snapshot();
+      const changed = debug?.setQuality?.('low') === true;
+      return { changed, before, after: snapshot() };
+    });
+    if (!transition.changed) throw new Error('Could not switch the benchmark scene to low quality for KTX2 disposal audit');
+    try {
+      await page.waitForFunction(() =>
+        !!window.__perfCounters?.marks?.['ktx2-high-textures-released'] &&
+        window.__perfCounters?.settings?.qualityTier === 'low' &&
+        window.__streetDebug?.materialInventory?.()?.factoryCache?.textureFamilies?.highFacadeAtlases === false,
+      null, { timeout: 15_000 });
+    } catch (error) {
+      const state = await page.evaluate(() => ({
+        releasedMark: window.__perfCounters?.marks?.['ktx2-high-textures-released'] ?? null,
+        qualityTier: window.__perfCounters?.settings?.qualityTier ?? null,
+        highFacadeAtlases: window.__streetDebug?.materialInventory?.()?.factoryCache?.textureFamilies?.highFacadeAtlases ?? null,
+        rendererTextureCount: window.__streetDebug?.rendererTextureCount?.() ?? null,
+        webgl: window.__ktx2WebglTextureAudit?.() ?? null,
+      }));
+      throw new Error(`KTX2 release state did not settle: ${JSON.stringify(state)}; ${error.message}`);
+    }
+    await page.evaluate(async () => {
+      for (let i = 0; i < 3; i++) await new Promise((resolve) => requestAnimationFrame(resolve));
+    });
+    const settled = await page.evaluate(() => ({
+      rendererTextureCount: window.__streetDebug?.rendererTextureCount?.() ?? null,
+      webgl: window.__ktx2WebglTextureAudit?.() ?? null,
+      highFacadeAtlases: window.__streetDebug?.materialInventory?.()?.factoryCache?.textureFamilies?.highFacadeAtlases ?? null,
+    }));
+    const immediateRendererTextureDelta = transition.before.rendererTextureCount - transition.after.rendererTextureCount;
+    const immediateWebglDeleteDelta = transition.after.webgl.deletedTextures - transition.before.webgl.deletedTextures;
+    const immediateWebglLiveTextureDelta = transition.before.webgl.liveTextures - transition.after.webgl.liveTextures;
+    const settledRendererTextureDelta = transition.before.rendererTextureCount - settled.rendererTextureCount;
+    const settledWebglDeleteDelta = settled.webgl.deletedTextures - transition.before.webgl.deletedTextures;
+    const settledWebglLiveTextureDelta = transition.before.webgl.liveTextures - settled.webgl.liveTextures;
+    const immediateValidated = immediateRendererTextureDelta >= 4 && immediateWebglDeleteDelta >= 4 && immediateWebglLiveTextureDelta >= 4;
+    const settledValidated = settledRendererTextureDelta >= 4 && settledWebglDeleteDelta >= 4 && settledWebglLiveTextureDelta >= 4;
+    ktx2DisposalAudit = {
+      before: transition.before,
+      immediatelyAfterTransition: transition.after,
+      afterThreeFrames: settled,
+      immediateDeltas: {
+        rendererTextureCount: immediateRendererTextureDelta,
+        webglDeleteTextureCalls: immediateWebglDeleteDelta,
+        webglLiveHandles: immediateWebglLiveTextureDelta,
+      },
+      settledDeltas: {
+        rendererTextureCount: settledRendererTextureDelta,
+        webglDeleteTextureCalls: settledWebglDeleteDelta,
+        webglLiveHandles: settledWebglLiveTextureDelta,
+      },
+      expectedHighAtlasTextures: 4,
+      validationWindow: immediateValidated ? 'immediate' : settledValidated ? 'three-frames-settled' : null,
+      validated: transition.before.highFacadeAtlases === true && settled.highFacadeAtlases === false &&
+        (immediateValidated || settledValidated),
+    };
+    if (!ktx2DisposalAudit.validated) {
+      throw new Error(`KTX2 high-texture disposal audit failed: ${JSON.stringify(ktx2DisposalAudit)}`);
+    }
+  }
   const hostTelemetryPromise = hostTelemetryMonitor.finish();
 
   let cellStreaming = null;
@@ -1137,6 +1252,7 @@ async function benchStreet(page) {
     measurementWindow,
     lightTransitions: lightTransitionDiagnostics,
     environmentAudit,
+    ktx2DisposalAudit,
     resourceSoak,
     resourceSamples: resourceSoakEnabled ? resourceSamples : undefined,
     frameIntervalsMs,
@@ -1384,6 +1500,7 @@ async function main() {
       wetRoadMapMode,
       lightTransitionEnabled,
       environmentAuditEnabled,
+      ktx2DisposalAuditEnabled,
       invalidFacadeLayout,
       invalidFacadeLayoutSchema,
       serviceWorkersBlocked: invalidFacadeLayout,
