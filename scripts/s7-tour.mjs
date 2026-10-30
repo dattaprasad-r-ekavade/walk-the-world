@@ -21,6 +21,7 @@ function parseArgs(argv) {
     screenshots: null,
     headed: false,
     targetI5Confirmed: false,
+    cpuProfileArrival: false,
     help: false,
     readyTimeoutMs: 120000,
     settleTimeoutMs: 45000,
@@ -39,6 +40,7 @@ function parseArgs(argv) {
     else if (arg === "--headed") options.headed = true;
     else if (arg === "--headless") options.headed = false;
     else if (arg === "--confirm-target-i5-1035g1") options.targetI5Confirmed = true;
+    else if (arg === "--cpu-profile-arrival") options.cpuProfileArrival = true;
     else if (arg === "--base-url" || arg.startsWith("--base-url=")) options.baseUrl = value("--base-url");
     else if (arg === "--out" || arg.startsWith("--out=")) options.out = value("--out");
     else if (arg === "--screenshots" || arg.startsWith("--screenshots=")) options.screenshots = value("--screenshots");
@@ -69,6 +71,81 @@ function outputPaths(options) {
   };
 }
 
+function summarizeCpuProfile(profile, { pageStartMs = null, longTasks = [] } = {}) {
+  const nodes = profile?.nodes || [];
+  const samples = profile?.samples || [];
+  const timeDeltas = profile?.timeDeltas || [];
+  const byId = new Map(nodes.map((node) => [node.id, node]));
+  const parentById = new Map();
+  for (const node of nodes) for (const childId of node.children || []) parentById.set(childId, node.id);
+  const frameFor = (nodeId) => {
+    const frame = byId.get(nodeId)?.callFrame || {};
+    return {
+      functionName: frame.functionName || "(anonymous)",
+      url: frame.url || "",
+      lineNumber: frame.lineNumber ?? null,
+    };
+  };
+  const keyFor = (frame) => frame.functionName + "|" + frame.url + "|" + String(frame.lineNumber ?? -1);
+  const callStackFor = (nodeId) => {
+    const stack = [];
+    let current = nodeId;
+    while (current !== undefined && stack.length < 12) {
+      if (byId.has(current)) stack.push(frameFor(current));
+      current = parentById.get(current);
+    }
+    return stack.reverse();
+  };
+  const addSample = (map, nodeId, durationMs) => {
+    if (durationMs <= 0) return;
+    const frame = frameFor(nodeId);
+    const key = keyFor(frame);
+    const entry = map.get(key) || { ...frame, sampledSelfMs: 0, nodeId };
+    entry.sampledSelfMs += durationMs;
+    map.set(key, entry);
+  };
+  const formatFrames = (map, count = 12) => [...map.values()]
+    .sort((a, b) => b.sampledSelfMs - a.sampledSelfMs)
+    .slice(0, count)
+    .map(({ nodeId, ...frame }) => ({
+      ...frame,
+      sampledSelfMs: Math.round(frame.sampledSelfMs * 10) / 10,
+      callStack: callStackFor(nodeId),
+    }));
+  const overall = new Map();
+  const longestTask = longTasks.reduce((longest, task) => task.duration > (longest?.duration || 0) ? task : longest, null);
+  const inLongestTask = new Map();
+  let elapsedMs = 0;
+  let sampledWithinLongestTaskMs = 0;
+  for (let i = 0; i < samples.length; i++) {
+    const nodeId = samples[i];
+    const deltaMs = (timeDeltas[i] || 0) / 1000;
+    addSample(overall, nodeId, deltaMs);
+    if (longestTask && Number.isFinite(pageStartMs)) {
+      const sampleStartMs = pageStartMs + elapsedMs;
+      const sampleEndMs = sampleStartMs + deltaMs;
+      const taskStartMs = longestTask.startTime;
+      const taskEndMs = taskStartMs + longestTask.duration;
+      const overlapMs = Math.max(0, Math.min(sampleEndMs, taskEndMs) - Math.max(sampleStartMs, taskStartMs));
+      if (overlapMs > 0) {
+        addSample(inLongestTask, nodeId, overlapMs);
+        sampledWithinLongestTaskMs += overlapMs;
+      }
+    }
+    elapsedMs += deltaMs;
+  }
+  return {
+    sampleCount: samples.length,
+    sampledDurationMs: Math.round(elapsedMs * 10) / 10,
+    topFrames: formatFrames(overall),
+    longestLongTaskProfile: longestTask && Number.isFinite(pageStartMs) ? {
+      startTimeMs: Math.round(longestTask.startTime * 10) / 10,
+      durationMs: Math.round(longestTask.duration * 10) / 10,
+      sampledMs: Math.round(sampledWithinLongestTaskMs * 10) / 10,
+      topFrames: formatFrames(inLongestTask, 10),
+    } : null,
+  };
+}
 const profilerInit = () => {
   window.__perfCounters = { ...(window.__perfCounters || {}), diagnosticsEnabled: true };
   window.__s7LongTasks = [];
@@ -176,7 +253,7 @@ const profilerInit = () => {
 async function main(argv = process.argv.slice(2)) {
   const options = parseArgs(argv);
   if (options.help) {
-    console.log("Usage: node scripts/s7-tour.mjs [baseUrl] [--headed --confirm-target-i5-1035g1] [--headless] [--out=FILE] [--screenshots=DIR] [--walk-ms=5000]");
+    console.log("Usage: node scripts/s7-tour.mjs [baseUrl] [--headed --confirm-target-i5-1035g1] [--headless] [--cpu-profile-arrival] [--out=FILE] [--screenshots=DIR] [--walk-ms=5000]");
     console.log("Run visibly on the target i5-1035G1 laptop and confirm the target device explicitly. Headless timings are control-flow evidence only.");
     return 0;
   }
@@ -209,6 +286,9 @@ async function main(argv = process.argv.slice(2)) {
   });
   await context.addInitScript(profilerInit);
   const page = await context.newPage();
+  let cpuProfilerSession = null;
+  let cpuProfileActive = false;
+  const cpuProfiles = new Map();
   const consoleErrors = [];
   const pageErrors = [];
   const httpErrors = [];
@@ -246,10 +326,66 @@ async function main(argv = process.argv.slice(2)) {
     cellResponses,
     status: "running",
     stallAnalysis: {},
+    diagnosticProfiling: {
+      requested: options.cpuProfileArrival,
+      status: options.cpuProfileArrival ? "pending" : "disabled",
+      samplingIntervalUs: options.cpuProfileArrival ? 1000 : null,
+    },
   };
 
   const startSegment = async (name) => page.evaluate((label) => window.__s7Profiler.start(label), name);
   const stopSegment = async () => page.evaluate(() => window.__s7Profiler.stop());
+  const ensureCpuProfiler = async () => {
+    if (!options.cpuProfileArrival) return;
+    try {
+      cpuProfilerSession = await context.newCDPSession(page);
+      await cpuProfilerSession.send("Profiler.enable");
+      await cpuProfilerSession.send("Profiler.setSamplingInterval", { interval: 1000 });
+      report.diagnosticProfiling.status = "ready";
+    } catch (error) {
+      report.diagnosticProfiling.status = "unavailable";
+      report.diagnosticProfiling.error = String(error?.message || error);
+      try { await cpuProfilerSession?.detach(); } catch { /* optional diagnostic cleanup */ }
+      cpuProfilerSession = null;
+    }
+  };
+  const startCpuProfile = async () => {
+    if (!cpuProfilerSession || report.diagnosticProfiling.status !== "ready") return;
+    try {
+      const startedAtPageMs = await page.evaluate(() => performance.now());
+      await cpuProfilerSession.send("Profiler.start");
+      cpuProfileActive = true;
+      report.diagnosticProfiling.status = "recording";
+      report.diagnosticProfiling.segment = "tokyoArrival";
+      report.diagnosticProfiling.startedAtPageMs = startedAtPageMs;
+    } catch (error) {
+      report.diagnosticProfiling.status = "start-failed";
+      report.diagnosticProfiling.error = String(error?.message || error);
+    }
+  };
+  const stopCpuProfile = async (segmentName) => {
+    if (!cpuProfilerSession || !cpuProfileActive) return;
+    try {
+      const { profile } = await cpuProfilerSession.send("Profiler.stop");
+      cpuProfileActive = false;
+      const endedAtPageMs = await page.evaluate(() => performance.now());
+      const longTasks = await page.evaluate(() => window.__s7LongTasks || []);
+      const summary = summarizeCpuProfile(profile, {
+        pageStartMs: report.diagnosticProfiling.startedAtPageMs,
+        longTasks,
+      });
+      cpuProfiles.set(segmentName, summary);
+      report.diagnosticProfiling.status = "captured";
+      report.diagnosticProfiling.endedAtPageMs = endedAtPageMs;
+      report.diagnosticProfiling.sampleCount = summary.sampleCount;
+      report.diagnosticProfiling.sampledDurationMs = summary.sampledDurationMs;
+    } catch (error) {
+      report.diagnosticProfiling.status = "stop-failed";
+      report.diagnosticProfiling.error = String(error?.message || error);
+    } finally {
+      cpuProfileActive = false;
+    }
+  };
   const stopAndAnalyzeSegment = async (name) => {
     const segment = await stopSegment();
     report.segments[name] = segment;
@@ -270,6 +406,7 @@ async function main(argv = process.argv.slice(2)) {
         }),
       };
     }, { startMs: segment.startedAtMs, endMs: segment.endedAtMs });
+    if (cpuProfiles.has(name)) report.stallAnalysis[name].cpuProfile = cpuProfiles.get(name);
     return segment;
   };
   const saveShot = async (name) => {
@@ -298,7 +435,9 @@ async function main(argv = process.argv.slice(2)) {
       priorUrl, { timeout: 60000, polling: 50 });
     await stopAndAnalyzeSegment(segmentName);
     await startSegment(arrivalName);
+    if (arrivalName === "tokyoArrival") await startCpuProfile();
     await waitForStreetReady(priorReadyCount);
+    if (arrivalName === "tokyoArrival") await stopCpuProfile(arrivalName);
     await stopAndAnalyzeSegment(arrivalName);
     const settleName = `${arrivalName}CellSettle`;
     await startSegment(settleName);
@@ -325,6 +464,7 @@ async function main(argv = process.argv.slice(2)) {
   };
 
   try {
+    await ensureCpuProfiler();
     await page.goto(options.baseUrl, { waitUntil: "domcontentloaded", timeout: 60000 });
     await page.getByRole("button", { name: "Free explore the globe" }).waitFor({ state: "visible", timeout: 45000 });
     await startSegment("globeStartup");
@@ -401,6 +541,11 @@ async function main(argv = process.argv.slice(2)) {
     report.failure = String(error?.stack || error?.message || error);
     console.error(`S7 tour did not complete: ${error?.message || error}`);
   } finally {
+    if (cpuProfileActive) await stopCpuProfile("tokyoArrival");
+    if (cpuProfilerSession) {
+      try { await cpuProfilerSession.send("Profiler.disable"); } catch { /* optional diagnostic cleanup */ }
+      try { await cpuProfilerSession.detach(); } catch { /* optional diagnostic cleanup */ }
+    }
     report.finishedAt = new Date().toISOString();
     report.errors = { console: consoleErrors, page: pageErrors, http: httpErrors, requestFailures };
     fs.writeFileSync(paths.report, JSON.stringify(report, null, 2));
