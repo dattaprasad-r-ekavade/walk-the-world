@@ -26,15 +26,18 @@ not the target i5-1035G1 acceptance run.
 | GPU program cache disabled, program-owner trace | 2,566.0 / 350.0 ms | 383.3 / 66.8 ms |
 | Spawn-marker streetlight prewarm attempt | 2,466.0 / 333.3 ms | 216.6 / 99.9 ms |
 | Early pool prewarm, before spawn shader warmup | 816.5 / 416.6 ms | 199.9 / 83.5 ms |
+| Pool precreated before first terrain render, cache disabled | 883.1 / 150.0 ms | 299.9 / 50.0 ms |
+| Pool precreated before first terrain render, normal cache | 882.8 / 166.2 ms | 249.8 / 67.0 ms |
 
 The first Tokyo arrival contained two frames over 500 ms, including a 2,582.9
 ms frame and a 2,586 ms Long Task. Three ordinary repeats reached
-832.8–850.1 ms. Six additional tours launched Chrome with
+832.8–850.1 ms. Seven additional tours launched Chrome with
 `--disable-gpu-program-cache`. Five reached 2.47–2.57 s; precreating the
 high-tier light pool before spawn shader warmup reduced the sixth Tokyo maximum
-to 816.5 ms. It still had one frame over 500 ms. These forced-cache runs are
-diagnostic and are not ordinary S7 timing runs. Edinburgh stayed below 500 ms
-in the four ordinary captures and all six cache-disabled captures.
+to 816.5 ms. Moving pool creation earlier, before the first terrain render,
+gave 883.1 ms on the seventh run. A separate normal-cache replay of that build
+gave 882.8 ms. Both still had one Tokyo frame over 500 ms. These runs are
+diagnostic; Edinburgh stayed below 500 ms in every capture.
 
 ## CPU profile findings
 
@@ -99,23 +102,39 @@ spawn-city warmup when spawn-cell lamp markers were present. This fixture had
 no spawn-cell lamps: the spawn warmup still saw two spotlights and grew the
 program count from 19 to 40. A later cell warmup saw six spotlights and added
 23 programs, but only after the 2,451 ms render task. Tokyo's 2,466 ms maximum
-did not show a material improvement over the cache-disabled baseline. Next,
-create the high-quality pool before shader warmup even when the spawn cell has
-no lamps, so later streamed lamp markers cannot change the scene light count.
+did not show a material improvement over the cache-disabled baseline.
+
+The high-tier pool is now reserved during engine setup, before the first
+terrain-only render. In two visible replays of the same full-city fixture, the
+first `ground-detail-v1` program used six spotlights and no later two-spot
+variant appeared during Tokyo arrival. Both cities settled all 9/9 cells,
+loaded terrain without flat fallback, and logged zero console, page, HTTP, or
+request errors. Tokyo still reached 883.1 ms with the GPU program cache
+disabled and 882.8 ms with the normal cache; Edinburgh maxima were 299.9 ms
+and 249.8 ms.
+
+The longest Tokyo Long Tasks were 895 ms and 889 ms, fully sampled. Their
+profiles attributed 430.5 ms and 418.2 ms to `getProgramInfoLog` in the first
+PMREM `_applyGGXFilter`, plus 252.3 ms and 246.5 ms on the regular renderer
+path. PMREM builds took 478.7 ms and 469.8 ms, followed by first-render
+program events of 374.1 ms and 371.2 ms. The stable spotlight count removes
+the later two-to-six shader-key change, but these runs do not meet the Tokyo
+500 ms gate. Next, investigate the combined initial PMREM and terrain-render
+work without repeating the already-tested PMREM shader precompile or input-size
+variants, then repeat the full visible gate on the target i5-1035G1.
 
 ## Visual check and next work
 
-The [Tokyo capture](../../../screenshots/performance-visuals/stage0/s7-full-city-3x3-stack-aware-2026-10-31/tokyo-arrival.jpg)
-and [Edinburgh capture](../../../screenshots/performance-visuals/stage0/s7-full-city-3x3-stack-aware-2026-10-31/edinburgh-arrival.jpg)
+The [latest Tokyo capture](../../../screenshots/performance-visuals/stage0/s7-tour-2026-10-30T21-53-02-130Z/tokyo-arrival.jpg)
+and [Edinburgh capture](../../../screenshots/performance-visuals/stage0/s7-tour-2026-10-30T21-53-02-130Z/edinburgh-arrival.jpg)
 show the street surfaces and assembled city geometry on this host. Both cities
 reported a loaded terrain tile without flat fallback. This does not replace
 the target-device ground and terrain review.
 
-The conditional pool-prewarm attempt found no lamp markers in the spawn cell;
-the initial warmup still saw two spotlights, and a later six-spot cell warmup
-followed the 2,451 ms render stall. Next, create the high-quality pool before
-warmup even when the spawn cell has no lamps, then compare another
-cache-disabled replay to the baseline. Repeat the visible gate and terrain
-review on the target i5-1035G1. S7 remains open. The
+The early-pool replay confirmed the first terrain render and later streamed
+cells now use the same six-spot `ground-detail-v1` variant, but two follow-up
+replays still recorded 883 ms Tokyo arrival frames from combined PMREM and
+first-render shader work. Next, investigate that startup cost, then repeat the
+visible gate and terrain review on the target i5-1035G1. S7 remains open. The
 [machine-readable summary](s7-full-city-3x3-2026-10-31.json) contains the
 complete cell request list and profile captures.

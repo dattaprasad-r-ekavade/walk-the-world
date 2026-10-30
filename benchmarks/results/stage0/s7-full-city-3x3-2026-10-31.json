@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "evidenceType": "s7-full-city-3x3-profile-summary",
-  "recordedAt": "2026-10-30T21:43:29.375Z",
+  "recordedAt": "2026-10-30T21:56:26.205Z",
   "host": {
     "cpu": "13th Gen Intel Core i7-13650HX"
   },
@@ -2441,10 +2441,713 @@
         }
       ],
       "note": "Cache-disabled visible replay on i7-13650HX. Conditional prewarm did not create the high-tier pool because the spawn cell had no lamp markers: its warmup saw two spotlights. The later six-spot warmup completed only after the 2.451 s render task. This run did not show a material performance improvement; pre-create the high-tier pool before markers are available and repeat."
+    },
+    {
+      "id": "gpu-cache-disabled-tokyo-pool-before-spawn-warmup",
+      "startedAt": "2026-10-30T21:47:18.824Z",
+      "status": "visible-run-needs-review",
+      "runMode": "visible",
+      "targetDeviceConfirmed": false,
+      "renderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 4060 Laptop GPU (0x000028E0) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+      "browserLaunchArgs": [
+        "--disable-gpu-program-cache"
+      ],
+      "segments": {
+        "tokyoArrival": {
+          "durationMs": 3452.2,
+          "frameCount": 41,
+          "p95Ms": 416.6,
+          "maxFrameMs": 816.5,
+          "framesOver500Ms": 1
+        },
+        "edinburghArrival": {
+          "durationMs": 3338.6,
+          "frameCount": 127,
+          "p95Ms": 83.5,
+          "maxFrameMs": 199.9,
+          "framesOver500Ms": 0
+        }
+      },
+      "cityReadiness": {
+        "Tokyo": {
+          "cellsSettled": true,
+          "loadedCellCount": 9,
+          "failedCellCount": 0,
+          "loadedTiles": 1,
+          "flatFallback": false
+        },
+        "Edinburgh": {
+          "cellsSettled": true,
+          "loadedCellCount": 9,
+          "failedCellCount": 0,
+          "loadedTiles": 1,
+          "flatFallback": false
+        }
+      },
+      "errors": {
+        "console": 0,
+        "page": 0,
+        "http": 0,
+        "requestFailures": 0
+      },
+      "profile": {
+        "city": "Tokyo",
+        "segment": "tokyoArrival",
+        "startedAtPageMs": 6475.599999904633,
+        "endedAtPageMs": 9814.899999856949,
+        "sampleCount": 2319,
+        "sampledDurationMs": 3312.9,
+        "profileAttribution": "full call-stack keyed; overlapping Long Tasks only",
+        "longestOverlappingLongTask": {
+          "startTimeMs": 6715.1,
+          "durationMs": 830,
+          "sampledMs": 830,
+          "topFrames": [
+            {
+              "functionName": "getProgramInfoLog",
+              "sampledSelfMs": 428,
+              "callStack": "(root) > (anonymous) > eo.current.setTime > eo.current.setTime > tb > apply > fromEquirectangular > _fromTexture > _applyPMREM > _applyGGXFilter > render > e3 > e4 > e9 > renderBufferDirect > (anonymous) > getUniforms > T > getProgramInfoLog"
+            },
+            {
+              "functionName": "getProgramInfoLog",
+              "sampledSelfMs": 185.9,
+              "callStack": "(root) > (anonymous) > ao > tr > (anonymous) > qualityTier > render > render > render > render > e3 > e4 > e9 > renderBufferDirect > (anonymous) > getUniforms > T > getProgramInfoLog"
+            },
+            {
+              "functionName": "getProgramInfoLog",
+              "sampledSelfMs": 55.8,
+              "callStack": "(root) > (anonymous) > ao > tr > (anonymous) > qualityTier > render > render > render > render > render > e3 > e4 > e9 > renderBufferDirect > (anonymous) > getUniforms > T > getProgramInfoLog"
+            },
+            {
+              "functionName": "getProgramInfoLog",
+              "sampledSelfMs": 38.4,
+              "callStack": "(root) > (anonymous) > ao > tr > (anonymous) > qualityTier > render > render > render > _renderPass > render > render > e3 > e4 > e9 > renderBufferDirect > (anonymous) > getUniforms > T > getProgramInfoLog"
+            },
+            {
+              "functionName": "getExtension",
+              "sampledSelfMs": 24,
+              "callStack": "(root) > (anonymous) > eo.current.setTime > eo.current.setTime > tb > apply > fromEquirectangular > _fromTexture > _textureToCubeUV > setRenderTarget > setupRenderTarget > R > has > n > getExtension"
+            },
+            {
+              "functionName": "getProgramInfoLog",
+              "sampledSelfMs": 11.1,
+              "callStack": "(root) > (anonymous) > eo.current.setTime > eo.current.setTime > tb > apply > fromEquirectangular > _fromTexture > _textureToCubeUV > render > e3 > e4 > e9 > renderBufferDirect > (anonymous) > getUniforms > T > getProgramInfoLog"
+            },
+            {
+              "functionName": "getProgramInfoLog",
+              "sampledSelfMs": 7.8,
+              "callStack": "(root) > (anonymous) > ao > tr > (anonymous) > qualityTier > render > render > render > render > render > e3 > e4 > e9 > renderBufferDirect > (anonymous) > getUniforms > T > getProgramInfoLog"
+            },
+            {
+              "functionName": "getProgramInfoLog",
+              "sampledSelfMs": 6.6,
+              "callStack": "(root) > (anonymous) > ao > tr > (anonymous) > qualityTier > render > render > render > render > render > e3 > e4 > e9 > renderBufferDirect > (anonymous) > getUniforms > T > getProgramInfoLog"
+            },
+            {
+              "functionName": "getProgramInfoLog",
+              "sampledSelfMs": 3.3,
+              "callStack": "(root) > (anonymous) > ao > tr > (anonymous) > qualityTier > render > render > render > _renderOverride > render > e3 > e4 > e9 > renderBufferDirect > (anonymous) > getUniforms > T > getProgramInfoLog"
+            },
+            {
+              "functionName": "getExtension",
+              "sampledSelfMs": 3.1,
+              "callStack": "uS > uw > uS > uw > uS > uw > uS > uw > uS > uw > uS > uw > uS > uw > uS > uw > uS > uw > uS > uw > uS > uw > uS > e > e > iE > (anonymous) > tG > eV > init > n > getExtension"
+            }
+          ]
+        }
+      },
+      "warmupEvents": [
+        {
+          "label": "city.spawn-shader-warmup",
+          "atMs": 8682.6,
+          "spotLightCount": 6,
+          "programCountBefore": 19,
+          "programCountAfter": 42,
+          "newProgramCount": 23
+        },
+        {
+          "label": "city.cell-shader-warmup",
+          "atMs": 9624.7,
+          "spotLightCount": 6,
+          "programCountBefore": 51,
+          "programCountAfter": 52,
+          "newProgramCount": 1
+        },
+        {
+          "label": "city.cell-shader-warmup",
+          "atMs": 9644.4,
+          "spotLightCount": 6,
+          "programCountBefore": 52,
+          "programCountAfter": 52,
+          "newProgramCount": 0
+        },
+        {
+          "label": "city.cell-shader-warmup",
+          "atMs": 9881.5,
+          "spotLightCount": 6,
+          "programCountBefore": 52,
+          "programCountAfter": 52,
+          "newProgramCount": 0
+        }
+      ],
+      "programKeyComparison": {
+        "earlierProgramId": 3,
+        "laterProgramId": 39,
+        "shaderKeySuffix": "ground-detail-v1",
+        "changedParameterIndex": 38,
+        "changedParameter": "numSpotLights",
+        "earlierValue": 2,
+        "laterValue": 6
+      },
+      "correlatedEvents": [
+        {
+          "type": "timing",
+          "name": "environment.pmrem-build",
+          "atMs": 7221.7,
+          "durationMs": 471.2,
+          "width": 512,
+          "height": 256,
+          "programCountBefore": null,
+          "programCountAfter": null,
+          "newProgramCount": null,
+          "newPrograms": []
+        },
+        {
+          "type": "timing",
+          "name": "renderer.long-frame-programs",
+          "atMs": 7542.7,
+          "durationMs": 317.4,
+          "width": null,
+          "height": null,
+          "programCountBefore": 3,
+          "programCountAfter": 19,
+          "newProgramCount": 16,
+          "newPrograms": [
+            {
+              "id": 3,
+              "type": "MeshStandardMaterial",
+              "numSpotLightsKeyToken": "2",
+              "cacheKeySuffix": "lse,0,,0,1,0,2,0,1,0,0,1,0,0,0,0,1,0,0,0,0,8388624,8520707,srgb,ground-detail-v1",
+              "ownerCount": 1
+            }
+          ]
+        },
+        {
+          "type": "timing",
+          "name": "renderer.long-frame-programs",
+          "atMs": 8678.3,
+          "durationMs": 488.1,
+          "width": null,
+          "height": null,
+          "programCountBefore": 39,
+          "programCountAfter": 42,
+          "newProgramCount": 3,
+          "newPrograms": [
+            {
+              "id": 39,
+              "type": "MeshStandardMaterial",
+              "numSpotLightsKeyToken": "6",
+              "cacheKeySuffix": "lse,0,,0,1,0,6,0,1,0,0,1,0,0,0,0,1,0,0,0,0,8388624,8520707,srgb,ground-detail-v1",
+              "ownerCount": 4
+            }
+          ]
+        },
+        {
+          "type": "timing",
+          "name": "renderer.long-frame-programs",
+          "atMs": 9105.9,
+          "durationMs": 374.6,
+          "width": null,
+          "height": null,
+          "programCountBefore": 42,
+          "programCountAfter": 51,
+          "newProgramCount": 9,
+          "newPrograms": []
+        },
+        {
+          "type": "timing",
+          "name": "renderer.long-frame-programs",
+          "atMs": 9778.5,
+          "durationMs": 126.7,
+          "width": null,
+          "height": null,
+          "programCountBefore": 52,
+          "programCountAfter": 52,
+          "newProgramCount": 0,
+          "newPrograms": []
+        }
+      ],
+      "note": "Creating the high-tier pool before the spawn shader warmup reduced Tokyo max to 816.5 ms, but the first terrain ground-detail program still used two spotlights and a later six-spot variant was compiled."
+    },
+    {
+      "id": "gpu-cache-disabled-tokyo-pool-before-first-terrain-render",
+      "startedAt": "2026-10-30T21:51:18.194Z",
+      "status": "visible-run-needs-review",
+      "runMode": "visible",
+      "targetDeviceConfirmed": false,
+      "renderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 4060 Laptop GPU (0x000028E0) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+      "browserLaunchArgs": [
+        "--disable-gpu-program-cache"
+      ],
+      "segments": {
+        "tokyoArrival": {
+          "durationMs": 3890.5,
+          "frameCount": 82,
+          "p95Ms": 150,
+          "maxFrameMs": 883.1,
+          "framesOver500Ms": 1
+        },
+        "edinburghArrival": {
+          "durationMs": 3638.8,
+          "frameCount": 156,
+          "p95Ms": 50,
+          "maxFrameMs": 299.9,
+          "framesOver500Ms": 0
+        }
+      },
+      "cityReadiness": {
+        "Tokyo": {
+          "cellsSettled": true,
+          "loadedCellCount": 9,
+          "failedCellCount": 0,
+          "loadedTiles": 1,
+          "flatFallback": false
+        },
+        "Edinburgh": {
+          "cellsSettled": true,
+          "loadedCellCount": 9,
+          "failedCellCount": 0,
+          "loadedTiles": 1,
+          "flatFallback": false
+        }
+      },
+      "errors": {
+        "console": 0,
+        "page": 0,
+        "http": 0,
+        "requestFailures": 0
+      },
+      "profile": {
+        "city": "Tokyo",
+        "segment": "tokyoArrival",
+        "startedAtPageMs": 5619.200000047684,
+        "endedAtPageMs": 9481.299999952316,
+        "sampleCount": 2262,
+        "sampledDurationMs": 3836.7,
+        "profileAttribution": "full call-stack keyed; overlapping Long Tasks only",
+        "longestOverlappingLongTask": {
+          "startTimeMs": 5894.5,
+          "durationMs": 895,
+          "sampledMs": 895,
+          "topFrames": [
+            {
+              "functionName": "getProgramInfoLog",
+              "sampledSelfMs": 430.5,
+              "callStack": "(root) > (anonymous) > eo.current.setTime > eo.current.setTime > tb > apply > fromEquirectangular > _fromTexture > _applyPMREM > _applyGGXFilter > render > e3 > e4 > e9 > renderBufferDirect > (anonymous) > getUniforms > T > getProgramInfoLog"
+            },
+            {
+              "functionName": "getProgramInfoLog",
+              "sampledSelfMs": 252.3,
+              "callStack": "(root) > (anonymous) > ao > tr > (anonymous) > qualityTier > render > render > render > render > e3 > e4 > e9 > renderBufferDirect > (anonymous) > getUniforms > T > getProgramInfoLog"
+            },
+            {
+              "functionName": "getProgramInfoLog",
+              "sampledSelfMs": 58.5,
+              "callStack": "(root) > (anonymous) > ao > tr > (anonymous) > qualityTier > render > render > render > render > render > e3 > e4 > e9 > renderBufferDirect > (anonymous) > getUniforms > T > getProgramInfoLog"
+            },
+            {
+              "functionName": "getExtension",
+              "sampledSelfMs": 31.8,
+              "callStack": "(root) > (anonymous) > eo.current.setTime > eo.current.setTime > tb > apply > fromEquirectangular > _fromTexture > _textureToCubeUV > setRenderTarget > setupRenderTarget > R > has > n > getExtension"
+            },
+            {
+              "functionName": "getProgramInfoLog",
+              "sampledSelfMs": 28.8,
+              "callStack": "(root) > (anonymous) > ao > tr > (anonymous) > qualityTier > render > render > render > _renderPass > render > render > e3 > e4 > e9 > renderBufferDirect > (anonymous) > getUniforms > T > getProgramInfoLog"
+            },
+            {
+              "functionName": "getProgramInfoLog",
+              "sampledSelfMs": 8.3,
+              "callStack": "(root) > (anonymous) > eo.current.setTime > eo.current.setTime > tb > apply > fromEquirectangular > _fromTexture > _textureToCubeUV > render > e3 > e4 > e9 > renderBufferDirect > (anonymous) > getUniforms > T > getProgramInfoLog"
+            },
+            {
+              "functionName": "getProgramInfoLog",
+              "sampledSelfMs": 6.6,
+              "callStack": "(root) > (anonymous) > ao > tr > (anonymous) > qualityTier > render > render > render > render > render > e3 > e4 > e9 > renderBufferDirect > (anonymous) > getUniforms > T > getProgramInfoLog"
+            },
+            {
+              "functionName": "getProgramInfoLog",
+              "sampledSelfMs": 6.4,
+              "callStack": "(root) > (anonymous) > ao > tr > (anonymous) > qualityTier > render > render > render > render > render > e3 > e4 > e9 > renderBufferDirect > (anonymous) > getUniforms > T > getProgramInfoLog"
+            },
+            {
+              "functionName": "getExtension",
+              "sampledSelfMs": 3.4,
+              "callStack": "uS > uw > uS > uw > uS > uw > uS > uw > uS > uw > uS > uw > uS > uw > uS > uw > uS > uw > uS > uw > uS > uw > uS > e > e > iE > (anonymous) > tG > eV > init > n > getExtension"
+            },
+            {
+              "functionName": "getProgramInfoLog",
+              "sampledSelfMs": 3.3,
+              "callStack": "(root) > (anonymous) > ao > tr > (anonymous) > qualityTier > render > render > render > _renderOverride > render > e3 > e4 > e9 > renderBufferDirect > (anonymous) > getUniforms > T > getProgramInfoLog"
+            }
+          ]
+        }
+      },
+      "warmupEvents": [
+        {
+          "label": "city.spawn-shader-warmup",
+          "atMs": 7913.6,
+          "spotLightCount": 6,
+          "programCountBefore": 19,
+          "programCountAfter": 40,
+          "newProgramCount": 21
+        },
+        {
+          "label": "city.cell-shader-warmup",
+          "atMs": 8756.6,
+          "spotLightCount": 6,
+          "programCountBefore": 48,
+          "programCountAfter": 49,
+          "newProgramCount": 1
+        },
+        {
+          "label": "city.cell-shader-warmup",
+          "atMs": 8771,
+          "spotLightCount": 6,
+          "programCountBefore": 49,
+          "programCountAfter": 49,
+          "newProgramCount": 0
+        },
+        {
+          "label": "city.cell-shader-warmup",
+          "atMs": 9200.3,
+          "spotLightCount": 6,
+          "programCountBefore": 49,
+          "programCountAfter": 49,
+          "newProgramCount": 0
+        }
+      ],
+      "programKeyComparison": {
+        "shaderKeySuffix": "ground-detail-v1",
+        "initialProgramId": 3,
+        "initialNumSpotLights": 6,
+        "observedProgramCount": 1,
+        "laterDistinctVariants": []
+      },
+      "correlatedEvents": [
+        {
+          "type": "timing",
+          "name": "environment.pmrem-build",
+          "atMs": 6409.8,
+          "durationMs": 478.7,
+          "width": 512,
+          "height": 256,
+          "programCountBefore": null,
+          "programCountAfter": null,
+          "newProgramCount": null,
+          "newPrograms": []
+        },
+        {
+          "type": "timing",
+          "name": "renderer.long-frame-programs",
+          "atMs": 6787.5,
+          "durationMs": 374.1,
+          "width": null,
+          "height": null,
+          "programCountBefore": 3,
+          "programCountAfter": 19,
+          "newProgramCount": 16,
+          "newPrograms": [
+            {
+              "id": 3,
+              "type": "MeshStandardMaterial",
+              "numSpotLightsKeyToken": "6",
+              "cacheKeySuffix": "lse,0,,0,1,0,6,0,1,0,0,1,0,0,0,0,1,0,0,0,0,8388624,8520707,srgb,ground-detail-v1",
+              "ownerCount": 1
+            }
+          ]
+        },
+        {
+          "type": "timing",
+          "name": "renderer.long-frame-programs",
+          "atMs": 7498,
+          "durationMs": 91.5,
+          "width": null,
+          "height": null,
+          "programCountBefore": 39,
+          "programCountAfter": 40,
+          "newProgramCount": 1,
+          "newPrograms": []
+        },
+        {
+          "type": "timing",
+          "name": "renderer.long-frame-programs",
+          "atMs": 8310.6,
+          "durationMs": 347.4,
+          "width": null,
+          "height": null,
+          "programCountBefore": 40,
+          "programCountAfter": 48,
+          "newProgramCount": 8,
+          "newPrograms": []
+        },
+        {
+          "type": "timing",
+          "name": "renderer.long-frame-programs",
+          "atMs": 8881.6,
+          "durationMs": 108.9,
+          "width": null,
+          "height": null,
+          "programCountBefore": 49,
+          "programCountAfter": 49,
+          "newProgramCount": 0,
+          "newPrograms": []
+        }
+      ],
+      "note": "Pool created during engine setup before the first terrain render. The first ground-detail-v1 program used six spotlights; no later two-spot ground-detail variant appeared. The 895 ms Long Task overlapped a 478.7 ms PMREM build and first renderer program event; S7 Tokyo gate still failed.",
+      "screenshots": {
+        "globe-ready": "screenshots/performance-visuals/stage0/s7-tour-2026-10-30T21-51-16-999Z/globe-ready.jpg",
+        "tokyo-arrival": "screenshots/performance-visuals/stage0/s7-tour-2026-10-30T21-51-16-999Z/tokyo-arrival.jpg",
+        "tokyo-walk": "screenshots/performance-visuals/stage0/s7-tour-2026-10-30T21-51-16-999Z/tokyo-walk.jpg",
+        "tokyo-night": "screenshots/performance-visuals/stage0/s7-tour-2026-10-30T21-51-16-999Z/tokyo-night.jpg",
+        "edinburgh-arrival": "screenshots/performance-visuals/stage0/s7-tour-2026-10-30T21-51-16-999Z/edinburgh-arrival.jpg"
+      }
+    },
+    {
+      "id": "normal-cache-tokyo-pool-before-first-terrain-render",
+      "startedAt": "2026-10-30T21:53:03.356Z",
+      "status": "visible-run-needs-review",
+      "runMode": "visible",
+      "targetDeviceConfirmed": false,
+      "renderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 4060 Laptop GPU (0x000028E0) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+      "browserLaunchArgs": [],
+      "segments": {
+        "tokyoArrival": {
+          "durationMs": 3899.2,
+          "frameCount": 81,
+          "p95Ms": 166.2,
+          "maxFrameMs": 882.8,
+          "framesOver500Ms": 1
+        },
+        "edinburghArrival": {
+          "durationMs": 3720.1,
+          "frameCount": 140,
+          "p95Ms": 67,
+          "maxFrameMs": 249.8,
+          "framesOver500Ms": 0
+        }
+      },
+      "cityReadiness": {
+        "Tokyo": {
+          "cellsSettled": true,
+          "loadedCellCount": 9,
+          "failedCellCount": 0,
+          "loadedTiles": 1,
+          "flatFallback": false
+        },
+        "Edinburgh": {
+          "cellsSettled": true,
+          "loadedCellCount": 9,
+          "failedCellCount": 0,
+          "loadedTiles": 1,
+          "flatFallback": false
+        }
+      },
+      "errors": {
+        "console": 0,
+        "page": 0,
+        "http": 0,
+        "requestFailures": 0
+      },
+      "profile": {
+        "city": "Tokyo",
+        "segment": "tokyoArrival",
+        "startedAtPageMs": 5665.599999904633,
+        "endedAtPageMs": 9533.699999809265,
+        "sampleCount": 2299,
+        "sampledDurationMs": 3843.8,
+        "profileAttribution": "full call-stack keyed; overlapping Long Tasks only",
+        "longestOverlappingLongTask": {
+          "startTimeMs": 5929.4,
+          "durationMs": 889,
+          "sampledMs": 889,
+          "topFrames": [
+            {
+              "functionName": "getProgramInfoLog",
+              "sampledSelfMs": 418.2,
+              "callStack": "(root) > (anonymous) > eo.current.setTime > eo.current.setTime > tb > apply > fromEquirectangular > _fromTexture > _applyPMREM > _applyGGXFilter > render > e3 > e4 > e9 > renderBufferDirect > (anonymous) > getUniforms > T > getProgramInfoLog"
+            },
+            {
+              "functionName": "getProgramInfoLog",
+              "sampledSelfMs": 246.5,
+              "callStack": "(root) > (anonymous) > ao > tr > (anonymous) > qualityTier > render > render > render > render > e3 > e4 > e9 > renderBufferDirect > (anonymous) > getUniforms > T > getProgramInfoLog"
+            },
+            {
+              "functionName": "getProgramInfoLog",
+              "sampledSelfMs": 61,
+              "callStack": "(root) > (anonymous) > ao > tr > (anonymous) > qualityTier > render > render > render > render > render > e3 > e4 > e9 > renderBufferDirect > (anonymous) > getUniforms > T > getProgramInfoLog"
+            },
+            {
+              "functionName": "getProgramInfoLog",
+              "sampledSelfMs": 29.5,
+              "callStack": "(root) > (anonymous) > ao > tr > (anonymous) > qualityTier > render > render > render > _renderPass > render > render > e3 > e4 > e9 > renderBufferDirect > (anonymous) > getUniforms > T > getProgramInfoLog"
+            },
+            {
+              "functionName": "getExtension",
+              "sampledSelfMs": 27.6,
+              "callStack": "(root) > (anonymous) > eo.current.setTime > eo.current.setTime > tb > apply > fromEquirectangular > _fromTexture > _textureToCubeUV > setRenderTarget > setupRenderTarget > R > has > n > getExtension"
+            },
+            {
+              "functionName": "getProgramInfoLog",
+              "sampledSelfMs": 8.6,
+              "callStack": "(root) > (anonymous) > eo.current.setTime > eo.current.setTime > tb > apply > fromEquirectangular > _fromTexture > _textureToCubeUV > render > e3 > e4 > e9 > renderBufferDirect > (anonymous) > getUniforms > T > getProgramInfoLog"
+            },
+            {
+              "functionName": "getProgramInfoLog",
+              "sampledSelfMs": 7.9,
+              "callStack": "(root) > (anonymous) > ao > tr > (anonymous) > qualityTier > render > render > render > render > render > e3 > e4 > e9 > renderBufferDirect > (anonymous) > getUniforms > T > getProgramInfoLog"
+            },
+            {
+              "functionName": "(garbage collector)",
+              "sampledSelfMs": 6.8,
+              "callStack": "(root) > (garbage collector)"
+            },
+            {
+              "functionName": "getProgramInfoLog",
+              "sampledSelfMs": 6.7,
+              "callStack": "(root) > (anonymous) > ao > tr > (anonymous) > qualityTier > render > render > render > render > render > e3 > e4 > e9 > renderBufferDirect > (anonymous) > getUniforms > T > getProgramInfoLog"
+            },
+            {
+              "functionName": "getProgramInfoLog",
+              "sampledSelfMs": 5.2,
+              "callStack": "(root) > (anonymous) > ao > tr > (anonymous) > qualityTier > render > render > render > _renderOverride > render > e3 > e4 > e9 > renderBufferDirect > (anonymous) > getUniforms > T > getProgramInfoLog"
+            }
+          ]
+        }
+      },
+      "warmupEvents": [
+        {
+          "label": "city.spawn-shader-warmup",
+          "atMs": 8014.1,
+          "spotLightCount": 6,
+          "programCountBefore": 19,
+          "programCountAfter": 40,
+          "newProgramCount": 21
+        },
+        {
+          "label": "city.cell-shader-warmup",
+          "atMs": 8855.8,
+          "spotLightCount": 6,
+          "programCountBefore": 48,
+          "programCountAfter": 49,
+          "newProgramCount": 1
+        },
+        {
+          "label": "city.cell-shader-warmup",
+          "atMs": 8880,
+          "spotLightCount": 6,
+          "programCountBefore": 49,
+          "programCountAfter": 49,
+          "newProgramCount": 0
+        },
+        {
+          "label": "city.cell-shader-warmup",
+          "atMs": 9278,
+          "spotLightCount": 6,
+          "programCountBefore": 49,
+          "programCountAfter": 49,
+          "newProgramCount": 0
+        }
+      ],
+      "programKeyComparison": {
+        "shaderKeySuffix": "ground-detail-v1",
+        "initialProgramId": 3,
+        "initialNumSpotLights": 6,
+        "observedProgramCount": 1,
+        "laterDistinctVariants": []
+      },
+      "correlatedEvents": [
+        {
+          "type": "timing",
+          "name": "environment.pmrem-build",
+          "atMs": 6440.8,
+          "durationMs": 469.8,
+          "width": 512,
+          "height": 256,
+          "programCountBefore": null,
+          "programCountAfter": null,
+          "newProgramCount": null,
+          "newPrograms": []
+        },
+        {
+          "type": "timing",
+          "name": "renderer.long-frame-programs",
+          "atMs": 6816,
+          "durationMs": 371.2,
+          "width": null,
+          "height": null,
+          "programCountBefore": 3,
+          "programCountAfter": 19,
+          "newProgramCount": 16,
+          "newPrograms": [
+            {
+              "id": 3,
+              "type": "MeshStandardMaterial",
+              "numSpotLightsKeyToken": "6",
+              "cacheKeySuffix": "lse,0,,0,1,0,6,0,1,0,0,1,0,0,0,0,1,0,0,0,0,8388624,8520707,srgb,ground-detail-v1",
+              "ownerCount": 1
+            }
+          ]
+        },
+        {
+          "type": "timing",
+          "name": "renderer.long-frame-programs",
+          "atMs": 7568.9,
+          "durationMs": 102,
+          "width": null,
+          "height": null,
+          "programCountBefore": 39,
+          "programCountAfter": 40,
+          "newProgramCount": 1,
+          "newPrograms": []
+        },
+        {
+          "type": "timing",
+          "name": "renderer.long-frame-programs",
+          "atMs": 8405.9,
+          "durationMs": 346.3,
+          "width": null,
+          "height": null,
+          "programCountBefore": 40,
+          "programCountAfter": 48,
+          "newProgramCount": 8,
+          "newPrograms": []
+        },
+        {
+          "type": "timing",
+          "name": "renderer.long-frame-programs",
+          "atMs": 8978.6,
+          "durationMs": 96.7,
+          "width": null,
+          "height": null,
+          "programCountBefore": 49,
+          "programCountAfter": 49,
+          "newProgramCount": 0,
+          "newPrograms": []
+        }
+      ],
+      "note": "Normal GPU-cache replay of the pre-render pool setup. The first ground-detail-v1 program used six spotlights; no later two-spot variant appeared. The 889 ms Long Task overlapped a 469.8 ms PMREM build and first renderer program event; S7 Tokyo gate still failed.",
+      "screenshots": {
+        "globe-ready": "screenshots/performance-visuals/stage0/s7-tour-2026-10-30T21-53-02-130Z/globe-ready.jpg",
+        "tokyo-arrival": "screenshots/performance-visuals/stage0/s7-tour-2026-10-30T21-53-02-130Z/tokyo-arrival.jpg",
+        "tokyo-walk": "screenshots/performance-visuals/stage0/s7-tour-2026-10-30T21-53-02-130Z/tokyo-walk.jpg",
+        "tokyo-night": "screenshots/performance-visuals/stage0/s7-tour-2026-10-30T21-53-02-130Z/tokyo-night.jpg",
+        "edinburgh-arrival": "screenshots/performance-visuals/stage0/s7-tour-2026-10-30T21-53-02-130Z/edinburgh-arrival.jpg"
+      }
     }
   ],
   "screenshots": {
-    "tokyoArrival": "screenshots/performance-visuals/stage0/s7-full-city-3x3-stack-aware-2026-10-31/tokyo-arrival.jpg",
-    "edinburghArrival": "screenshots/performance-visuals/stage0/s7-full-city-3x3-stack-aware-2026-10-31/edinburgh-arrival.jpg"
+    "tokyoArrival": "screenshots/performance-visuals/stage0/s7-tour-2026-10-30T21-53-02-130Z/tokyo-arrival.jpg",
+    "edinburghArrival": "screenshots/performance-visuals/stage0/s7-tour-2026-10-30T21-53-02-130Z/edinburgh-arrival.jpg"
   }
 }

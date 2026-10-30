@@ -974,6 +974,9 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false, demo
       }
       return streetLights;
     };
+    // Reserve the high-tier lights before the first terrain-only frame. Lit
+    // terrain materials bake the visible spotlight count into their shader key.
+    if (qualityTier === "high") ensureStreetLightPool();
     syncStreetLightQuality = () => {
       if (!streetLightWorldReady) return;
       ensureStreetLightPool();
@@ -2063,9 +2066,9 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false, demo
             : Math.random,
         });
         console.log("[population]", population.counts);
-        // The high-tier pool is created once eligible lamp markers are known.
-        // It is reassigned as streamed cell metadata changes and held at zero
-        // intensity below high so quality transitions keep a stable light count.
+        // The high-tier pool was reserved during engine setup. Once the spawn
+        // markers are known, assign nearby lamps and keep it at zero intensity
+        // below high so quality transitions preserve a stable light count.
         streetLightWorldReady = true;
         syncStreetLightQuality();
         const enrichedDensity = Number(cityData?.enrichment?.density?.urban) || 0;

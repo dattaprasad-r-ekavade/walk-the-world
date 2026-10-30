@@ -297,10 +297,16 @@ Open:
   two headlights, then creates four streetlamp pool lights after the spawn
   city shader warmup. A conditional prewarm found no lamp markers in the spawn
   cell: the initial warmup still saw two spotlights, and a later six-spot
-  neighbor warmup followed the 2.45 s render stall. Next: pre-create the
-  high-tier light pool before warmup even when the spawn cell has no lamps,
-  compare a cache-disabled replay, then repeat the visible gate and
-  ground/terrain review on the target i5-1035G1.
+  neighbor warmup followed the 2.45 s render stall. The pool is now reserved
+  during engine setup before the first terrain render. Two full-city visible
+  replays confirmed the first `ground-detail-v1` program used six spotlights
+  and no later two-spot variant appeared, but Tokyo still reached 883.1 ms
+  with the GPU cache disabled and 882.8 ms with it enabled. Fully sampled
+  889–895 ms startup tasks overlapped the first PMREM build (470–479 ms) and
+  first renderer program event (371–374 ms); PMREM and image-size variants
+  were already tested without a fix. Next: investigate this combined startup
+  cost, then repeat the visible gate and ground/terrain review on the target
+  i5-1035G1.
   These RTX 4060 / i7 results do not close S7. See the [full 3×3 report](benchmarks/results/stage0/s7-full-city-3x3-profile-2026-10-31.md),
   [initial CPU profile](benchmarks/results/stage0/s7-tour-cpu-profile-2026-10-31.md),
   [warmup comparison](benchmarks/results/stage0/s7-frame-budgeted-warmup-2026-10-31.md),
