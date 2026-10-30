@@ -1427,6 +1427,8 @@ async function benchStreet(page) {
     return {
       fps,
       triangles: window.__streetTriangles ?? null,
+      longTaskApiSupported: window.__BENCH_LONG_TASKS_SUPPORTED === true,
+      longTasks: window.__BENCH_LONG_TASKS?.slice() || [],
       perf: counters,
       cityBuilder: window.__streetDebug?.cityBuilder?.() || null,
       cityDataCopyMode: window.__streetDebug?.cityDataCopyMode || null,
@@ -1729,6 +1731,24 @@ async function benchStreet(page) {
     gpuTimer: metrics.perf?.gpuTimer || null,
     marks: metrics.perf?.marks || {},
     timings: orderedPerfTimeline(metrics.perf),
+    longTaskApiSupported: metrics.longTaskApiSupported === true,
+    longTasks: metrics.longTasks || [],
+    shaderWarmups: (metrics.perf?.timeline || [])
+      .filter((event) => /shader-warmup/.test(event.name || ""))
+      .map((event) => {
+        const startMs = event.atMs - event.durationMs;
+        const endMs = event.atMs;
+        return {
+          name: event.name,
+          startMs,
+          endMs,
+          durationMs: event.durationMs,
+          details: event.details || {},
+          overlappingLongTasks: (metrics.longTasks || []).filter((task) =>
+            task.startTime < endMs && task.startTime + task.duration > startMs
+          ),
+        };
+      }),
     timingHistory: {
       sampleCount: metrics.perf?.timeline?.length || 0,
       capacity: PERF_TIMING_LIMIT,
@@ -1841,6 +1861,17 @@ async function main() {
     window.__BENCH_ENVIRONMENT = environment;
     window.__BENCH_POSE_APPLIED = false;
     window.__BENCH_FREEZE_POPULATION = true;
+    window.__BENCH_LONG_TASKS = [];
+    window.__BENCH_LONG_TASKS_SUPPORTED = false;
+    try {
+      const observer = new PerformanceObserver((list) => {
+        for (const entry of list.getEntries()) {
+          window.__BENCH_LONG_TASKS.push({ startTime: entry.startTime, duration: entry.duration, name: entry.name });
+        }
+      });
+      observer.observe({ entryTypes: ["longtask"] });
+      window.__BENCH_LONG_TASKS_SUPPORTED = true;
+    } catch { /* Long Task API is optional */ }
     window.__perfCounters = {
       schemaVersion,
       startedAt: performance.now(),

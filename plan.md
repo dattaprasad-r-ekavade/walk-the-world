@@ -1,6 +1,6 @@
 # Walk the World — Performance and Visuals Implementation Plan
 
-Updated: 31 October 2026. Reviewed base: `6d4e961` on `origin/main`.
+Updated: 31 October 2026. Reviewed base: `3a2de93` on `origin/main`.
 Demo gates D1–D8 are closed. The smoothness track (section 0a) closed S1–S6 from
 live-deploy profiling; S7–S8 stay open. S9's real-input check did not reproduce
 the hang on 30 October. S7 has two changes awaiting target-laptop confirmation:
@@ -254,10 +254,9 @@ Open:
   and Edinburgh (5 resident, 4 pending) also had unfinished neighboring-cell
   streams after 45 seconds. Terrain diagnostics saw one elevation tile in each
   city with no flat fallback, but this does not prove visible relief or imagery.
-  Next: test frame-budgeted city-cell shader compilation, then run the visible tour
-  on the target i5-1035G1 and review its ground/terrain screenshots. See the
-  [control-flow report](benchmarks/results/stage0/s7-tour-control-2026-10-31.md) and [JSON
-  capture](benchmarks/results/stage0/s7-tour-control-2026-10-31.json).
+  The frame-budgeted shader-warmup experiment is summarized below. See the
+  [control-flow report](benchmarks/results/stage0/s7-tour-control-2026-10-31.md)
+  and [JSON capture](benchmarks/results/stage0/s7-tour-control-2026-10-31.json).
   A 31 Oct visible run on the available i7-13650HX host recorded under-500 ms
   frames in the four travel/walk/night acceptance segments, zero errors, and
   9/9 resident cells in both cities. Chrome selected the RTX 4060, not Intel
@@ -273,8 +272,18 @@ Open:
   samples in getProgramInfoLog during a 2,661 ms task. That task overlapped a
   2,679.5 ms city-cell shader warmup; the earlier 470.9 ms PMREM build had
   already finished. This identifies synchronous program linking in cell shader
-  warmup as the next target. Test frame-budgeted compilation before repeating
-  the visible gate on the target i5. See the [CPU profile report](benchmarks/results/stage0/s7-tour-cpu-profile-2026-10-31.md).
+  warmup as the cause. A Rome recorded-fixture comparison on the RTX 4060
+  rejected the first frame-budgeted prototype: baseline load was 3,564 ms with
+  a 504 ms warmup; per-renderable compilation took 5,599 ms with a 2,446 ms
+  warmup; signature-deduplicated compilation took 5,415 ms with a 2,291 ms
+  warmup. The chunked variants removed overlapping Long Tasks but delayed
+  readiness substantially, so the runtime change was reverted. This one-run
+  fixture comparison is diagnostic, not target-device acceptance evidence.
+  Next: inspect Three.js program cache keys / compileAsync behavior for a way to
+  avoid repeated asynchronous waits while preserving all material variants;
+  then profile a candidate on the target i5-1035G1 and repeat the visible gate.
+  See the [CPU profile report](benchmarks/results/stage0/s7-tour-cpu-profile-2026-10-31.md)
+  and [warmup comparison](benchmarks/results/stage0/s7-frame-budgeted-warmup-2026-10-31.md).
 - [ ] **S8 — Walking cost on weak GPUs.** Walking is GPU-bound on Intel UHD
   (fill rate, not draw calls). Candidates, in order: cheaper interior-window
   shader at distance (drop the ray-box sample beyond about 40 m instead of
