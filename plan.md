@@ -343,14 +343,18 @@ Open:
   night-switch replay fell from a 111.3 ms post-FX link event to no new
   programs. The city shader warmup took 472–513 ms across two direct
   center-cell captures and compiled 21 programs (15 standard, four basic, two
-  Lambert). The first visible city render added six separate programs in
-  310 ms, including three shadow-depth variants and custom pedestrian color
-  and depth shaders. Depth-program ownership remains unresolved. This was a
-  coordinate-shifted Rome center-cell diagnostic, not a full 3×3 tour or target
-  i5 run; the full globe harness also could not resolve `unpkg.com` on this
-  host. Keep S7 open pending the target i5-1035G1 tour and ground/terrain
-  review. See the [staged warmup report](benchmarks/results/stage0/s7-postfx-staged-warmup-2026-10-31.md)
-  and the [city shader attribution report](benchmarks/results/stage0/s7-city-shader-attribution-2026-10-31.md).
+  Lambert). A targeted follow-up prewarmed two generic city shadow-depth
+  variants and the population color, car-depth, and custom pedestrian-depth
+  variants while those objects stayed hidden. The first visible city renderer
+  event fell from six new programs in 309.8 ms to zero new programs in 119.0
+  ms. The warmup also added 11.4 ms for the two city depth variants; overall
+  startup max was 399.8 ms in this single run, so this does not prove a lower
+  startup maximum. This was a coordinate-shifted Rome center-cell diagnostic,
+  not a full 3×3 tour or target i5 run; the full globe harness also could not
+  resolve `unpkg.com` on this host. Keep S7 open pending the target i5-1035G1
+  tour and ground/terrain review. See the [staged post-FX warmup report](benchmarks/results/stage0/s7-postfx-staged-warmup-2026-10-31.md),
+  the [city shader attribution report](benchmarks/results/stage0/s7-city-shader-attribution-2026-10-31.md),
+  and the [shadow-depth warmup report](benchmarks/results/stage0/s7-shadow-depth-staged-warmup-2026-10-31.md).
 - [ ] **S8 — Walking cost on weak GPUs.** Walking is GPU-bound on Intel UHD
   (fill rate, not draw calls). Candidates, in order: cheaper interior-window
   shader at distance (drop the ray-box sample beyond about 40 m instead of

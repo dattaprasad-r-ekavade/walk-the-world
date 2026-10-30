@@ -304,6 +304,7 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false, demo
       antialias: useMsaa,
       powerPreference: "high-performance",
     });
+    const shadowDepthWarmupMaterials = new Set();
     const shadowAudit = { enabled: false, forceEveryFrame: false, samples: [] };
     const shadowRefreshRequests = Object.create(null);
     let shadowSunHourBucket = null;
@@ -758,6 +759,125 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false, demo
         console.warn("[street] shader warm-up failed:", error?.message || error);
       }
     };
+    const warmShadowDepthShaders = async (root, label) => {
+      const warmGroup = new THREE.Group();
+      const depthMaterials = [];
+      const variants = new Map();
+      root.traverse((object) => {
+        if (!object.isMesh || !object.castShadow || object.customDepthMaterial || !object.geometry) return;
+        const sourceMaterials = Array.isArray(object.material)
+          ? object.material
+          : object.material ? [object.material] : [];
+        for (const source of sourceMaterials) {
+          if (!source?.visible) continue;
+          const shadowSide = source.shadowSide !== null && source.shadowSide !== undefined
+            ? source.shadowSide
+            : source.side === THREE.FrontSide
+              ? THREE.BackSide
+              : source.side === THREE.BackSide
+                ? THREE.FrontSide
+                : THREE.DoubleSide;
+          const attributes = Object.keys(object.geometry.attributes || {}).sort();
+          const morphAttributes = Object.entries(object.geometry.morphAttributes || {})
+            .map(([name, entries]) => [name, entries.length]);
+          const signature = JSON.stringify({
+            attributes,
+            morphAttributes,
+            instanced: object.isInstancedMesh === true,
+            instanceColor: object.instanceColor != null,
+            mapChannel: source.map?.channel ?? null,
+            alphaMapChannel: source.alphaMap?.channel ?? null,
+            displacementMapChannel: source.displacementMap?.channel ?? null,
+            alphaTest: source.alphaToCoverage === true ? 0.5 : source.alphaTest || 0,
+            alphaToCoverage: source.alphaToCoverage === true,
+            shadowSide,
+            wireframe: source.wireframe === true,
+            clippingPlaneCount: source.clipShadows ? source.clippingPlanes?.length || 0 : 0,
+            clipIntersection: source.clipIntersection === true,
+          });
+          if (variants.has(signature)) continue;
+
+          const depth = new THREE.MeshDepthMaterial({
+            map: source.map || null,
+            alphaMap: source.alphaMap || null,
+            alphaTest: source.alphaToCoverage === true ? 0.5 : source.alphaTest || 0,
+            displacementMap: source.displacementMap || null,
+            displacementScale: source.displacementScale,
+            displacementBias: source.displacementBias,
+            side: shadowSide,
+            wireframe: source.wireframe,
+            wireframeLinewidth: source.wireframeLinewidth,
+            linewidth: source.linewidth,
+            clipShadows: source.clipShadows,
+            clippingPlanes: source.clippingPlanes,
+            clipIntersection: source.clipIntersection,
+            alphaToCoverage: source.alphaToCoverage,
+          });
+          let proxy;
+          if (object.isInstancedMesh) {
+            proxy = new THREE.InstancedMesh(object.geometry, depth, 1);
+            if (object.instanceColor) proxy.setColorAt(0, new THREE.Color(0xffffff));
+          } else {
+            proxy = new THREE.Mesh(object.geometry, depth);
+          }
+          proxy.frustumCulled = false;
+          warmGroup.add(proxy);
+          depthMaterials.push(depth);
+          shadowDepthWarmupMaterials.add(depth);
+          variants.set(signature, proxy);
+        }
+      });
+      if (!depthMaterials.length) return;
+      // Three's shadow pass calls renderBufferDirect with no Scene, so its
+      // MeshDepthMaterial variant has no scene-fog define. compileAsync needs
+      // the same fog state or it creates a near-identical cache entry.
+      const previousFog = scene.fog;
+      let warmup;
+      try {
+        scene.fog = null;
+        warmup = warmCellShaders(warmGroup, label);
+      } finally {
+        scene.fog = previousFog;
+      }
+      await warmup;
+    };
+    const warmPopulationShaders = async (group, pedestrianMesh) => {
+      if (!group) return;
+      group.visible = true;
+      const colorWarmup = warmCellShaders(group, "city.population-shader-warmup");
+      group.visible = false;
+      await colorWarmup;
+      await warmShadowDepthShaders(group, "city.population-shadow-depth-warmup");
+      if (pedestrianMesh?.customDepthMaterial) {
+        const colorMaterial = pedestrianMesh.material;
+        const depthMaterial = pedestrianMesh.customDepthMaterial;
+        const previousSide = depthMaterial.side;
+        const shadowSide = colorMaterial.shadowSide;
+        depthMaterial.side = shadowSide !== null
+          ? shadowSide
+          : colorMaterial.side === THREE.FrontSide
+            ? THREE.BackSide
+            : colorMaterial.side === THREE.BackSide
+              ? THREE.FrontSide
+              : THREE.DoubleSide;
+        group.visible = true;
+        pedestrianMesh.material = depthMaterial;
+        const previousFog = scene.fog;
+        let depthWarmup;
+        try {
+          scene.fog = null;
+          depthWarmup = warmCellShaders(pedestrianMesh, "city.population-depth-shader-warmup");
+        } finally {
+          scene.fog = previousFog;
+        }
+        pedestrianMesh.material = colorMaterial;
+        depthMaterial.side = previousSide;
+        group.visible = false;
+        await depthWarmup;
+      }
+      group.visible = true;
+      requestShadowRefresh("population-visible");
+    };
     let postFxShaderWarmupStarted = false;
     const warmPostFxShaders = () => {
       if (postFxShaderWarmupStarted || qualityTier === "low" || !postFx?.warmBloomShaders) return;
@@ -1206,6 +1326,8 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false, demo
         // has no lamps, since later streamed cells may add lamp markers.
         if (qualityTier === "high") ensureStreetLightPool();
         await warmCellShaders(cityRoot, prebuilt ? "city.prebuilt-shader-warmup" : "city.spawn-shader-warmup");
+        if (disposed) return false;
+        await warmShadowDepthShaders(cityRoot, "city.spawn-shadow-depth-warmup");
         if (disposed) return false;
         cityRoot.visible = true;
         requestShadowRefresh("city-root-visible");
@@ -2125,10 +2247,13 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false, demo
           maxPeds: qualityTier === "low" ? 52 : qualityTier === "medium" ? 96 : 140,
           maxCars: qualityTier === "low" ? 24 : qualityTier === "medium" ? 48 : 70,
           maxBirds: qualityTier === "low" ? 12 : qualityTier === "medium" ? 24 : 36,
+          initiallyVisible: false,
           random: window.__BENCH_MODE === true
             ? createSeededRandom(Number.isInteger(window.__BENCH_SEED) ? window.__BENCH_SEED : 1337)
             : Math.random,
         });
+        await warmPopulationShaders(population.group, population.pedestrianMesh);
+        if (disposed) return;
         console.log("[population]", population.counts);
         // The high-tier pool was reserved during engine setup. Once the spawn
         // markers are known, assign nearby lamps and keep it at zero intensity
@@ -2564,6 +2689,8 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false, demo
       population?.dispose();
       streetLights?.dispose();
       sun.shadow.dispose();
+      for (const material of shadowDepthWarmupMaterials) material.dispose();
+      shadowDepthWarmupMaterials.clear();
       postFx?.dispose();
       editorTools.dispose();
       ambience.dispose();
