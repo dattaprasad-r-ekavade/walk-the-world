@@ -39,6 +39,30 @@ diagonal-wall improvement. Compare the earlier view and current capture here:
 - [Earlier fixed-pose facade](../../../screenshots/performance-visuals/stage4/stage45-postfx/rome-day-contact-ssao-off.png)
 - [Current tangent-mapped facade](../../../screenshots/performance-visuals/stage4/stage47-facade-mapping/rome-day-facade-tangent-matched.png)
 
-Stage 4.7 remains open for a diagonal-facade visual check, additional shared
-storefront variation, a decision on near-entrance geometry, and mobile
-acceptance. No performance gain is claimed from this UV-only change.
+## Controlled diagonal-facade comparison
+
+To exercise a diagonal wall, a local visual fixture rotated Rome building way
+`202849725` to expose a 60.3-degree facade and removed eight neighboring
+building ways within 55 m to prevent overlaps. Roads and the rest of the city
+fixture remained intact. This fixture and its raw benchmark JSON stay local and
+ignored; this controlled scene is not real-city acceptance evidence.
+
+The old and new captures used the same fixed pose, High preset, clear noon,
+1280×720 viewport, two workers, and disabled SSAO/bloom. Both browser runs passed
+with zero console errors, page errors, asset failures, or benchmark validation
+errors; each recorded more than 7.5 m of movement. The baseline was rebuilt with
+the pre-change `(x + z) * 0.12 + jitter` mapping. The candidate used the
+wall-tangent projection.
+
+Along the tested 60.3-degree wall, the old projection changes U by about 1.36
+units per meter, so the 0.12 repeat scale resolves to roughly 6.1 m per atlas
+repeat. The tangent projection restores the intended 8.3 m. The matched images
+show the old facade's tighter window/detail spacing and the candidate's
+consistent scale, with no visible seams:
+
+- [Old diagonal-wall mapping](../../../screenshots/performance-visuals/stage4/stage47-facade-mapping/diagonal-old-uv-isolated.png)
+- [Tangent-mapped diagonal wall](../../../screenshots/performance-visuals/stage4/stage47-facade-mapping/diagonal-new-uv-isolated.png)
+
+This validates the UV scale change on a controlled diagonal facade; it makes no
+performance claim. Stage 4.7 remains open for additional shared storefront
+variation, a decision on near-entrance geometry, and mobile acceptance.

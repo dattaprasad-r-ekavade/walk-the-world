@@ -821,10 +821,10 @@ Publication is separate release work.
 - [ ] 4.7 Improve facade/storefront variation and baked trim/dirt/reveals.
   **In progress, 31 Oct:** wall UVs now follow the facade tangent so the shared
   atlas keeps a consistent world-space repeat on angled walls. The close Rome
-  capture loaded all High facade maps without browser errors, but its main wall
-  is axis-aligned and does not validate the change on diagonal facades. Review
-  shared storefront variation and near-entrance geometry next; avoid default
-  parallax, displacement or fragment noise. See the [facade UV checkpoint](benchmarks/results/stage4/stage47-facade-uv-review-2026-10-31.md).
+  A/B on a controlled 60.3° Rome facade confirms the intended 8.3 m repeat,
+  versus 6.1 m with the prior projection, with no visible seams. Review shared
+  storefront variation and near-entrance geometry next; avoid default parallax,
+  displacement or fragment noise. See the [facade UV checkpoint](benchmarks/results/stage4/stage47-facade-uv-review-2026-10-31.md).
   Triplanar needs a measured steep-slope use case.
 
 Exit: approved visuals at matched DPR/population/view distance and measured tier
