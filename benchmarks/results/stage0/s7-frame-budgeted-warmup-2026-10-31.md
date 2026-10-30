@@ -20,10 +20,15 @@ on this fixture. The signature-deduplicated version reduced overhead only
 slightly compared with compiling each renderable. Since the existing fixture
 run did not contain a Long Task overlapping the baseline warmup, these results
 do not demonstrate an improvement for this workload. Both runtime prototypes
-were reverted; only benchmark instrumentation for recording Long Tasks and
-their overlap with shader warmup events is retained.
+were reverted. The benchmark Long Task overlap instrumentation is retained;
+full-tour fixture replay and arrival profiling support were added in the
+follow-up below.
 
-Next, inspect Three.js's actual program-key behavior and `compileAsync` polling
-path to find an approach that avoids duplicate asynchronous waits while still
-covering all material variants. Any candidate must be measured on the target
-i5-1035G1 and checked in the visible Tokyo arrival path before S7 can close.
+Follow-up source inspection confirmed that Three.js 0.186.1 calls `compile`
+synchronously inside `compileAsync`, then polls readiness every 10 ms. A full
+visible tour replay using production Tokyo and Edinburgh center cells still
+recorded a 2.8 s Edinburgh arrival task after the compile-sliced candidate was
+installed. The aligned CPU profile placed the time in
+`PMREMGenerator.fromEquirectangular`; see the [full-tour replay report](s7-full-tour-cell-replay-2026-10-31.md).
+The runtime candidate was reverted. The target i5-1035G1 and complete 3×3 cell
+replays remain necessary before S7 can close.

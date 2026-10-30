@@ -1,6 +1,6 @@
 # Walk the World — Performance and Visuals Implementation Plan
 
-Updated: 31 October 2026. Reviewed base: `3a2de93` on `origin/main`.
+Updated: 31 October 2026. Reviewed base: `fae1003` on `origin/main`.
 Demo gates D1–D8 are closed. The smoothness track (section 0a) closed S1–S6 from
 live-deploy profiling; S7–S8 stay open. S9's real-input check did not reproduce
 the hang on 30 October. S7 has two changes awaiting target-laptop confirmation:
@@ -268,22 +268,24 @@ Open:
   unknown. Console, page and HTTP errors were zero; one OSM tile request was
   cancelled during navigation. The available host again used the RTX 4060, so
   this does not close S7. See the [stall diagnostic report](benchmarks/results/stage0/s7-tour-visible-stall-2026-10-31.md).
-  A 31 Oct CDP profile aligned to the Long Task interval found 2,592.8 ms of
-  samples in getProgramInfoLog during a 2,661 ms task. That task overlapped a
-  2,679.5 ms city-cell shader warmup; the earlier 470.9 ms PMREM build had
-  already finished. This identifies synchronous program linking in cell shader
-  warmup as the cause. A Rome recorded-fixture comparison on the RTX 4060
-  rejected the first frame-budgeted prototype: baseline load was 3,564 ms with
-  a 504 ms warmup; per-renderable compilation took 5,599 ms with a 2,446 ms
-  warmup; signature-deduplicated compilation took 5,415 ms with a 2,291 ms
-  warmup. The chunked variants removed overlapping Long Tasks but delayed
-  readiness substantially, so the runtime change was reverted. This one-run
-  fixture comparison is diagnostic, not target-device acceptance evidence.
-  Next: inspect Three.js program cache keys / compileAsync behavior for a way to
-  avoid repeated asynchronous waits while preserving all material variants;
-  then profile a candidate on the target i5-1035G1 and repeat the visible gate.
-  See the [CPU profile report](benchmarks/results/stage0/s7-tour-cpu-profile-2026-10-31.md)
-  and [warmup comparison](benchmarks/results/stage0/s7-frame-budgeted-warmup-2026-10-31.md).
+  A 31 Oct CDP profile on the production deploy found 2,592.8 ms in
+  `getProgramInfoLog` during a 2,661 ms task that overlapped a 2,679.5 ms
+  city-cell shader warmup. That initially pointed to synchronous city shader
+  linking. Two Rome fixture prototypes and a later frame-sliced exact-renderable
+  prototype did not demonstrate a fix, so all runtime changes were reverted.
+  Three.js 0.186.1 source confirms `compileAsync` calls `compile` synchronously,
+  then polls readiness; custom signatures also omit some renderer-derived key
+  inputs. A local full-tour replay with production Tokyo and Edinburgh center
+  cells reproduced a 2,816 ms Edinburgh arrival task. Its 1 ms profile sampled
+  2,887.6 ms in `getProgramInfoLog` on a stack through
+  `PMREMGenerator.fromEquirectangular`, not the city-cell compile path. The
+  41.8 ms PMREM timing event ended about 758 ms before that task, so the delayed
+  first-use path is still unexplained. This replay had one real cell and eight
+  empty neighbors per city; it is diagnostic only. Next: replay complete 3×3
+  cells, trace PMREM first-use work, and repeat the visible gate on the target
+  i5-1035G1. See the [initial CPU profile](benchmarks/results/stage0/s7-tour-cpu-profile-2026-10-31.md),
+  [warmup comparison](benchmarks/results/stage0/s7-frame-budgeted-warmup-2026-10-31.md),
+  and [full-tour replay report](benchmarks/results/stage0/s7-full-tour-cell-replay-2026-10-31.md).
 - [ ] **S8 — Walking cost on weak GPUs.** Walking is GPU-bound on Intel UHD
   (fill rate, not draw calls). Candidates, in order: cheaper interior-window
   shader at distance (drop the ray-box sample beyond about 40 m instead of

@@ -9,6 +9,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
+import { recordedCityKeyForUrl, selectRecordedCityPayload } from "./bench-fixtures.mjs";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const DEFAULT_BASE = "https://walk-the-world-delta.vercel.app";
@@ -19,9 +20,10 @@ function parseArgs(argv) {
     baseUrl: DEFAULT_BASE,
     out: null,
     screenshots: null,
+    fixture: null,
     headed: false,
     targetI5Confirmed: false,
-    cpuProfileArrival: false,
+    cpuProfileCity: null,
     help: false,
     readyTimeoutMs: 120000,
     settleTimeoutMs: 45000,
@@ -40,10 +42,12 @@ function parseArgs(argv) {
     else if (arg === "--headed") options.headed = true;
     else if (arg === "--headless") options.headed = false;
     else if (arg === "--confirm-target-i5-1035g1") options.targetI5Confirmed = true;
-    else if (arg === "--cpu-profile-arrival") options.cpuProfileArrival = true;
+    else if (arg === "--cpu-profile-arrival") options.cpuProfileCity = "Tokyo";
+    else if (arg === "--cpu-profile-edinburgh") options.cpuProfileCity = "Edinburgh";
     else if (arg === "--base-url" || arg.startsWith("--base-url=")) options.baseUrl = value("--base-url");
     else if (arg === "--out" || arg.startsWith("--out=")) options.out = value("--out");
     else if (arg === "--screenshots" || arg.startsWith("--screenshots=")) options.screenshots = value("--screenshots");
+    else if (arg === "--fixture" || arg.startsWith("--fixture=")) options.fixture = value("--fixture");
     else if (arg === "--ready-timeout-ms" || arg.startsWith("--ready-timeout-ms=")) options.readyTimeoutMs = Number(value("--ready-timeout-ms"));
     else if (arg === "--settle-timeout-ms" || arg.startsWith("--settle-timeout-ms=")) options.settleTimeoutMs = Number(value("--settle-timeout-ms"));
     else if (arg === "--walk-ms" || arg.startsWith("--walk-ms=")) options.walkMs = Number(value("--walk-ms"));
@@ -253,12 +257,20 @@ const profilerInit = () => {
 async function main(argv = process.argv.slice(2)) {
   const options = parseArgs(argv);
   if (options.help) {
-    console.log("Usage: node scripts/s7-tour.mjs [baseUrl] [--headed --confirm-target-i5-1035g1] [--headless] [--cpu-profile-arrival] [--out=FILE] [--screenshots=DIR] [--walk-ms=5000]");
+    console.log("Usage: node scripts/s7-tour.mjs [baseUrl] [--headed --confirm-target-i5-1035g1] [--headless] [--cpu-profile-arrival|--cpu-profile-edinburgh] [--fixture=FILE] [--out=FILE] [--screenshots=DIR] [--walk-ms=5000]");
     console.log("Run visibly on the target i5-1035G1 laptop and confirm the target device explicitly. Headless timings are control-flow evidence only.");
     return 0;
   }
 
   const paths = outputPaths(options);
+  const fixturePath = options.fixture
+    ? (path.isAbsolute(options.fixture) ? options.fixture : path.resolve(ROOT, options.fixture))
+    : null;
+  const fixture = fixturePath ? JSON.parse(fs.readFileSync(fixturePath, "utf8")) : null;
+  if (fixture && (!fixture || typeof fixture !== "object" || Array.isArray(fixture) ||
+      (!Array.isArray(fixture.elements) && !fixture.cellPayloads))) {
+    throw new Error("--fixture must contain a city payload or a cellPayloads map");
+  }
   fs.mkdirSync(path.dirname(paths.report), { recursive: true });
   fs.mkdirSync(paths.screenshots, { recursive: true });
   const { chromium } = await import("playwright");
@@ -284,6 +296,19 @@ async function main(argv = process.argv.slice(2)) {
     deviceScaleFactor: 1,
     serviceWorkers: "block",
   });
+  const fixtureRequests = [];
+  const baseOrigin = new URL(options.baseUrl).origin;
+  if (fixture) {
+    await context.route((url) => recordedCityKeyForUrl(url, baseOrigin) !== null, async (route) => {
+      const cityKey = recordedCityKeyForUrl(route.request().url(), baseOrigin);
+      const payload = selectRecordedCityPayload(fixture, cityKey);
+      fixtureRequests.push({ cityKey, elements: payload.elements?.length || 0 });
+      await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(payload) });
+    });
+    await context.route((url) => url.origin === baseOrigin && url.pathname === "/api/assets", (route) =>
+      route.fulfill({ status: 200, contentType: "application/json", body: "[]" })
+    );
+  }
   await context.addInitScript(profilerInit);
   const page = await context.newPage();
   let cpuProfilerSession = null;
@@ -324,19 +349,21 @@ async function main(argv = process.argv.slice(2)) {
     screenshots: {},
     errors: { console: consoleErrors, page: pageErrors, http: httpErrors, requestFailures },
     cellResponses,
+    fixtureReplay: fixturePath ? { path: fixturePath, requests: fixtureRequests } : null,
     status: "running",
     stallAnalysis: {},
     diagnosticProfiling: {
-      requested: options.cpuProfileArrival,
-      status: options.cpuProfileArrival ? "pending" : "disabled",
-      samplingIntervalUs: options.cpuProfileArrival ? 1000 : null,
+      requested: options.cpuProfileCity !== null,
+      city: options.cpuProfileCity,
+      status: options.cpuProfileCity ? "pending" : "disabled",
+      samplingIntervalUs: options.cpuProfileCity ? 1000 : null,
     },
   };
 
   const startSegment = async (name) => page.evaluate((label) => window.__s7Profiler.start(label), name);
   const stopSegment = async () => page.evaluate(() => window.__s7Profiler.stop());
   const ensureCpuProfiler = async () => {
-    if (!options.cpuProfileArrival) return;
+    if (!options.cpuProfileCity) return;
     try {
       cpuProfilerSession = await context.newCDPSession(page);
       await cpuProfilerSession.send("Profiler.enable");
@@ -349,14 +376,14 @@ async function main(argv = process.argv.slice(2)) {
       cpuProfilerSession = null;
     }
   };
-  const startCpuProfile = async () => {
+  const startCpuProfile = async (segmentName) => {
     if (!cpuProfilerSession || report.diagnosticProfiling.status !== "ready") return;
     try {
       const startedAtPageMs = await page.evaluate(() => performance.now());
       await cpuProfilerSession.send("Profiler.start");
       cpuProfileActive = true;
       report.diagnosticProfiling.status = "recording";
-      report.diagnosticProfiling.segment = "tokyoArrival";
+      report.diagnosticProfiling.segment = segmentName;
       report.diagnosticProfiling.startedAtPageMs = startedAtPageMs;
     } catch (error) {
       report.diagnosticProfiling.status = "start-failed";
@@ -429,15 +456,16 @@ async function main(argv = process.argv.slice(2)) {
     await placeButton.waitFor({ state: "visible", timeout: 15000 });
     const priorReadyCount = await inputReadyCount();
     const priorUrl = await page.evaluate(() => location.href);
+    const profileThisArrival = options.cpuProfileCity === city;
     await startSegment(segmentName);
     await placeButton.click();
     await page.waitForFunction((previousUrl) => location.href !== previousUrl,
       priorUrl, { timeout: 60000, polling: 50 });
     await stopAndAnalyzeSegment(segmentName);
     await startSegment(arrivalName);
-    if (arrivalName === "tokyoArrival") await startCpuProfile();
+    if (profileThisArrival) await startCpuProfile(arrivalName);
     await waitForStreetReady(priorReadyCount);
-    if (arrivalName === "tokyoArrival") await stopCpuProfile(arrivalName);
+    if (profileThisArrival) await stopCpuProfile(arrivalName);
     await stopAndAnalyzeSegment(arrivalName);
     const settleName = `${arrivalName}CellSettle`;
     await startSegment(settleName);
@@ -541,7 +569,7 @@ async function main(argv = process.argv.slice(2)) {
     report.failure = String(error?.stack || error?.message || error);
     console.error(`S7 tour did not complete: ${error?.message || error}`);
   } finally {
-    if (cpuProfileActive) await stopCpuProfile("tokyoArrival");
+    if (cpuProfileActive) await stopCpuProfile(report.diagnosticProfiling.segment || "arrival");
     if (cpuProfilerSession) {
       try { await cpuProfilerSession.send("Profiler.disable"); } catch { /* optional diagnostic cleanup */ }
       try { await cpuProfilerSession.detach(); } catch { /* optional diagnostic cleanup */ }

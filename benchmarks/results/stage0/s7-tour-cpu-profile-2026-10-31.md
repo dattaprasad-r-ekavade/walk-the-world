@@ -10,6 +10,6 @@ The environment PMREM build took 470.9 ms earlier in the arrival and ended befor
 
 The four S7 acceptance segments remained below 500 ms in this run, with zero console, page, HTTP, or failed-request errors. Profiling was enabled, so these timings are diagnostic only. The target i5 run and visible terrain review are still required.
 
-Next: test frame-budgeted city-cell shader compilation so the synchronous program-link work does not land in one long task. Then repeat on the target i5-1035G1 and review its ground and terrain captures.
+This was the initial attribution from the production-deploy capture. A later local full-tour replay with production Tokyo and Edinburgh center cells found the same `getProgramInfoLog` hotspot on a `PMREMGenerator.fromEquirectangular` stack, and a compile-sliced city-warmup candidate did not reduce the arrival task. See the [full-tour replay report](s7-full-tour-cell-replay-2026-10-31.md) for the follow-up and remaining attribution gap.
 
 See [StreetEngine warmup code](../../../components/StreetEngine.js) and the [Tokyo arrival screenshot](../../../screenshots/performance-visuals/stage0/s7-tour-visible-cpuprofile-2026-10-31/tokyo-arrival.jpg).
