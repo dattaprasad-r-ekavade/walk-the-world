@@ -8,8 +8,8 @@ export const runtime = "nodejs";
 
 const KEY_RE = /^wtw_city\d+_-?\d+\.\d{3}_-?\d+\.\d{3}$/;
 
-export async function GET(_req, { params }) {
-  const { key } = params;
+export async function GET(_req, context) {
+  const { key } = await context.params;
   if (!KEY_RE.test(key)) return NextResponse.json({ error: "bad key" }, { status: 400 });
   if (!isConfigured()) return NextResponse.json({});
   const text = await downloadObject(`edits/${key}.json`).catch(() => null);
@@ -19,8 +19,8 @@ export async function GET(_req, { params }) {
   });
 }
 
-export async function PUT(req, { params }) {
-  const { key } = params;
+export async function PUT(req, context) {
+  const { key } = await context.params;
   if (!KEY_RE.test(key)) return NextResponse.json({ error: "bad key" }, { status: 400 });
   if (!isConfigured()) return NextResponse.json({ error: "r2 not configured" }, { status: 501 });
   if (!checkEditorKey(req)) return NextResponse.json({ error: "bad editor key" }, { status: 401 });

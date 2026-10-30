@@ -8,7 +8,8 @@ export const maxDuration = 60;
 
 const NAME_RE = /^[a-zA-Z0-9._-]{1,80}\.(glb|gltf|png|jpg|jpeg|webp|bin)$/;
 
-export async function GET(_req, { params }) {
+export async function GET(_req, context) {
+  const params = await context.params;
   if (!isConfigured()) return NextResponse.json({ error: "r2 not configured" }, { status: 501 });
   const name = params.name || "";
   if (!NAME_RE.test(name)) return NextResponse.json({ error: "bad name" }, { status: 400 });

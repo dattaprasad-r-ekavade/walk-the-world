@@ -8,8 +8,8 @@ import { readBoundedJson } from "@/lib/read-bounded-json";
 export const runtime = "nodejs";
 export const maxDuration = 120;
 
-export async function GET(req, { params }) {
-  const { key } = params;
+export async function GET(req, context) {
+  const { key } = await context.params;
   const coords = parseCityKey(key);
   if (!coords) return NextResponse.json({ error: "bad key" }, { status: 400 });
   const refresh = new URL(req.url).searchParams.get("refresh") === "1";
@@ -55,7 +55,8 @@ export async function GET(req, { params }) {
   }
 }
 
-export async function PUT(req, { params }) {
+export async function PUT(req, context) {
+  const params = await context.params;
   // Authenticate before consuming bytes or consulting storage.
   if (!checkEditorKey(req)) return NextResponse.json({ error: "bad editor key" }, { status: 401 });
   if (!parseCityKey(params.key)) return NextResponse.json({ error: "bad key" }, { status: 400 });

@@ -13,6 +13,9 @@ const materialRevision = readMaterialRevision(root);
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  // A stray package-lock.json in a parent folder otherwise becomes the
+  // Turbopack workspace root.
+  turbopack: { root },
   env: {
     NEXT_PUBLIC_PREBUILT_CELL_BUILDER_REVISION: computePrebuiltBuilderRevision(root, threeVersion),
     NEXT_PUBLIC_PREBUILT_CELL_MATERIAL_REVISION: materialRevision,
@@ -35,10 +38,8 @@ const nextConfig = {
       { source: "/decoders/basis/:revision([0-9a-f]{16})/:file*", headers: immutable },
     ];
   },
-  experimental: {
-    // DuckDB is a native server dependency used only by the Overture API.
-    serverComponentsExternalPackages: ["duckdb"],
-  },
+  // DuckDB is a native server dependency used only by the Overture API.
+  serverExternalPackages: ["@duckdb/node-api"],
 };
 
 export default nextConfig;

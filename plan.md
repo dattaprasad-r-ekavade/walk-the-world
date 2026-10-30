@@ -12,6 +12,19 @@ preserves the full experiment history; its status is historical.
 ## Release gate — supported framework and dependency audit
 
 - [ ] **SEC1 — P1 before public release: Upgrade the unsupported Next.js 14 tree.**
+  **30 Oct, branch `sec1-next16`: code done, browser acceptance open.** Next
+  16.4.3 (Turbopack build), React/React DOM 19.3.1, ESLint 9 flat config
+  (`eslint.config.mjs`; `next lint` is gone), `@duckdb/node-api` 1.4.5-r.1
+  replacing the deprecated `duckdb` package and its node-gyp/tar chain, plus
+  non-forced `npm audit fix`. Next 15.5.28 was skipped: its bundled postcss
+  still audits high. Route handlers await `params`; `serverExternalPackages`
+  replaces the experimental key. Result: `npm audit` 0 findings (full and
+  `--omit=dev`), 220 tests, lint 0 errors (15 React Compiler warnings), build
+  passes, and a local `next start` served `/`, `/street`, `/editor` and the
+  city/edit/asset API routes with expected status codes. Not yet checked: the
+  DuckDB Overture query against live S3 (it writes results to R2), React 19
+  Strict Mode mount/unmount of Globe and StreetEngine, globe-to-street client
+  navigation, and the four-city run. Merge after one browser pass.
   On `6c79a3d`, `npm ci` installed Next.js 14.2.35, React/React DOM 18.3.1,
   DuckDB 1.4.4 and Sharp 0.35.5. `npm audit --omit=dev` reported 11 production
   dependency findings (10 high, 1 critical); the full install audit reported 19

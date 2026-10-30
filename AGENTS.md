@@ -2,7 +2,7 @@
 
 ## Cursor Cloud specific instructions
 
-This repo is a single **Next.js 14** app ("Walk the World") — a client-side 3D
+This repo is a single **Next.js 16** app (React 19) ("Walk the World") — a client-side 3D
 globe/street-level exploration game. There is one service; no database, no auth,
 and no other backing processes are required. Standard commands live in
 `package.json` `scripts` and the `README.md`; only non-obvious caveats are noted
@@ -24,9 +24,9 @@ data), Carto/OSM basemap tiles, AWS Terrarium terrain tiles, and BigDataCloud
 populate with buildings.
 
 ### Non-obvious gotchas
-- **`npm run lint` is interactive and will hang.** The repo ships no ESLint
-  config, so `next lint` prompts "How would you like to configure ESLint?" and
-  waits for TTY input. There is no committed non-interactive lint setup.
+- **Lint:** `npm run lint` runs the ESLint 9 CLI with `eslint.config.mjs`
+  (Next 16 removed `next lint`). React Compiler purity rules are warnings, not
+  errors; see the comment in that file.
 - **Benign dev-log noise:** `Failed to set fetch cache ... items over 2MB cannot
   be cached` appears when large Overpass responses exceed Next.js's 2MB fetch
   cache limit. This is not an error — the `/api/city/*` routes still return 200
