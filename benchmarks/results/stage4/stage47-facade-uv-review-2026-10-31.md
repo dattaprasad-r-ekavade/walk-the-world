@@ -1,7 +1,7 @@
 # Stage 4.7 — Facade UV scale checkpoint
 
 - Date: 31 October 2026
-- Source: `9231712` plus the facade tangent-mapping change
+- Source: `0b8ac85` on `origin/main`
 - Fixture: recorded Rome OSM showcase; no live-data or R2 writes
 - Display: visible Chrome 156 on Windows 11, 1280×720 at DPR 1, High quality,
   clear weather at 12:00, two geometry workers, Intel UHD Graphics
@@ -64,5 +64,8 @@ consistent scale, with no visible seams:
 - [Tangent-mapped diagonal wall](../../../screenshots/performance-visuals/stage4/stage47-facade-mapping/diagonal-new-uv-isolated.png)
 
 This validates the UV scale change on a controlled diagonal facade; it makes no
-performance claim. Stage 4.7 remains open for additional shared storefront
-variation, a decision on near-entrance geometry, and mobile acceptance.
+performance claim. The four-city D8 rehearsal captures also show the accepted
+storefront and entrance treatment in Pune, Edinburgh, Tokyo and New York. With
+the atlas detail inventory and this diagonal-wall check, desktop Stage 4.7 is
+accepted; these captures do not close the separate Stage 4 mobile
+visual/performance review.

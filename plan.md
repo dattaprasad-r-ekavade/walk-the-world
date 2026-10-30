@@ -1,6 +1,6 @@
 # Walk the World — Performance and Visuals Implementation Plan
 
-Updated: 31 October 2026. Reviewed base: `9231712` on `origin/main`.
+Updated: 31 October 2026. Reviewed base: `0b8ac85` on `origin/main`.
 Demo gates D1–D8 are closed. The smoothness track (section 0a) closed S1–S6 from
 live-deploy profiling; S7–S8 stay open. S9's real-input check did not reproduce
 the hang on 30 October. S7 has a candidate fix (`be2ff98`,
@@ -818,14 +818,17 @@ Publication is separate release work.
   shadows under rooftop props. Keep their shadows enabled; retain the existing
   batched tile shadows as the contact baseline. See the [Stage 4.6 acceptance](benchmarks/results/stage4/stage46-shadow-acceptance-2026-10-30.md)
   and [R2 ownership audit](benchmarks/results/stage4/r2-pmrem-target-teardown-2026-10-30.md).
-- [ ] 4.7 Improve facade/storefront variation and baked trim/dirt/reveals.
-  **In progress, 31 Oct:** wall UVs now follow the facade tangent so the shared
-  atlas keeps a consistent world-space repeat on angled walls. The close Rome
-  A/B on a controlled 60.3° Rome facade confirms the intended 8.3 m repeat,
-  versus 6.1 m with the prior projection, with no visible seams. Review shared
-  storefront variation and near-entrance geometry next; avoid default parallax,
-  displacement or fragment noise. See the [facade UV checkpoint](benchmarks/results/stage4/stage47-facade-uv-review-2026-10-31.md).
-  Triplanar needs a measured steep-slope use case.
+- [x] 4.7 Improve facade/storefront variation and baked trim/dirt/reveals.
+  **Desktop accepted, 31 Oct:** the shared atlas bakes window recesses, frames,
+  sills, grime and storefront details; deterministic facade variation and the
+  D8 four-city captures confirm shopfronts and entrances in the demo starts.
+  A controlled 60.3° Rome facade A/B confirms the tangent UV mapping restores
+  the intended 8.3 m repeat versus 6.1 m before, without visible seams. No
+  additional near-entrance geometry is warranted by these captures. Keep
+  parallax, displacement, fragment noise and triplanar deferred; Stage 4 mobile
+  visual/performance review remains an overall exit gate. See the [facade UV
+  checkpoint](benchmarks/results/stage4/stage47-facade-uv-review-2026-10-31.md)
+  and [four-city demo captures](screenshots/demo-track/rehearsal-2026-10-28-post-heading/).
 
 Exit: approved visuals at matched DPR/population/view distance and measured tier
 GPU budgets, including visible real-GPU night/bloom and mobile review.
