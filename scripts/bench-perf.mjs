@@ -2,6 +2,7 @@
 /**
  * Performance benchmark for Walk the World refactor.
  * Usage: node scripts/bench-perf.mjs [--base-url http://127.0.0.1:3456] [--out benchmarks/before.json]
+ * Fixed-scale A/B: --quality-mode auto --render-scale <0.6..1> (benchmark mode only).
  * Optional fixed walking pose: --pose-x <meters> --pose-z <meters> --heading <radians> [--pose-pitch <radians>].
  * Environment lifecycle audit: --environment-audit [--environment-audit-cycles <count>] [--engine-teardown-audit].
  * Engine teardown audit: --engine-teardown-audit [--engine-teardown-cycles <count>].
@@ -76,6 +77,8 @@ const cacheMode = option('--cache-mode', ['live', 'recorded'].includes(dataMode)
 const route = option('--route', '/street');
 const qualityPreset = option('--preset', 'medium');
 const qualityMode = option('--quality-mode', 'manual');
+const renderScaleOption = option('--render-scale', null);
+const benchmarkRenderScale = renderScaleOption === null ? null : Number(renderScaleOption);
 const ssaoMode = option('--ssao-mode', 'preset');
 const bloomMode = option('--bloom-mode', 'preset');
 const postFxPairMode = option('--postfx-pair', 'none');
@@ -135,6 +138,12 @@ if (suppliedPoseOptions.length > 0) {
 }
 if (!['low', 'medium', 'high'].includes(qualityPreset)) throw new Error('--preset must be low, medium, or high');
 if (!['manual', 'auto'].includes(qualityMode)) throw new Error('--quality-mode must be manual or auto');
+if (benchmarkRenderScale !== null && (!Number.isFinite(benchmarkRenderScale) || benchmarkRenderScale < 0.6 || benchmarkRenderScale > 1)) {
+  throw new Error('--render-scale must be between 0.6 and 1');
+}
+if (benchmarkRenderScale !== null && qualityMode !== 'auto') {
+  throw new Error('--render-scale requires --quality-mode auto');
+}
 if (!['preset', 'on', 'off'].includes(ssaoMode)) throw new Error('--ssao-mode must be preset, on, or off');
 if (ssaoMode !== 'preset' && qualityPreset !== 'high') {
   throw new Error('--ssao-mode on/off controls the high-tier SSAO pass and requires --preset high');
@@ -1771,7 +1780,7 @@ async function main() {
   mkdirSync(dirname(outPath), { recursive: true });
 
   console.log(`  Fixture: ${fixturePath}`);
-  console.log(`  Route: ${route}; data: ${dataMode}; cache: ${cacheMode}; preset: ${qualityPreset} (${qualityMode}); post FX: ${postFxMode}; SSAO: ${ssaoMode}; bloom: ${bloomMode}; post FX pair: ${postFxPairMode}; shadow prune pair: ${shadowPrunePairEnabled}/${shadowPruneFirst}-first; inactive lights: ${inactiveLightsMode}; light transition: ${lightTransitionEnabled}; geometry workers: ${geometryWorkers}; city data copy: ${cityDataCopyMode}; road query: ${roadQueryMode}; browser: ${browserChannel}; renderer: ${rendererMode}; hour: ${benchmarkEnvironment.hour}; weather: ${benchmarkEnvironment.weather}; walk: ${walkDurationMs}ms${crossCell ? '; crossing a cell boundary' : ''}${resourceSoakEnabled ? '; resource soak' : ''}${streamLifecycleEnabled ? '; streamed lamp lifecycle' : ''}`);
+  console.log(`  Route: ${route}; data: ${dataMode}; cache: ${cacheMode}; preset: ${qualityPreset} (${qualityMode}); render scale: ${benchmarkRenderScale ?? 'default'}; post FX: ${postFxMode}; SSAO: ${ssaoMode}; bloom: ${bloomMode}; post FX pair: ${postFxPairMode}; shadow prune pair: ${shadowPrunePairEnabled}/${shadowPruneFirst}-first; inactive lights: ${inactiveLightsMode}; light transition: ${lightTransitionEnabled}; geometry workers: ${geometryWorkers}; city data copy: ${cityDataCopyMode}; road query: ${roadQueryMode}; browser: ${browserChannel}; renderer: ${rendererMode}; hour: ${benchmarkEnvironment.hour}; weather: ${benchmarkEnvironment.weather}; walk: ${walkDurationMs}ms${crossCell ? '; crossing a cell boundary' : ''}${resourceSoakEnabled ? '; resource soak' : ''}${streamLifecycleEnabled ? '; streamed lamp lifecycle' : ''}`);
 
   const launchOptions = {
     headless: !headed,
@@ -1802,7 +1811,7 @@ async function main() {
       routeRequest.fulfill({ status: 200, contentType: 'application/json', body: '[]' })
     );
   }
-  await context.addInitScript(({ fixture, schemaVersion, preset, qualityMode, seed, pose, environment, geometryWorkers, cityDataCopyMode, profileCityQueries, roadQueryMode, collectShadowTargets }) => {
+  await context.addInitScript(({ fixture, schemaVersion, preset, qualityMode, benchmarkRenderScale, seed, pose, environment, geometryWorkers, cityDataCopyMode, profileCityQueries, roadQueryMode, collectShadowTargets }) => {
     if (location.origin !== 'null') {
       try {
         const saved = JSON.parse(localStorage.getItem('wtw-game') || '{}');
@@ -1820,6 +1829,7 @@ async function main() {
       } catch { /* the benchmark still records the active runtime preset */ }
     }
     window.__BENCH_MODE = true;
+    window.__BENCH_RENDER_SCALE = benchmarkRenderScale;
     window.__BENCH_GEOMETRY_WORKERS = geometryWorkers;
     window.__BENCH_CITY_DATA_COPY_MODE = cityDataCopyMode;
     window.__BENCH_PROFILE_CITY_QUERIES = profileCityQueries;
@@ -1856,6 +1866,7 @@ async function main() {
     schemaVersion: PERF_SCHEMA_VERSION,
     preset: qualityPreset,
     qualityMode,
+    benchmarkRenderScale,
     seed,
     pose: fixedPose,
     environment: benchmarkEnvironment,
@@ -1953,6 +1964,7 @@ async function main() {
       longitude: location.lon,
       qualityPreset,
       qualityMode,
+      benchmarkRenderScale,
       ssaoMode,
       bloomMode,
       postFxPairMode,
@@ -2017,6 +2029,9 @@ async function main() {
     }
     if (result.street.cityDataCopyMode !== cityDataCopyMode) {
       throw new Error(`Requested ${cityDataCopyMode} city data mode, but the engine reported ${result.street.cityDataCopyMode ?? 'unknown'}`);
+    }
+    if (benchmarkRenderScale !== null && Math.abs(Number(result.street.renderScale) - benchmarkRenderScale) > 0.001) {
+      throw new Error(`Requested render scale ${benchmarkRenderScale}, but the engine reported ${result.street.renderScale ?? 'unknown'}`);
     }
     if (profileCityQueries && !result.street.timings.some((event) => event.name === 'city.worker-poi-road-query' && event.details?.mode === roadQueryMode)) {
       throw new Error(`Requested ${roadQueryMode} road query mode, but the worker did not confirm it in profile timing.`);

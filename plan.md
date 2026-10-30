@@ -278,6 +278,13 @@ Open:
   report](benchmarks/results/stage0/s8-interior-distance-cutoff-2026-10-30.md),
   [far-detail report](benchmarks/results/stage0/s8-far-building-detail-2026-10-30.md),
   and [render-scale report](benchmarks/results/stage0/s8-intel-render-scale-2026-10-30.md).
+  To make that target comparison repeatable from one source revision,
+  `bench-perf.mjs` now accepts a benchmark-only fixed `--render-scale 1` or
+  `--render-scale 0.85` with auto quality, verifies the applied scale, and
+  records it beside the frame/GPU metrics. A local Rome headless smoke applied
+  both scales successfully; its SwiftShader timings are not S8 evidence. Next:
+  run five alternating pairs per city with the same recorded 3×3 cells on the
+  target laptop. See the [fixed-scale probe](benchmarks/results/stage0/s8-fixed-scale-probe-2026-10-31.md).
 - [x] **S9 — Intermittent globe hang after orbit plus zoom.** Seen only under
   scripted input; the browser trace showed no long page or GPU task. A real
   drag orbit followed by wheel zoom on the 30 Oct local production build did not

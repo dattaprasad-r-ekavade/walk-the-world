@@ -374,12 +374,15 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false, demo
     // Dynamic render-scale governor: the tier sets a base pixel ratio; the
     // governor scales it between 0.6x and 1x. Disabled in benchmark mode.
     let basePixelRatio = Math.min(window.devicePixelRatio || 1, useMsaa ? 1.5 : 1.25);
-    const defaultRenderScaleFor = (quality) =>
-      isIntelIntegratedGpu &&
-      quality !== "low" &&
-      useGameStore.getState().settings?.qualityMode !== "manual"
+    const defaultRenderScaleFor = (quality) => {
+      const benchmarkScale = window.__BENCH_MODE === true ? window.__BENCH_RENDER_SCALE : null;
+      if (Number.isFinite(benchmarkScale)) return benchmarkScale;
+      return isIntelIntegratedGpu &&
+        quality !== "low" &&
+        useGameStore.getState().settings?.qualityMode !== "manual"
         ? 0.85
         : 1;
+    };
     let renderScaleState = createRenderScaleState(
       defaultRenderScaleFor(useGameStore.getState().settings?.quality || "medium"),
     );
