@@ -336,9 +336,20 @@ Decisions taken from the research:
     Browser audit on the local build: Edinburgh grass, car parks, plazas,
     playgrounds and water all within 0.3 m of the terrain (car parks
     previously floated up to 12 m); zero console errors.
-  - Open: urban land use (residential, commercial, industrial) to replace the
-    raster between buildings. Needs a new Overpass query term and a reseed of
-    the demo cells (writes to R2; ask first).
+  - 30 Oct, third step (code only): urban land use (residential, commercial,
+    retail, industrial, railway, construction, brownfield, wasteland,
+    cemetery, allotments, recreation grounds) is fetched by the Overpass query
+    and painted into the terrain ground canvas under roads and building
+    shadows, replacing the pale map raster there. Painting instead of meshing
+    adds no draw calls or overdraw, and rides on the existing canvas upload.
+  - Open: (1) live verification — public Overpass was unreachable from the dev
+    machine on 30 Oct, so the new query is untested against live data; the
+    OSM API shows modest coverage at the demo starts (Edinburgh: commercial,
+    retail, railway, cemetery, construction; Tokyo: construction, commercial,
+    brownfield; Pune: one residential; New York: commercial). (2) Reseed the
+    demo cells so cached data carries the new tags (writes to R2; ask first).
+    (3) Multipolygon land-use relations are not read yet; many large
+    residential areas are mapped that way.
 - [ ] **B4 — Overture gap fill (S).** The Overture footprint fallback already
   exists for sparse cells. Remaining: merge Overture height, num_floors,
   roof_shape, roof_color, facade_color and facade_material into OSM buildings

@@ -140,3 +140,33 @@ describe('terrain-draped ground surfaces', () => {
     expect(createGroundHeight(new Map()).meshHeight(1, 1)).toBe(0);
   });
 });
+
+describe('urban land-use ground paint', () => {
+  it('classifies urban land use and keeps the Overpass pattern in sync', async () => {
+    const { URBAN_GROUND_STYLE, URBAN_LANDUSE_PATTERN, urbanGroundKind } = await import('@/lib/engine/ground-surfaces');
+    expect(urbanGroundKind({ landuse: 'residential' })).toBe('residential');
+    expect(urbanGroundKind({ landuse: 'industrial', layer: '0' })).toBe('industrial');
+    expect(urbanGroundKind({ landuse: 'residential', building: 'yes' })).toBeNull();
+    expect(urbanGroundKind({ landuse: 'railway', layer: '-1' })).toBeNull();
+    expect(urbanGroundKind({ landuse: 'grass' })).toBeNull(); // meshed instead
+    expect(urbanGroundKind({ landuse: 'constructor' })).toBeNull();
+    const pattern = new RegExp(URBAN_LANDUSE_PATTERN);
+    for (const kind of Object.keys(URBAN_GROUND_STYLE)) expect(pattern.test(kind)).toBe(true);
+    expect(pattern.test('residentials')).toBe(false);
+  });
+
+  it('passes urban rings to assembly as local-metre rings, not meshes', () => {
+    const { result } = buildCityGeometry({
+      elements: [{ type: 'way', id: 7, tags: { landuse: 'residential' }, geometry: square(0, 0) }],
+      lat0: 0,
+      lon0: 0,
+      terrainTiles: [],
+    });
+    expect(result.flats).toHaveLength(0);
+    expect(result.meta.landuseRings).toHaveLength(1);
+    const { kind, ring } = result.meta.landuseRings[0];
+    expect(kind).toBe('residential');
+    expect(ring).toHaveLength(5);
+    expect(ring[1][1]).toBeCloseTo(-11.1, 0); // 0.0001° north is about 11 m at -z
+  });
+});
