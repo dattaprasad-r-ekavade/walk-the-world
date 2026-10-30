@@ -329,15 +329,23 @@ Open:
   with the normal cache and 499.9 ms with the GPU program cache disabled; the
   first renderer event added 12 programs in 267–286 ms. All named gate segments
   stayed below 200 ms, but a 499.9 ms frame gives no useful margin and the RTX
-  is not the target i5. Next: investigate the first-city-render shader-link
-  path, then repeat the live visible gate and ground/terrain review on the
-  target laptop. S7 remains open. See the [PMREM sample
+  is not the target i5. See the [PMREM sample
   report](benchmarks/results/stage0/s7-pmrem-ggx32-2026-10-31.md) and its
   [machine-readable results](benchmarks/results/stage0/s7-pmrem-ggx32-2026-10-31.json).
   These RTX 4060 / i7 results do not close S7. See the [full 3×3 report](benchmarks/results/stage0/s7-full-city-3x3-profile-2026-10-31.md),
   [initial CPU profile](benchmarks/results/stage0/s7-tour-cpu-profile-2026-10-31.md),
   [warmup comparison](benchmarks/results/stage0/s7-frame-budgeted-warmup-2026-10-31.md),
   and [center-cell replay report](benchmarks/results/stage0/s7-full-tour-cell-replay-2026-10-31.md).
+  A follow-up staged post-FX shader warmup compiled ten output, grade, optional
+  FXAA, and bloom programs over 318 ms before input-ready in a local medium-tier
+  replay. On the RTX 4060, the initial-night first-render event fell from
+  258.8 ms with 12 new programs to 186.5 ms with two; a separate daytime
+  night-switch replay fell from a 111.3 ms post-FX link event to no new
+  programs. The remaining city shader warmup took about 513 ms. This was a
+  coordinate-shifted Rome center-cell diagnostic, not a full 3×3 tour or target
+  i5 run; the full globe harness also could not resolve `unpkg.com` on this
+  host. Keep S7 open pending the target i5-1035G1 tour and ground/terrain
+  review. See the [staged warmup report](benchmarks/results/stage0/s7-postfx-staged-warmup-2026-10-31.md).
 - [ ] **S8 — Walking cost on weak GPUs.** Walking is GPU-bound on Intel UHD
   (fill rate, not draw calls). Candidates, in order: cheaper interior-window
   shader at distance (drop the ray-box sample beyond about 40 m instead of

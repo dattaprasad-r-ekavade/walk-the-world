@@ -714,6 +714,25 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false, demo
         console.warn("[street] shader warm-up failed:", error?.message || error);
       }
     };
+    let postFxShaderWarmupStarted = false;
+    const warmPostFxShaders = () => {
+      if (postFxShaderWarmupStarted || qualityTier === "low" || !postFx?.warmBloomShaders) return;
+      postFxShaderWarmupStarted = true;
+      const programsBefore = new Set((renderer.info.programs || []).map((program) => program.id));
+      const startedAt = performance.now();
+      postFx.warmBloomShaders().then((result) => {
+        const programs = renderer.info.programs || [];
+        markPerf("renderer.postfx-shader-warmup-complete", {
+          ...result,
+          durationMs: performance.now() - startedAt,
+          programCountBefore: programsBefore.size,
+          programCountAfter: programs.length,
+          newProgramCount: programs.filter((program) => !programsBefore.has(program.id)).length,
+        });
+      }).catch((error) => {
+        console.warn("[street] post-FX shader warm-up failed:", error?.message || error);
+      });
+    };
     // auto: a runtime step from the fps guard. It must not touch anything in a
     // shader's program key (shadowMap.enabled, castShadow): flipping those
     // recompiles every lit material at once, a multi-second freeze on weak GPUs
@@ -752,6 +771,7 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false, demo
       postFx.setFxaa(!useMsaa && renderScaleState.scale < 1);
       // remember the tier; applySky re-evaluates so night can turn bloom on
       qualityTier = quality;
+      warmPostFxShaders();
       const nearTextures = ktx2TextureLoader.setQuality(quality);
       setBuildingTextureQuality(nearTextures ? "high" : quality);
       if (!nearTextures && highKtx2GpuBytes > 0) {
