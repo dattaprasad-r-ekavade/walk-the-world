@@ -544,6 +544,53 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false, demo
           if (renderDurationMs >= 50) {
             const programs = renderer.info.programs || [];
             const newPrograms = programs.filter((program) => !programsBefore.has(program.id));
+            const newProgramIds = new Set(newPrograms.map((program) => program.id));
+            const programOwners = new Map();
+            try {
+              if (newProgramIds.size &&
+                  typeof renderer.properties?.has === "function" &&
+                  typeof renderer.properties?.get === "function" &&
+                  typeof scene.traverse === "function") {
+                scene.traverse((object) => {
+                  const materials = Array.isArray(object.material)
+                    ? object.material
+                    : object.material ? [object.material] : [];
+                  for (const material of materials) {
+                    if (!renderer.properties.has(material)) continue;
+                    const materialPrograms = renderer.properties.get(material).programs;
+                    if (!materialPrograms?.values) continue;
+                    for (const program of materialPrograms.values()) {
+                      if (!newProgramIds.has(program.id)) continue;
+                      let owners = programOwners.get(program.id);
+                      if (!owners) {
+                        owners = { seen: new Set(), count: 0, sample: [] };
+                        programOwners.set(program.id, owners);
+                      }
+                      const signature = `${object.uuid}:${material.uuid}`;
+                      if (owners.seen.has(signature)) continue;
+                      owners.seen.add(signature);
+                      owners.count += 1;
+                      if (owners.sample.length >= 6) continue;
+                      let cellKey = null;
+                      for (let parent = object; parent && parent !== scene; parent = parent.parent) {
+                        if (parent.name?.startsWith("wtw_city")) {
+                          cellKey = parent.name;
+                          break;
+                        }
+                      }
+                      owners.sample.push({
+                        cellKey,
+                        objectType: object.type,
+                        objectName: object.name || null,
+                        materialType: material.type,
+                        materialName: material.name || null,
+                        materialFamily: material.userData?.materialFamily || null,
+                      });
+                    }
+                  }
+                });
+              }
+            } catch { /* owner attribution is best-effort debug data */ }
             recordPerfTiming("renderer.long-frame-programs", renderDurationMs, {
               programCountBefore: programsBefore.size,
               programCountAfter: programs.length,
@@ -557,6 +604,8 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false, demo
                   usedTimes: program.usedTimes,
                   cacheKeyLength: cacheKey.length,
                   cacheKeyPrefix: cacheKey.slice(0, 320),
+                  ownerCount: programOwners.get(program.id)?.count || 0,
+                  owners: programOwners.get(program.id)?.sample || [],
                 };
               }),
             });

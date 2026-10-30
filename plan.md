@@ -287,16 +287,18 @@ Open:
   212.2 ms in renderer `getProgramInfoLog`; PMREM `getProgramInfoLog` accounted
   for 31.6 ms elsewhere in the arrival, and its 42.3 ms build event ended about
   799 ms before the task. Three additional tours with Chrome's GPU program
-  cache disabled reproduced 2.48–2.55 s Tokyo arrival frames. The corrected
-  profiles sampled about 2.42–2.47 s in `getProgramInfoLog` on the regular
-  renderer path, with no PMREM or `compileAsync` caller visible. In the latest
-  slow frame, renderer program records grew from 48 to 70, including
-  `ground-detail-v1` and `wtw-building-atlas-interior-v3` variants. This
-  connects first-use program creation with the stall but does not identify the
-  dominant material. The task overlapped a 2.62 s neighbor-assembly wall-time
-  interval, but that assembler yields to rendering, so causality is unproven.
-  Next: map the new variants to scene materials and test targeted warmup, then
-  repeat the visible gate and ground/terrain review on the target i5-1035G1.
+  cache disabled reproduced 2.48–2.57 s Tokyo arrival frames. The corrected
+  profiles sampled 2.42–2.49 s in `getProgramInfoLog` on the regular renderer
+  path, with no PMREM or `compileAsync` caller visible. A program-owner trace
+  tied the new variants to terrain and building materials and one adjacent
+  cell. Comparing the earlier and newly created `ground-detail-v1` keys showed
+  the only difference was Three.js `numSpotLights` changing from 2 to 6.
+  Three.js derives this field from `lights.spot.length`; the engine starts with
+  two headlights, then creates four streetlamp pool lights after the spawn
+  city shader warmup. This ordering explains the new lit-material variants.
+  Next: create the high-quality streetlamp pool before spawn-city warmup and
+  compare a cache-disabled replay, then repeat the visible gate and
+  ground/terrain review on the target i5-1035G1.
   These RTX 4060 / i7 results do not close S7. See the [full 3×3 report](benchmarks/results/stage0/s7-full-city-3x3-profile-2026-10-31.md),
   [initial CPU profile](benchmarks/results/stage0/s7-tour-cpu-profile-2026-10-31.md),
   [warmup comparison](benchmarks/results/stage0/s7-frame-budgeted-warmup-2026-10-31.md),

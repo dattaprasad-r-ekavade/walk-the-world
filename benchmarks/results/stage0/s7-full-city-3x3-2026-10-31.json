@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "evidenceType": "s7-full-city-3x3-profile-summary",
-  "recordedAt": "2026-10-30T21:28:39.755Z",
+  "recordedAt": "2026-10-30T21:35:02.309Z",
   "host": {
     "cpu": "13th Gen Intel Core i7-13650HX"
   },
@@ -1159,6 +1159,941 @@
         }
       ],
       "note": "Cache-disabled visible replay. The slow render recorded 22 new renderer program entries; this establishes timing correlation, not the dominant material or compile-time cause."
+    },
+    {
+      "id": "gpu-cache-disabled-tokyo-program-owner-trace",
+      "startedAt": "2026-10-30T21:34:36.404Z",
+      "status": "visible-run-needs-review",
+      "runMode": "visible",
+      "targetDeviceConfirmed": false,
+      "renderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 4060 Laptop GPU (0x000028E0) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+      "browserLaunchArgs": [
+        "--disable-gpu-program-cache"
+      ],
+      "segments": {
+        "tokyoArrival": {
+          "durationMs": 5449.6,
+          "frameCount": 56,
+          "p95Ms": 350,
+          "maxFrameMs": 2566,
+          "framesOver500Ms": 2
+        },
+        "edinburghArrival": {
+          "durationMs": 3563.4,
+          "frameCount": 126,
+          "p95Ms": 66.8,
+          "maxFrameMs": 383.3,
+          "framesOver500Ms": 0
+        }
+      },
+      "cityReadiness": {
+        "Tokyo": {
+          "cellsSettled": true,
+          "loadedCellCount": 9,
+          "failedCellCount": 0,
+          "loadedTiles": 1,
+          "flatFallback": false
+        },
+        "Edinburgh": {
+          "cellsSettled": true,
+          "loadedCellCount": 9,
+          "failedCellCount": 0,
+          "loadedTiles": 1,
+          "flatFallback": false
+        }
+      },
+      "errors": {
+        "console": 0,
+        "page": 0,
+        "http": 0,
+        "requestFailures": 0
+      },
+      "profile": {
+        "city": "Tokyo",
+        "segment": "tokyoArrival",
+        "startedAtPageMs": 5634.299999952316,
+        "endedAtPageMs": 11048.5,
+        "sampleCount": 3205,
+        "sampledDurationMs": 5372.9,
+        "profileAttribution": "full call-stack keyed; overlapping Long Tasks only",
+        "longestOverlappingLongTask": {
+          "startTimeMs": 8428,
+          "durationMs": 2551,
+          "sampledMs": 2551,
+          "topFrames": [
+            {
+              "functionName": "getProgramInfoLog",
+              "sampledSelfMs": 2487.1,
+              "callStack": "(root) > ai > tr > (anonymous) > qualityTier > render > render > render > render > e3 > e4 > e9 > renderBufferDirect > (anonymous) > getUniforms > T > getProgramInfoLog"
+            },
+            {
+              "functionName": "getShaderInfoLog",
+              "sampledSelfMs": 19.3,
+              "callStack": "(root) > ai > tr > (anonymous) > qualityTier > render > render > render > render > e3 > e4 > e9 > renderBufferDirect > (anonymous) > getUniforms > T > getShaderInfoLog"
+            },
+            {
+              "functionName": "shaderSource",
+              "sampledSelfMs": 5,
+              "callStack": "(root) > ai > tr > (anonymous) > qualityTier > render > render > render > render > e3 > e4 > e9 > renderBufferDirect > (anonymous) > e5 > acquireProgram > to > eX > shaderSource"
+            },
+            {
+              "functionName": "getParameters",
+              "sampledSelfMs": 3.2,
+              "callStack": "(root) > ai > tr > (anonymous) > qualityTier > render > render > render > render > e3 > e4 > e9 > renderBufferDirect > (anonymous) > e5 > getParameters"
+            },
+            {
+              "functionName": "getProgramInfoLog",
+              "sampledSelfMs": 3.1,
+              "callStack": "(root) > ai > tr > (anonymous) > qualityTier > render > render > render > _renderOverride > render > e3 > e4 > e9 > renderBufferDirect > (anonymous) > getUniforms > T > getProgramInfoLog"
+            }
+          ]
+        }
+      },
+      "programKeyComparison": {
+        "earlierProgramId": 3,
+        "laterProgramId": 48,
+        "shaderKeySuffix": "ground-detail-v1",
+        "changedParameterIndex": 38,
+        "changedParameter": "numSpotLights",
+        "earlierValue": 2,
+        "laterValue": 6
+      },
+      "correlatedEvents": [
+        {
+          "type": "timing",
+          "name": "environment.pmrem-build",
+          "atMs": 6443.6,
+          "durationMs": 477.8,
+          "details": {
+            "width": 512,
+            "height": 256,
+            "failed": false
+          }
+        },
+        {
+          "type": "mark",
+          "name": "ktx2-high-textures-ready",
+          "atMs": 7178.1,
+          "details": {
+            "transcodeFormats": {
+              "facade-near-basecolor": 36492,
+              "facade-near-normal": 36492,
+              "facade-near-roughness": 36492,
+              "facade-near-emissive": 36492
+            },
+            "transferBytes": 6269843,
+            "transferMs": 69.80000019073486,
+            "decoderBytes": 0,
+            "mipLevels": {
+              "facade-near-basecolor": 12,
+              "facade-near-normal": 12,
+              "facade-near-roughness": 12,
+              "facade-near-emissive": 12
+            },
+            "workerLimit": 2,
+            "estimatedGpuBytes": 17889344,
+            "estimatedTotalGpuBytes": 19287520,
+            "textureCountDelta": 4,
+            "compileAndTranscodeMs": 278,
+            "uploadSubmitMs": 8.700000047683716
+          }
+        },
+        {
+          "type": "timing",
+          "name": "renderer.long-frame-programs",
+          "atMs": 10979.3,
+          "durationMs": 2549.8,
+          "details": {
+            "programCountBefore": 48,
+            "programCountAfter": 71,
+            "newProgramCount": 23,
+            "newPrograms": [
+              {
+                "id": 48,
+                "type": "MeshStandardMaterial",
+                "usedTimes": 8,
+                "cacheKeyPrefix": "physical,STANDARD,,highp,srgb-linear,306,512,uv,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,false,0,,0,1,0,6,0,1,0,0,1,0,0,0,0,1,0,0,0,0,8388624,8520707,srgb,ground-detail-v1",
+                "ownerCount": 8,
+                "owners": [
+                  {
+                    "cellKey": null,
+                    "objectType": "Mesh",
+                    "objectName": null,
+                    "materialType": "MeshStandardMaterial",
+                    "materialName": null,
+                    "materialFamily": null
+                  },
+                  {
+                    "cellKey": null,
+                    "objectType": "Mesh",
+                    "objectName": null,
+                    "materialType": "MeshStandardMaterial",
+                    "materialName": null,
+                    "materialFamily": null
+                  },
+                  {
+                    "cellKey": null,
+                    "objectType": "Mesh",
+                    "objectName": null,
+                    "materialType": "MeshStandardMaterial",
+                    "materialName": null,
+                    "materialFamily": null
+                  },
+                  {
+                    "cellKey": null,
+                    "objectType": "Mesh",
+                    "objectName": null,
+                    "materialType": "MeshStandardMaterial",
+                    "materialName": null,
+                    "materialFamily": null
+                  },
+                  {
+                    "cellKey": null,
+                    "objectType": "Mesh",
+                    "objectName": null,
+                    "materialType": "MeshStandardMaterial",
+                    "materialName": null,
+                    "materialFamily": null
+                  },
+                  {
+                    "cellKey": null,
+                    "objectType": "Mesh",
+                    "objectName": null,
+                    "materialType": "MeshStandardMaterial",
+                    "materialName": null,
+                    "materialFamily": null
+                  }
+                ]
+              },
+              {
+                "id": 49,
+                "type": "MeshStandardMaterial",
+                "usedTimes": 6,
+                "cacheKeyPrefix": "physical,STANDARD,,highp,srgb-linear,306,512,uv,false,false,false,false,uv,false,uv,false,uv,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,false,0,,0,1,0,6,0,1,0,0,1,0,0,0,0,1,0,0,0,0,8389712,8520707,srgb,wtw-building-atlas-interior-v3",
+                "ownerCount": 7,
+                "owners": [
+                  {
+                    "cellKey": null,
+                    "objectType": "Mesh",
+                    "objectName": null,
+                    "materialType": "MeshStandardMaterial",
+                    "materialName": null,
+                    "materialFamily": "other"
+                  },
+                  {
+                    "cellKey": null,
+                    "objectType": "Mesh",
+                    "objectName": null,
+                    "materialType": "MeshStandardMaterial",
+                    "materialName": null,
+                    "materialFamily": "concrete"
+                  },
+                  {
+                    "cellKey": null,
+                    "objectType": "Mesh",
+                    "objectName": null,
+                    "materialType": "MeshStandardMaterial",
+                    "materialName": null,
+                    "materialFamily": "metal"
+                  },
+                  {
+                    "cellKey": null,
+                    "objectType": "Mesh",
+                    "objectName": null,
+                    "materialType": "MeshStandardMaterial",
+                    "materialName": null,
+                    "materialFamily": "glass"
+                  },
+                  {
+                    "cellKey": null,
+                    "objectType": "Mesh",
+                    "objectName": null,
+                    "materialType": "MeshStandardMaterial",
+                    "materialName": null,
+                    "materialFamily": "other"
+                  },
+                  {
+                    "cellKey": null,
+                    "objectType": "Mesh",
+                    "objectName": null,
+                    "materialType": "MeshStandardMaterial",
+                    "materialName": null,
+                    "materialFamily": "brick"
+                  }
+                ]
+              },
+              {
+                "id": 50,
+                "type": "MeshStandardMaterial",
+                "usedTimes": 2,
+                "cacheKeyPrefix": "physical,STANDARD,,highp,srgb-linear,306,512,false,false,false,false,false,uv,false,false,false,uv,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,false,0,,0,1,0,6,0,1,0,0,1,0,0,0,0,1,0,0,0,0,8388688,8520707,srgb,onBeforeCompile(){}",
+                "ownerCount": 3,
+                "owners": [
+                  {
+                    "cellKey": null,
+                    "objectType": "Mesh",
+                    "objectName": null,
+                    "materialType": "MeshStandardMaterial",
+                    "materialName": null,
+                    "materialFamily": null
+                  },
+                  {
+                    "cellKey": null,
+                    "objectType": "Mesh",
+                    "objectName": null,
+                    "materialType": "MeshStandardMaterial",
+                    "materialName": null,
+                    "materialFamily": null
+                  },
+                  {
+                    "cellKey": "wtw_city6_35.660_139.706",
+                    "objectType": "Mesh",
+                    "objectName": null,
+                    "materialType": "MeshStandardMaterial",
+                    "materialName": null,
+                    "materialFamily": null
+                  }
+                ]
+              },
+              {
+                "id": 51,
+                "type": "MeshStandardMaterial",
+                "usedTimes": 2,
+                "cacheKeyPrefix": "physical,STANDARD,,highp,srgb-linear,306,512,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,false,0,,0,1,0,6,0,1,0,0,1,0,0,0,0,1,0,0,0,0,8388624,8520707,srgb,onBeforeCompile(){}",
+                "ownerCount": 48,
+                "owners": [
+                  {
+                    "cellKey": null,
+                    "objectType": "Mesh",
+                    "objectName": "rooftop-clutter",
+                    "materialType": "MeshStandardMaterial",
+                    "materialName": null,
+                    "materialFamily": null
+                  },
+                  {
+                    "cellKey": null,
+                    "objectType": "Mesh",
+                    "objectName": null,
+                    "materialType": "MeshStandardMaterial",
+                    "materialName": null,
+                    "materialFamily": null
+                  },
+                  {
+                    "cellKey": null,
+                    "objectType": "Mesh",
+                    "objectName": null,
+                    "materialType": "MeshStandardMaterial",
+                    "materialName": null,
+                    "materialFamily": null
+                  },
+                  {
+                    "cellKey": null,
+                    "objectType": "Mesh",
+                    "objectName": null,
+                    "materialType": "MeshStandardMaterial",
+                    "materialName": null,
+                    "materialFamily": null
+                  },
+                  {
+                    "cellKey": null,
+                    "objectType": "Mesh",
+                    "objectName": null,
+                    "materialType": "MeshStandardMaterial",
+                    "materialName": null,
+                    "materialFamily": null
+                  },
+                  {
+                    "cellKey": null,
+                    "objectType": "Mesh",
+                    "objectName": null,
+                    "materialType": "MeshStandardMaterial",
+                    "materialName": null,
+                    "materialFamily": null
+                  }
+                ]
+              },
+              {
+                "id": 52,
+                "type": "MeshStandardMaterial",
+                "usedTimes": 1,
+                "cacheKeyPrefix": "physical,STANDARD,,highp,srgb-linear,306,512,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,false,0,,0,1,0,6,0,1,0,0,1,0,0,0,0,1,0,0,0,0,8389648,8520707,srgb,onBeforeCompile(){}",
+                "ownerCount": 2,
+                "owners": [
+                  {
+                    "cellKey": null,
+                    "objectType": "Mesh",
+                    "objectName": null,
+                    "materialType": "MeshStandardMaterial",
+                    "materialName": null,
+                    "materialFamily": null
+                  },
+                  {
+                    "cellKey": "wtw_city6_35.660_139.706",
+                    "objectType": "Mesh",
+                    "objectName": null,
+                    "materialType": "MeshStandardMaterial",
+                    "materialName": null,
+                    "materialFamily": null
+                  }
+                ]
+              },
+              {
+                "id": 53,
+                "type": "MeshStandardMaterial",
+                "usedTimes": 1,
+                "cacheKeyPrefix": "physical,STANDARD,,highp,srgb-linear,306,512,uv,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,false,0,,0,1,0,6,0,1,0,0,1,0,0,0,0,1,0,0,0,0,8388624,8522755,srgb,onBeforeCompile(){}",
+                "ownerCount": 1,
+                "owners": [
+                  {
+                    "cellKey": null,
+                    "objectType": "Mesh",
+                    "objectName": null,
+                    "materialType": "MeshStandardMaterial",
+                    "materialName": null,
+                    "materialFamily": null
+                  }
+                ]
+              },
+              {
+                "id": 54,
+                "type": "MeshStandardMaterial",
+                "usedTimes": 2,
+                "cacheKeyPrefix": "physical,STANDARD,,highp,srgb-linear,306,512,uv,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,false,0,,0,1,0,6,0,1,0,0,1,0,0,0,0,1,0,0,0,0,8388624,8520707,srgb,onBeforeCompile(){}",
+                "ownerCount": 3,
+                "owners": [
+                  {
+                    "cellKey": null,
+                    "objectType": "Mesh",
+                    "objectName": null,
+                    "materialType": "MeshStandardMaterial",
+                    "materialName": null,
+                    "materialFamily": null
+                  },
+                  {
+                    "cellKey": null,
+                    "objectType": "Mesh",
+                    "objectName": null,
+                    "materialType": "MeshStandardMaterial",
+                    "materialName": null,
+                    "materialFamily": null
+                  },
+                  {
+                    "cellKey": "wtw_city6_35.660_139.706",
+                    "objectType": "Mesh",
+                    "objectName": null,
+                    "materialType": "MeshStandardMaterial",
+                    "materialName": null,
+                    "materialFamily": null
+                  }
+                ]
+              },
+              {
+                "id": 55,
+                "type": "MeshStandardMaterial",
+                "usedTimes": 1,
+                "cacheKeyPrefix": "physical,STANDARD,,highp,srgb-linear,306,512,false,false,false,false,false,uv,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,false,0,,0,1,0,6,0,1,0,0,1,0,0,0,0,1,0,0,0,0,8388688,8520707,srgb,onBeforeCompile(){}",
+                "ownerCount": 2,
+                "owners": [
+                  {
+                    "cellKey": null,
+                    "objectType": "Mesh",
+                    "objectName": null,
+                    "materialType": "MeshStandardMaterial",
+                    "materialName": null,
+                    "materialFamily": null
+                  },
+                  {
+                    "cellKey": "wtw_city6_35.660_139.706",
+                    "objectType": "Mesh",
+                    "objectName": null,
+                    "materialType": "MeshStandardMaterial",
+                    "materialName": null,
+                    "materialFamily": null
+                  }
+                ]
+              },
+              {
+                "id": 56,
+                "type": "MeshStandardMaterial",
+                "usedTimes": 1,
+                "cacheKeyPrefix": "physical,STANDARD,,highp,srgb-linear,306,512,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,false,0,,0,1,0,6,0,1,0,0,1,0,0,0,0,1,0,0,0,0,8389649,8520711,srgb,onBeforeCompile(){}",
+                "ownerCount": 2,
+                "owners": [
+                  {
+                    "cellKey": null,
+                    "objectType": "Mesh",
+                    "objectName": null,
+                    "materialType": "MeshStandardMaterial",
+                    "materialName": null,
+                    "materialFamily": null
+                  },
+                  {
+                    "cellKey": "wtw_city6_35.660_139.706",
+                    "objectType": "Mesh",
+                    "objectName": null,
+                    "materialType": "MeshStandardMaterial",
+                    "materialName": null,
+                    "materialFamily": null
+                  }
+                ]
+              },
+              {
+                "id": 57,
+                "type": "MeshStandardMaterial",
+                "usedTimes": 1,
+                "cacheKeyPrefix": "physical,STANDARD,,highp,srgb-linear,306,512,uv,false,false,false,false,uv,false,false,false,uv,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,false,0,,0,1,0,6,0,1,0,0,1,0,0,0,0,1,0,0,0,0,8388688,8522755,srgb,onBeforeCompile(){}",
+                "ownerCount": 26,
+                "owners": [
+                  {
+                    "cellKey": null,
+                    "objectType": "Mesh",
+                    "objectName": null,
+                    "materialType": "MeshStandardMaterial",
+                    "materialName": null,
+                    "materialFamily": null
+                  },
+                  {
+                    "cellKey": null,
+                    "objectType": "Mesh",
+                    "objectName": null,
+                    "materialType": "MeshStandardMaterial",
+                    "materialName": null,
+                    "materialFamily": null
+                  },
+                  {
+                    "cellKey": null,
+                    "objectType": "Mesh",
+                    "objectName": null,
+                    "materialType": "MeshStandardMaterial",
+                    "materialName": null,
+                    "materialFamily": null
+                  },
+                  {
+                    "cellKey": null,
+                    "objectType": "Mesh",
+                    "objectName": null,
+                    "materialType": "MeshStandardMaterial",
+                    "materialName": null,
+                    "materialFamily": null
+                  },
+                  {
+                    "cellKey": null,
+                    "objectType": "Mesh",
+                    "objectName": null,
+                    "materialType": "MeshStandardMaterial",
+                    "materialName": null,
+                    "materialFamily": null
+                  },
+                  {
+                    "cellKey": null,
+                    "objectType": "Mesh",
+                    "objectName": null,
+                    "materialType": "MeshStandardMaterial",
+                    "materialName": null,
+                    "materialFamily": null
+                  }
+                ]
+              },
+              {
+                "id": 58,
+                "type": "MeshStandardMaterial",
+                "usedTimes": 2,
+                "cacheKeyPrefix": "physical,STANDARD,,highp,srgb-linear,306,512,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,false,0,,0,1,0,6,0,1,0,0,1,0,0,0,0,1,0,0,0,0,8388624,8522755,srgb,onBeforeCompile(){}",
+                "ownerCount": 47,
+                "owners": [
+                  {
+                    "cellKey": null,
+                    "objectType": "Mesh",
+                    "objectName": null,
+                    "materialType": "MeshStandardMaterial",
+                    "materialName": null,
+                    "materialFamily": null
+                  },
+                  {
+                    "cellKey": null,
+                    "objectType": "Mesh",
+                    "objectName": null,
+                    "materialType": "MeshStandardMaterial",
+                    "materialName": null,
+                    "materialFamily": null
+                  },
+                  {
+                    "cellKey": null,
+                    "objectType": "Mesh",
+                    "objectName": null,
+                    "materialType": "MeshStandardMaterial",
+                    "materialName": null,
+                    "materialFamily": null
+                  },
+                  {
+                    "cellKey": null,
+                    "objectType": "Mesh",
+                    "objectName": null,
+                    "materialType": "MeshStandardMaterial",
+                    "materialName": null,
+                    "materialFamily": null
+                  },
+                  {
+                    "cellKey": null,
+                    "objectType": "Mesh",
+                    "objectName": null,
+                    "materialType": "MeshStandardMaterial",
+                    "materialName": null,
+                    "materialFamily": null
+                  },
+                  {
+                    "cellKey": null,
+                    "objectType": "Mesh",
+                    "objectName": null,
+                    "materialType": "MeshStandardMaterial",
+                    "materialName": null,
+                    "materialFamily": null
+                  }
+                ]
+              },
+              {
+                "id": 59,
+                "type": "MeshLambertMaterial",
+                "usedTimes": 3,
+                "cacheKeyPrefix": "lambert,highp,srgb-linear,306,512,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,1,0,6,0,1,0,0,1,0,0,0,0,1,0,0,0,0,8388624,8520707,srgb,onBeforeCompile(){}",
+                "ownerCount": 3,
+                "owners": [
+                  {
+                    "cellKey": null,
+                    "objectType": "Mesh",
+                    "objectName": null,
+                    "materialType": "MeshLambertMaterial",
+                    "materialName": null,
+                    "materialFamily": null
+                  },
+                  {
+                    "cellKey": null,
+                    "objectType": "Mesh",
+                    "objectName": null,
+                    "materialType": "MeshLambertMaterial",
+                    "materialName": null,
+                    "materialFamily": null
+                  },
+                  {
+                    "cellKey": null,
+                    "objectType": "Mesh",
+                    "objectName": null,
+                    "materialType": "MeshLambertMaterial",
+                    "materialName": null,
+                    "materialFamily": null
+                  }
+                ]
+              },
+              {
+                "id": 60,
+                "type": "MeshPhongMaterial",
+                "usedTimes": 1,
+                "cacheKeyPrefix": "phong,highp,srgb-linear,306,512,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,1,0,6,0,1,0,0,1,0,0,0,0,1,0,0,0,0,8388627,8520707,srgb,wtw-walk-ped-color-v2",
+                "ownerCount": 1,
+                "owners": [
+                  {
+                    "cellKey": null,
+                    "objectType": "Mesh",
+                    "objectName": null,
+                    "materialType": "MeshPhongMaterial",
+                    "materialName": null,
+                    "materialFamily": null
+                  }
+                ]
+              },
+              {
+                "id": 61,
+                "type": "MeshLambertMaterial",
+                "usedTimes": 1,
+                "cacheKeyPrefix": "lambert,highp,srgb-linear,306,512,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,1,0,6,0,1,0,0,1,0,0,0,0,1,0,0,0,0,8388627,8520707,srgb,onBeforeCompile(){}",
+                "ownerCount": 1,
+                "owners": [
+                  {
+                    "cellKey": null,
+                    "objectType": "Mesh",
+                    "objectName": null,
+                    "materialType": "MeshLambertMaterial",
+                    "materialName": null,
+                    "materialFamily": null
+                  }
+                ]
+              },
+              {
+                "id": 62,
+                "type": "MeshBasicMaterial",
+                "usedTimes": 4,
+                "cacheKeyPrefix": "basic,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,1,0,6,0,1,0,0,1,0,0,0,0,1,0,0,0,0,8388608,8522755,srgb,onBeforeCompile(){}",
+                "ownerCount": 4,
+                "owners": [
+                  {
+                    "cellKey": null,
+                    "objectType": "Mesh",
+                    "objectName": null,
+                    "materialType": "MeshBasicMaterial",
+                    "materialName": null,
+                    "materialFamily": null
+                  },
+                  {
+                    "cellKey": null,
+                    "objectType": "Mesh",
+                    "objectName": null,
+                    "materialType": "MeshBasicMaterial",
+                    "materialName": null,
+                    "materialFamily": null
+                  },
+                  {
+                    "cellKey": null,
+                    "objectType": "Mesh",
+                    "objectName": null,
+                    "materialType": "MeshBasicMaterial",
+                    "materialName": null,
+                    "materialFamily": null
+                  },
+                  {
+                    "cellKey": null,
+                    "objectType": "Mesh",
+                    "objectName": null,
+                    "materialType": "MeshBasicMaterial",
+                    "materialName": null,
+                    "materialFamily": null
+                  }
+                ]
+              },
+              {
+                "id": 63,
+                "type": "MeshStandardMaterial",
+                "usedTimes": 17,
+                "cacheKeyPrefix": "physical,STANDARD,,highp,srgb-linear,306,512,uv,false,false,false,false,uv,false,false,false,uv,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,false,0,,0,1,0,6,0,1,0,0,1,0,0,0,0,1,0,0,0,0,8388688,8520707,srgb,onBeforeCompile(){}",
+                "ownerCount": 41,
+                "owners": [
+                  {
+                    "cellKey": null,
+                    "objectType": "Mesh",
+                    "objectName": null,
+                    "materialType": "MeshStandardMaterial",
+                    "materialName": null,
+                    "materialFamily": null
+                  },
+                  {
+                    "cellKey": null,
+                    "objectType": "Mesh",
+                    "objectName": null,
+                    "materialType": "MeshStandardMaterial",
+                    "materialName": null,
+                    "materialFamily": null
+                  },
+                  {
+                    "cellKey": null,
+                    "objectType": "Mesh",
+                    "objectName": null,
+                    "materialType": "MeshStandardMaterial",
+                    "materialName": null,
+                    "materialFamily": null
+                  },
+                  {
+                    "cellKey": null,
+                    "objectType": "Mesh",
+                    "objectName": null,
+                    "materialType": "MeshStandardMaterial",
+                    "materialName": null,
+                    "materialFamily": null
+                  },
+                  {
+                    "cellKey": null,
+                    "objectType": "Mesh",
+                    "objectName": null,
+                    "materialType": "MeshStandardMaterial",
+                    "materialName": null,
+                    "materialFamily": null
+                  },
+                  {
+                    "cellKey": null,
+                    "objectType": "Mesh",
+                    "objectName": null,
+                    "materialType": "MeshStandardMaterial",
+                    "materialName": null,
+                    "materialFamily": null
+                  }
+                ]
+              },
+              {
+                "id": 64,
+                "type": "MeshStandardMaterial",
+                "usedTimes": 1,
+                "cacheKeyPrefix": "physical,STANDARD,,highp,srgb-linear,306,512,uv,false,false,false,false,uv,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,false,0,,0,1,0,6,0,1,0,0,1,0,0,0,0,1,0,0,0,0,8388688,8522755,srgb,onBeforeCompile(){}",
+                "ownerCount": 1,
+                "owners": [
+                  {
+                    "cellKey": null,
+                    "objectType": "Mesh",
+                    "objectName": null,
+                    "materialType": "MeshStandardMaterial",
+                    "materialName": null,
+                    "materialFamily": null
+                  }
+                ]
+              },
+              {
+                "id": 65,
+                "type": "MeshLambertMaterial",
+                "usedTimes": 1,
+                "cacheKeyPrefix": "lambert,highp,srgb-linear,306,512,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,1,0,6,0,1,0,0,1,0,0,0,0,1,0,0,0,0,8388624,8389635,srgb,onBeforeCompile(){}",
+                "ownerCount": 1,
+                "owners": [
+                  {
+                    "cellKey": null,
+                    "objectType": "Mesh",
+                    "objectName": null,
+                    "materialType": "MeshLambertMaterial",
+                    "materialName": null,
+                    "materialFamily": null
+                  }
+                ]
+              },
+              {
+                "id": 66,
+                "type": "MeshBasicMaterial",
+                "usedTimes": 5,
+                "cacheKeyPrefix": "basic,highp,srgb-linear,false,,uv,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,1,0,6,0,1,0,0,1,0,0,0,0,1,0,0,0,0,8388608,8393731,srgb,onBeforeCompile(){}",
+                "ownerCount": 5,
+                "owners": [
+                  {
+                    "cellKey": null,
+                    "objectType": "Mesh",
+                    "objectName": null,
+                    "materialType": "MeshBasicMaterial",
+                    "materialName": null,
+                    "materialFamily": null
+                  },
+                  {
+                    "cellKey": null,
+                    "objectType": "Mesh",
+                    "objectName": null,
+                    "materialType": "MeshBasicMaterial",
+                    "materialName": null,
+                    "materialFamily": null
+                  },
+                  {
+                    "cellKey": null,
+                    "objectType": "Mesh",
+                    "objectName": null,
+                    "materialType": "MeshBasicMaterial",
+                    "materialName": null,
+                    "materialFamily": null
+                  },
+                  {
+                    "cellKey": null,
+                    "objectType": "Mesh",
+                    "objectName": null,
+                    "materialType": "MeshBasicMaterial",
+                    "materialName": null,
+                    "materialFamily": null
+                  },
+                  {
+                    "cellKey": null,
+                    "objectType": "Mesh",
+                    "objectName": null,
+                    "materialType": "MeshBasicMaterial",
+                    "materialName": null,
+                    "materialFamily": null
+                  }
+                ]
+              },
+              {
+                "id": 67,
+                "type": "MeshBasicMaterial",
+                "usedTimes": 5,
+                "cacheKeyPrefix": "basic,highp,srgb-linear,false,,uv,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,1,0,6,0,1,0,0,1,0,0,0,0,1,0,0,0,0,8388608,8389635,srgb,onBeforeCompile(){}",
+                "ownerCount": 5,
+                "owners": [
+                  {
+                    "cellKey": null,
+                    "objectType": "Mesh",
+                    "objectName": null,
+                    "materialType": "MeshBasicMaterial",
+                    "materialName": null,
+                    "materialFamily": null
+                  },
+                  {
+                    "cellKey": null,
+                    "objectType": "Mesh",
+                    "objectName": null,
+                    "materialType": "MeshBasicMaterial",
+                    "materialName": null,
+                    "materialFamily": null
+                  },
+                  {
+                    "cellKey": null,
+                    "objectType": "Mesh",
+                    "objectName": null,
+                    "materialType": "MeshBasicMaterial",
+                    "materialName": null,
+                    "materialFamily": null
+                  },
+                  {
+                    "cellKey": null,
+                    "objectType": "Mesh",
+                    "objectName": null,
+                    "materialType": "MeshBasicMaterial",
+                    "materialName": null,
+                    "materialFamily": null
+                  },
+                  {
+                    "cellKey": null,
+                    "objectType": "Mesh",
+                    "objectName": null,
+                    "materialType": "MeshBasicMaterial",
+                    "materialName": null,
+                    "materialFamily": null
+                  }
+                ]
+              },
+              {
+                "id": 68,
+                "type": "MeshNormalMaterial",
+                "usedTimes": 1,
+                "cacheKeyPrefix": "normal,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,false,0,,0,1,0,6,0,1,0,0,1,0,0,0,0,1,0,0,0,0,8388609,8389633,srgb,onBeforeCompile(){}",
+                "ownerCount": 0,
+                "owners": []
+              },
+              {
+                "id": 69,
+                "type": "MeshNormalMaterial",
+                "usedTimes": 1,
+                "cacheKeyPrefix": "normal,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,false,0,,0,1,0,6,0,1,0,0,1,0,0,0,0,1,0,0,0,0,8388608,8389633,srgb,onBeforeCompile(){}",
+                "ownerCount": 0,
+                "owners": []
+              },
+              {
+                "id": 70,
+                "type": "MeshNormalMaterial",
+                "usedTimes": 1,
+                "cacheKeyPrefix": "normal,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,false,0,,0,1,0,6,0,1,0,0,1,0,0,0,0,1,0,0,0,0,8388611,8389633,srgb,onBeforeCompile(){}",
+                "ownerCount": 0,
+                "owners": []
+              }
+            ]
+          }
+        },
+        {
+          "type": "timing",
+          "name": "city.cell-load",
+          "atMs": 10997.4,
+          "durationMs": 2722.6,
+          "details": {}
+        },
+        {
+          "type": "timing",
+          "name": "city.neighbor-assembly-total",
+          "atMs": 11038.7,
+          "durationMs": 2752.4,
+          "details": {
+            "elements": 1499,
+            "prebuilt": false
+          }
+        }
+      ],
+      "note": "Cache-disabled visible replay on i7-13650HX. New program owners included terrain ground-detail and shared building-wall materials. The ground-detail key changed only in Three.js numSpotLights (2 to 6), matching addition of the four-light high-tier streetlamp pool after spawn-city warmup; A/B validation remains pending."
     }
   ],
   "screenshots": {

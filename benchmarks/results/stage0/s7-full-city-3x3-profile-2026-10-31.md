@@ -23,15 +23,16 @@ not the target i5-1035G1 acceptance run.
 | GPU program cache disabled, Tokyo profiled | 2,549.5 / 349.6 ms | 366.5 / 83.3 ms |
 | GPU program cache disabled, 32-frame stack | 2,532.4 / 333.3 ms | 449.8 / 50.0 ms |
 | GPU program cache disabled, frame-program diagnostic | 2,482.7 / 433.2 ms | 449.9 / 49.9 ms |
+| GPU program cache disabled, program-owner trace | 2,566.0 / 350.0 ms | 383.3 / 66.8 ms |
 
 The first Tokyo arrival contained two frames over 500 ms, including a 2,582.9
 ms frame and a 2,586 ms Long Task. Three ordinary repeats reached
-832.8–850.1 ms. Three additional tours launched Chrome with
-`--disable-gpu-program-cache` and reproduced 2.48–2.55 s Tokyo arrival
-frames. That makes the stall reproducible when the program cache
-is disabled; those forced-cache runs are diagnostic and are not ordinary S7
-timing runs. Edinburgh stayed below 500 ms in the four ordinary captures and
-all three cache-disabled captures.
+832.8–850.1 ms. Four additional tours launched Chrome with
+`--disable-gpu-program-cache` and reproduced 2.48–2.57 s Tokyo arrival frames.
+That makes the stall reproducible when the program cache is disabled; those
+forced-cache runs are diagnostic and are not ordinary S7 timing runs.
+Edinburgh stayed below 500 ms in the four ordinary captures and all four
+cache-disabled captures.
 
 ## CPU profile findings
 
@@ -67,15 +68,29 @@ interval for 1,499 elements; the corresponding `city.cell-load` interval was
 overlap identifies the time window but does not prove cell assembly caused the
 render-path stall.
 
-In the third cache-disabled capture, a 2,483 ms Long Task contained 2,480 ms
-of samples, including 2,416.9 ms in `getProgramInfoLog` on the same ordinary
-render path. The PMREM path accounted for 430.6 ms elsewhere in that arrival.
-During the 2,482.2 ms render frame, `renderer.info.programs` grew from 48 to 70
-entries. The 22 new program records included `ground-detail-v1` and
-`wtw-building-atlas-interior-v3` material variants, alongside Standard,
-Lambert, Phong, Basic, and Normal material variants. This ties first-use
-program creation to the slow frame, but does not identify which material
-accounts for most of the compile time.
+The third cache-disabled capture sampled a 2,483 ms Long Task, including
+2,416.9 ms in `getProgramInfoLog` on the same ordinary render path. During the
+2,482.2 ms render frame, `renderer.info.programs` grew from 48 to 70 entries.
+
+The fourth cache-disabled capture added a material-owner trace. Its 2,551 ms
+Long Task was fully sampled, with 2,487.1 ms in `getProgramInfoLog`. The slow
+2,549.8 ms render frame added 23 programs (48 to 71). The trace associated
+`ground-detail-v1` with eight terrain materials and
+`wtw-building-atlas-interior-v3` with seven building materials across five
+material families. Several ordinary material variants were also used by the
+adjacent cell `wtw_city6_35.660_139.706`; three `MeshNormalMaterial` variants
+had no direct `object.material` owner in the scene scan.
+
+Comparing the first terrain program in this run with its new slow-frame variant
+showed one cache-key difference: Three.js `numSpotLights` changed from 2 to 6.
+The scene starts with two vehicle-headlight spotlights. After the spawn city is
+assembled and its shader warmup completes, `syncStreetLightQuality` can add a
+four-light streetlamp pool at high quality. Three.js includes the spotlight
+count in each lit material's program key, so this order explains why the later
+render sees new lit-material variants. The key match is strong evidence for
+the cause of the program burst; an A/B warmup run is still needed to measure
+the performance effect. The cache-key comparison used Three.js 0.186.1's
+`WebGLPrograms.getProgramCacheKeyParameters` and its `numSpotLights` field.
 
 ## Visual check and next work
 
@@ -85,8 +100,8 @@ show the street surfaces and assembled city geometry on this host. Both cities
 reported a loaded terrain tile without flat fallback. This does not replace
 the target-device ground and terrain review.
 
-Next, map the 22 new program variants to the scene materials and test targeted
-warmup for the responsible variants. Then repeat the visible gate and terrain
-review on the target i5-1035G1. S7 remains open. The
+Next, create the high-quality streetlamp pool before the spawn-city shader
+warmup and compare a cache-disabled replay to the baseline. Then repeat the
+visible gate and terrain review on the target i5-1035G1. S7 remains open. The
 [machine-readable summary](s7-full-city-3x3-2026-10-31.json) contains the
 complete cell request list and profile captures.
