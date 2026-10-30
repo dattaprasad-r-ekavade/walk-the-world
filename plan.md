@@ -224,10 +224,12 @@ Open:
   pre-compiling PMREM's blur and GGX materials with `compileAsync` before the
   first `setTime` left a 2.1 s frame in the continuation (no gain on this
   ANGLE/D3D11 driver); (b) warming the whole scene instead of the city group
-  produced a 2.9 s frame inside the `compileAsync` poll. Next candidates:
-  build the boot environment while the loading screen is static (hide the
-  canvas so a freeze is not visible), or replace the PMREM sky with a smaller
-  prefiltered environment. Surrounding terrain visuals are now started one per
+  produced a 2.9 s frame inside the `compileAsync` poll. Source order confirms
+  the first PMREM build runs before input-ready while the loading screen is up.
+  The startup canvas is now hidden until input-ready, masking the visible scene
+  freeze; it does not reduce the PMREM stall or time to interaction. Replacing
+  the PMREM sky with a smaller prefiltered environment remains an optimization
+  candidate. Surrounding terrain visuals are started one per
   animation frame, cardinal neighbours first, to spread canvas texture uploads;
   this change still needs a target-laptop profile and a visual check of ground
   imagery and hills. A 31 Oct headless production smoke confirmed `26cb647` was
@@ -236,6 +238,9 @@ Open:
   p95 16.9 ms; this is not hardware evidence and does not cover walking, travel,
   night switch, or visible terrain relief. See the [smoke report](benchmarks/results/stage0/s7-live-terrain-stagger-2026-10-31.md)
   and [capture](screenshots/performance-visuals/stage0/s7-terrain-stagger/edinburgh-live-headless-2026-10-31.jpg).
+  The local production-build capture also confirmed that the canvas remains
+  hidden while the loading screen is visible and appears when input-ready; see
+  the [loader capture](benchmarks/results/stage0/s7-loader-canvas-2026-10-31.md).
 - [ ] **S8 — Walking cost on weak GPUs.** Walking is GPU-bound on Intel UHD
   (fill rate, not draw calls). Candidates, in order: cheaper interior-window
   shader at distance (drop the ray-box sample beyond about 40 m instead of

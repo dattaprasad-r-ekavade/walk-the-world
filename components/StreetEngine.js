@@ -2428,7 +2428,11 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false, demo
 
   return (
     <main>
-      <div ref={mountRef} className="cesium-container" />
+      <div
+        ref={mountRef}
+        className="cesium-container"
+        style={{ visibility: readyPct < 100 ? "hidden" : "visible" }}
+      />
       {readyPct < 100 && (
         <LoadingScreen title="STREET ENGINE" pct={readyPct} stage={stage} />
       )}
