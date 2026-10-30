@@ -1,11 +1,13 @@
 # Walk the World — Performance and Visuals Implementation Plan
 
-Updated: 30 October 2026. Reviewed base: `87d26dc` on `origin/main`.
+Updated: 30 October 2026. Reviewed base: `19caebb` on `origin/main`.
 Demo gates D1–D8 are closed. The smoothness track (section 0a) closed S1–S6 from
 live-deploy profiling; S7–S9 stay open. S7 has a candidate fix (`be2ff98`,
 off-thread tile decode) awaiting one target-laptop run. The `87d26dc`
-interior-window cutoff was reverted: no repeatable gain, shorter interior
-view. The dependency audit gate below is open.
+interior-window cutoff was reverted: its gain was not repeatable and it shortened
+the interior view. A separate far-facade detail fade was rejected after GPU-timer
+p95 increased in all four cities. S8 next needs the render-scale candidate and
+target-laptop measurement. The dependency audit gate below is open.
 This is the active plan. The [previous detailed checkpoint](docs/PLAN-CHECKPOINT-2026-10-28-BEFORE-REVIEW.md)
 preserves the full experiment history; its status is historical.
 
@@ -206,17 +208,18 @@ Open:
   shader at distance (drop the ray-box sample beyond about 40 m instead of
   fading it), simpler distant buildings (feeds C2), then a lower default render
   scale on integrated GPUs. Acceptance: matched four-city captures and walk p95
-  improvement of at least 10% on the Intel laptop. The `87d26dc` cutoff
-  completes the room fade by 40 m. Its matched 21:00, 8-second, four-city replay
-  on the i7-13650HX host showed a pooled 7.0% frame-p95 gain over seven valid
-  pairs; the mean GPU-timer p95 increased 3.8%, and the improvement was not
-  consistent across cities or rounds. The earlier 12:00 live-data baseline
-  (Tokyo 27.9 ms, Pune 14.1 ms, Edinburgh 20.9 ms, New York 20.9 ms) had zero
-  interior-window glow and is not evidence for this shader change. S8 remains
-  open: use simpler distant buildings as the next candidate, then measure on
-  the target i5-1035G1 laptop. Decision (30 Oct): the cutoff is reverted to the
-  40–60 m fade. The gain was not repeatable, and interiors disappeared sooner;
-  the shader keeps its early return beyond 60 m. See the [cutoff comparison report](benchmarks/results/stage0/s8-interior-distance-cutoff-2026-10-30.md).
+  improvement of at least 10% on the Intel laptop. Decision (30 Oct): the
+  `87d26dc` interior-window cutoff was reverted to the 40–60 m fade because its
+  frame-p95 gain was not repeatable and it shortened interior visibility. The
+  earlier 12:00 live-data baseline (Tokyo 27.9 ms, Pune 14.1 ms, Edinburgh
+  20.9 ms, New York 20.9 ms) had zero interior-window glow and is not evidence
+  for the shader change. A follow-up facade/normal detail fade from 45–60 m
+  changed frame p95 by -5.5% on average, but GPU-timer p95 increased 4.4% in
+  all four cities; that candidate was rejected and is not retained. Next
+  evaluate a lower default render scale on integrated GPUs, then measure on the
+  target i5-1035G1 laptop. See the [cutoff comparison
+  report](benchmarks/results/stage0/s8-interior-distance-cutoff-2026-10-30.md)
+  and [far-detail report](benchmarks/results/stage0/s8-far-building-detail-2026-10-30.md).
 - [ ] **S9 — Intermittent globe hang after orbit plus zoom.** Seen only under
   scripted input; the browser trace showed no long page or GPU task, so it is
   most likely an automation artefact. Check once with a real mouse and wheel;
