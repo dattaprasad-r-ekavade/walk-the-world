@@ -402,5 +402,72 @@
     "page": [],
     "requests": []
   },
-  "screenshot": "screenshots/performance-visuals/stage0/s7-full-3x3-shadowdiag/tokyo-three-by-three-2026-10-31.png"
+  "screenshot": "screenshots/performance-visuals/stage0/s7-full-3x3-shadowdiag/tokyo-three-by-three-2026-10-31.png",
+  "edinburghTerrainReview": {
+    "capturedAt": "2026-10-30T23:22:55.775Z",
+    "location": {
+      "lat": 55.9505,
+      "lon": -3.1875,
+      "cell": "wtw_city6_55.950_-3.188"
+    },
+    "browserRenderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 4060 Laptop GPU (0x000028E0) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+    "residentCityCells": 9,
+    "pendingCityCells": 0,
+    "cityElements": 30778.0,
+    "elevationTileResponses": 9,
+    "groundImageryTileResponses": 36,
+    "tileStatuses": [
+      200
+    ],
+    "httpErrors": [],
+    "requestFailures": [],
+    "consoleErrors": [],
+    "pageErrors": [],
+    "groundHeightSamples": {
+      "gridSize": "5x5",
+      "spacingMeters": 150,
+      "sampleCount": 25,
+      "minimumMeters": 57.5,
+      "maximumMeters": 95.3,
+      "rangeMeters": 37.8,
+      "values": [
+        [
+          75.2,
+          58.7,
+          81,
+          95.3,
+          86.9
+        ],
+        [
+          70.6,
+          65.9,
+          90.9,
+          93,
+          90.8
+        ],
+        [
+          66.9,
+          64.8,
+          86,
+          81.9,
+          84.7
+        ],
+        [
+          58.6,
+          63.5,
+          77.1,
+          75.3,
+          92.4
+        ],
+        [
+          59.4,
+          57.5,
+          70.2,
+          71.2,
+          81.6
+        ]
+      ]
+    },
+    "screenshot": "screenshots/performance-visuals/stage0/s7-full-3x3-shadowdiag/edinburgh-elevated-2026-10-31.png"
+  }
 }

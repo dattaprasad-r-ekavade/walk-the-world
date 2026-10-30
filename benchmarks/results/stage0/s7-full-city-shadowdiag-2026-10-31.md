@@ -26,6 +26,18 @@ shows visible buildings, roadway, sidewalk, and ground texture. This street
 view is in a flat urban area and does not show whether surrounding terrain
 relief is correct.
 
+## Edinburgh ground and terrain spot-check
+
+A second visible local replay at Edinburgh coordinates loaded all nine city
+cells (30,778 OSM elements). Nine Terrarium elevation tile responses and 36
+Carto ground-imagery responses returned HTTP 200; there were no HTTP errors,
+request failures, console errors, or page errors. A 5×5 `groundHeight` sample
+grid at 150 m spacing ranged from 57.5 m to 95.3 m, a 37.8 m elevation range.
+The [elevated capture](../../../screenshots/performance-visuals/stage0/s7-full-3x3-shadowdiag/edinburgh-elevated-2026-10-31.png)
+shows the loaded city and ground layers. This confirms local image and height
+data are present, but it is not a terrain accuracy review against an external
+reference and it was not captured on the target i5.
+
 ## Method and limits
 
 The local production build was served at `/street` and routed to a recorded

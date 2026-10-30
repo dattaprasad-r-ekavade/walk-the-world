@@ -361,10 +361,15 @@ Open:
   diagnostic records newly added shader programs even on frames below 50 ms;
   the replay found no such additions. Its screenshot shows the street ground,
   roadway and buildings, but the flat urban view cannot establish terrain
-  relief. This does not cover the full globe tour or the target i5. Keep S7 open.
+  relief. A second Edinburgh review loaded nine elevation and 36 ground-imagery
+  tiles with HTTP 200; a 5×5 height sample ranged 37.8 m across 600 m. This
+  confirms local data presence, but not target-device behavior or reference
+  terrain accuracy. Neither capture covers the full globe tour or the target
+  i5. Keep S7 open.
   See the [full-city shader diagnostic report](benchmarks/results/stage0/s7-full-city-shadowdiag-2026-10-31.md),
   [JSON capture](benchmarks/results/stage0/s7-full-city-shadowdiag-2026-10-31.json),
-  and [screenshot](screenshots/performance-visuals/stage0/s7-full-3x3-shadowdiag/tokyo-three-by-three-2026-10-31.png).
+  [Tokyo screenshot](screenshots/performance-visuals/stage0/s7-full-3x3-shadowdiag/tokyo-three-by-three-2026-10-31.png),
+  and [Edinburgh terrain screenshot](screenshots/performance-visuals/stage0/s7-full-3x3-shadowdiag/edinburgh-elevated-2026-10-31.png).
 - [ ] **S8 — Walking cost on weak GPUs.** Walking is GPU-bound on Intel UHD
   (fill rate, not draw calls). Candidates, in order: cheaper interior-window
   shader at distance (drop the ray-box sample beyond about 40 m instead of
