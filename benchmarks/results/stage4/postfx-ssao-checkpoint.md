@@ -47,11 +47,12 @@ for SSAO cost.
 ## Decision and remaining work
 
 Keep the shipped High SSAO default unchanged for now. The measured integrated-GPU
-savings are substantial, and the screenshots suggest a modest visual tradeoff,
-but this project has no approved visual acceptance across close-up roads,
-building corners, other GPUs or mobile. Do not claim Stage 4.5 complete until
-the remaining bloom halo and daylight review plus a device-appropriate contact
-shading decision are recorded.
+savings are substantial, and the screenshots suggest a modest visual tradeoff.
+The follow-up [Stage 4.5 closeout report](stage45-postfx-acceptance-2026-10-30.md)
+records visible soft night halos and a broader wet-road reflection with bloom,
+no material noon washout, and no clearly visible extra facade contact from SSAO
+at the tested pose. Those captures are desktop Intel UHD evidence; mobile
+acceptance remains part of the Stage 4 exit gate.
 
 Reproduce a 12-second state with `--ssao-mode on` or `--ssao-mode off` while
 keeping `--preset high`; the runner verifies the actual pass state in its saved

@@ -6,6 +6,8 @@
  * Environment lifecycle audit: --environment-audit [--environment-audit-cycles <count>] [--engine-teardown-audit].
  * Engine teardown audit: --engine-teardown-audit [--engine-teardown-cycles <count>].
  * Wet-road audit: --wet-road-map-audit [--screenshot-before-walk --screenshot <path>].
+ * High-tier post FX isolation: --ssao-mode preset|on|off --bloom-mode preset|on|off.
+ * Matched pass screenshots: --postfx-pair bloom|ssao --screenshot-before-walk --screenshot <path>.
  */
 import { chromium } from 'playwright';
 import { writeFileSync, mkdirSync, readFileSync } from 'fs';
@@ -62,6 +64,8 @@ const route = option('--route', '/street');
 const qualityPreset = option('--preset', 'medium');
 const qualityMode = option('--quality-mode', 'manual');
 const ssaoMode = option('--ssao-mode', 'preset');
+const bloomMode = option('--bloom-mode', 'preset');
+const postFxPairMode = option('--postfx-pair', 'none');
 const postFxMode = option('--postfx-mode', 'preset');
 const inactiveLightsMode = option('--inactive-lights', 'visible');
 const wetRoadMapMode = option('--wet-road-map', 'baseline');
@@ -120,9 +124,20 @@ if (!['preset', 'on', 'off'].includes(ssaoMode)) throw new Error('--ssao-mode mu
 if (ssaoMode !== 'preset' && qualityPreset !== 'high') {
   throw new Error('--ssao-mode on/off controls the high-tier SSAO pass and requires --preset high');
 }
+if (!['preset', 'on', 'off'].includes(bloomMode)) throw new Error('--bloom-mode must be preset, on, or off');
+if (bloomMode !== 'preset' && qualityPreset !== 'high') {
+  throw new Error('--bloom-mode on/off controls the high-tier bloom pass and requires --preset high');
+}
 if (!['preset', 'off'].includes(postFxMode)) throw new Error('--postfx-mode must be preset or off');
-if (postFxMode !== 'preset' && ssaoMode !== 'preset') {
-  throw new Error('--postfx-mode off cannot be combined with a custom --ssao-mode');
+if (postFxMode !== 'preset' && (ssaoMode !== 'preset' || bloomMode !== 'preset')) {
+  throw new Error('--postfx-mode off cannot be combined with custom --ssao-mode or --bloom-mode');
+}
+if (!['none', 'bloom', 'ssao'].includes(postFxPairMode)) throw new Error('--postfx-pair must be none, bloom, or ssao');
+if (postFxPairMode !== 'none' && (qualityPreset !== 'high' || postFxMode !== 'preset' || ssaoMode !== 'preset' || bloomMode !== 'preset')) {
+  throw new Error('--postfx-pair requires --preset high and preset --postfx-mode, --ssao-mode and --bloom-mode');
+}
+if (postFxPairMode !== 'none' && (!screenshotBeforeWalk || !screenshotPath)) {
+  throw new Error('--postfx-pair requires --screenshot-before-walk and --screenshot <path>');
 }
 if (!['visible', 'hidden'].includes(inactiveLightsMode)) {
   throw new Error('--inactive-lights must be visible or hidden');
@@ -870,12 +885,6 @@ async function benchStreet(page) {
     environmentAudit.wetIntensityObserved = environmentAudit.final.envMapIntensityValues.some((value) => Math.abs(value - 2.71) < 0.001);
     if (!environmentAudit.stable || !environmentAudit.wetIntensityObserved) throw new Error(`Environment audit failed: ${JSON.stringify(environmentAudit)}`);
   }
-  if (screenshotBeforeWalk) {
-    await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
-    mkdirSync(dirname(screenshotPath), { recursive: true });
-    await page.screenshot({ path: screenshotPath, animations: 'disabled' });
-    console.log(`    pre-walk screenshot: ${screenshotPath}`);
-  }
   if (driving) {
     await page.keyboard.press('c');
     await page.waitForFunction(() => window.__streetDebug?.vehicle?.active === true, null, { timeout: 5000 });
@@ -957,10 +966,20 @@ async function benchStreet(page) {
     if (!state || state.postFxActive !== false || state.bloomActive !== false || state.ssaoActive !== false) {
       throw new Error(`Could not disable post-processing passes: ${JSON.stringify(state)}`);
     }
-  } else if (ssaoMode !== 'preset') {
-    const state = await page.evaluate((ssao) => window.__streetDebug?.setPostFxState?.({ active: true, ssao }), ssaoMode === 'on');
-    if (!state || state.postFxActive !== true || state.bloomActive !== true || state.ssaoActive !== (ssaoMode === 'on')) {
-      throw new Error(`Could not apply the requested high-tier SSAO state (${ssaoMode})`);
+  } else if (postFxPairMode !== 'none') {
+    const state = await page.evaluate(() => window.__streetDebug?.setPostFxState?.({ active: true, ssao: false, bloom: false }));
+    if (!state || state.postFxActive !== true || state.bloomActive !== false || state.ssaoActive !== false) {
+      throw new Error(`Could not apply the post-processing pair baseline: ${JSON.stringify(state)}`);
+    }
+  } else if (ssaoMode !== 'preset' || bloomMode !== 'preset') {
+    const requestedState = {
+      active: true,
+      ssao: ssaoMode === 'preset' ? true : ssaoMode === 'on',
+      bloom: bloomMode === 'preset' ? true : bloomMode === 'on',
+    };
+    const state = await page.evaluate((postFxState) => window.__streetDebug?.setPostFxState?.(postFxState), requestedState);
+    if (!state || state.postFxActive !== true || state.bloomActive !== requestedState.bloom || state.ssaoActive !== requestedState.ssao) {
+      throw new Error(`Could not apply the requested high-tier post-processing state: ${JSON.stringify({ requestedState, state })}`);
     }
   }
   if (qualityPreset === 'high') {
@@ -1114,6 +1133,32 @@ async function benchStreet(page) {
       if (!valid) throw new Error(`Street-light ${before.fromHour}:00 → ${toHour}:00 transition was not captured correctly: ${JSON.stringify(phase)}`);
       lightTransitionDiagnostics.push(phase);
     }
+  }
+  let postFxPairImages = null;
+  if (postFxPairMode !== 'none') {
+    postFxPairImages = [];
+    const states = postFxPairMode === 'bloom'
+      ? [{ label: 'off', ssao: false, bloom: false }, { label: 'on', ssao: false, bloom: true }]
+      : [{ label: 'off', ssao: false, bloom: false }, { label: 'on', ssao: true, bloom: false }];
+    for (const pairState of states) {
+      const state = await page.evaluate(({ ssao, bloom }) =>
+        window.__streetDebug?.setPostFxState?.({ active: true, ssao, bloom }), pairState);
+      if (!state || state.postFxActive !== true || state.ssaoActive !== pairState.ssao || state.bloomActive !== pairState.bloom) {
+        throw new Error(`Could not apply the ${postFxPairMode} visual-pair state: ${JSON.stringify({ pairState, state })}`);
+      }
+      await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+      await page.waitForTimeout(250);
+      const pairPath = screenshotPath.replace(/(\.[^.\\/]+)?$/u, `-${pairState.label}$1`);
+      mkdirSync(dirname(pairPath), { recursive: true });
+      await page.screenshot({ path: pairPath, animations: 'disabled' });
+      postFxPairImages.push({ state: pairState.label, path: pairPath });
+      console.log(`    pre-walk ${postFxPairMode} ${pairState.label}: ${pairPath}`);
+    }
+  } else if (screenshotBeforeWalk) {
+    await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+    mkdirSync(dirname(screenshotPath), { recursive: true });
+    await page.screenshot({ path: screenshotPath, animations: 'disabled' });
+    console.log(`    pre-walk screenshot: ${screenshotPath}`);
   }
   // Let renderer/program changes settle before the measured window, then clear
   // any long transition interval produced by the first frame after the change.
@@ -1437,6 +1482,7 @@ async function benchStreet(page) {
   return {
     loadMs,
     avgFps,
+    postFxPairImages,
     movement: {
       start: playerStart,
       end: metrics.player,
@@ -1520,7 +1566,7 @@ async function main() {
   mkdirSync(dirname(outPath), { recursive: true });
 
   console.log(`  Fixture: ${fixturePath}`);
-  console.log(`  Route: ${route}; data: ${dataMode}; cache: ${cacheMode}; preset: ${qualityPreset} (${qualityMode}); post FX: ${postFxMode}; SSAO: ${ssaoMode}; inactive lights: ${inactiveLightsMode}; light transition: ${lightTransitionEnabled}; geometry workers: ${geometryWorkers}; city data copy: ${cityDataCopyMode}; road query: ${roadQueryMode}; browser: ${browserChannel}; renderer: ${rendererMode}; hour: ${benchmarkEnvironment.hour}; weather: ${benchmarkEnvironment.weather}; walk: ${walkDurationMs}ms${crossCell ? '; crossing a cell boundary' : ''}${resourceSoakEnabled ? '; resource soak' : ''}${streamLifecycleEnabled ? '; streamed lamp lifecycle' : ''}`);
+  console.log(`  Route: ${route}; data: ${dataMode}; cache: ${cacheMode}; preset: ${qualityPreset} (${qualityMode}); post FX: ${postFxMode}; SSAO: ${ssaoMode}; bloom: ${bloomMode}; post FX pair: ${postFxPairMode}; inactive lights: ${inactiveLightsMode}; light transition: ${lightTransitionEnabled}; geometry workers: ${geometryWorkers}; city data copy: ${cityDataCopyMode}; road query: ${roadQueryMode}; browser: ${browserChannel}; renderer: ${rendererMode}; hour: ${benchmarkEnvironment.hour}; weather: ${benchmarkEnvironment.weather}; walk: ${walkDurationMs}ms${crossCell ? '; crossing a cell boundary' : ''}${resourceSoakEnabled ? '; resource soak' : ''}${streamLifecycleEnabled ? '; streamed lamp lifecycle' : ''}`);
 
   const launchOptions = {
     headless: !headed,
@@ -1701,6 +1747,8 @@ async function main() {
       qualityPreset,
       qualityMode,
       ssaoMode,
+      bloomMode,
+      postFxPairMode,
       postFxMode,
       inactiveLightsMode,
       wetRoadMapMode,
@@ -1791,11 +1839,11 @@ async function main() {
         wetRoadMap.candidateCount !== (wetRoadMapCandidateActive ? wetRoadMap.materialCount : 0)) {
       throw new Error(`Captured road-map state did not match --wet-road-map ${wetRoadMapMode}: ${JSON.stringify(wetRoadMap)}`);
     }
-    if (postFxMode === 'preset' && ssaoMode !== 'preset' && (
-      result.street.settings?.ssaoActive !== (ssaoMode === 'on') ||
-      result.street.settings?.bloomActive !== true
+    if (postFxMode === 'preset' && (ssaoMode !== 'preset' || bloomMode !== 'preset') && (
+      result.street.settings?.ssaoActive !== (ssaoMode === 'preset' ? true : ssaoMode === 'on') ||
+      result.street.settings?.bloomActive !== (bloomMode === 'preset' ? true : bloomMode === 'on')
     )) {
-      throw new Error(`Captured post-processing state did not match --ssao-mode ${ssaoMode}: ${JSON.stringify(result.street.settings)}`);
+      throw new Error(`Captured post-processing state did not match --ssao-mode ${ssaoMode} --bloom-mode ${bloomMode}: ${JSON.stringify(result.street.settings)}`);
     }
     if (qualityPreset === 'high' && inactiveLightsMode === 'hidden' && !result.street.streetLighting?.pool) {
       throw new Error('Captured high-tier scene did not contain the street-light pool for the hidden-light comparison');

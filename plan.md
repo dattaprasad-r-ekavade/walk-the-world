@@ -800,12 +800,17 @@ Publication is separate release work.
   [Policy report](benchmarks/results/stage4/inactive-light-policy-checkpoint.md),
   [stream lifecycle](benchmarks/results/stage4/lamp-stream-lifecycle.md).
   Device labels are reconciled in R6; mobile portability remains open.
-- [ ] 4.5 Finish bloom halo/daytime washout review and compare cheaper contact
-  shading before changing High defaults. Quality/time pass states are corrected.
-  Five same-tier runs: High SSAO+bloom median GPU p95 33.81 ms versus 15.65 ms
-  bloom-only; ranges did not overlap. Matched views show subtle contact darkening.
-  Keep defaults until close-up/mobile acceptance; validate R3 teardown.
-  [SSAO report](benchmarks/results/stage4/postfx-ssao-checkpoint.md).
+- [x] 4.5 Finish bloom halo/daytime washout review and compare cheaper contact
+  shading before changing High defaults. Same-page High captures show a soft
+  visible halo around lit windows and a broader wet-road lamp reflection with
+  bloom on; noon bloom causes no material washout. At the close facade pose,
+  SSAO adds no clearly visible contact contrast over the existing batched tile
+  shadows. The five-run pass comparison still shows a large Intel UHD cost for
+  SSAO (33.81 ms GPU p95 versus 15.65 ms bloom-only, non-overlapping ranges).
+  Keep High defaults unchanged pending mobile review; R3 teardown is validated.
+  See the [Stage 4.5 closeout](benchmarks/results/stage4/stage45-postfx-acceptance-2026-10-30.md),
+  [SSAO comparison](benchmarks/results/stage4/postfx-ssao-checkpoint.md), and
+  [R3 teardown audit](benchmarks/results/stage4/r3-postfx-teardown-2026-10-30.md).
 - [ ] 4.6 Retain quantized PMREM/shadow updates; validate R2 ownership. Measure
   small-object shadow pruning and contact approximations without losing important
   silhouettes. Do not regenerate environments every frame.
@@ -990,8 +995,10 @@ performance evidence. Complete five repetitions per scenario; a short smoke
 does not replace the full matrix.
 
 For same-tier post-FX diagnostics, `--ssao-mode on|off` requires `--preset high`
-and keeps bloom active while toggling only SSAO. Saved metadata and the run fail
-if the requested pass state did not persist through the measurement.
+and keeps bloom active while toggling only SSAO. `--bloom-mode on|off` isolates
+bloom, and `--postfx-pair bloom|ssao` captures off/on screenshots sequentially
+in one browser page at the same pose. Saved metadata and the run fail if the
+requested pass state did not persist through the measurement.
 
 Proposed evidence locations:
 

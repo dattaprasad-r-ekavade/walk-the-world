@@ -624,7 +624,7 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false, demo
       }
       const postFxState = postFxOverride || getPostFxPassState(quality, currentStreetLightNight);
       // an auto step keeps the composer as it is (see getPostFxPassState)
-      postFx.setEnabled(postFxState.active, postFxState.ssao, auto ? postFx.composerActive : postFxState.composer);
+      postFx.setEnabled(postFxState.active, postFxState.ssao, auto ? postFx.composerActive : postFxState.composer, postFxState.bloom);
       setPerfMetadata({
         qualityTier: quality,
         pixelRatio: renderer.getPixelRatio(),
@@ -699,7 +699,7 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false, demo
       // sky/fog go deep blue-black, non-emissive fill drops so lamps read.
       const postFxState = postFxOverride || getPostFxPassState(qualityTier, winGlow);
       // time of day only toggles effects; the composer stays as the tier set it
-      postFx.setEnabled(postFxState.active, postFxState.ssao, postFx.composerActive);
+      postFx.setEnabled(postFxState.active, postFxState.ssao, postFx.composerActive, postFxState.bloom);
       setPerfMetadata({
         hour,
         weather: weatherAmt * 100,
@@ -2025,10 +2025,11 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false, demo
         spawnFraming: () => runtime.current.spawnFraming || null,
         cellStream: () => runtime.current.cellStreamer?.debugState?.() || null,
         cityBuilder: () => cityBuilder.debugState(),
-        setPostFxState: ({ active, ssao }) => {
+        setPostFxState: ({ active, ssao, bloom }) => {
           if (!postFx) return null;
-          postFxOverride = { active: active === true, ssao: ssao === true };
-          postFx.setEnabled(active === true, ssao === true);
+          const bloomEnabled = bloom === undefined ? active === true : bloom === true;
+          postFxOverride = { active: active === true, ssao: ssao === true, bloom: bloomEnabled };
+          postFx.setEnabled(active === true, ssao === true, postFx.composerActive, bloomEnabled);
           const state = {
             postFxActive: postFx.active,
             ssaoActive: postFx.ssaoActive,
