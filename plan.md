@@ -1,10 +1,11 @@
 # Walk the World — Performance and Visuals Implementation Plan
 
-Updated: 31 October 2026. Reviewed base: `7af0734` on `origin/main`.
+Updated: 31 October 2026. Reviewed base: `4d761c7` on `origin/main`.
 Demo gates D1–D8 are closed. The smoothness track (section 0a) closed S1–S6 from
 live-deploy profiling; S7–S8 stay open. S9's real-input check did not reproduce
-the hang on 30 October. S7 has a candidate fix (`be2ff98`,
-off-thread tile decode) awaiting one target-laptop run. The `87d26dc`
+the hang on 30 October. S7 has two changes awaiting target-laptop confirmation:
+`be2ff98` decodes terrain images off the main thread, and surrounding terrain
+visuals now start one per animation frame to spread canvas uploads. The `87d26dc`
 interior-window cutoff was reverted: its gain was not repeatable and it shortened
 the interior view. A separate far-facade detail fade was rejected after GPU-timer
 p95 increased in all four cities. S8's 0.85 integrated-Intel render-scale
@@ -226,7 +227,10 @@ Open:
   produced a 2.9 s frame inside the `compileAsync` poll. Next candidates:
   build the boot environment while the loading screen is static (hide the
   canvas so a freeze is not visible), or replace the PMREM sky with a smaller
-  prefiltered environment; split the terrain canvas upload.
+  prefiltered environment. Surrounding terrain visuals are now started one per
+  animation frame, cardinal neighbours first, to spread canvas texture uploads;
+  this change still needs a target-laptop profile and a visual check of ground
+  imagery and hills.
 - [ ] **S8 — Walking cost on weak GPUs.** Walking is GPU-bound on Intel UHD
   (fill rate, not draw calls). Candidates, in order: cheaper interior-window
   shader at distance (drop the ray-box sample beyond about 40 m instead of
