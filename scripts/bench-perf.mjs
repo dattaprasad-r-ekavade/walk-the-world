@@ -5,6 +5,7 @@
  * Optional fixed walking pose: --pose-x <meters> --pose-z <meters> --heading <radians> [--pose-pitch <radians>].
  * Environment lifecycle audit: --environment-audit [--environment-audit-cycles <count>] [--engine-teardown-audit].
  * Engine teardown audit: --engine-teardown-audit [--engine-teardown-cycles <count>].
+ * Wet-road audit: --wet-road-map-audit [--screenshot-before-walk --screenshot <path>].
  */
 import { chromium } from 'playwright';
 import { writeFileSync, mkdirSync, readFileSync } from 'fs';
@@ -52,6 +53,7 @@ const screenshotOption = option('--screenshot', null);
 const screenshotPath = screenshotOption
   ? (isAbsolute(screenshotOption) ? screenshotOption : resolve(ROOT, screenshotOption))
   : null;
+const screenshotBeforeWalk = args.includes('--screenshot-before-walk');
 const dataMode = option('--data-mode', 'fixture');
 const fixtureOption = option('--fixture', join('benchmarks', 'fixtures', dataMode === 'recorded' ? 'rome-showcase-osm.json' : 'rome-minimal.json'));
 const fixturePath = isAbsolute(fixtureOption) ? fixtureOption : resolve(ROOT, fixtureOption);
@@ -63,6 +65,7 @@ const ssaoMode = option('--ssao-mode', 'preset');
 const postFxMode = option('--postfx-mode', 'preset');
 const inactiveLightsMode = option('--inactive-lights', 'visible');
 const wetRoadMapMode = option('--wet-road-map', 'baseline');
+const wetRoadMapAuditEnabled = args.includes('--wet-road-map-audit');
 const rendererMode = option('--renderer-mode', 'software');
 const browserChannel = option('--browser-channel', 'bundled');
 const walkDurationMs = Number(option('--walk-ms', '12000'));
@@ -125,7 +128,12 @@ if (!['visible', 'hidden'].includes(inactiveLightsMode)) {
   throw new Error('--inactive-lights must be visible or hidden');
 }
 if (!['baseline', 'candidate'].includes(wetRoadMapMode)) throw new Error('--wet-road-map must be baseline or candidate');
-if (wetRoadMapMode === 'candidate' && benchmarkEnvironment.weather < 30) throw new Error('--wet-road-map candidate requires weather >= 30');
+if (screenshotBeforeWalk && !screenshotPath) throw new Error('--screenshot-before-walk requires --screenshot');
+if (wetRoadMapAuditEnabled && (dataMode !== 'recorded' || qualityPreset !== 'high' || qualityMode !== 'manual' ||
+    rendererMode !== 'browser-default' || browserChannel !== 'chrome' || !headed || benchmarkEnvironment.hour !== 21 ||
+    benchmarkEnvironment.weather < 29 || !fixedPose || driving || crossCell)) {
+  throw new Error('--wet-road-map-audit requires recorded data, manual high quality, headed Chrome/browser-default, 21:00, weather >= 29, a fixed pose, and stationary walking');
+}
 if (inactiveLightsMode === 'hidden' && qualityPreset !== 'high') {
   throw new Error('--inactive-lights hidden requires --preset high');
 }
@@ -560,6 +568,49 @@ async function benchStreet(page) {
       });
     });
   }
+  if (wetRoadMapAuditEnabled) {
+    await page.addInitScript(() => {
+      let capturing = false;
+      let uploads = [];
+      const sourceSize = (method, args) => {
+        if (args.length >= 9) {
+          return method === 'texImage2D'
+            ? { width: Number(args[3]), height: Number(args[4]) }
+            : { width: Number(args[4]), height: Number(args[5]) };
+        }
+        const source = args[method === 'texImage2D' ? 5 : 6];
+        return {
+          width: Number(source?.videoWidth || source?.naturalWidth || source?.width || 0),
+          height: Number(source?.videoHeight || source?.naturalHeight || source?.height || 0),
+        };
+      };
+      const prototypes = new Set();
+      if (typeof WebGLRenderingContext !== 'undefined') prototypes.add(WebGLRenderingContext.prototype);
+      if (typeof WebGL2RenderingContext !== 'undefined') prototypes.add(WebGL2RenderingContext.prototype);
+      for (const proto of prototypes) {
+        for (const method of ['texImage2D', 'texSubImage2D']) {
+          if (!Object.hasOwn(proto, method)) continue;
+          const original = proto[method];
+          proto[method] = function (...args) {
+            if (!capturing) return original.apply(this, args);
+            const size = sourceSize(method, args);
+            const startedAt = performance.now();
+            try {
+              return original.apply(this, args);
+            } finally {
+              if (size.width === 64 && size.height === 64) {
+                uploads.push({ method, ...size, source: args[args.length - 1]?.constructor?.name || '', cpuSubmitMs: performance.now() - startedAt });
+              }
+            }
+          };
+        }
+      }
+      window.__wetRoadMapUploadAudit = {
+        begin() { uploads = []; capturing = true; },
+        finish() { capturing = false; return uploads.slice(); },
+      };
+    });
+  }
   if (environmentAuditEnabled) {
     await page.addInitScript((captureExtendedResources) => {
       const framebuffers = new Set(), renderbuffers = new Set(), textures = new Set(), programs = new Set();
@@ -745,10 +796,56 @@ async function benchStreet(page) {
   if (!playerStart) throw new Error('Street player debug state is unavailable');
   await page.bringToFront();
   await page.evaluate(() => window.focus());
-  const roadMapState = await page.evaluate((enabled) => window.__streetDebug?.setWetRoadMapCandidate?.(enabled), wetRoadMapMode === 'candidate');
-  if (!roadMapState || (wetRoadMapMode === 'candidate' && roadMapState.materialCount < 1) || roadMapState.enabled !== (wetRoadMapMode === 'candidate') ||
-      roadMapState.candidateCount !== (wetRoadMapMode === 'candidate' ? roadMapState.materialCount : 0)) {
+  const wetRoadMapTransition = await page.evaluate(async (enabled) => {
+    const debug = window.__streetDebug;
+    const audit = window.__wetRoadMapUploadAudit;
+    const textureCountBefore = debug?.rendererTextureCount?.() ?? null;
+    const shouldUpload = enabled && Number(window.__BENCH_ENVIRONMENT?.weather) >= 30;
+    audit?.begin();
+    const startedAt = performance.now();
+    const state = debug?.setWetRoadMapCandidate?.(enabled) ?? null;
+    let waitFrames = 0;
+    if (shouldUpload && Number.isFinite(textureCountBefore)) {
+      while (waitFrames < 120 && (debug?.rendererTextureCount?.() ?? textureCountBefore) <= textureCountBefore) {
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+        waitFrames++;
+      }
+    }
+    const textureCountAfter = debug?.rendererTextureCount?.() ?? null;
+    const firstResidencyMs = shouldUpload && Number.isFinite(textureCountBefore) &&
+      Number.isFinite(textureCountAfter) && textureCountAfter > textureCountBefore
+      ? performance.now() - startedAt
+      : null;
+    const uploadCalls = audit?.finish() || [];
+    return {
+      state,
+      shouldUpload,
+      textureCountBefore,
+      textureCountAfter,
+      textureCountDelta: Number.isFinite(textureCountBefore) && Number.isFinite(textureCountAfter)
+        ? textureCountAfter - textureCountBefore
+        : null,
+      waitFrames,
+      firstResidencyMs,
+      uploadCalls,
+      textureUploadCount: uploadCalls.length,
+      textureUploadCpuSubmitMs: uploadCalls.reduce((total, upload) => total + upload.cpuSubmitMs, 0),
+    };
+  }, wetRoadMapMode === 'candidate');
+  const roadMapState = wetRoadMapTransition.state;
+  const wetRoadMapCandidateActive = wetRoadMapMode === 'candidate' && benchmarkEnvironment.weather >= 30;
+  if (!roadMapState || (wetRoadMapCandidateActive && roadMapState.materialCount < 1) || roadMapState.enabled !== (wetRoadMapMode === 'candidate') ||
+      roadMapState.candidateCount !== (wetRoadMapCandidateActive ? roadMapState.materialCount : 0)) {
     throw new Error(`Could not apply --wet-road-map ${wetRoadMapMode}: ${JSON.stringify(roadMapState)}`);
+  }
+  if (wetRoadMapAuditEnabled) {
+    const expectedUpload = wetRoadMapTransition.shouldUpload;
+    const uploaded64x64 = wetRoadMapTransition.uploadCalls.some((upload) => upload.width === 64 && upload.height === 64);
+    const valid = expectedUpload
+      ? wetRoadMapTransition.textureCountDelta >= 1 && uploaded64x64 && wetRoadMapTransition.firstResidencyMs !== null
+      : wetRoadMapTransition.textureCountDelta === 0 && wetRoadMapTransition.uploadCalls.length === 0;
+    wetRoadMapTransition.validated = valid;
+    if (!valid) throw new Error(`Wet-road first-upload audit failed for ${wetRoadMapMode}: ${JSON.stringify(wetRoadMapTransition)}`);
   }
   if (wetRoadMapMode === 'candidate') await page.waitForTimeout(500);
   let environmentAudit = null;
@@ -772,6 +869,12 @@ async function benchStreet(page) {
       environmentAudit.snapshots.every((sample) => sample.framebuffers === first.framebuffers && sample.renderbuffers === first.renderbuffers);
     environmentAudit.wetIntensityObserved = environmentAudit.final.envMapIntensityValues.some((value) => Math.abs(value - 2.71) < 0.001);
     if (!environmentAudit.stable || !environmentAudit.wetIntensityObserved) throw new Error(`Environment audit failed: ${JSON.stringify(environmentAudit)}`);
+  }
+  if (screenshotBeforeWalk) {
+    await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+    mkdirSync(dirname(screenshotPath), { recursive: true });
+    await page.screenshot({ path: screenshotPath, animations: 'disabled' });
+    console.log(`    pre-walk screenshot: ${screenshotPath}`);
   }
   if (driving) {
     await page.keyboard.press('c');
@@ -1354,6 +1457,7 @@ async function benchStreet(page) {
     measurementWindow,
     lightTransitions: lightTransitionDiagnostics,
     environmentAudit,
+    wetRoadMapTransition,
     ktx2DisposalAudit,
     resourceSoak,
     resourceSamples: resourceSoakEnabled ? resourceSamples : undefined,
@@ -1600,6 +1704,8 @@ async function main() {
       postFxMode,
       inactiveLightsMode,
       wetRoadMapMode,
+      wetRoadMapAuditEnabled,
+      screenshotBeforeWalk,
       lightTransitionEnabled,
       environmentAuditEnabled,
       engineTeardownAuditEnabled,
@@ -1668,7 +1774,8 @@ async function main() {
       result.street.invalidLayoutFailureKind = invalidFacadeLayoutSchema ? 'schema-invalid-rectangle' : 'malformed-json';
       result.street.invalidLayoutFailureReason = reason;
     }
-    if (result.street.settings?.hour !== benchmarkEnvironment.hour || result.street.settings?.weather !== benchmarkEnvironment.weather) {
+    if (Math.abs(Number(result.street.settings?.hour) - benchmarkEnvironment.hour) > 1e-6 ||
+        Math.abs(Number(result.street.settings?.weather) - benchmarkEnvironment.weather) > 1e-6) {
       throw new Error(`Applied scene environment did not match the requested benchmark: ${JSON.stringify(result.street.settings)}`);
     }
     if (postFxMode === 'off' && (
@@ -1679,8 +1786,9 @@ async function main() {
       throw new Error(`Captured post-processing state did not match --postfx-mode off: ${JSON.stringify(result.street.settings)}`);
     }
     const wetRoadMap = result.street.wetRoadMap;
-    if (!wetRoadMap || (wetRoadMapMode === 'candidate' && wetRoadMap.materialCount < 1) || wetRoadMap.enabled !== (wetRoadMapMode === 'candidate') ||
-        wetRoadMap.candidateCount !== (wetRoadMapMode === 'candidate' ? wetRoadMap.materialCount : 0)) {
+    const wetRoadMapCandidateActive = wetRoadMapMode === 'candidate' && benchmarkEnvironment.weather >= 30;
+    if (!wetRoadMap || (wetRoadMapCandidateActive && wetRoadMap.materialCount < 1) || wetRoadMap.enabled !== (wetRoadMapMode === 'candidate') ||
+        wetRoadMap.candidateCount !== (wetRoadMapCandidateActive ? wetRoadMap.materialCount : 0)) {
       throw new Error(`Captured road-map state did not match --wet-road-map ${wetRoadMapMode}: ${JSON.stringify(wetRoadMap)}`);
     }
     if (postFxMode === 'preset' && ssaoMode !== 'preset' && (
@@ -1708,7 +1816,7 @@ async function main() {
       throw new Error(`The day/night light-transition capture is incomplete: ${JSON.stringify(result.street.lightTransitions)}`);
     }
     result.hostTelemetry = result.street.hostTelemetry;
-    if (screenshotPath) {
+    if (screenshotPath && !screenshotBeforeWalk) {
       mkdirSync(dirname(screenshotPath), { recursive: true });
       await page.screenshot({ path: screenshotPath, animations: 'disabled' });
       console.log(`    screenshot: ${screenshotPath}`);

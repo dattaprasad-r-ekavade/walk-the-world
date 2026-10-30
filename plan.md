@@ -572,17 +572,20 @@ reconciled. Preserve gameplay and fallbacks.
   [Latest service-worker report](benchmarks/results/stage3/service-worker-offline-miss-check-2026-10-30.md);
   [earlier cache-only report](benchmarks/results/stage3/service-worker-offline-check.md).
 
-- [ ] **R5 — P2, benchmark prototype: Wet-map transition and acceptance are unfinished.**
-  [materials.js:204](lib/engine/materials.js) swaps roughness textures at
-  `wetness >= 0.3`, creating a discontinuous pattern change. Review a gradual
-  transition or justify the threshold with captures. The draft adds a shared
-  64×64 texture in an existing sampler slot, but its first upload, residency,
-  appearance and matched performance have not been measured. The material test
-  checks map switching, not visual continuity or frame cost. It is now opt-in
-  for benchmarks; the product uses the baseline map. A matched five-second
-  smoke showed no clear road-specific visual gain; the sample is too short and
-  host load varied, so it cannot establish performance. See the [smoke report](benchmarks/results/stage4/wet-road-map-smoke.md).
-  Keep 4.3 open for further visual work.
+- [x] **R5 — P2: Evaluate the benchmark-only wet-road map.**
+  [materials.js](lib/engine/materials.js) switches to a shared 64×64
+  roughness texture at `wetness >= 0.3`; the product continues to use the
+  baseline map. A fixed-pose check confirmed no map/upload at weather 29 and
+  one shared 64×64 canvas upload at weather 31. Five baseline/candidate runs
+  per condition had identical frame-p95 medians (41.60 ms) and overlapping
+  ranges; GPU-p95 medians were 26.278 and 26.291 ms, also with overlapping
+  ranges. The first upload raised renderer texture count by one; its JS upload
+  submission took 0.0–0.1 ms, with first residency 4.1–22.3 ms. Matched
+  close-ups show the texture adds broken-up wet highlights at rain, while the
+  0.3 threshold makes a patchy pattern appear abruptly just above the switch.
+  No visual or performance gain justifies accepting it. Keep the baseline as
+  the product default and leave broader road tuning open in 4.3. See the
+  [matched capture and performance report](benchmarks/results/stage4/r5-wet-road-map-evaluation-2026-10-30.md).
 
 - [x] **R7 — P2: Close the current production-smoke diagnostics and live-data gap.**
   The current-main recorded-Rome run reached valid movement, but its browser
@@ -781,9 +784,10 @@ Publication is separate release work.
   weather; procedural textures are seeded and diffuse darkening is reversible.
   Five clear/rain runs had frame-p95 medians 33.9/33.6 ms; a matched seeded pair
   had 33.5 ms for both. Captures still show little road-specific change.
-  Complete R1 validation, then evaluate the benchmark wet-map draft/R5 with matched
-  captures, first-upload/memory accounting and repeated frame/GPU measurements.
-  [Current-code report](benchmarks/results/stage4/current-main-local-fallback-rome-night.md).
+  R1 is validated and R5's benchmark map was rejected: its threshold adds
+  patchy highlights without a measured frame/GPU benefit. Keep the baseline
+  map while broader close-up tuning remains open. See the [R5 evaluation](benchmarks/results/stage4/r5-wet-road-map-evaluation-2026-10-30.md) and
+  [current-code report](benchmarks/results/stage4/current-main-local-fallback-rome-night.md).
   Roughness/PMREM approximates wetness; SSR/planar reflection remains deferred.
 - [x] 4.4 Desktop four-light pool, quality/time transitions and streamed/evicted
   markers verified. Five static runs per policy: hiding inactive lights reduced
