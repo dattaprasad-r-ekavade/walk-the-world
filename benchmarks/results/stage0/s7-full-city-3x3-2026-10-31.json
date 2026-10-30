@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "evidenceType": "s7-full-city-3x3-profile-summary",
-  "recordedAt": "2026-10-30T21:56:26.205Z",
+  "recordedAt": "2026-10-30T22:02:47.520Z",
   "host": {
     "cpu": "13th Gen Intel Core i7-13650HX"
   },
@@ -2690,6 +2690,20 @@
         "--disable-gpu-program-cache"
       ],
       "segments": {
+        "globeStartup": {
+          "durationMs": 152.5,
+          "frameCount": 2,
+          "p95Ms": 16.7,
+          "maxFrameMs": 16.7,
+          "framesOver500Ms": 0
+        },
+        "globeTravelToTokyo": {
+          "durationMs": 3579.7,
+          "frameCount": 165,
+          "p95Ms": 50,
+          "maxFrameMs": 183.4,
+          "framesOver500Ms": 0
+        },
         "tokyoArrival": {
           "durationMs": 3890.5,
           "frameCount": 82,
@@ -2697,11 +2711,46 @@
           "maxFrameMs": 883.1,
           "framesOver500Ms": 1
         },
+        "tokyoArrivalCellSettle": {
+          "durationMs": 728,
+          "frameCount": 20,
+          "p95Ms": 116.6,
+          "maxFrameMs": 200,
+          "framesOver500Ms": 0
+        },
+        "walk": {
+          "durationMs": 5017.7,
+          "frameCount": 300,
+          "p95Ms": 16.8,
+          "maxFrameMs": 17.1,
+          "framesOver500Ms": 0
+        },
+        "nightSwitch": {
+          "durationMs": 2510.7,
+          "frameCount": 150,
+          "p95Ms": 16.8,
+          "maxFrameMs": 17,
+          "framesOver500Ms": 0
+        },
+        "streetTravelToEdinburgh": {
+          "durationMs": 1022.6,
+          "frameCount": 60,
+          "p95Ms": 16.9,
+          "maxFrameMs": 33.2,
+          "framesOver500Ms": 0
+        },
         "edinburghArrival": {
           "durationMs": 3638.8,
           "frameCount": 156,
           "p95Ms": 50,
           "maxFrameMs": 299.9,
+          "framesOver500Ms": 0
+        },
+        "edinburghArrivalCellSettle": {
+          "durationMs": 529.9,
+          "frameCount": 9,
+          "p95Ms": 166.6,
+          "maxFrameMs": 166.6,
           "framesOver500Ms": 0
         }
       },
@@ -2911,6 +2960,22 @@
         "tokyo-walk": "screenshots/performance-visuals/stage0/s7-tour-2026-10-30T21-51-16-999Z/tokyo-walk.jpg",
         "tokyo-night": "screenshots/performance-visuals/stage0/s7-tour-2026-10-30T21-51-16-999Z/tokyo-night.jpg",
         "edinburgh-arrival": "screenshots/performance-visuals/stage0/s7-tour-2026-10-30T21-51-16-999Z/edinburgh-arrival.jpg"
+      },
+      "acceptance": {
+        "measuredSegments": [
+          "walk",
+          "nightSwitch",
+          "globeTravelToTokyo",
+          "streetTravelToEdinburgh"
+        ],
+        "frameLimitPassed": true,
+        "noConsoleErrors": true,
+        "noHttpErrors": true,
+        "walkMoved": true,
+        "targetAdapterConfirmed": false,
+        "targetDeviceConfirmed": false,
+        "terrainVisualReviewRequired": true,
+        "performancePassed": false
       }
     },
     {
@@ -2922,6 +2987,20 @@
       "renderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 4060 Laptop GPU (0x000028E0) Direct3D11 vs_5_0 ps_5_0, D3D11)",
       "browserLaunchArgs": [],
       "segments": {
+        "globeStartup": {
+          "durationMs": 208.5,
+          "frameCount": 2,
+          "p95Ms": 16.6,
+          "maxFrameMs": 16.6,
+          "framesOver500Ms": 0
+        },
+        "globeTravelToTokyo": {
+          "durationMs": 3440.7,
+          "frameCount": 162,
+          "p95Ms": 49.9,
+          "maxFrameMs": 150,
+          "framesOver500Ms": 0
+        },
         "tokyoArrival": {
           "durationMs": 3899.2,
           "frameCount": 81,
@@ -2929,11 +3008,46 @@
           "maxFrameMs": 882.8,
           "framesOver500Ms": 1
         },
+        "tokyoArrivalCellSettle": {
+          "durationMs": 779.3,
+          "frameCount": 24,
+          "p95Ms": 100.2,
+          "maxFrameMs": 183.3,
+          "framesOver500Ms": 0
+        },
+        "walk": {
+          "durationMs": 5013.6,
+          "frameCount": 300,
+          "p95Ms": 16.9,
+          "maxFrameMs": 17,
+          "framesOver500Ms": 0
+        },
+        "nightSwitch": {
+          "durationMs": 2510.7,
+          "frameCount": 150,
+          "p95Ms": 16.8,
+          "maxFrameMs": 17,
+          "framesOver500Ms": 0
+        },
+        "streetTravelToEdinburgh": {
+          "durationMs": 994.8,
+          "frameCount": 58,
+          "p95Ms": 16.9,
+          "maxFrameMs": 33.8,
+          "framesOver500Ms": 0
+        },
         "edinburghArrival": {
           "durationMs": 3720.1,
           "frameCount": 140,
           "p95Ms": 67,
           "maxFrameMs": 249.8,
+          "framesOver500Ms": 0
+        },
+        "edinburghArrivalCellSettle": {
+          "durationMs": 253.1,
+          "frameCount": 6,
+          "p95Ms": 116.3,
+          "maxFrameMs": 116.3,
           "framesOver500Ms": 0
         }
       },
@@ -3143,7 +3257,302 @@
         "tokyo-walk": "screenshots/performance-visuals/stage0/s7-tour-2026-10-30T21-53-02-130Z/tokyo-walk.jpg",
         "tokyo-night": "screenshots/performance-visuals/stage0/s7-tour-2026-10-30T21-53-02-130Z/tokyo-night.jpg",
         "edinburgh-arrival": "screenshots/performance-visuals/stage0/s7-tour-2026-10-30T21-53-02-130Z/edinburgh-arrival.jpg"
+      },
+      "acceptance": {
+        "measuredSegments": [
+          "walk",
+          "nightSwitch",
+          "globeTravelToTokyo",
+          "streetTravelToEdinburgh"
+        ],
+        "frameLimitPassed": true,
+        "noConsoleErrors": true,
+        "noHttpErrors": true,
+        "walkMoved": true,
+        "targetAdapterConfirmed": false,
+        "targetDeviceConfirmed": false,
+        "terrainVisualReviewRequired": true,
+        "performancePassed": false
       }
+    },
+    {
+      "id": "normal-cache-tokyo-one-frame-yield-after-initial-pmrem",
+      "startedAt": "2026-10-30T22:01:12.937Z",
+      "status": "visible-run-needs-review",
+      "runMode": "visible",
+      "targetDeviceConfirmed": false,
+      "renderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 4060 Laptop GPU (0x000028E0) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+      "browserLaunchArgs": [],
+      "segments": {
+        "globeStartup": {
+          "durationMs": 119.1,
+          "frameCount": 2,
+          "p95Ms": 16.6,
+          "maxFrameMs": 16.6,
+          "framesOver500Ms": 0
+        },
+        "globeTravelToTokyo": {
+          "durationMs": 3343.4,
+          "frameCount": 164,
+          "p95Ms": 33.4,
+          "maxFrameMs": 149.8,
+          "framesOver500Ms": 0
+        },
+        "tokyoArrival": {
+          "durationMs": 3959.1,
+          "frameCount": 84,
+          "p95Ms": 150.1,
+          "maxFrameMs": 899.8,
+          "framesOver500Ms": 1
+        },
+        "tokyoArrivalCellSettle": {
+          "durationMs": 700.8,
+          "frameCount": 20,
+          "p95Ms": 99.9,
+          "maxFrameMs": 183.3,
+          "framesOver500Ms": 0
+        },
+        "walk": {
+          "durationMs": 5018.2,
+          "frameCount": 299,
+          "p95Ms": 16.9,
+          "maxFrameMs": 33.4,
+          "framesOver500Ms": 0
+        },
+        "nightSwitch": {
+          "durationMs": 2512.5,
+          "frameCount": 150,
+          "p95Ms": 16.9,
+          "maxFrameMs": 17,
+          "framesOver500Ms": 0
+        },
+        "streetTravelToEdinburgh": {
+          "durationMs": 1003.4,
+          "frameCount": 58,
+          "p95Ms": 16.8,
+          "maxFrameMs": 33.3,
+          "framesOver500Ms": 0
+        },
+        "edinburghArrival": {
+          "durationMs": 3876,
+          "frameCount": 138,
+          "p95Ms": 50.1,
+          "maxFrameMs": 749.7,
+          "framesOver500Ms": 1
+        },
+        "edinburghArrivalCellSettle": {
+          "durationMs": 636.9,
+          "frameCount": 20,
+          "p95Ms": 133.3,
+          "maxFrameMs": 183.3,
+          "framesOver500Ms": 0
+        }
+      },
+      "cityReadiness": {
+        "Tokyo": {
+          "cellsSettled": true,
+          "loadedCellCount": 9,
+          "failedCellCount": 0,
+          "loadedTiles": 1,
+          "flatFallback": false
+        },
+        "Edinburgh": {
+          "cellsSettled": true,
+          "loadedCellCount": 9,
+          "failedCellCount": 0,
+          "loadedTiles": 1,
+          "flatFallback": false
+        }
+      },
+      "errors": {
+        "console": 0,
+        "page": 0,
+        "http": 0,
+        "requestFailures": 0
+      },
+      "acceptance": {
+        "measuredSegments": [
+          "walk",
+          "nightSwitch",
+          "globeTravelToTokyo",
+          "streetTravelToEdinburgh"
+        ],
+        "frameLimitPassed": true,
+        "noConsoleErrors": true,
+        "noHttpErrors": true,
+        "walkMoved": true,
+        "targetAdapterConfirmed": false,
+        "targetDeviceConfirmed": false,
+        "terrainVisualReviewRequired": true,
+        "performancePassed": false
+      },
+      "profile": {
+        "city": "Tokyo",
+        "segment": "tokyoArrival",
+        "startedAtPageMs": 5711.600000143051,
+        "endedAtPageMs": 9640.400000095367,
+        "sampleCount": 2163,
+        "sampledDurationMs": 3901.8,
+        "profileAttribution": "full call-stack keyed; overlapping Long Tasks only",
+        "longestOverlappingLongTask": {
+          "startTimeMs": 5987.6,
+          "durationMs": 524,
+          "sampledMs": 524,
+          "topFrames": [
+            {
+              "functionName": "getProgramInfoLog",
+              "sampledSelfMs": 435.7,
+              "callStack": "(root) > (anonymous) > eo.current.setTime > eo.current.setTime > tb > apply > fromEquirectangular > _fromTexture > _applyPMREM > _applyGGXFilter > render > e3 > e4 > e9 > renderBufferDirect > (anonymous) > getUniforms > T > getProgramInfoLog"
+            },
+            {
+              "functionName": "getExtension",
+              "sampledSelfMs": 23.7,
+              "callStack": "(root) > (anonymous) > eo.current.setTime > eo.current.setTime > tb > apply > fromEquirectangular > _fromTexture > _textureToCubeUV > setRenderTarget > setupRenderTarget > R > has > n > getExtension"
+            },
+            {
+              "functionName": "getProgramInfoLog",
+              "sampledSelfMs": 15.9,
+              "callStack": "(root) > (anonymous) > eo.current.setTime > eo.current.setTime > tb > apply > fromEquirectangular > _fromTexture > _textureToCubeUV > render > e3 > e4 > e9 > renderBufferDirect > (anonymous) > getUniforms > T > getProgramInfoLog"
+            },
+            {
+              "functionName": "getExtension",
+              "sampledSelfMs": 3.5,
+              "callStack": "uS > uw > uS > uw > uS > uw > uS > uw > uS > uw > uS > uw > uS > uw > uS > uw > uS > uw > uS > uw > uS > uw > uS > e > e > iE > (anonymous) > tG > eV > init > n > getExtension"
+            },
+            {
+              "functionName": "render",
+              "sampledSelfMs": 3.5,
+              "callStack": "(root) > (anonymous) > eo.current.setTime > eo.current.setTime > tb > apply > fromEquirectangular > _fromTexture > _textureToCubeUV > render"
+            },
+            {
+              "functionName": "(anonymous)",
+              "sampledSelfMs": 3.4,
+              "callStack": "uw > uS > uw > uS > uw > uS > uw > uS > uw > uS > uw > uS > uw > uS > uw > uS > uw > uS > uw > uS > uw > uS > uw > uS > uw > uS > uw > uS > e > e > iE > (anonymous)"
+            },
+            {
+              "functionName": "iE",
+              "sampledSelfMs": 2.4,
+              "callStack": "uS > uw > uS > uw > uS > uw > uS > uw > uS > uw > uS > uw > uS > uw > uS > uw > uS > uw > uS > uw > uS > uw > uS > uw > uS > uw > uS > uw > uS > e > e > iE"
+            },
+            {
+              "functionName": "(anonymous)",
+              "sampledSelfMs": 1.9,
+              "callStack": "(root) > (anonymous)"
+            }
+          ]
+        }
+      },
+      "warmupEvents": [
+        {
+          "label": "city.spawn-shader-warmup",
+          "atMs": 8029.4,
+          "spotLightCount": 6,
+          "programCountBefore": 19,
+          "programCountAfter": 40,
+          "newProgramCount": 21
+        },
+        {
+          "label": "city.cell-shader-warmup",
+          "atMs": 8918,
+          "spotLightCount": 6,
+          "programCountBefore": 48,
+          "programCountAfter": 49,
+          "newProgramCount": 1
+        },
+        {
+          "label": "city.cell-shader-warmup",
+          "atMs": 8931.5,
+          "spotLightCount": 6,
+          "programCountBefore": 49,
+          "programCountAfter": 49,
+          "newProgramCount": 0
+        },
+        {
+          "label": "city.cell-shader-warmup",
+          "atMs": 9323.5,
+          "spotLightCount": 6,
+          "programCountBefore": 49,
+          "programCountAfter": 49,
+          "newProgramCount": 0
+        }
+      ],
+      "programKeyComparison": {
+        "shaderKeySuffix": "ground-detail-v1",
+        "initialProgramId": 3,
+        "initialNumSpotLights": 6,
+        "observedProgramCount": 1,
+        "laterDistinctVariants": []
+      },
+      "correlatedEvents": [
+        {
+          "type": "timing",
+          "name": "environment.pmrem-build",
+          "atMs": 6510.3,
+          "durationMs": 486.4,
+          "width": 512,
+          "height": 256,
+          "programCountBefore": null,
+          "programCountAfter": null,
+          "newProgramCount": null,
+          "newPrograms": []
+        },
+        {
+          "type": "timing",
+          "name": "renderer.long-frame-programs",
+          "atMs": 6903.8,
+          "durationMs": 387.9,
+          "width": null,
+          "height": null,
+          "programCountBefore": 3,
+          "programCountAfter": 19,
+          "newProgramCount": 16,
+          "newPrograms": [
+            {
+              "id": 3,
+              "type": "MeshStandardMaterial",
+              "numSpotLightsKeyToken": "6",
+              "cacheKeySuffix": "lse,0,,0,1,0,6,0,1,0,0,1,0,0,0,0,1,0,0,0,0,8388624,8520707,srgb,ground-detail-v1"
+            }
+          ]
+        },
+        {
+          "type": "timing",
+          "name": "renderer.long-frame-programs",
+          "atMs": 7612.1,
+          "durationMs": 113.8,
+          "width": null,
+          "height": null,
+          "programCountBefore": 39,
+          "programCountAfter": 40,
+          "newProgramCount": 1,
+          "newPrograms": []
+        },
+        {
+          "type": "timing",
+          "name": "renderer.long-frame-programs",
+          "atMs": 8473.7,
+          "durationMs": 402.2,
+          "width": null,
+          "height": null,
+          "programCountBefore": 40,
+          "programCountAfter": 48,
+          "newProgramCount": 8,
+          "newPrograms": []
+        },
+        {
+          "type": "timing",
+          "name": "renderer.long-frame-programs",
+          "atMs": 9032,
+          "durationMs": 99.6,
+          "width": null,
+          "height": null,
+          "programCountBefore": 49,
+          "programCountAfter": 49,
+          "newProgramCount": 0,
+          "newPrograms": []
+        }
+      ],
+      "note": "One requestAnimationFrame yield after the initial PMREM split its 524 ms Long Task from the 393 ms first-render program event, but Tokyo arrival max rose to 899.8 ms and Edinburgh to 749.7 ms. The scheduling prototype was reverted; the four measured S7 gate segments stayed below 500 ms."
     }
   ],
   "screenshots": {

@@ -301,12 +301,18 @@ Open:
   during engine setup before the first terrain render. Two full-city visible
   replays confirmed the first `ground-detail-v1` program used six spotlights
   and no later two-spot variant appeared, but Tokyo still reached 883.1 ms
-  with the GPU cache disabled and 882.8 ms with it enabled. Fully sampled
-  889–895 ms startup tasks overlapped the first PMREM build (470–479 ms) and
-  first renderer program event (371–374 ms); PMREM and image-size variants
-  were already tested without a fix. Next: investigate this combined startup
-  cost, then repeat the visible gate and ground/terrain review on the target
-  i5-1035G1.
+  with the GPU cache disabled and 882.8 ms with it enabled. These are separate
+  Tokyo-arrival diagnostics; all four S7 gate segments (globe travel, walk,
+  night switch, and street travel) stayed below 500 ms in both runs, with zero
+  console or HTTP errors. Chrome used the RTX 4060, not the target i5. Fully
+  sampled 889–895 ms startup tasks overlapped the first PMREM build (470–479
+  ms) and first renderer program event (371–374 ms); PMREM and image-size
+  variants were already tested without a fix. A requestAnimationFrame yield
+  separated a 524 ms Long Task containing 486.4 ms of PMREM work from a second
+  393 ms Long Task containing the 387.9 ms first-render link, but Tokyo arrival
+  rose to 899.8 ms and Edinburgh to 749.7 ms, so that timing change was
+  reverted. Next: investigate the initial PMREM build itself, then repeat the
+  live visible gate and ground/terrain review on the target i5-1035G1.
   These RTX 4060 / i7 results do not close S7. See the [full 3×3 report](benchmarks/results/stage0/s7-full-city-3x3-profile-2026-10-31.md),
   [initial CPU profile](benchmarks/results/stage0/s7-tour-cpu-profile-2026-10-31.md),
   [warmup comparison](benchmarks/results/stage0/s7-frame-budgeted-warmup-2026-10-31.md),

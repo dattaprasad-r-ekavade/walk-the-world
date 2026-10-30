@@ -28,6 +28,7 @@ not the target i5-1035G1 acceptance run.
 | Early pool prewarm, before spawn shader warmup | 816.5 / 416.6 ms | 199.9 / 83.5 ms |
 | Pool precreated before first terrain render, cache disabled | 883.1 / 150.0 ms | 299.9 / 50.0 ms |
 | Pool precreated before first terrain render, normal cache | 882.8 / 166.2 ms | 249.8 / 67.0 ms |
+| One-frame yield between PMREM and first terrain render | 899.8 / 150.1 ms | 749.7 / 50.1 ms |
 
 The first Tokyo arrival contained two frames over 500 ms, including a 2,582.9
 ms frame and a 2,586 ms Long Task. Three ordinary repeats reached
@@ -36,8 +37,14 @@ ms frame and a 2,586 ms Long Task. Three ordinary repeats reached
 high-tier light pool before spawn shader warmup reduced the sixth Tokyo maximum
 to 816.5 ms. Moving pool creation earlier, before the first terrain render,
 gave 883.1 ms on the seventh run. A separate normal-cache replay of that build
-gave 882.8 ms. Both still had one Tokyo frame over 500 ms. These runs are
-diagnostic; Edinburgh stayed below 500 ms in every capture.
+gave 882.8 ms. Adding a requestAnimationFrame yield between the initial PMREM
+and first terrain render increased maxima to 899.8 ms in Tokyo and 749.7 ms in
+Edinburgh, so that scheduling experiment was reverted. Each Tokyo arrival
+segment in these runs had one frame over 500 ms. The four S7 gate segments
+stayed below 500 ms in the two pre-render pool replays: globe travel peaked at
+183.4 and 150.0 ms, walking at 17.1 and 17.0 ms, the night switch at 17.0 ms
+in both, and street travel at 33.2 and 33.8 ms. Both runs logged zero console,
+page, and HTTP errors. Edinburgh stayed below 500 ms in every capture.
 
 ## CPU profile findings
 
@@ -123,6 +130,13 @@ the later two-to-six shader-key change, but these runs do not meet the Tokyo
 work without repeating the already-tested PMREM shader precompile or input-size
 variants, then repeat the full visible gate on the target i5-1035G1.
 
+A requestAnimationFrame yield after the initial PMREM separated the work into
+a 524 ms Long Task containing a 486.4 ms PMREM build, followed by a 393 ms Long
+Task containing a 387.9 ms first-render program event. The measured Tokyo
+arrival maximum rose to 899.8 ms, however, and Edinburgh reached 749.7 ms. This
+did not improve the visible arrival and was reverted; the frame-gate segments
+remained below 500 ms.
+
 ## Visual check and next work
 
 The [latest Tokyo capture](../../../screenshots/performance-visuals/stage0/s7-tour-2026-10-30T21-53-02-130Z/tokyo-arrival.jpg)
@@ -131,10 +145,11 @@ show the street surfaces and assembled city geometry on this host. Both cities
 reported a loaded terrain tile without flat fallback. This does not replace
 the target-device ground and terrain review.
 
-The early-pool replay confirmed the first terrain render and later streamed
-cells now use the same six-spot `ground-detail-v1` variant, but two follow-up
-replays still recorded 883 ms Tokyo arrival frames from combined PMREM and
-first-render shader work. Next, investigate that startup cost, then repeat the
-visible gate and terrain review on the target i5-1035G1. S7 remains open. The
+The pre-render-pool replay confirmed the first terrain render and later streamed
+cells now use the same six-spot `ground-detail-v1` variant. Two pre-render-pool
+replays recorded 883 ms Tokyo arrival frames, and yielding one frame between
+PMREM and first render did not improve the arrival. Next, investigate that
+startup cost, then repeat the visible gate and terrain review on the target
+i5-1035G1. S7 remains open. The
 [machine-readable summary](s7-full-city-3x3-2026-10-31.json) contains the
 complete cell request list and profile captures.
