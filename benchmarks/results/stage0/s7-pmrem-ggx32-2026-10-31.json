@@ -1,0 +1,88 @@
+{
+  "schemaVersion": 1,
+  "evidenceType": "s7-pmrem-ggx-sample-runtime-ab",
+  "recordedAt": "2026-10-30T22:16:16Z",
+  "baseCommit": "b73fb23",
+  "sourceState": "Working-tree candidate built and profiled on top of baseCommit.",
+  "threeVersion": "0.186.1",
+  "host": {
+    "cpu": "13th Gen Intel Core i7-13650HX",
+    "renderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 4060 Laptop GPU (0x000028E0) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+    "browser": "Chrome 156"
+  },
+  "fixture": {
+    "id": "s7-full-two-city-3x3-replay",
+    "capturedBytes": 35415953,
+    "sha256": "7DC24D83D85EBB984B31DEDC75596454621A4F8499CF59FA6D25B7EEC13BF6CE",
+    "committed": false,
+    "cellsPerCity": 9
+  },
+  "baseline": {
+    "gpuProgramCache": "normal",
+    "ggxSamples": 256,
+    "initialPmremBuildMs": 469.8,
+    "tokyoArrival": { "maxMs": 882.8, "p95Ms": 166.2 },
+    "gateSegmentMaxMs": {
+      "globeTravelToTokyo": 183.3,
+      "walk": 17.0,
+      "nightSwitch": 17.0,
+      "streetTravelToEdinburgh": 33.8
+    },
+    "residentCells": { "tokyo": 9, "edinburgh": 9 },
+    "errors": { "console": 0, "page": 0, "http": 0, "requestFailures": 0 },
+    "targetDeviceConfirmed": false
+  },
+  "candidate": {
+    "ggxSamples": 32,
+    "scope": "PMREMGenerator.fromEquirectangular only",
+    "implementation": "Temporarily wrap renderer.render, match Three r186 PMREMGGXConvolution material, override GGX_SAMPLES, and restore in finally.",
+    "runs": [
+      {
+        "id": "runtime-hook-profiled",
+        "cpuProfiled": true,
+        "initialPmremBuildMs": 156.9,
+        "effectiveGgxSamples": 32,
+        "tokyoArrival": { "maxMs": 583.1, "p95Ms": 166.7 },
+        "gateSegmentMaxMs": {
+          "globeTravelToTokyo": 183.3,
+          "walk": 17.1,
+          "nightSwitch": 17.2,
+          "streetTravelToEdinburgh": 33.3
+        },
+        "residentCells": { "tokyo": 9, "edinburgh": 9 },
+        "errors": { "console": 0, "page": 0, "http": 0, "requestFailures": 0 },
+        "targetDeviceConfirmed": false
+      },
+      {
+        "id": "runtime-hook-unprofiled-repeat",
+        "cpuProfiled": false,
+        "initialPmremBuildMs": 154.6,
+        "effectiveGgxSamples": 32,
+        "tokyoArrival": { "maxMs": 583.2, "p95Ms": 133.7 },
+        "gateSegmentMaxMs": {
+          "globeTravelToTokyo": 183.5,
+          "walk": 17.0,
+          "nightSwitch": 16.9,
+          "streetTravelToEdinburgh": 33.3
+        },
+        "residentCells": { "tokyo": 9, "edinburgh": 9 },
+        "errors": { "console": 0, "page": 0, "http": 0, "requestFailures": 0 },
+        "targetDeviceConfirmed": false
+      }
+    ]
+  },
+  "visualCheck": {
+    "matchedCaptures": false,
+    "results": {
+      "tokyoArrivalMeanAbsoluteChannelDifference": 0.398,
+      "tokyoArrivalChannelsOver10Percent": 0.32,
+      "tokyoNightMeanAbsoluteChannelDifference": 0.923,
+      "tokyoNightChannelsOver10Percent": 0.25,
+      "edinburghArrivalMeanAbsoluteChannelDifference": 0.945,
+      "edinburghArrivalChannelsOver10Percent": 0.08
+    }
+  },
+  "acceptanceGateSegmentsUnder500Ms": true,
+  "tokyoArrivalUnder500Ms": false,
+  "status": "candidate-improves-startup; target-i5-confirmation-and-ground-review-open"
+}

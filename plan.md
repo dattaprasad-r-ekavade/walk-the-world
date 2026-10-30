@@ -311,8 +311,19 @@ Open:
   separated a 524 ms Long Task containing 486.4 ms of PMREM work from a second
   393 ms Long Task containing the 387.9 ms first-render link, but Tokyo arrival
   rose to 899.8 ms and Edinburgh to 749.7 ms, so that timing change was
-  reverted. Next: investigate the initial PMREM build itself, then repeat the
-  live visible gate and ground/terrain review on the target i5-1035G1.
+  reverted. A follow-up PMREM quality experiment temporarily lowers Three.js
+  0.186.1's private GGX sample define to 32 only during environment generation.
+  Two normal-cache full-city visible replays measured 155–157 ms for the initial
+  PMREM and 583 ms for Tokyo arrival, versus 469.8 ms and 882.8 ms in the
+  256-sample baseline. All four named S7 gate segments remained below 184 ms,
+  both cities settled 9/9 cells, and errors stayed at zero. The RTX 4060
+  screenshots show no obvious visual change; pixel differences are small but
+  the captures are not a matched target-device image-quality review. Tokyo
+  arrival still has one frame over 500 ms, and these results do not establish
+  behavior on the target i5-1035G1. Next: repeat the live visible gate and
+  ground/terrain review on that laptop. S7 remains open. See the [PMREM sample
+  report](benchmarks/results/stage0/s7-pmrem-ggx32-2026-10-31.md) and its
+  [machine-readable results](benchmarks/results/stage0/s7-pmrem-ggx32-2026-10-31.json).
   These RTX 4060 / i7 results do not close S7. See the [full 3×3 report](benchmarks/results/stage0/s7-full-city-3x3-profile-2026-10-31.md),
   [initial CPU profile](benchmarks/results/stage0/s7-tour-cpu-profile-2026-10-31.md),
   [warmup comparison](benchmarks/results/stage0/s7-frame-budgeted-warmup-2026-10-31.md),

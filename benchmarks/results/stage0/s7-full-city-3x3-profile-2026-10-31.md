@@ -153,3 +153,8 @@ startup cost, then repeat the visible gate and terrain review on the target
 i5-1035G1. S7 remains open. The
 [machine-readable summary](s7-full-city-3x3-2026-10-31.json) contains the
 complete cell request list and profile captures.
+
+Follow-up: the [runtime PMREM sample experiment](s7-pmrem-ggx32-2026-10-31.md)
+reduced the initial PMREM build to about 155 ms and Tokyo arrival to about
+583 ms in two visible RTX 4060 replays. S7 remains open pending the target
+i5-1035G1 acceptance tour and terrain/ground review.
