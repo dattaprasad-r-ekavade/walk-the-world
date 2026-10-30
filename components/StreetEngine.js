@@ -522,6 +522,10 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false, demo
 
     const renderMeasuredFrame = () => {
       const diagnosticsEnabled = window.__perfCounters?.diagnosticsEnabled === true;
+      const programsBefore = diagnosticsEnabled
+        ? new Set((renderer.info.programs || []).map((program) => program.id))
+        : null;
+      const renderStartedAt = diagnosticsEnabled ? performance.now() : 0;
       if (shadowAudit.enabled && shadowAudit.forceEveryFrame) {
         requestShadowRefresh("shadow-audit-frame");
       }
@@ -536,6 +540,27 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false, demo
       } finally {
         if (timerStarted) gpuTimer.endFrame();
         if (diagnosticsEnabled) {
+          const renderDurationMs = performance.now() - renderStartedAt;
+          if (renderDurationMs >= 50) {
+            const programs = renderer.info.programs || [];
+            const newPrograms = programs.filter((program) => !programsBefore.has(program.id));
+            recordPerfTiming("renderer.long-frame-programs", renderDurationMs, {
+              programCountBefore: programsBefore.size,
+              programCountAfter: programs.length,
+              newProgramCount: newPrograms.length,
+              newPrograms: newPrograms.slice(0, 32).map((program) => {
+                const cacheKey = String(program.cacheKey || "");
+                return {
+                  id: program.id,
+                  name: program.name,
+                  type: program.type,
+                  usedTimes: program.usedTimes,
+                  cacheKeyLength: cacheKey.length,
+                  cacheKeyPrefix: cacheKey.slice(0, 320),
+                };
+              }),
+            });
+          }
           const counters = getPerfCounters();
           const render = renderer.info.render;
           appendRendererFrame(counters, {

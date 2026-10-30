@@ -286,10 +286,18 @@ Open:
   stack. In the corrected Edinburgh capture, a 299 ms Long Task included
   212.2 ms in renderer `getProgramInfoLog`; PMREM `getProgramInfoLog` accounted
   for 31.6 ms elsewhere in the arrival, and its 42.3 ms build event ended about
-  799 ms before the task. The multi-second Tokyo task still needs a cold
-  stack-aware capture. These RTX 4060 / i7 results do not close S7. Next: obtain
-  that capture, then repeat the visible gate and ground/terrain review on the
-  target i5-1035G1. See the [full 3×3 report](benchmarks/results/stage0/s7-full-city-3x3-profile-2026-10-31.md),
+  799 ms before the task. Three additional tours with Chrome's GPU program
+  cache disabled reproduced 2.48–2.55 s Tokyo arrival frames. The corrected
+  profiles sampled about 2.42–2.47 s in `getProgramInfoLog` on the regular
+  renderer path, with no PMREM or `compileAsync` caller visible. In the latest
+  slow frame, renderer program records grew from 48 to 70, including
+  `ground-detail-v1` and `wtw-building-atlas-interior-v3` variants. This
+  connects first-use program creation with the stall but does not identify the
+  dominant material. The task overlapped a 2.62 s neighbor-assembly wall-time
+  interval, but that assembler yields to rendering, so causality is unproven.
+  Next: map the new variants to scene materials and test targeted warmup, then
+  repeat the visible gate and ground/terrain review on the target i5-1035G1.
+  These RTX 4060 / i7 results do not close S7. See the [full 3×3 report](benchmarks/results/stage0/s7-full-city-3x3-profile-2026-10-31.md),
   [initial CPU profile](benchmarks/results/stage0/s7-tour-cpu-profile-2026-10-31.md),
   [warmup comparison](benchmarks/results/stage0/s7-frame-budgeted-warmup-2026-10-31.md),
   and [center-cell replay report](benchmarks/results/stage0/s7-full-tour-cell-replay-2026-10-31.md).

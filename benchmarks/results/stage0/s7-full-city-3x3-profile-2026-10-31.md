@@ -20,12 +20,18 @@ not the target i5-1035G1 acceptance run.
 | Repeat, Edinburgh profiled | 850.0 / 200.2 ms | 316.9 / 66.7 ms |
 | Repeat after profile-window fix | 832.8 / 132.9 ms | 366.7 / 100.0 ms |
 | Stack-aware profile repeat | 850.1 / 166.6 ms | 316.8 / 66.6 ms |
+| GPU program cache disabled, Tokyo profiled | 2,549.5 / 349.6 ms | 366.5 / 83.3 ms |
+| GPU program cache disabled, 32-frame stack | 2,532.4 / 333.3 ms | 449.8 / 50.0 ms |
+| GPU program cache disabled, frame-program diagnostic | 2,482.7 / 433.2 ms | 449.9 / 49.9 ms |
 
 The first Tokyo arrival contained two frames over 500 ms, including a 2,582.9
-ms frame and a 2,586 ms Long Task. The three later tours did not repeat a
-multi-second frame; Tokyo still reached 832.8–850.1 ms. This pattern is
-consistent with a cold or cache-sensitive shader stall, but these runs do not
-establish that cause. Edinburgh stayed below 500 ms in the four captures.
+ms frame and a 2,586 ms Long Task. Three ordinary repeats reached
+832.8–850.1 ms. Three additional tours launched Chrome with
+`--disable-gpu-program-cache` and reproduced 2.48–2.55 s Tokyo arrival
+frames. That makes the stall reproducible when the program cache
+is disabled; those forced-cache runs are diagnostic and are not ordinary S7
+timing runs. Edinburgh stayed below 500 ms in the four ordinary captures and
+all three cache-disabled captures.
 
 ## CPU profile findings
 
@@ -45,8 +51,31 @@ and all 299 ms were sampled. `getProgramInfoLog` accounted for 212.2 ms on the
 dominant renderer path; a separate PMREM `_applyGGXFilter` path accounted for
 31.6 ms across the arrival profile. The measured `environment.pmrem-build`
 event was 42.3 ms, ending about 799 ms before that Long Task began. The
-multi-second Tokyo task has not yet been reproduced with the corrected
-stack-aware profiler, so its exact call path remains open.
+multi-second Tokyo task is a separate path.
+
+The cache-disabled Tokyo capture sampled a 2,527 ms Long Task, with 2,470.6 ms
+in `getProgramInfoLog`. Increasing the recorded stack depth to 32 frames showed
+the call through `qualityTier` and the regular `render` / `renderBufferDirect`
+path; it did not show PMREM or `compileAsync`. The first PMREM build measured
+498.6 ms and ended about 1,990 ms before this Long Task. PMREM work was visible
+separately in the same profile, including 445.7 ms in `_applyPMREM` /
+`_applyGGXFilter`, and overlapped an earlier 886 ms Long Task.
+
+The 2,527 ms task fell inside a 2,702.7 ms `city.neighbor-assembly-total`
+interval for 1,499 elements; the corresponding `city.cell-load` interval was
+2,660.6 ms. Assembly is budgeted and yields to the host between chunks, so the
+overlap identifies the time window but does not prove cell assembly caused the
+render-path stall.
+
+In the third cache-disabled capture, a 2,483 ms Long Task contained 2,480 ms
+of samples, including 2,416.9 ms in `getProgramInfoLog` on the same ordinary
+render path. The PMREM path accounted for 430.6 ms elsewhere in that arrival.
+During the 2,482.2 ms render frame, `renderer.info.programs` grew from 48 to 70
+entries. The 22 new program records included `ground-detail-v1` and
+`wtw-building-atlas-interior-v3` material variants, alongside Standard,
+Lambert, Phong, Basic, and Normal material variants. This ties first-use
+program creation to the slow frame, but does not identify which material
+accounts for most of the compile time.
 
 ## Visual check and next work
 
@@ -56,7 +85,8 @@ show the street surfaces and assembled city geometry on this host. Both cities
 reported a loaded terrain tile without flat fallback. This does not replace
 the target-device ground and terrain review.
 
-Next, capture a cold Tokyo first arrival with the corrected stack-aware
-profiler, then repeat the visible gate and terrain review on the target
-i5-1035G1. S7 remains open. The [machine-readable summary](s7-full-city-3x3-2026-10-31.json)
-contains the complete cell request list and both profile captures.
+Next, map the 22 new program variants to the scene materials and test targeted
+warmup for the responsible variants. Then repeat the visible gate and terrain
+review on the target i5-1035G1. S7 remains open. The
+[machine-readable summary](s7-full-city-3x3-2026-10-31.json) contains the
+complete cell request list and profile captures.

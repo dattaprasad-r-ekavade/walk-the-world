@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "evidenceType": "s7-full-city-3x3-profile-summary",
-  "recordedAt": "2026-10-31",
+  "recordedAt": "2026-10-30T21:28:39.755Z",
   "host": {
     "cpu": "13th Gen Intel Core i7-13650HX"
   },
@@ -10,7 +10,81 @@
     "dataKind": "public production OSM cell replay",
     "capturedBytes": 35415953,
     "sha256": "7DC24D83D85EBB984B31DEDC75596454621A4F8499CF59FA6D25B7EEC13BF6CE",
-    "committed": false
+    "committed": false,
+    "requests": [
+      {
+        "cityKey": "wtw_city6_35.660_139.701",
+        "elements": 3665
+      },
+      {
+        "cityKey": "wtw_city6_35.660_139.706",
+        "elements": 3652
+      },
+      {
+        "cityKey": "wtw_city6_35.665_139.701",
+        "elements": 3617
+      },
+      {
+        "cityKey": "wtw_city6_35.654_139.701",
+        "elements": 3664
+      },
+      {
+        "cityKey": "wtw_city6_35.660_139.695",
+        "elements": 2127
+      },
+      {
+        "cityKey": "wtw_city6_35.665_139.695",
+        "elements": 3435
+      },
+      {
+        "cityKey": "wtw_city6_35.665_139.706",
+        "elements": 3649
+      },
+      {
+        "cityKey": "wtw_city6_35.654_139.695",
+        "elements": 3606
+      },
+      {
+        "cityKey": "wtw_city6_35.654_139.706",
+        "elements": 3649
+      },
+      {
+        "cityKey": "wtw_city6_55.950_-3.188",
+        "elements": 3343
+      },
+      {
+        "cityKey": "wtw_city6_55.945_-3.188",
+        "elements": 3296
+      },
+      {
+        "cityKey": "wtw_city6_55.950_-3.182",
+        "elements": 3075
+      },
+      {
+        "cityKey": "wtw_city6_55.950_-3.193",
+        "elements": 3366
+      },
+      {
+        "cityKey": "wtw_city6_55.956_-3.188",
+        "elements": 3841
+      },
+      {
+        "cityKey": "wtw_city6_55.945_-3.182",
+        "elements": 3110
+      },
+      {
+        "cityKey": "wtw_city6_55.945_-3.193",
+        "elements": 3105
+      },
+      {
+        "cityKey": "wtw_city6_55.956_-3.182",
+        "elements": 3674
+      },
+      {
+        "cityKey": "wtw_city6_55.956_-3.193",
+        "elements": 3968
+      }
+    ]
   },
   "runs": [
     {
@@ -94,80 +168,6 @@
           "flatFallback": false
         }
       },
-      "cellRequests": [
-        {
-          "cityKey": "wtw_city6_35.660_139.701",
-          "elements": 3665
-        },
-        {
-          "cityKey": "wtw_city6_35.660_139.706",
-          "elements": 3652
-        },
-        {
-          "cityKey": "wtw_city6_35.665_139.701",
-          "elements": 3617
-        },
-        {
-          "cityKey": "wtw_city6_35.654_139.701",
-          "elements": 3664
-        },
-        {
-          "cityKey": "wtw_city6_35.660_139.695",
-          "elements": 2127
-        },
-        {
-          "cityKey": "wtw_city6_35.665_139.695",
-          "elements": 3435
-        },
-        {
-          "cityKey": "wtw_city6_35.665_139.706",
-          "elements": 3649
-        },
-        {
-          "cityKey": "wtw_city6_35.654_139.695",
-          "elements": 3606
-        },
-        {
-          "cityKey": "wtw_city6_35.654_139.706",
-          "elements": 3649
-        },
-        {
-          "cityKey": "wtw_city6_55.950_-3.188",
-          "elements": 3343
-        },
-        {
-          "cityKey": "wtw_city6_55.945_-3.188",
-          "elements": 3296
-        },
-        {
-          "cityKey": "wtw_city6_55.950_-3.182",
-          "elements": 3075
-        },
-        {
-          "cityKey": "wtw_city6_55.950_-3.193",
-          "elements": 3366
-        },
-        {
-          "cityKey": "wtw_city6_55.956_-3.188",
-          "elements": 3841
-        },
-        {
-          "cityKey": "wtw_city6_55.945_-3.182",
-          "elements": 3110
-        },
-        {
-          "cityKey": "wtw_city6_55.945_-3.193",
-          "elements": 3105
-        },
-        {
-          "cityKey": "wtw_city6_55.956_-3.182",
-          "elements": 3674
-        },
-        {
-          "cityKey": "wtw_city6_55.956_-3.193",
-          "elements": 3968
-        }
-      ],
       "errors": {
         "console": 0,
         "page": 0,
@@ -407,80 +407,6 @@
           "flatFallback": false
         }
       },
-      "cellRequests": [
-        {
-          "cityKey": "wtw_city6_35.660_139.701",
-          "elements": 3665
-        },
-        {
-          "cityKey": "wtw_city6_35.660_139.706",
-          "elements": 3652
-        },
-        {
-          "cityKey": "wtw_city6_35.665_139.701",
-          "elements": 3617
-        },
-        {
-          "cityKey": "wtw_city6_35.654_139.701",
-          "elements": 3664
-        },
-        {
-          "cityKey": "wtw_city6_35.660_139.695",
-          "elements": 2127
-        },
-        {
-          "cityKey": "wtw_city6_35.665_139.706",
-          "elements": 3649
-        },
-        {
-          "cityKey": "wtw_city6_35.654_139.706",
-          "elements": 3649
-        },
-        {
-          "cityKey": "wtw_city6_35.665_139.695",
-          "elements": 3435
-        },
-        {
-          "cityKey": "wtw_city6_35.654_139.695",
-          "elements": 3606
-        },
-        {
-          "cityKey": "wtw_city6_55.950_-3.188",
-          "elements": 3343
-        },
-        {
-          "cityKey": "wtw_city6_55.945_-3.188",
-          "elements": 3296
-        },
-        {
-          "cityKey": "wtw_city6_55.950_-3.182",
-          "elements": 3075
-        },
-        {
-          "cityKey": "wtw_city6_55.950_-3.193",
-          "elements": 3366
-        },
-        {
-          "cityKey": "wtw_city6_55.956_-3.188",
-          "elements": 3841
-        },
-        {
-          "cityKey": "wtw_city6_55.945_-3.182",
-          "elements": 3110
-        },
-        {
-          "cityKey": "wtw_city6_55.945_-3.193",
-          "elements": 3105
-        },
-        {
-          "cityKey": "wtw_city6_55.956_-3.193",
-          "elements": 3968
-        },
-        {
-          "cityKey": "wtw_city6_55.956_-3.182",
-          "elements": 3674
-        }
-      ],
       "errors": {
         "console": 0,
         "page": 0,
@@ -547,567 +473,52 @@
             {
               "functionName": "getProgramInfoLog",
               "sampledSelfMs": 212.2,
-              "callStack": [
-                {
-                  "functionName": "render",
-                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                  "lineNumber": 1131
-                },
-                {
-                  "functionName": "render",
-                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                  "lineNumber": 455
-                },
-                {
-                  "functionName": "render",
-                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                  "lineNumber": 455
-                },
-                {
-                  "functionName": "render",
-                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                  "lineNumber": 341
-                },
-                {
-                  "functionName": "e3",
-                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                  "lineNumber": 341
-                },
-                {
-                  "functionName": "e4",
-                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                  "lineNumber": 341
-                },
-                {
-                  "functionName": "e9",
-                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                  "lineNumber": 341
-                },
-                {
-                  "functionName": "renderBufferDirect",
-                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                  "lineNumber": 341
-                },
-                {
-                  "functionName": "(anonymous)",
-                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                  "lineNumber": 341
-                },
-                {
-                  "functionName": "getUniforms",
-                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                  "lineNumber": 317
-                },
-                {
-                  "functionName": "T",
-                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                  "lineNumber": 317
-                },
-                {
-                  "functionName": "getProgramInfoLog",
-                  "url": "",
-                  "lineNumber": -1
-                }
-              ]
+              "callStack": "render > render > render > render > e3 > e4 > e9 > renderBufferDirect > (anonymous) > getUniforms > T > getProgramInfoLog"
             },
             {
               "functionName": "getProgramInfoLog",
               "sampledSelfMs": 12.7,
-              "callStack": [
-                {
-                  "functionName": "render",
-                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                  "lineNumber": 455
-                },
-                {
-                  "functionName": "render",
-                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                  "lineNumber": 673
-                },
-                {
-                  "functionName": "_renderOverride",
-                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                  "lineNumber": 673
-                },
-                {
-                  "functionName": "render",
-                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                  "lineNumber": 341
-                },
-                {
-                  "functionName": "e3",
-                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                  "lineNumber": 341
-                },
-                {
-                  "functionName": "e4",
-                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                  "lineNumber": 341
-                },
-                {
-                  "functionName": "e9",
-                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                  "lineNumber": 341
-                },
-                {
-                  "functionName": "renderBufferDirect",
-                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                  "lineNumber": 341
-                },
-                {
-                  "functionName": "(anonymous)",
-                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                  "lineNumber": 341
-                },
-                {
-                  "functionName": "getUniforms",
-                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                  "lineNumber": 317
-                },
-                {
-                  "functionName": "T",
-                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                  "lineNumber": 317
-                },
-                {
-                  "functionName": "getProgramInfoLog",
-                  "url": "",
-                  "lineNumber": -1
-                }
-              ]
+              "callStack": "render > render > _renderOverride > render > e3 > e4 > e9 > renderBufferDirect > (anonymous) > getUniforms > T > getProgramInfoLog"
             },
             {
               "functionName": "getShaderInfoLog",
               "sampledSelfMs": 9.4,
-              "callStack": [
-                {
-                  "functionName": "render",
-                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                  "lineNumber": 1131
-                },
-                {
-                  "functionName": "render",
-                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                  "lineNumber": 455
-                },
-                {
-                  "functionName": "render",
-                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                  "lineNumber": 455
-                },
-                {
-                  "functionName": "render",
-                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                  "lineNumber": 341
-                },
-                {
-                  "functionName": "e3",
-                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                  "lineNumber": 341
-                },
-                {
-                  "functionName": "e4",
-                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                  "lineNumber": 341
-                },
-                {
-                  "functionName": "e9",
-                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                  "lineNumber": 341
-                },
-                {
-                  "functionName": "renderBufferDirect",
-                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                  "lineNumber": 341
-                },
-                {
-                  "functionName": "(anonymous)",
-                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                  "lineNumber": 341
-                },
-                {
-                  "functionName": "getUniforms",
-                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                  "lineNumber": 317
-                },
-                {
-                  "functionName": "T",
-                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                  "lineNumber": 317
-                },
-                {
-                  "functionName": "getShaderInfoLog",
-                  "url": "",
-                  "lineNumber": -1
-                }
-              ]
+              "callStack": "render > render > render > render > e3 > e4 > e9 > renderBufferDirect > (anonymous) > getUniforms > T > getShaderInfoLog"
             },
             {
               "functionName": "e2",
               "sampledSelfMs": 5.8,
-              "callStack": [
-                {
-                  "functionName": "render",
-                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                  "lineNumber": 455
-                },
-                {
-                  "functionName": "render",
-                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                  "lineNumber": 455
-                },
-                {
-                  "functionName": "render",
-                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                  "lineNumber": 341
-                },
-                {
-                  "functionName": "e3",
-                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                  "lineNumber": 341
-                },
-                {
-                  "functionName": "e4",
-                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                  "lineNumber": 341
-                },
-                {
-                  "functionName": "e9",
-                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                  "lineNumber": 341
-                },
-                {
-                  "functionName": "renderBufferDirect",
-                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                  "lineNumber": 341
-                },
-                {
-                  "functionName": "(anonymous)",
-                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                  "lineNumber": 341
-                },
-                {
-                  "functionName": "e5",
-                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                  "lineNumber": 341
-                },
-                {
-                  "functionName": "acquireProgram",
-                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                  "lineNumber": 317
-                },
-                {
-                  "functionName": "to",
-                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                  "lineNumber": 312
-                },
-                {
-                  "functionName": "e2",
-                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                  "lineNumber": 295
-                }
-              ]
+              "callStack": "render > render > render > e3 > e4 > e9 > renderBufferDirect > (anonymous) > e5 > acquireProgram > to > e2"
             },
             {
               "functionName": "(program)",
               "sampledSelfMs": 4.8,
-              "callStack": [
-                {
-                  "functionName": "(root)",
-                  "url": "",
-                  "lineNumber": -1
-                },
-                {
-                  "functionName": "(program)",
-                  "url": "",
-                  "lineNumber": -1
-                }
-              ]
+              "callStack": "(root) > (program)"
             },
             {
               "functionName": "(anonymous)",
               "sampledSelfMs": 4.8,
-              "callStack": [
-                {
-                  "functionName": "(root)",
-                  "url": "",
-                  "lineNumber": -1
-                },
-                {
-                  "functionName": "(anonymous)",
-                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                  "lineNumber": 1131
-                },
-                {
-                  "functionName": "(anonymous)",
-                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                  "lineNumber": 1131
-                }
-              ]
+              "callStack": "(root) > (anonymous) > (anonymous)"
             },
             {
               "functionName": "e7",
               "sampledSelfMs": 4.7,
-              "callStack": [
-                {
-                  "functionName": "render",
-                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                  "lineNumber": 455
-                },
-                {
-                  "functionName": "render",
-                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                  "lineNumber": 455
-                },
-                {
-                  "functionName": "render",
-                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                  "lineNumber": 341
-                },
-                {
-                  "functionName": "e3",
-                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                  "lineNumber": 341
-                },
-                {
-                  "functionName": "e4",
-                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                  "lineNumber": 341
-                },
-                {
-                  "functionName": "e9",
-                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                  "lineNumber": 341
-                },
-                {
-                  "functionName": "renderBufferDirect",
-                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                  "lineNumber": 341
-                },
-                {
-                  "functionName": "(anonymous)",
-                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                  "lineNumber": 341
-                },
-                {
-                  "functionName": "e5",
-                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                  "lineNumber": 341
-                },
-                {
-                  "functionName": "acquireProgram",
-                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                  "lineNumber": 317
-                },
-                {
-                  "functionName": "to",
-                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                  "lineNumber": 312
-                },
-                {
-                  "functionName": "e7",
-                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                  "lineNumber": 295
-                }
-              ]
+              "callStack": "render > render > render > e3 > e4 > e9 > renderBufferDirect > (anonymous) > e5 > acquireProgram > to > e7"
             },
             {
               "functionName": "e4",
               "sampledSelfMs": 4.7,
-              "callStack": [
-                {
-                  "functionName": "render",
-                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                  "lineNumber": 455
-                },
-                {
-                  "functionName": "render",
-                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                  "lineNumber": 455
-                },
-                {
-                  "functionName": "render",
-                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                  "lineNumber": 341
-                },
-                {
-                  "functionName": "e3",
-                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                  "lineNumber": 341
-                },
-                {
-                  "functionName": "e4",
-                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                  "lineNumber": 341
-                },
-                {
-                  "functionName": "e9",
-                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                  "lineNumber": 341
-                },
-                {
-                  "functionName": "renderBufferDirect",
-                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                  "lineNumber": 341
-                },
-                {
-                  "functionName": "(anonymous)",
-                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                  "lineNumber": 341
-                },
-                {
-                  "functionName": "e5",
-                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                  "lineNumber": 341
-                },
-                {
-                  "functionName": "acquireProgram",
-                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                  "lineNumber": 317
-                },
-                {
-                  "functionName": "to",
-                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                  "lineNumber": 312
-                },
-                {
-                  "functionName": "e4",
-                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                  "lineNumber": 295
-                }
-              ]
+              "callStack": "render > render > render > e3 > e4 > e9 > renderBufferDirect > (anonymous) > e5 > acquireProgram > to > e4"
             },
             {
               "functionName": "shaderSource",
               "sampledSelfMs": 3.6,
-              "callStack": [
-                {
-                  "functionName": "render",
-                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                  "lineNumber": 455
-                },
-                {
-                  "functionName": "render",
-                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                  "lineNumber": 341
-                },
-                {
-                  "functionName": "e3",
-                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                  "lineNumber": 341
-                },
-                {
-                  "functionName": "e4",
-                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                  "lineNumber": 341
-                },
-                {
-                  "functionName": "e9",
-                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                  "lineNumber": 341
-                },
-                {
-                  "functionName": "renderBufferDirect",
-                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                  "lineNumber": 341
-                },
-                {
-                  "functionName": "(anonymous)",
-                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                  "lineNumber": 341
-                },
-                {
-                  "functionName": "e5",
-                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                  "lineNumber": 341
-                },
-                {
-                  "functionName": "acquireProgram",
-                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                  "lineNumber": 317
-                },
-                {
-                  "functionName": "to",
-                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                  "lineNumber": 312
-                },
-                {
-                  "functionName": "eX",
-                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                  "lineNumber": 295
-                },
-                {
-                  "functionName": "shaderSource",
-                  "url": "",
-                  "lineNumber": -1
-                }
-              ]
+              "callStack": "render > render > e3 > e4 > e9 > renderBufferDirect > (anonymous) > e5 > acquireProgram > to > eX > shaderSource"
             },
             {
               "functionName": "getProgramParameter",
               "sampledSelfMs": 3.2,
-              "callStack": [
-                {
-                  "functionName": "render",
-                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                  "lineNumber": 1131
-                },
-                {
-                  "functionName": "render",
-                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                  "lineNumber": 455
-                },
-                {
-                  "functionName": "render",
-                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                  "lineNumber": 455
-                },
-                {
-                  "functionName": "render",
-                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                  "lineNumber": 341
-                },
-                {
-                  "functionName": "e3",
-                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                  "lineNumber": 341
-                },
-                {
-                  "functionName": "e4",
-                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                  "lineNumber": 341
-                },
-                {
-                  "functionName": "e9",
-                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                  "lineNumber": 341
-                },
-                {
-                  "functionName": "renderBufferDirect",
-                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                  "lineNumber": 341
-                },
-                {
-                  "functionName": "(anonymous)",
-                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                  "lineNumber": 341
-                },
-                {
-                  "functionName": "getUniforms",
-                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                  "lineNumber": 317
-                },
-                {
-                  "functionName": "T",
-                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                  "lineNumber": 317
-                },
-                {
-                  "functionName": "getProgramParameter",
-                  "url": "",
-                  "lineNumber": -1
-                }
-              ]
+              "callStack": "render > render > render > render > e3 > e4 > e9 > renderBufferDirect > (anonymous) > getUniforms > T > getProgramParameter"
             }
           ]
         },
@@ -1115,518 +526,639 @@
           {
             "functionName": "(idle)",
             "sampledSelfMs": 1458.5,
-            "callStack": [
-              {
-                "functionName": "(root)",
-                "url": "",
-                "lineNumber": -1
-              },
-              {
-                "functionName": "(idle)",
-                "url": "",
-                "lineNumber": -1
-              }
-            ]
+            "callStack": "(root) > (idle)"
           },
           {
             "functionName": "(program)",
             "sampledSelfMs": 610.6,
-            "callStack": [
-              {
-                "functionName": "(root)",
-                "url": "",
-                "lineNumber": -1
-              },
-              {
-                "functionName": "(program)",
-                "url": "",
-                "lineNumber": -1
-              }
-            ]
+            "callStack": "(root) > (program)"
           },
           {
             "functionName": "getProgramInfoLog",
             "sampledSelfMs": 385.6,
-            "callStack": [
-              {
-                "functionName": "render",
-                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                "lineNumber": 1131
-              },
-              {
-                "functionName": "render",
-                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                "lineNumber": 455
-              },
-              {
-                "functionName": "render",
-                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                "lineNumber": 455
-              },
-              {
-                "functionName": "render",
-                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                "lineNumber": 341
-              },
-              {
-                "functionName": "e3",
-                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                "lineNumber": 341
-              },
-              {
-                "functionName": "e4",
-                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                "lineNumber": 341
-              },
-              {
-                "functionName": "e9",
-                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                "lineNumber": 341
-              },
-              {
-                "functionName": "renderBufferDirect",
-                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                "lineNumber": 341
-              },
-              {
-                "functionName": "(anonymous)",
-                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                "lineNumber": 341
-              },
-              {
-                "functionName": "getUniforms",
-                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                "lineNumber": 317
-              },
-              {
-                "functionName": "T",
-                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                "lineNumber": 317
-              },
-              {
-                "functionName": "getProgramInfoLog",
-                "url": "",
-                "lineNumber": -1
-              }
-            ]
+            "callStack": "render > render > render > render > e3 > e4 > e9 > renderBufferDirect > (anonymous) > getUniforms > T > getProgramInfoLog"
           },
           {
             "functionName": "(anonymous)",
             "sampledSelfMs": 124.1,
-            "callStack": [
-              {
-                "functionName": "(root)",
-                "url": "",
-                "lineNumber": -1
-              },
-              {
-                "functionName": "o",
-                "url": "http://localhost:3104/_next/static/chunks/2w0e2rzw6t536.js",
-                "lineNumber": 0
-              },
-              {
-                "functionName": "(anonymous)",
-                "url": "http://localhost:3104/_next/static/chunks/2w0e2rzw6t536.js",
-                "lineNumber": 0
-              }
-            ]
+            "callStack": "(root) > o > (anonymous)"
           },
           {
             "functionName": "(garbage collector)",
             "sampledSelfMs": 66.7,
-            "callStack": [
-              {
-                "functionName": "(root)",
-                "url": "",
-                "lineNumber": -1
-              },
-              {
-                "functionName": "(garbage collector)",
-                "url": "",
-                "lineNumber": -1
-              }
-            ]
+            "callStack": "(root) > (garbage collector)"
           },
           {
             "functionName": "aA.road.<computed>.aA.road.<computed>.lanes",
             "sampledSelfMs": 41.4,
-            "callStack": [
-              {
-                "functionName": "(root)",
-                "url": "",
-                "lineNumber": -1
-              },
-              {
-                "functionName": "aJ",
-                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                "lineNumber": 432
-              },
-              {
-                "functionName": "aw",
-                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                "lineNumber": 432
-              },
-              {
-                "functionName": "aA.road.<computed>.aA.road.<computed>.lanes",
-                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                "lineNumber": 432
-              }
-            ]
+            "callStack": "(root) > aJ > aw > aA.road.<computed>.aA.road.<computed>.lanes"
           },
           {
             "functionName": "getProgramInfoLog",
             "sampledSelfMs": 31.6,
-            "callStack": [
-              {
-                "functionName": "_fromTexture",
-                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                "lineNumber": 0
-              },
-              {
-                "functionName": "_applyPMREM",
-                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                "lineNumber": 164
-              },
-              {
-                "functionName": "_applyGGXFilter",
-                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                "lineNumber": 164
-              },
-              {
-                "functionName": "render",
-                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                "lineNumber": 341
-              },
-              {
-                "functionName": "e3",
-                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                "lineNumber": 341
-              },
-              {
-                "functionName": "e4",
-                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                "lineNumber": 341
-              },
-              {
-                "functionName": "e9",
-                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                "lineNumber": 341
-              },
-              {
-                "functionName": "renderBufferDirect",
-                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                "lineNumber": 341
-              },
-              {
-                "functionName": "(anonymous)",
-                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                "lineNumber": 341
-              },
-              {
-                "functionName": "getUniforms",
-                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                "lineNumber": 317
-              },
-              {
-                "functionName": "T",
-                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                "lineNumber": 317
-              },
-              {
-                "functionName": "getProgramInfoLog",
-                "url": "",
-                "lineNumber": -1
-              }
-            ]
+            "callStack": "_fromTexture > _applyPMREM > _applyGGXFilter > render > e3 > e4 > e9 > renderBufferDirect > (anonymous) > getUniforms > T > getProgramInfoLog"
           },
           {
             "functionName": "getProgramInfoLog",
             "sampledSelfMs": 20.5,
-            "callStack": [
-              {
-                "functionName": "render",
-                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                "lineNumber": 455
-              },
-              {
-                "functionName": "render",
-                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                "lineNumber": 857
-              },
-              {
-                "functionName": "render",
-                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                "lineNumber": 455
-              },
-              {
-                "functionName": "render",
-                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                "lineNumber": 341
-              },
-              {
-                "functionName": "e3",
-                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                "lineNumber": 341
-              },
-              {
-                "functionName": "e4",
-                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                "lineNumber": 341
-              },
-              {
-                "functionName": "e9",
-                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                "lineNumber": 341
-              },
-              {
-                "functionName": "renderBufferDirect",
-                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                "lineNumber": 341
-              },
-              {
-                "functionName": "(anonymous)",
-                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                "lineNumber": 341
-              },
-              {
-                "functionName": "getUniforms",
-                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                "lineNumber": 317
-              },
-              {
-                "functionName": "T",
-                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                "lineNumber": 317
-              },
-              {
-                "functionName": "getProgramInfoLog",
-                "url": "",
-                "lineNumber": -1
-              }
-            ]
+            "callStack": "render > render > render > render > e3 > e4 > e9 > renderBufferDirect > (anonymous) > getUniforms > T > getProgramInfoLog"
           },
           {
             "functionName": "getShaderInfoLog",
             "sampledSelfMs": 18.9,
-            "callStack": [
-              {
-                "functionName": "render",
-                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                "lineNumber": 1131
-              },
-              {
-                "functionName": "render",
-                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                "lineNumber": 455
-              },
-              {
-                "functionName": "render",
-                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                "lineNumber": 455
-              },
-              {
-                "functionName": "render",
-                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                "lineNumber": 341
-              },
-              {
-                "functionName": "e3",
-                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                "lineNumber": 341
-              },
-              {
-                "functionName": "e4",
-                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                "lineNumber": 341
-              },
-              {
-                "functionName": "e9",
-                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                "lineNumber": 341
-              },
-              {
-                "functionName": "renderBufferDirect",
-                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                "lineNumber": 341
-              },
-              {
-                "functionName": "(anonymous)",
-                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                "lineNumber": 341
-              },
-              {
-                "functionName": "getUniforms",
-                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                "lineNumber": 317
-              },
-              {
-                "functionName": "T",
-                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                "lineNumber": 317
-              },
-              {
-                "functionName": "getShaderInfoLog",
-                "url": "",
-                "lineNumber": -1
-              }
-            ]
+            "callStack": "render > render > render > render > e3 > e4 > e9 > renderBufferDirect > (anonymous) > getUniforms > T > getShaderInfoLog"
           },
           {
             "functionName": "(anonymous)",
             "sampledSelfMs": 18.5,
-            "callStack": [
-              {
-                "functionName": "(root)",
-                "url": "",
-                "lineNumber": -1
-              },
-              {
-                "functionName": "(anonymous)",
-                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                "lineNumber": 1131
-              },
-              {
-                "functionName": "(anonymous)",
-                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                "lineNumber": 1131
-              }
-            ]
+            "callStack": "(root) > (anonymous) > (anonymous)"
           },
           {
             "functionName": "getProgramInfoLog",
             "sampledSelfMs": 17.6,
-            "callStack": [
-              {
-                "functionName": "render",
-                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                "lineNumber": 455
-              },
-              {
-                "functionName": "render",
-                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                "lineNumber": 455
-              },
-              {
-                "functionName": "render",
-                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                "lineNumber": 341
-              },
-              {
-                "functionName": "render",
-                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                "lineNumber": 317
-              },
-              {
-                "functionName": "n",
-                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                "lineNumber": 317
-              },
-              {
-                "functionName": "n",
-                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                "lineNumber": 317
-              },
-              {
-                "functionName": "n",
-                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                "lineNumber": 317
-              },
-              {
-                "functionName": "renderBufferDirect",
-                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                "lineNumber": 341
-              },
-              {
-                "functionName": "(anonymous)",
-                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                "lineNumber": 341
-              },
-              {
-                "functionName": "getUniforms",
-                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                "lineNumber": 317
-              },
-              {
-                "functionName": "T",
-                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                "lineNumber": 317
-              },
-              {
-                "functionName": "getProgramInfoLog",
-                "url": "",
-                "lineNumber": -1
-              }
-            ]
+            "callStack": "render > render > render > render > n > n > n > renderBufferDirect > (anonymous) > getUniforms > T > getProgramInfoLog"
           },
           {
             "functionName": "getProgramInfoLog",
             "sampledSelfMs": 16.4,
-            "callStack": [
-              {
-                "functionName": "render",
-                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                "lineNumber": 455
-              },
-              {
-                "functionName": "render",
-                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                "lineNumber": 455
-              },
-              {
-                "functionName": "render",
-                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                "lineNumber": 455
-              },
-              {
-                "functionName": "render",
-                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                "lineNumber": 341
-              },
-              {
-                "functionName": "e3",
-                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                "lineNumber": 341
-              },
-              {
-                "functionName": "e4",
-                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                "lineNumber": 341
-              },
-              {
-                "functionName": "e9",
-                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                "lineNumber": 341
-              },
-              {
-                "functionName": "renderBufferDirect",
-                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                "lineNumber": 341
-              },
-              {
-                "functionName": "(anonymous)",
-                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                "lineNumber": 341
-              },
-              {
-                "functionName": "getUniforms",
-                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                "lineNumber": 317
-              },
-              {
-                "functionName": "T",
-                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
-                "lineNumber": 317
-              },
-              {
-                "functionName": "getProgramInfoLog",
-                "url": "",
-                "lineNumber": -1
-              }
-            ]
+            "callStack": "render > render > render > render > e3 > e4 > e9 > renderBufferDirect > (anonymous) > getUniforms > T > getProgramInfoLog"
           }
         ]
       },
       "note": "Later visible replay after fixing profile-window filtering and grouping native samples by full call stack."
+    },
+    {
+      "id": "gpu-cache-disabled-tokyo-profile-stack32",
+      "startedAt": "2026-10-30T21:23:04.214Z",
+      "status": "visible-run-needs-review",
+      "runMode": "visible",
+      "targetDeviceConfirmed": false,
+      "renderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 4060 Laptop GPU (0x000028E0) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+      "browserLaunchArgs": [
+        "--disable-gpu-program-cache"
+      ],
+      "segments": {
+        "globeTravelToTokyo": {
+          "durationMs": 3339.1,
+          "frameCount": 162,
+          "p95Ms": 49.9,
+          "maxFrameMs": 133.3,
+          "framesOver500Ms": 0
+        },
+        "tokyoArrival": {
+          "durationMs": 5452.5,
+          "frameCount": 56,
+          "p95Ms": 333.3,
+          "maxFrameMs": 2532.4,
+          "framesOver500Ms": 2
+        },
+        "tokyoArrivalCellSettle": {
+          "durationMs": 1356.8,
+          "frameCount": 48,
+          "p95Ms": 99.8,
+          "maxFrameMs": 133.3,
+          "framesOver500Ms": 0
+        },
+        "walk": {
+          "durationMs": 5006,
+          "frameCount": 299,
+          "p95Ms": 16.9,
+          "maxFrameMs": 17,
+          "framesOver500Ms": 0
+        },
+        "nightSwitch": {
+          "durationMs": 2512.3,
+          "frameCount": 150,
+          "p95Ms": 16.9,
+          "maxFrameMs": 16.9,
+          "framesOver500Ms": 0
+        },
+        "streetTravelToEdinburgh": {
+          "durationMs": 106.2,
+          "frameCount": 4,
+          "p95Ms": 50.1,
+          "maxFrameMs": 50.1,
+          "framesOver500Ms": 0
+        },
+        "edinburghArrival": {
+          "durationMs": 3439.3,
+          "frameCount": 137,
+          "p95Ms": 50,
+          "maxFrameMs": 449.8,
+          "framesOver500Ms": 0
+        },
+        "edinburghArrivalCellSettle": {
+          "durationMs": 846.7,
+          "frameCount": 16,
+          "p95Ms": 150,
+          "maxFrameMs": 150,
+          "framesOver500Ms": 0
+        }
+      },
+      "cityReadiness": {
+        "Tokyo": {
+          "cellsSettled": true,
+          "loadedCellCount": 9,
+          "failedCellCount": 0,
+          "loadedTiles": 1,
+          "flatFallback": false
+        },
+        "Edinburgh": {
+          "cellsSettled": true,
+          "loadedCellCount": 9,
+          "failedCellCount": 0,
+          "loadedTiles": 1,
+          "flatFallback": false
+        }
+      },
+      "errors": {
+        "console": 0,
+        "page": 0,
+        "http": 0,
+        "requestFailures": 0
+      },
+      "profile": {
+        "city": "Tokyo",
+        "segment": "tokyoArrival",
+        "startedAtPageMs": 5517.700000047684,
+        "endedAtPageMs": 10884.400000095367,
+        "sampleCount": 3566,
+        "sampledDurationMs": 5327.7,
+        "profileAttribution": "full call-stack keyed; overlapping Long Tasks only",
+        "longTasks": [
+          {
+            "startTime": 5792,
+            "duration": 886
+          },
+          {
+            "startTime": 7307.400000095367,
+            "duration": 98
+          },
+          {
+            "startTime": 7726.600000143051,
+            "duration": 301
+          },
+          {
+            "startTime": 8319.100000143051,
+            "duration": 2527
+          }
+        ],
+        "longestOverlappingLongTask": {
+          "startTimeMs": 8319.1,
+          "durationMs": 2527,
+          "sampledMs": 2526.3,
+          "topFrames": [
+            {
+              "functionName": "getProgramInfoLog",
+              "sampledSelfMs": 2470.6,
+              "callStack": "(root) > ai > tr > (anonymous) > qualityTier > render > render > render > render > e3 > e4 > e9 > renderBufferDirect > (anonymous) > getUniforms > T > getProgramInfoLog"
+            },
+            {
+              "functionName": "getShaderInfoLog",
+              "sampledSelfMs": 14.9,
+              "callStack": "(root) > ai > tr > (anonymous) > qualityTier > render > render > render > render > e3 > e4 > e9 > renderBufferDirect > (anonymous) > getUniforms > T > getShaderInfoLog"
+            },
+            {
+              "functionName": "RegExp: ^[ \\t]*#include +<([\\w\\d./]+)>",
+              "sampledSelfMs": 3.5,
+              "callStack": "(root) > ai > tr > (anonymous) > qualityTier > render > render > render > render > e3 > e4 > e9 > renderBufferDirect > (anonymous) > e5 > acquireProgram > to > e4 > e5 > e4 > RegExp: ^[ \\t]*#include +<([\\w\\d./]+)>"
+            },
+            {
+              "functionName": "shaderSource",
+              "sampledSelfMs": 3.4,
+              "callStack": "(root) > ai > tr > (anonymous) > qualityTier > render > render > render > render > e3 > e4 > e9 > renderBufferDirect > (anonymous) > e5 > acquireProgram > to > eX > shaderSource"
+            },
+            {
+              "functionName": "(program)",
+              "sampledSelfMs": 3.4,
+              "callStack": "(root) > (program)"
+            },
+            {
+              "functionName": "getProgramParameter",
+              "sampledSelfMs": 3.3,
+              "callStack": "(root) > ai > tr > (anonymous) > qualityTier > render > render > render > render > e3 > e4 > e9 > renderBufferDirect > (anonymous) > getUniforms > T > getProgramParameter"
+            },
+            {
+              "functionName": "to",
+              "sampledSelfMs": 3.3,
+              "callStack": "(root) > ai > tr > (anonymous) > qualityTier > render > render > render > render > e3 > e4 > e9 > renderBufferDirect > (anonymous) > e5 > acquireProgram > to"
+            },
+            {
+              "functionName": "(anonymous)",
+              "sampledSelfMs": 3.1,
+              "callStack": "(root) > ai > tr > (anonymous) > qualityTier > render > render > render > render > e3 > e4 > e9 > renderBufferDirect > (anonymous) > getUniforms > T > ej > (anonymous)"
+            },
+            {
+              "functionName": "e2",
+              "sampledSelfMs": 2.4,
+              "callStack": "(root) > ai > tr > (anonymous) > qualityTier > render > render > render > render > e3 > e4 > e9 > renderBufferDirect > (anonymous) > e5 > acquireProgram > to > e2"
+            },
+            {
+              "functionName": "T",
+              "sampledSelfMs": 1.8,
+              "callStack": "(root) > ai > tr > (anonymous) > qualityTier > render > render > render > _renderOverride > render > e3 > e4 > e9 > renderBufferDirect > (anonymous) > getUniforms > T"
+            }
+          ]
+        },
+        "topFrames": [
+          {
+            "functionName": "getProgramInfoLog",
+            "sampledSelfMs": 2725.3,
+            "callStack": "(root) > ai > tr > (anonymous) > qualityTier > render > render > render > render > e3 > e4 > e9 > renderBufferDirect > (anonymous) > getUniforms > T > getProgramInfoLog"
+          },
+          {
+            "functionName": "(idle)",
+            "sampledSelfMs": 539,
+            "callStack": "(root) > (idle)"
+          },
+          {
+            "functionName": "getProgramInfoLog",
+            "sampledSelfMs": 445.7,
+            "callStack": "(root) > (anonymous) > eo.current.setTime > eo.current.setTime > tb > apply > fromEquirectangular > _fromTexture > _applyPMREM > _applyGGXFilter > render > e3 > e4 > e9 > renderBufferDirect > (anonymous) > getUniforms > T > getProgramInfoLog"
+          },
+          {
+            "functionName": "(program)",
+            "sampledSelfMs": 417.7,
+            "callStack": "(root) > (program)"
+          },
+          {
+            "functionName": "getProgramInfoLog",
+            "sampledSelfMs": 209.6,
+            "callStack": "(root) > (anonymous) > ai > tr > (anonymous) > qualityTier > render > render > render > render > e3 > e4 > e9 > renderBufferDirect > (anonymous) > getUniforms > T > getProgramInfoLog"
+          },
+          {
+            "functionName": "getProgramInfoLog",
+            "sampledSelfMs": 68.4,
+            "callStack": "(root) > (anonymous) > ai > tr > (anonymous) > qualityTier > render > render > render > render > render > e3 > e4 > e9 > renderBufferDirect > (anonymous) > getUniforms > T > getProgramInfoLog"
+          },
+          {
+            "functionName": "aA.road.<computed>.aA.road.<computed>.lanes",
+            "sampledSelfMs": 41.8,
+            "callStack": "(root) > aJ > aw > aA.road.<computed>.aA.road.<computed>.lanes"
+          },
+          {
+            "functionName": "(anonymous)",
+            "sampledSelfMs": 38.7,
+            "callStack": "(root) > (anonymous) > (anonymous)"
+          },
+          {
+            "functionName": "(garbage collector)",
+            "sampledSelfMs": 34,
+            "callStack": "(root) > (garbage collector)"
+          },
+          {
+            "functionName": "getProgramInfoLog",
+            "sampledSelfMs": 33,
+            "callStack": "(root) > ai > tr > (anonymous) > qualityTier > render > render > render > _renderOverride > render > e3 > e4 > e9 > renderBufferDirect > (anonymous) > getUniforms > T > getProgramInfoLog"
+          },
+          {
+            "functionName": "getProgramInfoLog",
+            "sampledSelfMs": 31.9,
+            "callStack": "(root) > (anonymous) > ai > tr > (anonymous) > qualityTier > render > render > render > _renderPass > render > render > e3 > e4 > e9 > renderBufferDirect > (anonymous) > getUniforms > T > getProgramInfoLog"
+          },
+          {
+            "functionName": "(anonymous)",
+            "sampledSelfMs": 30.1,
+            "callStack": "(root) > o > (anonymous)"
+          }
+        ]
+      },
+      "correlatedEvents": [
+        {
+          "type": "timing",
+          "name": "environment.pmrem-equirect-compile",
+          "atMs": 5813.800000190735,
+          "durationMs": 2.4000000953674316,
+          "details": {}
+        },
+        {
+          "type": "timing",
+          "name": "environment.pmrem-build",
+          "atMs": 6329.5,
+          "durationMs": 498.59999990463257,
+          "details": {
+            "width": 512,
+            "height": 256,
+            "failed": false
+          }
+        },
+        {
+          "type": "timing",
+          "name": "city.worker-roundtrip",
+          "atMs": 6963.900000095367,
+          "durationMs": 246,
+          "details": {
+            "elements": 1644,
+            "outputBufferBytes": 2755584
+          }
+        },
+        {
+          "type": "timing",
+          "name": "city.cell-load",
+          "atMs": 8139.900000095367,
+          "durationMs": 104.79999995231628,
+          "details": {}
+        },
+        {
+          "type": "timing",
+          "name": "city.cell-load",
+          "atMs": 8186.700000047684,
+          "durationMs": 151.40000009536743,
+          "details": {}
+        },
+        {
+          "type": "timing",
+          "name": "city.worker-roundtrip",
+          "atMs": 8214.5,
+          "durationMs": 70.90000009536743,
+          "details": {
+            "elements": 865,
+            "outputBufferBytes": 1978718
+          }
+        },
+        {
+          "type": "timing",
+          "name": "city.neighbor-geometry-total",
+          "atMs": 8214.5,
+          "durationMs": 72.09999990463257,
+          "details": {
+            "elements": 865
+          }
+        },
+        {
+          "type": "timing",
+          "name": "city.cell-load",
+          "atMs": 10901.200000047684,
+          "durationMs": 2660.5999999046326,
+          "details": {}
+        },
+        {
+          "type": "timing",
+          "name": "city.neighbor-assembly-total",
+          "atMs": 10917.700000047684,
+          "durationMs": 2702.7000000476837,
+          "details": {
+            "elements": 1499,
+            "prebuilt": false
+          }
+        }
+      ],
+      "note": "Repeat with --disable-gpu-program-cache and 32-frame call-stack limit; captures the ordinary render caller."
+    },
+    {
+      "id": "gpu-cache-disabled-tokyo-frame-program-diagnostic",
+      "startedAt": "2026-10-30T21:28:13.474Z",
+      "status": "visible-run-needs-review",
+      "runMode": "visible",
+      "targetDeviceConfirmed": false,
+      "renderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 4060 Laptop GPU (0x000028E0) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+      "browserLaunchArgs": [
+        "--disable-gpu-program-cache"
+      ],
+      "segments": {
+        "tokyoArrival": {
+          "durationMs": 5401.4,
+          "frameCount": 55,
+          "p95Ms": 433.2,
+          "maxFrameMs": 2482.7,
+          "framesOver500Ms": 2
+        },
+        "edinburghArrival": {
+          "durationMs": 4115.4,
+          "frameCount": 167,
+          "p95Ms": 49.9,
+          "maxFrameMs": 449.9,
+          "framesOver500Ms": 0
+        }
+      },
+      "cityReadiness": {
+        "Tokyo": {
+          "cellsSettled": true,
+          "loadedCellCount": 9,
+          "failedCellCount": 0,
+          "loadedTiles": 1,
+          "flatFallback": false
+        },
+        "Edinburgh": {
+          "cellsSettled": true,
+          "loadedCellCount": 9,
+          "failedCellCount": 0,
+          "loadedTiles": 1,
+          "flatFallback": false
+        }
+      },
+      "errors": {
+        "console": 0,
+        "page": 0,
+        "http": 0,
+        "requestFailures": 0
+      },
+      "profile": {
+        "city": "Tokyo",
+        "segment": "tokyoArrival",
+        "startedAtPageMs": 5469.799999952316,
+        "endedAtPageMs": 10815.900000095367,
+        "sampleCount": 2996,
+        "sampledDurationMs": 5283.8,
+        "profileAttribution": "full call-stack keyed; overlapping Long Tasks only",
+        "longestOverlappingLongTask": {
+          "startTimeMs": 8273.6,
+          "durationMs": 2483,
+          "sampledMs": 2480,
+          "topFrames": [
+            {
+              "functionName": "getProgramInfoLog",
+              "sampledSelfMs": 2416.9,
+              "callStack": "(root) > ai > tr > (anonymous) > qualityTier > render > render > render > render > e3 > e4 > e9 > renderBufferDirect > (anonymous) > getUniforms > T > getProgramInfoLog"
+            },
+            {
+              "functionName": "getShaderInfoLog",
+              "sampledSelfMs": 16.9,
+              "callStack": "(root) > ai > tr > (anonymous) > qualityTier > render > render > render > render > e3 > e4 > e9 > renderBufferDirect > (anonymous) > getUniforms > T > getShaderInfoLog"
+            },
+            {
+              "functionName": "getProgramParameter",
+              "sampledSelfMs": 10.2,
+              "callStack": "(root) > ai > tr > (anonymous) > qualityTier > render > render > render > render > e3 > e4 > e9 > renderBufferDirect > (anonymous) > getUniforms > T > getProgramParameter"
+            },
+            {
+              "functionName": "shaderSource",
+              "sampledSelfMs": 8.1,
+              "callStack": "(root) > ai > tr > (anonymous) > qualityTier > render > render > render > render > e3 > e4 > e9 > renderBufferDirect > (anonymous) > e5 > acquireProgram > to > eX > shaderSource"
+            },
+            {
+              "functionName": "e2",
+              "sampledSelfMs": 3.6,
+              "callStack": "(root) > ai > tr > (anonymous) > qualityTier > render > render > render > render > e3 > e4 > e9 > renderBufferDirect > (anonymous) > e5 > acquireProgram > to > e2"
+            }
+          ]
+        }
+      },
+      "correlatedEvents": [
+        {
+          "type": "timing",
+          "name": "renderer.long-frame-programs",
+          "atMs": 10756.9,
+          "durationMs": 2482.2,
+          "details": {
+            "programCountBefore": 48,
+            "programCountAfter": 70,
+            "newProgramCount": 22,
+            "newPrograms": [
+              {
+                "id": 48,
+                "type": "MeshStandardMaterial",
+                "usedTimes": 8,
+                "cacheKeyPrefix": "physical,STANDARD,,highp,srgb-linear,306,512,uv,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,false,0,,0,1,0,6,0,1,0,0,1,0,0,0,0,1,0,0,0,0,8388624,8520707,srgb,ground-detail-v1"
+              },
+              {
+                "id": 49,
+                "type": "MeshStandardMaterial",
+                "usedTimes": 6,
+                "cacheKeyPrefix": "physical,STANDARD,,highp,srgb-linear,306,512,uv,false,false,false,false,uv,false,uv,false,uv,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,false,0,,0,1,0,6,0,1,0,0,1,0,0,0,0,1,0,0,0,0,8389712,8520707,srgb,wtw-building-atlas-interior-v3"
+              },
+              {
+                "id": 50,
+                "type": "MeshStandardMaterial",
+                "usedTimes": 2,
+                "cacheKeyPrefix": "physical,STANDARD,,highp,srgb-linear,306,512,false,false,false,false,false,uv,false,false,false,uv,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,false,0,,0,1,0,6,0,1,0,0,1,0,0,0,0,1,0,0,0,0,8388688,8520707,srgb,onBeforeCompile(){}"
+              },
+              {
+                "id": 51,
+                "type": "MeshStandardMaterial",
+                "usedTimes": 2,
+                "cacheKeyPrefix": "physical,STANDARD,,highp,srgb-linear,306,512,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,false,0,,0,1,0,6,0,1,0,0,1,0,0,0,0,1,0,0,0,0,8388624,8520707,srgb,onBeforeCompile(){}"
+              },
+              {
+                "id": 52,
+                "type": "MeshStandardMaterial",
+                "usedTimes": 1,
+                "cacheKeyPrefix": "physical,STANDARD,,highp,srgb-linear,306,512,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,false,0,,0,1,0,6,0,1,0,0,1,0,0,0,0,1,0,0,0,0,8389648,8520707,srgb,onBeforeCompile(){}"
+              },
+              {
+                "id": 53,
+                "type": "MeshStandardMaterial",
+                "usedTimes": 1,
+                "cacheKeyPrefix": "physical,STANDARD,,highp,srgb-linear,306,512,uv,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,false,0,,0,1,0,6,0,1,0,0,1,0,0,0,0,1,0,0,0,0,8388624,8522755,srgb,onBeforeCompile(){}"
+              },
+              {
+                "id": 54,
+                "type": "MeshStandardMaterial",
+                "usedTimes": 2,
+                "cacheKeyPrefix": "physical,STANDARD,,highp,srgb-linear,306,512,uv,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,false,0,,0,1,0,6,0,1,0,0,1,0,0,0,0,1,0,0,0,0,8388624,8520707,srgb,onBeforeCompile(){}"
+              },
+              {
+                "id": 55,
+                "type": "MeshStandardMaterial",
+                "usedTimes": 1,
+                "cacheKeyPrefix": "physical,STANDARD,,highp,srgb-linear,306,512,false,false,false,false,false,uv,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,false,0,,0,1,0,6,0,1,0,0,1,0,0,0,0,1,0,0,0,0,8388688,8520707,srgb,onBeforeCompile(){}"
+              },
+              {
+                "id": 56,
+                "type": "MeshStandardMaterial",
+                "usedTimes": 1,
+                "cacheKeyPrefix": "physical,STANDARD,,highp,srgb-linear,306,512,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,false,0,,0,1,0,6,0,1,0,0,1,0,0,0,0,1,0,0,0,0,8389649,8520711,srgb,onBeforeCompile(){}"
+              },
+              {
+                "id": 57,
+                "type": "MeshStandardMaterial",
+                "usedTimes": 1,
+                "cacheKeyPrefix": "physical,STANDARD,,highp,srgb-linear,306,512,uv,false,false,false,false,uv,false,false,false,uv,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,false,0,,0,1,0,6,0,1,0,0,1,0,0,0,0,1,0,0,0,0,8388688,8522755,srgb,onBeforeCompile(){}"
+              },
+              {
+                "id": 58,
+                "type": "MeshStandardMaterial",
+                "usedTimes": 2,
+                "cacheKeyPrefix": "physical,STANDARD,,highp,srgb-linear,306,512,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,false,0,,0,1,0,6,0,1,0,0,1,0,0,0,0,1,0,0,0,0,8388624,8522755,srgb,onBeforeCompile(){}"
+              },
+              {
+                "id": 59,
+                "type": "MeshLambertMaterial",
+                "usedTimes": 3,
+                "cacheKeyPrefix": "lambert,highp,srgb-linear,306,512,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,1,0,6,0,1,0,0,1,0,0,0,0,1,0,0,0,0,8388624,8520707,srgb,onBeforeCompile(){}"
+              },
+              {
+                "id": 60,
+                "type": "MeshPhongMaterial",
+                "usedTimes": 1,
+                "cacheKeyPrefix": "phong,highp,srgb-linear,306,512,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,1,0,6,0,1,0,0,1,0,0,0,0,1,0,0,0,0,8388627,8520707,srgb,wtw-walk-ped-color-v2"
+              },
+              {
+                "id": 61,
+                "type": "MeshLambertMaterial",
+                "usedTimes": 1,
+                "cacheKeyPrefix": "lambert,highp,srgb-linear,306,512,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,1,0,6,0,1,0,0,1,0,0,0,0,1,0,0,0,0,8388627,8520707,srgb,onBeforeCompile(){}"
+              },
+              {
+                "id": 62,
+                "type": "MeshStandardMaterial",
+                "usedTimes": 17,
+                "cacheKeyPrefix": "physical,STANDARD,,highp,srgb-linear,306,512,uv,false,false,false,false,uv,false,false,false,uv,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,false,0,,0,1,0,6,0,1,0,0,1,0,0,0,0,1,0,0,0,0,8388688,8520707,srgb,onBeforeCompile(){}"
+              },
+              {
+                "id": 63,
+                "type": "MeshStandardMaterial",
+                "usedTimes": 1,
+                "cacheKeyPrefix": "physical,STANDARD,,highp,srgb-linear,306,512,uv,false,false,false,false,uv,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,false,0,,0,1,0,6,0,1,0,0,1,0,0,0,0,1,0,0,0,0,8388688,8522755,srgb,onBeforeCompile(){}"
+              },
+              {
+                "id": 64,
+                "type": "MeshLambertMaterial",
+                "usedTimes": 1,
+                "cacheKeyPrefix": "lambert,highp,srgb-linear,306,512,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,1,0,6,0,1,0,0,1,0,0,0,0,1,0,0,0,0,8388624,8389635,srgb,onBeforeCompile(){}"
+              },
+              {
+                "id": 65,
+                "type": "MeshBasicMaterial",
+                "usedTimes": 5,
+                "cacheKeyPrefix": "basic,highp,srgb-linear,false,,uv,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,1,0,6,0,1,0,0,1,0,0,0,0,1,0,0,0,0,8388608,8393731,srgb,onBeforeCompile(){}"
+              },
+              {
+                "id": 66,
+                "type": "MeshBasicMaterial",
+                "usedTimes": 5,
+                "cacheKeyPrefix": "basic,highp,srgb-linear,false,,uv,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,0,true,false,0,,0,1,0,6,0,1,0,0,1,0,0,0,0,1,0,0,0,0,8388608,8389635,srgb,onBeforeCompile(){}"
+              },
+              {
+                "id": 67,
+                "type": "MeshNormalMaterial",
+                "usedTimes": 1,
+                "cacheKeyPrefix": "normal,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,false,0,,0,1,0,6,0,1,0,0,1,0,0,0,0,1,0,0,0,0,8388609,8389633,srgb,onBeforeCompile(){}"
+              },
+              {
+                "id": 68,
+                "type": "MeshNormalMaterial",
+                "usedTimes": 1,
+                "cacheKeyPrefix": "normal,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,false,0,,0,1,0,6,0,1,0,0,1,0,0,0,0,1,0,0,0,0,8388608,8389633,srgb,onBeforeCompile(){}"
+              },
+              {
+                "id": 69,
+                "type": "MeshNormalMaterial",
+                "usedTimes": 1,
+                "cacheKeyPrefix": "normal,highp,srgb-linear,false,,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,,true,false,0,,0,1,0,6,0,1,0,0,1,0,0,0,0,1,0,0,0,0,8388611,8389633,srgb,onBeforeCompile(){}"
+              }
+            ]
+          }
+        },
+        {
+          "type": "timing",
+          "name": "city.neighbor-assembly-total",
+          "atMs": 10790.2,
+          "durationMs": 2616.5,
+          "details": {
+            "elements": 1499,
+            "prebuilt": false
+          }
+        },
+        {
+          "type": "timing",
+          "name": "city.cell-load",
+          "atMs": 10831.4,
+          "durationMs": 2630.7,
+          "details": {}
+        }
+      ],
+      "note": "Cache-disabled visible replay. The slow render recorded 22 new renderer program entries; this establishes timing correlation, not the dominant material or compile-time cause."
     }
   ],
   "screenshots": {

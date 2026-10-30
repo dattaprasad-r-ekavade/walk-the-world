@@ -24,6 +24,7 @@ function parseArgs(argv) {
     headed: false,
     targetI5Confirmed: false,
     cpuProfileCity: null,
+    disableGpuProgramCache: false,
     help: false,
     readyTimeoutMs: 120000,
     settleTimeoutMs: 45000,
@@ -44,6 +45,7 @@ function parseArgs(argv) {
     else if (arg === "--confirm-target-i5-1035g1") options.targetI5Confirmed = true;
     else if (arg === "--cpu-profile-arrival") options.cpuProfileCity = "Tokyo";
     else if (arg === "--cpu-profile-edinburgh") options.cpuProfileCity = "Edinburgh";
+    else if (arg === "--disable-gpu-program-cache") options.disableGpuProgramCache = true;
     else if (arg === "--base-url" || arg.startsWith("--base-url=")) options.baseUrl = value("--base-url");
     else if (arg === "--out" || arg.startsWith("--out=")) options.out = value("--out");
     else if (arg === "--screenshots" || arg.startsWith("--screenshots=")) options.screenshots = value("--screenshots");
@@ -94,7 +96,7 @@ function summarizeCpuProfile(profile, { pageStartMs = null, pageEndMs = null, lo
   const callStackFor = (nodeId) => {
     const stack = [];
     let current = nodeId;
-    while (current !== undefined && stack.length < 12) {
+    while (current !== undefined && stack.length < 32) {
       if (byId.has(current)) stack.push(frameFor(current));
       current = parentById.get(current);
     }
@@ -261,7 +263,7 @@ const profilerInit = () => {
 async function main(argv = process.argv.slice(2)) {
   const options = parseArgs(argv);
   if (options.help) {
-    console.log("Usage: node scripts/s7-tour.mjs [baseUrl] [--headed --confirm-target-i5-1035g1] [--headless] [--cpu-profile-arrival|--cpu-profile-edinburgh] [--fixture=FILE] [--out=FILE] [--screenshots=DIR] [--walk-ms=5000]");
+    console.log("Usage: node scripts/s7-tour.mjs [baseUrl] [--headed --confirm-target-i5-1035g1] [--headless] [--cpu-profile-arrival|--cpu-profile-edinburgh] [--disable-gpu-program-cache] [--fixture=FILE] [--out=FILE] [--screenshots=DIR] [--walk-ms=5000]");
     console.log("Run visibly on the target i5-1035G1 laptop and confirm the target device explicitly. Headless timings are control-flow evidence only.");
     return 0;
   }
@@ -278,19 +280,20 @@ async function main(argv = process.argv.slice(2)) {
   fs.mkdirSync(path.dirname(paths.report), { recursive: true });
   fs.mkdirSync(paths.screenshots, { recursive: true });
   const { chromium } = await import("playwright");
+  const browserArgs = options.disableGpuProgramCache ? ["--disable-gpu-program-cache"] : [];
   let browser;
   if (options.headed) {
     try {
-      browser = await chromium.launch({ headless: false, channel: "chrome" });
+      browser = await chromium.launch({ headless: false, channel: "chrome", args: browserArgs });
     } catch (error) {
       console.warn(`Installed Chrome unavailable (${error.message}); using Playwright Chromium visibly.`);
-      browser = await chromium.launch({ headless: false });
+      browser = await chromium.launch({ headless: false, args: browserArgs });
     }
   } else {
     try {
-      browser = await chromium.launch({ headless: true });
+      browser = await chromium.launch({ headless: true, args: browserArgs });
     } catch (error) {
-      try { browser = await chromium.launch({ headless: true, channel: "chrome" }); }
+      try { browser = await chromium.launch({ headless: true, channel: "chrome", args: browserArgs }); }
       catch { throw new Error(`No Chromium browser is installed for Playwright. Run 'npx playwright install chromium'. Original error: ${error.message}`); }
     }
   }
@@ -343,6 +346,7 @@ async function main(argv = process.argv.slice(2)) {
     baseUrl: options.baseUrl,
     startedAt: new Date().toISOString(),
     runMode: options.headed ? "visible" : "headless-control-flow-only",
+    browserLaunchArgs: browserArgs,
     targetDeviceConfirmed: false,
     evidenceNote: options.headed
       ? "Visible browser timings describe this host. Confirm the reported adapter is Intel UHD on the i5-1035G1 before using this as target-device evidence."
@@ -431,7 +435,7 @@ async function main(argv = process.argv.slice(2)) {
           if (!Number.isFinite(event.atMs) || event.atMs < startMs || event.atMs > endMs) return false;
           const name = String(event.name || "");
           if (event.type === "mark") return true;
-          return /pmrem/i.test(name) || (
+          return /pmrem|renderer\.long-frame-programs/i.test(name) || (
             Number.isFinite(event.durationMs) && event.durationMs >= 50 &&
             /city\.(?:cell-load|worker-roundtrip|neighbor-assembly-total|neighbor-geometry-total|cell-shader-warmup|road-canvas-paint)|input-ready|engine-ready/i.test(name)
           );
