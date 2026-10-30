@@ -1,6 +1,6 @@
 # Walk the World — Performance and Visuals Implementation Plan
 
-Updated: 30 October 2026. Reviewed base: `021f55b` on `origin/main`.
+Updated: 30 October 2026. Reviewed base: `293eee6` on `origin/main`.
 Demo gates D1–D8 are closed. The smoothness track (section 0a) closed S1–S6 from
 live-deploy profiling; S7–S8 stay open. S9's real-input check did not reproduce
 the hang on 30 October. S7 has a candidate fix (`be2ff98`,
@@ -19,8 +19,9 @@ preserves the full experiment history; its status is historical.
 ## Release gate — supported framework and dependency audit
 
 - [ ] **SEC1 — P1 before public release: Upgrade the unsupported Next.js 14 tree.**
-  **30 Oct, branch `sec1-next16`: code done, browser acceptance open.** Next
-  16.4.3 (Turbopack build), React/React DOM 19.3.1, ESLint 9 flat config
+  **30 Oct, branch `sec1-next16`: code done; four-city browser acceptance
+  passed; live Overture check open.** Next 16.4.3 (Turbopack build), React/React DOM
+  19.3.1, ESLint 9 flat config
   (`eslint.config.mjs`; `next lint` is gone), `@duckdb/node-api` 1.4.5-r.1
   replacing the deprecated `duckdb` package and its node-gyp/tar chain, plus
   non-forced `npm audit fix`. Next 15.5.28 was skipped: its bundled postcss
@@ -39,9 +40,17 @@ preserves the full experiment history; its status is historical.
   Brave run showed a hydration mismatch caused by extension-injected `<html>`
   and `<body>` attributes; it did not appear in the private window. See [the
   browser acceptance check](benchmarks/results/stage0/sec1-next16-browser-acceptance-2026-10-30.md).
-  Still open: the live DuckDB Overture query against S3 (writes results to R2)
-  and a full four-city run with usable city data. Do not close SEC1 on this
-  partial local route check.
+  A subsequent visible-Chrome rehearsal against the live deployment completed
+  Pune, Edinburgh, Tokyo and New York with 36/36 warm R2 cells. Each city reached
+  engine-ready and settled with nine resident cells, zero failed cells, nine
+  HTTP 200 city responses, and its expected preset heading. The deployed
+  service-worker revision matched the current `main` build hash (`293eee6`).
+  See the
+  [four-city Next 16 acceptance report](benchmarks/results/stage0/sec1-next16-four-city-2026-10-30.md)
+  and its [screenshots](screenshots/demo-track/rehearsal-2026-10-30-sec1-next16/).
+  Still open: the live DuckDB Overture query against S3, which writes results to
+  R2. Keep SEC1 open until that release-data check is separately authorized and
+  completed.
   On `6c79a3d`, `npm ci` installed Next.js 14.2.35, React/React DOM 18.3.1,
   DuckDB 1.4.4 and Sharp 0.35.5. `npm audit --omit=dev` reported 11 production
   dependency findings (10 high, 1 critical); the full install audit reported 19
