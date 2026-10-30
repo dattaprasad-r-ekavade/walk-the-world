@@ -326,11 +326,19 @@ Decisions taken from the research:
     already in cached cells (Tokyo start cell: 44 car parks, 17 pedestrian
     areas, 28 park/grass; Edinburgh: 79, 16, 63; Pune: few), so no reseed is
     needed. Unit tests cover classification, UVs and merging.
-  - Open: browser screenshots in the four cities; then urban land use
-    (residential, commercial, industrial) to replace the raster between
-    buildings. That needs a new Overpass query term, a reseed, and draping
-    large areas onto the terrain first: flat areas sit at their highest
-    terrain point and would float on slopes such as Edinburgh's.
+  - 30 Oct, second step: surfaces follow the terrain. Each area is meshed
+    with edge points and an interior grid about 10 m apart (capped at 3,000
+    triangles) and every vertex sits on the rendered terrain triangles plus
+    its lift; triangles over terrain that is not loaded are left out instead
+    of being buried at height 0 or floating. Multi-storey car parks tagged
+    `building` now build as buildings (they were drawn as flat ground), and
+    underground, rooftop and raised (`layer` ≠ 0) areas are no longer ground.
+    Browser audit on the local build: Edinburgh grass, car parks, plazas,
+    playgrounds and water all within 0.3 m of the terrain (car parks
+    previously floated up to 12 m); zero console errors.
+  - Open: urban land use (residential, commercial, industrial) to replace the
+    raster between buildings. Needs a new Overpass query term and a reseed of
+    the demo cells (writes to R2; ask first).
 - [ ] **B4 — Overture gap fill (S).** The Overture footprint fallback already
   exists for sparse cells. Remaining: merge Overture height, num_floors,
   roof_shape, roof_color, facade_color and facade_material into OSM buildings
