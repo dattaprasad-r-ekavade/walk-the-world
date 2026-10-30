@@ -275,17 +275,24 @@ Open:
   prototype did not demonstrate a fix, so all runtime changes were reverted.
   Three.js 0.186.1 source confirms `compileAsync` calls `compile` synchronously,
   then polls readiness; custom signatures also omit some renderer-derived key
-  inputs. A local full-tour replay with production Tokyo and Edinburgh center
-  cells reproduced a 2,816 ms Edinburgh arrival task. Its 1 ms profile sampled
-  2,887.6 ms in `getProgramInfoLog` on a stack through
-  `PMREMGenerator.fromEquirectangular`, not the city-cell compile path. The
-  41.8 ms PMREM timing event ended about 758 ms before that task, so the delayed
-  first-use path is still unexplained. This replay had one real cell and eight
-  empty neighbors per city; it is diagnostic only. Next: replay complete 3×3
-  cells, trace PMREM first-use work, and repeat the visible gate on the target
-  i5-1035G1. See the [initial CPU profile](benchmarks/results/stage0/s7-tour-cpu-profile-2026-10-31.md),
+  inputs. The first local full-tour replay used only the center cell per city.
+  A complete production Tokyo and Edinburgh 3×3 replay now loaded all nine cells
+  per city without errors. Its first visible Tokyo arrival reached 2,582.9 ms;
+  three later runs reached 832.8–850.1 ms, so a cold or cache-sensitive stall is
+  plausible but not established. Edinburgh stayed below 500 ms in all four
+  recordings. The first profile summary merged native WebGL samples by function
+  name and its PMREM stack attribution was unreliable. The runner now filters
+  Long Tasks to the profile window and separates native samples by full call
+  stack. In the corrected Edinburgh capture, a 299 ms Long Task included
+  212.2 ms in renderer `getProgramInfoLog`; PMREM `getProgramInfoLog` accounted
+  for 31.6 ms elsewhere in the arrival, and its 42.3 ms build event ended about
+  799 ms before the task. The multi-second Tokyo task still needs a cold
+  stack-aware capture. These RTX 4060 / i7 results do not close S7. Next: obtain
+  that capture, then repeat the visible gate and ground/terrain review on the
+  target i5-1035G1. See the [full 3×3 report](benchmarks/results/stage0/s7-full-city-3x3-profile-2026-10-31.md),
+  [initial CPU profile](benchmarks/results/stage0/s7-tour-cpu-profile-2026-10-31.md),
   [warmup comparison](benchmarks/results/stage0/s7-frame-budgeted-warmup-2026-10-31.md),
-  and [full-tour replay report](benchmarks/results/stage0/s7-full-tour-cell-replay-2026-10-31.md).
+  and [center-cell replay report](benchmarks/results/stage0/s7-full-tour-cell-replay-2026-10-31.md).
 - [ ] **S8 — Walking cost on weak GPUs.** Walking is GPU-bound on Intel UHD
   (fill rate, not draw calls). Candidates, in order: cheaper interior-window
   shader at distance (drop the ray-box sample beyond about 40 m instead of

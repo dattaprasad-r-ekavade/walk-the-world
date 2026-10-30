@@ -1,0 +1,1636 @@
+{
+  "schemaVersion": 1,
+  "evidenceType": "s7-full-city-3x3-profile-summary",
+  "recordedAt": "2026-10-31",
+  "host": {
+    "cpu": "13th Gen Intel Core i7-13650HX"
+  },
+  "fixture": {
+    "id": "s7-full-two-city-3x3-replay",
+    "dataKind": "public production OSM cell replay",
+    "capturedBytes": 35415953,
+    "sha256": "7DC24D83D85EBB984B31DEDC75596454621A4F8499CF59FA6D25B7EEC13BF6CE",
+    "committed": false
+  },
+  "runs": [
+    {
+      "id": "first-tokyo-profile",
+      "startedAt": "2026-10-30T21:09:48.006Z",
+      "status": "visible-run-needs-review",
+      "runMode": "visible",
+      "targetDeviceConfirmed": false,
+      "renderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 4060 Laptop GPU (0x000028E0) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+      "segments": {
+        "globeTravelToTokyo": {
+          "durationMs": 3668,
+          "frameCount": 164,
+          "p95Ms": 50,
+          "maxFrameMs": 217,
+          "framesOver500Ms": 0
+        },
+        "tokyoArrival": {
+          "durationMs": 5417.2,
+          "frameCount": 64,
+          "p95Ms": 233.5,
+          "maxFrameMs": 2582.9,
+          "framesOver500Ms": 2
+        },
+        "tokyoArrivalCellSettle": {
+          "durationMs": 1695.7,
+          "frameCount": 42,
+          "p95Ms": 150,
+          "maxFrameMs": 166.7,
+          "framesOver500Ms": 0
+        },
+        "walk": {
+          "durationMs": 5015.1,
+          "frameCount": 300,
+          "p95Ms": 16.8,
+          "maxFrameMs": 17,
+          "framesOver500Ms": 0
+        },
+        "nightSwitch": {
+          "durationMs": 2514.8,
+          "frameCount": 150,
+          "p95Ms": 16.9,
+          "maxFrameMs": 17.1,
+          "framesOver500Ms": 0
+        },
+        "streetTravelToEdinburgh": {
+          "durationMs": 1037.1,
+          "frameCount": 61,
+          "p95Ms": 16.9,
+          "maxFrameMs": 33.3,
+          "framesOver500Ms": 0
+        },
+        "edinburghArrival": {
+          "durationMs": 3718,
+          "frameCount": 146,
+          "p95Ms": 83.4,
+          "maxFrameMs": 400,
+          "framesOver500Ms": 0
+        },
+        "edinburghArrivalCellSettle": {
+          "durationMs": 559.3,
+          "frameCount": 8,
+          "p95Ms": 166.7,
+          "maxFrameMs": 166.7,
+          "framesOver500Ms": 0
+        }
+      },
+      "cityReadiness": {
+        "Tokyo": {
+          "cellsSettled": true,
+          "loadedCellCount": 9,
+          "failedCellCount": 0,
+          "loadedTiles": 1,
+          "flatFallback": false
+        },
+        "Edinburgh": {
+          "cellsSettled": true,
+          "loadedCellCount": 9,
+          "failedCellCount": 0,
+          "loadedTiles": 1,
+          "flatFallback": false
+        }
+      },
+      "cellRequests": [
+        {
+          "cityKey": "wtw_city6_35.660_139.701",
+          "elements": 3665
+        },
+        {
+          "cityKey": "wtw_city6_35.660_139.706",
+          "elements": 3652
+        },
+        {
+          "cityKey": "wtw_city6_35.665_139.701",
+          "elements": 3617
+        },
+        {
+          "cityKey": "wtw_city6_35.654_139.701",
+          "elements": 3664
+        },
+        {
+          "cityKey": "wtw_city6_35.660_139.695",
+          "elements": 2127
+        },
+        {
+          "cityKey": "wtw_city6_35.665_139.695",
+          "elements": 3435
+        },
+        {
+          "cityKey": "wtw_city6_35.665_139.706",
+          "elements": 3649
+        },
+        {
+          "cityKey": "wtw_city6_35.654_139.695",
+          "elements": 3606
+        },
+        {
+          "cityKey": "wtw_city6_35.654_139.706",
+          "elements": 3649
+        },
+        {
+          "cityKey": "wtw_city6_55.950_-3.188",
+          "elements": 3343
+        },
+        {
+          "cityKey": "wtw_city6_55.945_-3.188",
+          "elements": 3296
+        },
+        {
+          "cityKey": "wtw_city6_55.950_-3.182",
+          "elements": 3075
+        },
+        {
+          "cityKey": "wtw_city6_55.950_-3.193",
+          "elements": 3366
+        },
+        {
+          "cityKey": "wtw_city6_55.956_-3.188",
+          "elements": 3841
+        },
+        {
+          "cityKey": "wtw_city6_55.945_-3.182",
+          "elements": 3110
+        },
+        {
+          "cityKey": "wtw_city6_55.945_-3.193",
+          "elements": 3105
+        },
+        {
+          "cityKey": "wtw_city6_55.956_-3.182",
+          "elements": 3674
+        },
+        {
+          "cityKey": "wtw_city6_55.956_-3.193",
+          "elements": 3968
+        }
+      ],
+      "errors": {
+        "console": 0,
+        "page": 0,
+        "http": 0,
+        "requestFailures": 0
+      },
+      "pmremTimings": [
+        {
+          "name": "environment.pmrem-equirect-compile",
+          "durationMs": 2.200000047683716,
+          "atMs": 6440.200000047684,
+          "details": {}
+        },
+        {
+          "name": "environment.pmrem-build",
+          "durationMs": 487.7999999523163,
+          "atMs": 6944.299999952316,
+          "details": {
+            "width": 512,
+            "height": 256,
+            "failed": false
+          }
+        },
+        {
+          "name": "environment.pmrem-build",
+          "durationMs": 0.39999985694885254,
+          "atMs": 18538.39999985695,
+          "details": {
+            "width": 512,
+            "height": 256,
+            "failed": false
+          }
+        },
+        {
+          "name": "environment.pmrem-equirect-compile",
+          "durationMs": 0.40000009536743164,
+          "atMs": 22203.299999952316,
+          "details": {}
+        },
+        {
+          "name": "environment.pmrem-build",
+          "durationMs": 32.60000014305115,
+          "atMs": 23726,
+          "details": {
+            "width": 512,
+            "height": 256,
+            "failed": false
+          }
+        }
+      ],
+      "profile": {
+        "city": "Tokyo",
+        "segment": "tokyoArrival",
+        "startedAtPageMs": 6134.700000047684,
+        "endedAtPageMs": 11475.299999952316,
+        "sampleCount": 3565,
+        "sampledDurationMs": 5291.1,
+        "profileAttribution": "legacy function-keyed; call paths are not reliable",
+        "longestOverlappingLongTask": {
+          "startTimeMs": 8842.5,
+          "durationMs": 2586,
+          "sampledMs": 2583.3,
+          "topFrames": [
+            {
+              "functionName": "getProgramInfoLog",
+              "sampledSelfMs": 2527.6
+            },
+            {
+              "functionName": "getShaderInfoLog",
+              "sampledSelfMs": 17.7
+            },
+            {
+              "functionName": "shaderSource",
+              "sampledSelfMs": 6.4
+            },
+            {
+              "functionName": "RegExp: ^[ \\t]*#include +<([\\w\\d./]+)>",
+              "sampledSelfMs": 5.3
+            },
+            {
+              "functionName": "(program)",
+              "sampledSelfMs": 3.2
+            },
+            {
+              "functionName": "getProgramParameter",
+              "sampledSelfMs": 3.1
+            },
+            {
+              "functionName": "getUniforms",
+              "sampledSelfMs": 3.1
+            },
+            {
+              "functionName": "e2",
+              "sampledSelfMs": 3.1
+            },
+            {
+              "functionName": "t.s.i",
+              "sampledSelfMs": 1.7
+            },
+            {
+              "functionName": "getParameters",
+              "sampledSelfMs": 1.6
+            }
+          ]
+        },
+        "topFrames": [
+          {
+            "functionName": "getProgramInfoLog",
+            "sampledSelfMs": 3574.5
+          },
+          {
+            "functionName": "(idle)",
+            "sampledSelfMs": 486.8
+          },
+          {
+            "functionName": "(program)",
+            "sampledSelfMs": 405.1
+          },
+          {
+            "functionName": "(anonymous)",
+            "sampledSelfMs": 62.1
+          },
+          {
+            "functionName": "measureText",
+            "sampledSelfMs": 43.4
+          },
+          {
+            "functionName": "(anonymous)",
+            "sampledSelfMs": 41.9
+          },
+          {
+            "functionName": "aA.road.<computed>.aA.road.<computed>.lanes",
+            "sampledSelfMs": 39.3
+          },
+          {
+            "functionName": "getShaderInfoLog",
+            "sampledSelfMs": 35
+          },
+          {
+            "functionName": "getExtension",
+            "sampledSelfMs": 29
+          },
+          {
+            "functionName": "(anonymous)",
+            "sampledSelfMs": 20.7
+          },
+          {
+            "functionName": "(anonymous)",
+            "sampledSelfMs": 20.7
+          },
+          {
+            "functionName": "shaderSource",
+            "sampledSelfMs": 19.5
+          }
+        ]
+      },
+      "note": "First visible full-neighborhood replay. Frame and Long Task durations are valid observations. The CPU summarizer at this point merged native WebGL samples by function name, so its call-stack attribution is not used."
+    },
+    {
+      "id": "edinburgh-stack-aware-repeat",
+      "startedAt": "2026-10-30T21:14:00.930Z",
+      "status": "visible-run-needs-review",
+      "runMode": "visible",
+      "targetDeviceConfirmed": false,
+      "renderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 4060 Laptop GPU (0x000028E0) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+      "segments": {
+        "globeTravelToTokyo": {
+          "durationMs": 3638.3,
+          "frameCount": 176,
+          "p95Ms": 50,
+          "maxFrameMs": 150.1,
+          "framesOver500Ms": 0
+        },
+        "tokyoArrival": {
+          "durationMs": 5232.4,
+          "frameCount": 60,
+          "p95Ms": 166.6,
+          "maxFrameMs": 850.1,
+          "framesOver500Ms": 1
+        },
+        "tokyoArrivalCellSettle": {
+          "durationMs": 1619,
+          "frameCount": 65,
+          "p95Ms": 83.4,
+          "maxFrameMs": 149.8,
+          "framesOver500Ms": 0
+        },
+        "walk": {
+          "durationMs": 5009.9,
+          "frameCount": 300,
+          "p95Ms": 16.9,
+          "maxFrameMs": 17.1,
+          "framesOver500Ms": 0
+        },
+        "nightSwitch": {
+          "durationMs": 2522.6,
+          "frameCount": 151,
+          "p95Ms": 16.8,
+          "maxFrameMs": 17,
+          "framesOver500Ms": 0
+        },
+        "streetTravelToEdinburgh": {
+          "durationMs": 1021.4,
+          "frameCount": 59,
+          "p95Ms": 16.9,
+          "maxFrameMs": 33.3,
+          "framesOver500Ms": 0
+        },
+        "edinburghArrival": {
+          "durationMs": 3723.6,
+          "frameCount": 141,
+          "p95Ms": 66.6,
+          "maxFrameMs": 316.8,
+          "framesOver500Ms": 0
+        },
+        "edinburghArrivalCellSettle": {
+          "durationMs": 540.7,
+          "frameCount": 21,
+          "p95Ms": 83.3,
+          "maxFrameMs": 116.6,
+          "framesOver500Ms": 0
+        }
+      },
+      "cityReadiness": {
+        "Tokyo": {
+          "cellsSettled": true,
+          "loadedCellCount": 9,
+          "failedCellCount": 0,
+          "loadedTiles": 1,
+          "flatFallback": false
+        },
+        "Edinburgh": {
+          "cellsSettled": true,
+          "loadedCellCount": 9,
+          "failedCellCount": 0,
+          "loadedTiles": 1,
+          "flatFallback": false
+        }
+      },
+      "cellRequests": [
+        {
+          "cityKey": "wtw_city6_35.660_139.701",
+          "elements": 3665
+        },
+        {
+          "cityKey": "wtw_city6_35.660_139.706",
+          "elements": 3652
+        },
+        {
+          "cityKey": "wtw_city6_35.665_139.701",
+          "elements": 3617
+        },
+        {
+          "cityKey": "wtw_city6_35.654_139.701",
+          "elements": 3664
+        },
+        {
+          "cityKey": "wtw_city6_35.660_139.695",
+          "elements": 2127
+        },
+        {
+          "cityKey": "wtw_city6_35.665_139.706",
+          "elements": 3649
+        },
+        {
+          "cityKey": "wtw_city6_35.654_139.706",
+          "elements": 3649
+        },
+        {
+          "cityKey": "wtw_city6_35.665_139.695",
+          "elements": 3435
+        },
+        {
+          "cityKey": "wtw_city6_35.654_139.695",
+          "elements": 3606
+        },
+        {
+          "cityKey": "wtw_city6_55.950_-3.188",
+          "elements": 3343
+        },
+        {
+          "cityKey": "wtw_city6_55.945_-3.188",
+          "elements": 3296
+        },
+        {
+          "cityKey": "wtw_city6_55.950_-3.182",
+          "elements": 3075
+        },
+        {
+          "cityKey": "wtw_city6_55.950_-3.193",
+          "elements": 3366
+        },
+        {
+          "cityKey": "wtw_city6_55.956_-3.188",
+          "elements": 3841
+        },
+        {
+          "cityKey": "wtw_city6_55.945_-3.182",
+          "elements": 3110
+        },
+        {
+          "cityKey": "wtw_city6_55.945_-3.193",
+          "elements": 3105
+        },
+        {
+          "cityKey": "wtw_city6_55.956_-3.193",
+          "elements": 3968
+        },
+        {
+          "cityKey": "wtw_city6_55.956_-3.182",
+          "elements": 3674
+        }
+      ],
+      "errors": {
+        "console": 0,
+        "page": 0,
+        "http": 0,
+        "requestFailures": 0
+      },
+      "pmremTimings": [
+        {
+          "name": "environment.pmrem-equirect-compile",
+          "durationMs": 2.0999999046325684,
+          "atMs": 6168.299999952316,
+          "details": {}
+        },
+        {
+          "name": "environment.pmrem-build",
+          "durationMs": 496,
+          "atMs": 6679.799999952316,
+          "details": {
+            "width": 512,
+            "height": 256,
+            "failed": false
+          }
+        },
+        {
+          "name": "environment.pmrem-build",
+          "durationMs": 0.5,
+          "atMs": 17909.5,
+          "details": {
+            "width": 512,
+            "height": 256,
+            "failed": false
+          }
+        },
+        {
+          "name": "environment.pmrem-equirect-compile",
+          "durationMs": 0.5,
+          "atMs": 21543.799999952316,
+          "details": {}
+        },
+        {
+          "name": "environment.pmrem-build",
+          "durationMs": 42.299999952316284,
+          "atMs": 23128.299999952316,
+          "details": {
+            "width": 512,
+            "height": 256,
+            "failed": false
+          }
+        }
+      ],
+      "profile": {
+        "city": "Edinburgh",
+        "segment": "edinburghArrival",
+        "startedAtPageMs": 21637.5,
+        "endedAtPageMs": 25261.5,
+        "sampleCount": 2130,
+        "sampledDurationMs": 3570.4,
+        "profileAttribution": "full call-stack keyed; overlapping Long Tasks only",
+        "longestOverlappingLongTask": {
+          "startTimeMs": 23927.1,
+          "durationMs": 299,
+          "sampledMs": 299,
+          "topFrames": [
+            {
+              "functionName": "getProgramInfoLog",
+              "sampledSelfMs": 212.2,
+              "callStack": [
+                {
+                  "functionName": "render",
+                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                  "lineNumber": 1131
+                },
+                {
+                  "functionName": "render",
+                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                  "lineNumber": 455
+                },
+                {
+                  "functionName": "render",
+                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                  "lineNumber": 455
+                },
+                {
+                  "functionName": "render",
+                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                  "lineNumber": 341
+                },
+                {
+                  "functionName": "e3",
+                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                  "lineNumber": 341
+                },
+                {
+                  "functionName": "e4",
+                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                  "lineNumber": 341
+                },
+                {
+                  "functionName": "e9",
+                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                  "lineNumber": 341
+                },
+                {
+                  "functionName": "renderBufferDirect",
+                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                  "lineNumber": 341
+                },
+                {
+                  "functionName": "(anonymous)",
+                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                  "lineNumber": 341
+                },
+                {
+                  "functionName": "getUniforms",
+                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                  "lineNumber": 317
+                },
+                {
+                  "functionName": "T",
+                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                  "lineNumber": 317
+                },
+                {
+                  "functionName": "getProgramInfoLog",
+                  "url": "",
+                  "lineNumber": -1
+                }
+              ]
+            },
+            {
+              "functionName": "getProgramInfoLog",
+              "sampledSelfMs": 12.7,
+              "callStack": [
+                {
+                  "functionName": "render",
+                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                  "lineNumber": 455
+                },
+                {
+                  "functionName": "render",
+                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                  "lineNumber": 673
+                },
+                {
+                  "functionName": "_renderOverride",
+                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                  "lineNumber": 673
+                },
+                {
+                  "functionName": "render",
+                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                  "lineNumber": 341
+                },
+                {
+                  "functionName": "e3",
+                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                  "lineNumber": 341
+                },
+                {
+                  "functionName": "e4",
+                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                  "lineNumber": 341
+                },
+                {
+                  "functionName": "e9",
+                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                  "lineNumber": 341
+                },
+                {
+                  "functionName": "renderBufferDirect",
+                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                  "lineNumber": 341
+                },
+                {
+                  "functionName": "(anonymous)",
+                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                  "lineNumber": 341
+                },
+                {
+                  "functionName": "getUniforms",
+                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                  "lineNumber": 317
+                },
+                {
+                  "functionName": "T",
+                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                  "lineNumber": 317
+                },
+                {
+                  "functionName": "getProgramInfoLog",
+                  "url": "",
+                  "lineNumber": -1
+                }
+              ]
+            },
+            {
+              "functionName": "getShaderInfoLog",
+              "sampledSelfMs": 9.4,
+              "callStack": [
+                {
+                  "functionName": "render",
+                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                  "lineNumber": 1131
+                },
+                {
+                  "functionName": "render",
+                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                  "lineNumber": 455
+                },
+                {
+                  "functionName": "render",
+                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                  "lineNumber": 455
+                },
+                {
+                  "functionName": "render",
+                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                  "lineNumber": 341
+                },
+                {
+                  "functionName": "e3",
+                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                  "lineNumber": 341
+                },
+                {
+                  "functionName": "e4",
+                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                  "lineNumber": 341
+                },
+                {
+                  "functionName": "e9",
+                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                  "lineNumber": 341
+                },
+                {
+                  "functionName": "renderBufferDirect",
+                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                  "lineNumber": 341
+                },
+                {
+                  "functionName": "(anonymous)",
+                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                  "lineNumber": 341
+                },
+                {
+                  "functionName": "getUniforms",
+                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                  "lineNumber": 317
+                },
+                {
+                  "functionName": "T",
+                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                  "lineNumber": 317
+                },
+                {
+                  "functionName": "getShaderInfoLog",
+                  "url": "",
+                  "lineNumber": -1
+                }
+              ]
+            },
+            {
+              "functionName": "e2",
+              "sampledSelfMs": 5.8,
+              "callStack": [
+                {
+                  "functionName": "render",
+                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                  "lineNumber": 455
+                },
+                {
+                  "functionName": "render",
+                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                  "lineNumber": 455
+                },
+                {
+                  "functionName": "render",
+                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                  "lineNumber": 341
+                },
+                {
+                  "functionName": "e3",
+                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                  "lineNumber": 341
+                },
+                {
+                  "functionName": "e4",
+                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                  "lineNumber": 341
+                },
+                {
+                  "functionName": "e9",
+                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                  "lineNumber": 341
+                },
+                {
+                  "functionName": "renderBufferDirect",
+                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                  "lineNumber": 341
+                },
+                {
+                  "functionName": "(anonymous)",
+                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                  "lineNumber": 341
+                },
+                {
+                  "functionName": "e5",
+                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                  "lineNumber": 341
+                },
+                {
+                  "functionName": "acquireProgram",
+                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                  "lineNumber": 317
+                },
+                {
+                  "functionName": "to",
+                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                  "lineNumber": 312
+                },
+                {
+                  "functionName": "e2",
+                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                  "lineNumber": 295
+                }
+              ]
+            },
+            {
+              "functionName": "(program)",
+              "sampledSelfMs": 4.8,
+              "callStack": [
+                {
+                  "functionName": "(root)",
+                  "url": "",
+                  "lineNumber": -1
+                },
+                {
+                  "functionName": "(program)",
+                  "url": "",
+                  "lineNumber": -1
+                }
+              ]
+            },
+            {
+              "functionName": "(anonymous)",
+              "sampledSelfMs": 4.8,
+              "callStack": [
+                {
+                  "functionName": "(root)",
+                  "url": "",
+                  "lineNumber": -1
+                },
+                {
+                  "functionName": "(anonymous)",
+                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                  "lineNumber": 1131
+                },
+                {
+                  "functionName": "(anonymous)",
+                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                  "lineNumber": 1131
+                }
+              ]
+            },
+            {
+              "functionName": "e7",
+              "sampledSelfMs": 4.7,
+              "callStack": [
+                {
+                  "functionName": "render",
+                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                  "lineNumber": 455
+                },
+                {
+                  "functionName": "render",
+                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                  "lineNumber": 455
+                },
+                {
+                  "functionName": "render",
+                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                  "lineNumber": 341
+                },
+                {
+                  "functionName": "e3",
+                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                  "lineNumber": 341
+                },
+                {
+                  "functionName": "e4",
+                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                  "lineNumber": 341
+                },
+                {
+                  "functionName": "e9",
+                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                  "lineNumber": 341
+                },
+                {
+                  "functionName": "renderBufferDirect",
+                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                  "lineNumber": 341
+                },
+                {
+                  "functionName": "(anonymous)",
+                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                  "lineNumber": 341
+                },
+                {
+                  "functionName": "e5",
+                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                  "lineNumber": 341
+                },
+                {
+                  "functionName": "acquireProgram",
+                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                  "lineNumber": 317
+                },
+                {
+                  "functionName": "to",
+                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                  "lineNumber": 312
+                },
+                {
+                  "functionName": "e7",
+                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                  "lineNumber": 295
+                }
+              ]
+            },
+            {
+              "functionName": "e4",
+              "sampledSelfMs": 4.7,
+              "callStack": [
+                {
+                  "functionName": "render",
+                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                  "lineNumber": 455
+                },
+                {
+                  "functionName": "render",
+                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                  "lineNumber": 455
+                },
+                {
+                  "functionName": "render",
+                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                  "lineNumber": 341
+                },
+                {
+                  "functionName": "e3",
+                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                  "lineNumber": 341
+                },
+                {
+                  "functionName": "e4",
+                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                  "lineNumber": 341
+                },
+                {
+                  "functionName": "e9",
+                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                  "lineNumber": 341
+                },
+                {
+                  "functionName": "renderBufferDirect",
+                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                  "lineNumber": 341
+                },
+                {
+                  "functionName": "(anonymous)",
+                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                  "lineNumber": 341
+                },
+                {
+                  "functionName": "e5",
+                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                  "lineNumber": 341
+                },
+                {
+                  "functionName": "acquireProgram",
+                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                  "lineNumber": 317
+                },
+                {
+                  "functionName": "to",
+                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                  "lineNumber": 312
+                },
+                {
+                  "functionName": "e4",
+                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                  "lineNumber": 295
+                }
+              ]
+            },
+            {
+              "functionName": "shaderSource",
+              "sampledSelfMs": 3.6,
+              "callStack": [
+                {
+                  "functionName": "render",
+                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                  "lineNumber": 455
+                },
+                {
+                  "functionName": "render",
+                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                  "lineNumber": 341
+                },
+                {
+                  "functionName": "e3",
+                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                  "lineNumber": 341
+                },
+                {
+                  "functionName": "e4",
+                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                  "lineNumber": 341
+                },
+                {
+                  "functionName": "e9",
+                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                  "lineNumber": 341
+                },
+                {
+                  "functionName": "renderBufferDirect",
+                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                  "lineNumber": 341
+                },
+                {
+                  "functionName": "(anonymous)",
+                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                  "lineNumber": 341
+                },
+                {
+                  "functionName": "e5",
+                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                  "lineNumber": 341
+                },
+                {
+                  "functionName": "acquireProgram",
+                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                  "lineNumber": 317
+                },
+                {
+                  "functionName": "to",
+                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                  "lineNumber": 312
+                },
+                {
+                  "functionName": "eX",
+                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                  "lineNumber": 295
+                },
+                {
+                  "functionName": "shaderSource",
+                  "url": "",
+                  "lineNumber": -1
+                }
+              ]
+            },
+            {
+              "functionName": "getProgramParameter",
+              "sampledSelfMs": 3.2,
+              "callStack": [
+                {
+                  "functionName": "render",
+                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                  "lineNumber": 1131
+                },
+                {
+                  "functionName": "render",
+                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                  "lineNumber": 455
+                },
+                {
+                  "functionName": "render",
+                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                  "lineNumber": 455
+                },
+                {
+                  "functionName": "render",
+                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                  "lineNumber": 341
+                },
+                {
+                  "functionName": "e3",
+                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                  "lineNumber": 341
+                },
+                {
+                  "functionName": "e4",
+                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                  "lineNumber": 341
+                },
+                {
+                  "functionName": "e9",
+                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                  "lineNumber": 341
+                },
+                {
+                  "functionName": "renderBufferDirect",
+                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                  "lineNumber": 341
+                },
+                {
+                  "functionName": "(anonymous)",
+                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                  "lineNumber": 341
+                },
+                {
+                  "functionName": "getUniforms",
+                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                  "lineNumber": 317
+                },
+                {
+                  "functionName": "T",
+                  "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                  "lineNumber": 317
+                },
+                {
+                  "functionName": "getProgramParameter",
+                  "url": "",
+                  "lineNumber": -1
+                }
+              ]
+            }
+          ]
+        },
+        "topFrames": [
+          {
+            "functionName": "(idle)",
+            "sampledSelfMs": 1458.5,
+            "callStack": [
+              {
+                "functionName": "(root)",
+                "url": "",
+                "lineNumber": -1
+              },
+              {
+                "functionName": "(idle)",
+                "url": "",
+                "lineNumber": -1
+              }
+            ]
+          },
+          {
+            "functionName": "(program)",
+            "sampledSelfMs": 610.6,
+            "callStack": [
+              {
+                "functionName": "(root)",
+                "url": "",
+                "lineNumber": -1
+              },
+              {
+                "functionName": "(program)",
+                "url": "",
+                "lineNumber": -1
+              }
+            ]
+          },
+          {
+            "functionName": "getProgramInfoLog",
+            "sampledSelfMs": 385.6,
+            "callStack": [
+              {
+                "functionName": "render",
+                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                "lineNumber": 1131
+              },
+              {
+                "functionName": "render",
+                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                "lineNumber": 455
+              },
+              {
+                "functionName": "render",
+                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                "lineNumber": 455
+              },
+              {
+                "functionName": "render",
+                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                "lineNumber": 341
+              },
+              {
+                "functionName": "e3",
+                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                "lineNumber": 341
+              },
+              {
+                "functionName": "e4",
+                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                "lineNumber": 341
+              },
+              {
+                "functionName": "e9",
+                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                "lineNumber": 341
+              },
+              {
+                "functionName": "renderBufferDirect",
+                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                "lineNumber": 341
+              },
+              {
+                "functionName": "(anonymous)",
+                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                "lineNumber": 341
+              },
+              {
+                "functionName": "getUniforms",
+                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                "lineNumber": 317
+              },
+              {
+                "functionName": "T",
+                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                "lineNumber": 317
+              },
+              {
+                "functionName": "getProgramInfoLog",
+                "url": "",
+                "lineNumber": -1
+              }
+            ]
+          },
+          {
+            "functionName": "(anonymous)",
+            "sampledSelfMs": 124.1,
+            "callStack": [
+              {
+                "functionName": "(root)",
+                "url": "",
+                "lineNumber": -1
+              },
+              {
+                "functionName": "o",
+                "url": "http://localhost:3104/_next/static/chunks/2w0e2rzw6t536.js",
+                "lineNumber": 0
+              },
+              {
+                "functionName": "(anonymous)",
+                "url": "http://localhost:3104/_next/static/chunks/2w0e2rzw6t536.js",
+                "lineNumber": 0
+              }
+            ]
+          },
+          {
+            "functionName": "(garbage collector)",
+            "sampledSelfMs": 66.7,
+            "callStack": [
+              {
+                "functionName": "(root)",
+                "url": "",
+                "lineNumber": -1
+              },
+              {
+                "functionName": "(garbage collector)",
+                "url": "",
+                "lineNumber": -1
+              }
+            ]
+          },
+          {
+            "functionName": "aA.road.<computed>.aA.road.<computed>.lanes",
+            "sampledSelfMs": 41.4,
+            "callStack": [
+              {
+                "functionName": "(root)",
+                "url": "",
+                "lineNumber": -1
+              },
+              {
+                "functionName": "aJ",
+                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                "lineNumber": 432
+              },
+              {
+                "functionName": "aw",
+                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                "lineNumber": 432
+              },
+              {
+                "functionName": "aA.road.<computed>.aA.road.<computed>.lanes",
+                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                "lineNumber": 432
+              }
+            ]
+          },
+          {
+            "functionName": "getProgramInfoLog",
+            "sampledSelfMs": 31.6,
+            "callStack": [
+              {
+                "functionName": "_fromTexture",
+                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                "lineNumber": 0
+              },
+              {
+                "functionName": "_applyPMREM",
+                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                "lineNumber": 164
+              },
+              {
+                "functionName": "_applyGGXFilter",
+                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                "lineNumber": 164
+              },
+              {
+                "functionName": "render",
+                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                "lineNumber": 341
+              },
+              {
+                "functionName": "e3",
+                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                "lineNumber": 341
+              },
+              {
+                "functionName": "e4",
+                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                "lineNumber": 341
+              },
+              {
+                "functionName": "e9",
+                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                "lineNumber": 341
+              },
+              {
+                "functionName": "renderBufferDirect",
+                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                "lineNumber": 341
+              },
+              {
+                "functionName": "(anonymous)",
+                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                "lineNumber": 341
+              },
+              {
+                "functionName": "getUniforms",
+                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                "lineNumber": 317
+              },
+              {
+                "functionName": "T",
+                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                "lineNumber": 317
+              },
+              {
+                "functionName": "getProgramInfoLog",
+                "url": "",
+                "lineNumber": -1
+              }
+            ]
+          },
+          {
+            "functionName": "getProgramInfoLog",
+            "sampledSelfMs": 20.5,
+            "callStack": [
+              {
+                "functionName": "render",
+                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                "lineNumber": 455
+              },
+              {
+                "functionName": "render",
+                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                "lineNumber": 857
+              },
+              {
+                "functionName": "render",
+                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                "lineNumber": 455
+              },
+              {
+                "functionName": "render",
+                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                "lineNumber": 341
+              },
+              {
+                "functionName": "e3",
+                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                "lineNumber": 341
+              },
+              {
+                "functionName": "e4",
+                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                "lineNumber": 341
+              },
+              {
+                "functionName": "e9",
+                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                "lineNumber": 341
+              },
+              {
+                "functionName": "renderBufferDirect",
+                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                "lineNumber": 341
+              },
+              {
+                "functionName": "(anonymous)",
+                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                "lineNumber": 341
+              },
+              {
+                "functionName": "getUniforms",
+                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                "lineNumber": 317
+              },
+              {
+                "functionName": "T",
+                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                "lineNumber": 317
+              },
+              {
+                "functionName": "getProgramInfoLog",
+                "url": "",
+                "lineNumber": -1
+              }
+            ]
+          },
+          {
+            "functionName": "getShaderInfoLog",
+            "sampledSelfMs": 18.9,
+            "callStack": [
+              {
+                "functionName": "render",
+                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                "lineNumber": 1131
+              },
+              {
+                "functionName": "render",
+                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                "lineNumber": 455
+              },
+              {
+                "functionName": "render",
+                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                "lineNumber": 455
+              },
+              {
+                "functionName": "render",
+                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                "lineNumber": 341
+              },
+              {
+                "functionName": "e3",
+                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                "lineNumber": 341
+              },
+              {
+                "functionName": "e4",
+                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                "lineNumber": 341
+              },
+              {
+                "functionName": "e9",
+                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                "lineNumber": 341
+              },
+              {
+                "functionName": "renderBufferDirect",
+                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                "lineNumber": 341
+              },
+              {
+                "functionName": "(anonymous)",
+                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                "lineNumber": 341
+              },
+              {
+                "functionName": "getUniforms",
+                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                "lineNumber": 317
+              },
+              {
+                "functionName": "T",
+                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                "lineNumber": 317
+              },
+              {
+                "functionName": "getShaderInfoLog",
+                "url": "",
+                "lineNumber": -1
+              }
+            ]
+          },
+          {
+            "functionName": "(anonymous)",
+            "sampledSelfMs": 18.5,
+            "callStack": [
+              {
+                "functionName": "(root)",
+                "url": "",
+                "lineNumber": -1
+              },
+              {
+                "functionName": "(anonymous)",
+                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                "lineNumber": 1131
+              },
+              {
+                "functionName": "(anonymous)",
+                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                "lineNumber": 1131
+              }
+            ]
+          },
+          {
+            "functionName": "getProgramInfoLog",
+            "sampledSelfMs": 17.6,
+            "callStack": [
+              {
+                "functionName": "render",
+                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                "lineNumber": 455
+              },
+              {
+                "functionName": "render",
+                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                "lineNumber": 455
+              },
+              {
+                "functionName": "render",
+                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                "lineNumber": 341
+              },
+              {
+                "functionName": "render",
+                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                "lineNumber": 317
+              },
+              {
+                "functionName": "n",
+                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                "lineNumber": 317
+              },
+              {
+                "functionName": "n",
+                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                "lineNumber": 317
+              },
+              {
+                "functionName": "n",
+                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                "lineNumber": 317
+              },
+              {
+                "functionName": "renderBufferDirect",
+                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                "lineNumber": 341
+              },
+              {
+                "functionName": "(anonymous)",
+                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                "lineNumber": 341
+              },
+              {
+                "functionName": "getUniforms",
+                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                "lineNumber": 317
+              },
+              {
+                "functionName": "T",
+                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                "lineNumber": 317
+              },
+              {
+                "functionName": "getProgramInfoLog",
+                "url": "",
+                "lineNumber": -1
+              }
+            ]
+          },
+          {
+            "functionName": "getProgramInfoLog",
+            "sampledSelfMs": 16.4,
+            "callStack": [
+              {
+                "functionName": "render",
+                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                "lineNumber": 455
+              },
+              {
+                "functionName": "render",
+                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                "lineNumber": 455
+              },
+              {
+                "functionName": "render",
+                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                "lineNumber": 455
+              },
+              {
+                "functionName": "render",
+                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                "lineNumber": 341
+              },
+              {
+                "functionName": "e3",
+                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                "lineNumber": 341
+              },
+              {
+                "functionName": "e4",
+                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                "lineNumber": 341
+              },
+              {
+                "functionName": "e9",
+                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                "lineNumber": 341
+              },
+              {
+                "functionName": "renderBufferDirect",
+                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                "lineNumber": 341
+              },
+              {
+                "functionName": "(anonymous)",
+                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                "lineNumber": 341
+              },
+              {
+                "functionName": "getUniforms",
+                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                "lineNumber": 317
+              },
+              {
+                "functionName": "T",
+                "url": "http://localhost:3104/_next/static/chunks/23pvqmbve_lo0.js",
+                "lineNumber": 317
+              },
+              {
+                "functionName": "getProgramInfoLog",
+                "url": "",
+                "lineNumber": -1
+              }
+            ]
+          }
+        ]
+      },
+      "note": "Later visible replay after fixing profile-window filtering and grouping native samples by full call stack."
+    }
+  ],
+  "screenshots": {
+    "tokyoArrival": "screenshots/performance-visuals/stage0/s7-full-city-3x3-stack-aware-2026-10-31/tokyo-arrival.jpg",
+    "edinburghArrival": "screenshots/performance-visuals/stage0/s7-full-city-3x3-stack-aware-2026-10-31/edinburgh-arrival.jpg"
+  }
+}

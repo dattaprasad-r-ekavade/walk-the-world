@@ -30,23 +30,25 @@ results remain in the [warmup comparison](s7-frame-budgeted-warmup-2026-10-31.md
 ## Edinburgh CPU profile
 
 The profiled run captured a 2,825 ms Long Task beginning immediately after the
-`streaming-complete` mark. `getProgramInfoLog` accounted for 2,887.6 sampled ms,
-with the stack passing through Three.js `PMREMGenerator.fromEquirectangular`,
-`_textureToCubeUV`, and the renderer's first-use uniform setup. This does not
-match the earlier production-deploy profile's apparent city-cell warmup
-overlap; it shows that `getProgramInfoLog` alone is not enough to attribute the
-stall to city shaders.
+`streaming-complete` mark. `getProgramInfoLog` accounted for 2,887.6 sampled
+ms. The original summary showed a stack through
+`PMREMGenerator.fromEquirectangular`, but its native-frame aggregation merged
+identical WebGL functions across different call stacks. Treat that specific
+PMREM attribution as provisional. The raw CDP profile was not retained, so it
+cannot be reconstructed from this summary.
 
 The `environment.pmrem-build` timing event in this run measured 41.8 ms and
-ended about 758 ms before the Long Task. A baseline replay recorded the same
-pattern: a 134 ms PMREM event followed by a 2,810 ms Long Task after the spawn
-cell completed. The delayed PMREM first-use work remains unexplained and needs
-better instrumentation. A separate Tokyo profile in the first full replay also
-sampled PMREM work during its 829 ms task.
+ended about 758 ms before the Long Task. A baseline replay recorded a similar
+gap: a 134 ms PMREM event followed by a 2,810 ms Long Task after the spawn cell
+completed. Later full 3×3 captures with stack-aware grouping found 31.6 ms in
+the PMREM filter path during an Edinburgh arrival, while a separate 299 ms
+Long Task sampled 212.2 ms in a general renderer path. The delayed multi-second
+Tokyo stall still needs a cold stack-aware profile. See the
+[full 3×3 follow-up](s7-full-city-3x3-profile-2026-10-31.md).
 
 ## Next
 
-Replay the full 3×3 Tokyo and Edinburgh cell neighborhoods, add timing around
-PMREM's internal render passes or confirm the later invocation in a profile,
-then repeat the visible tour on the target i5-1035G1. The target-device run and
-ground/terrain visual review are still required to close S7.
+The full 3×3 Tokyo and Edinburgh cell replay is complete. Capture the first
+Tokyo arrival with the corrected stack-aware profiler, then repeat the visible
+tour on the target i5-1035G1. The target-device run and ground/terrain visual
+review are still required to close S7.

@@ -10,6 +10,12 @@ The environment PMREM build took 470.9 ms earlier in the arrival and ended befor
 
 The four S7 acceptance segments remained below 500 ms in this run, with zero console, page, HTTP, or failed-request errors. Profiling was enabled, so these timings are diagnostic only. The target i5 run and visible terrain review are still required.
 
-This was the initial attribution from the production-deploy capture. A later local full-tour replay with production Tokyo and Edinburgh center cells found the same `getProgramInfoLog` hotspot on a `PMREMGenerator.fromEquirectangular` stack, and a compile-sliced city-warmup candidate did not reduce the arrival task. See the [full-tour replay report](s7-full-tour-cell-replay-2026-10-31.md) for the follow-up and remaining attribution gap.
+This was the initial attribution from the production-deploy capture. A later
+center-cell local replay appeared to put another `getProgramInfoLog` hotspot on
+a `PMREMGenerator.fromEquirectangular` stack, but that summary merged native
+samples from different call stacks and is not reliable for PMREM attribution.
+The stack-aware full 3×3 follow-up found a separate PMREM path and has not yet
+reproduced the multi-second Tokyo task. See the [full-tour replay report](s7-full-tour-cell-replay-2026-10-31.md)
+and [3×3 profile follow-up](s7-full-city-3x3-profile-2026-10-31.md).
 
 See [StreetEngine warmup code](../../../components/StreetEngine.js) and the [Tokyo arrival screenshot](../../../screenshots/performance-visuals/stage0/s7-tour-visible-cpuprofile-2026-10-31/tokyo-arrival.jpg).

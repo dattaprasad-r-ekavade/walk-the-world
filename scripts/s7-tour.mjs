@@ -75,7 +75,7 @@ function outputPaths(options) {
   };
 }
 
-function summarizeCpuProfile(profile, { pageStartMs = null, longTasks = [] } = {}) {
+function summarizeCpuProfile(profile, { pageStartMs = null, pageEndMs = null, longTasks = [] } = {}) {
   const nodes = profile?.nodes || [];
   const samples = profile?.samples || [];
   const timeDeltas = profile?.timeDeltas || [];
@@ -103,21 +103,25 @@ function summarizeCpuProfile(profile, { pageStartMs = null, longTasks = [] } = {
   const addSample = (map, nodeId, durationMs) => {
     if (durationMs <= 0) return;
     const frame = frameFor(nodeId);
-    const key = keyFor(frame);
-    const entry = map.get(key) || { ...frame, sampledSelfMs: 0, nodeId };
+    const callStack = callStackFor(nodeId);
+    const key = callStack.map(keyFor).join(" <- ");
+    const entry = map.get(key) || { ...frame, sampledSelfMs: 0, callStack };
     entry.sampledSelfMs += durationMs;
     map.set(key, entry);
   };
   const formatFrames = (map, count = 12) => [...map.values()]
     .sort((a, b) => b.sampledSelfMs - a.sampledSelfMs)
     .slice(0, count)
-    .map(({ nodeId, ...frame }) => ({
+    .map(({ sampledSelfMs, callStack, ...frame }) => ({
       ...frame,
-      sampledSelfMs: Math.round(frame.sampledSelfMs * 10) / 10,
-      callStack: callStackFor(nodeId),
+      sampledSelfMs: Math.round(sampledSelfMs * 10) / 10,
+      callStack,
     }));
   const overall = new Map();
-  const longestTask = longTasks.reduce((longest, task) => task.duration > (longest?.duration || 0) ? task : longest, null);
+  const profileLongTasks = Number.isFinite(pageStartMs) && Number.isFinite(pageEndMs)
+    ? longTasks.filter((task) => task.startTime < pageEndMs && task.startTime + task.duration > pageStartMs)
+    : longTasks;
+  const longestTask = profileLongTasks.reduce((longest, task) => task.duration > (longest?.duration || 0) ? task : longest, null);
   const inLongestTask = new Map();
   let elapsedMs = 0;
   let sampledWithinLongestTaskMs = 0;
@@ -399,6 +403,7 @@ async function main(argv = process.argv.slice(2)) {
       const longTasks = await page.evaluate(() => window.__s7LongTasks || []);
       const summary = summarizeCpuProfile(profile, {
         pageStartMs: report.diagnosticProfiling.startedAtPageMs,
+        pageEndMs: endedAtPageMs,
         longTasks,
       });
       cpuProfiles.set(segmentName, summary);
