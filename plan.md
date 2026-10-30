@@ -530,8 +530,12 @@ Preserve gameplay and fallbacks.
   installation error. A visible Chrome run with service workers blocked injected
   invalid JSON, observed the fallback, retained shared maps and moved 4.09 m;
   [browser evidence](benchmarks/results/stage3/invalid-layout-browser-check.md).
+  A second visible Chrome run injected valid JSON with an out-of-bounds
+  `Bricks060` rectangle; the schema fallback retained shared maps and the player
+  moved 4.59 m. Both browser failure cases are recorded in
+  [schema-invalid browser evidence](benchmarks/results/stage3/invalid-layout-schema-browser-check.md).
   Cached asset/route offline responses are verified in Chrome; uncached offline
-  failure handling and the schema-invalid rectangle browser case remain open.
+  failure handling and real-GPU disposal measurement remain open.
   [Service-worker report](benchmarks/results/stage3/service-worker-offline-check.md).
 
 - [ ] **R5 — P2, benchmark prototype: Wet-map transition and acceptance are unfinished.**
@@ -720,9 +724,9 @@ Preserve visual/editor parity; real-city/mobile acceptance remains open.
   and deferred texture loading after input-ready.
   [Asset index](benchmarks/results/stage3/runtime-asset-index.md).
 
-Exit remains open: R4 schema-error browser fallback and disposal validation,
-uncached offline-miss recovery, lower-memory/mobile residency, and far mip seams
-(gutters fall below one pixel after mip 4). A production browser check verified
+Exit remains open: R4 uncached offline-miss recovery and real-GPU disposal
+measurement, lower-memory/mobile residency, and far mip seams (gutters fall
+below one pixel after mip 4). Production browser checks verified
 offline service-worker responses for shared/high facade KTX2, the atlas layout,
 the Basis WASM decoder, and the cached street route. Its local loopback server
 remained reachable with Chromium offline mode enabled, so uncached network-failure

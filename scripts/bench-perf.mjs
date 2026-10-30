@@ -82,7 +82,11 @@ const resourceSoakEnabled = args.includes('--resource-soak');
 const streamLifecycleEnabled = args.includes('--stream-lifecycle');
 const lightTransitionEnabled = args.includes('--light-transition');
 const environmentAuditEnabled = args.includes('--environment-audit');
-const invalidFacadeLayout = args.includes('--invalid-facade-layout');
+const invalidFacadeLayoutSchema = args.includes('--invalid-facade-layout-schema');
+const invalidFacadeLayout = args.includes('--invalid-facade-layout') || invalidFacadeLayoutSchema;
+if (args.includes('--invalid-facade-layout') && invalidFacadeLayoutSchema) {
+  throw new Error('Choose one invalid facade layout injection mode');
+}
 const LIGHT_TRANSITION_SAMPLE_MS = 2500;
 const poseOptionNames = ['--pose-x', '--pose-z', '--heading'];
 const suppliedPoseOptions = poseOptionNames.filter((name) => args.includes(name));
@@ -160,12 +164,24 @@ if (environmentAuditEnabled && (dataMode !== 'recorded' || benchmarkEnvironment.
   throw new Error('--environment-audit requires recorded, stationary pedestrian data at 21:00 and weather 90');
 }
 if (invalidFacadeLayout && (dataMode !== 'recorded' || qualityPreset !== 'high')) {
-  throw new Error('--invalid-facade-layout requires --data-mode recorded and --preset high');
+  throw new Error('--invalid-facade-layout modes require --data-mode recorded and --preset high');
 }
 const READY_TIMEOUT = 180_000;
 const HOST_TELEMETRY_READY_MARKER = '__BENCH_HOST_TELEMETRY_READY__';
 
 const BENCH_FIXTURE = JSON.parse(readFileSync(fixturePath, 'utf8'));
+let invalidFacadeLayoutBody = '{';
+if (invalidFacadeLayoutSchema) {
+  const manifest = JSON.parse(readFileSync(join(ROOT, 'public', 'textures/ktx2/runtime-manifest.json'), 'utf8'));
+  const layoutFile = manifest.nearAtlasLayout?.file;
+  if (typeof layoutFile !== 'string') throw new Error('Runtime manifest has no near facade layout file');
+  const layoutPath = join(ROOT, 'public', ...layoutFile.split('/'));
+  const layout = JSON.parse(readFileSync(layoutPath, 'utf8'));
+  const rectangle = layout.materialRects?.Bricks060;
+  if (!rectangle) throw new Error('Shipped facade layout has no Bricks060 rectangle to invalidate');
+  rectangle.uvRectBottomLeft = [0.9, 0, 0.2, 0.5];
+  invalidFacadeLayoutBody = JSON.stringify(layout);
+}
 if (streamLifecycleEnabled && !BENCH_FIXTURE.cellPayloads) {
   throw new Error('--stream-lifecycle requires a per-cell fixture with cellPayloads');
 }
@@ -547,9 +563,12 @@ async function benchStreet(page) {
   const loadMs = Date.now() - t0;
   if (invalidFacadeLayout) {
     try {
-      await page.waitForFunction(() =>
-        !!window.__perfCounters?.marks?.['ktx2-high-fallback-active'] &&
-        !!window.__perfCounters?.marks?.['ktx2-textures-ready'], null, { timeout: 60000 });
+      await page.waitForFunction((requireSchemaError) => {
+        const fallback = window.__perfCounters?.marks?.['ktx2-high-fallback-active'];
+        const reason = String(fallback?.details?.reason || '');
+        return !!fallback && !!window.__perfCounters?.marks?.['ktx2-textures-ready'] &&
+          (!requireSchemaError || reason.includes('Bricks060'));
+      }, invalidFacadeLayoutSchema, { timeout: 60000 });
     } catch (error) {
       const state = await page.evaluate(() => ({ marks: window.__perfCounters?.marks, settings: window.__perfCounters?.settings, families: window.__streetDebug?.materialInventory?.()?.factoryCache?.textureFamilies }));
       throw new Error(`Invalid-layout fallback readiness failed: ${JSON.stringify(state)}; ${error.message}`);
@@ -1195,7 +1214,7 @@ async function main() {
   if (invalidFacadeLayout) {
     await context.route((url) => url.origin === baseOrigin && /^\/textures\/ktx2\/facade-near-layout\.[a-f0-9]{16}\.json$/u.test(url.pathname), (routeRequest) => {
       invalidLayoutRequests++;
-      return routeRequest.fulfill({ status: 200, contentType: 'application/json', body: '{' });
+      return routeRequest.fulfill({ status: 200, contentType: 'application/json', body: invalidFacadeLayoutBody });
     });
   }
   if (dataMode === 'recorded') {
@@ -1366,6 +1385,7 @@ async function main() {
       lightTransitionEnabled,
       environmentAuditEnabled,
       invalidFacadeLayout,
+      invalidFacadeLayoutSchema,
       serviceWorkersBlocked: invalidFacadeLayout,
       hour: benchmarkEnvironment.hour,
       weather: benchmarkEnvironment.weather,
@@ -1414,12 +1434,17 @@ async function main() {
     result.networkTelemetry = await networkRecorder.summary();
     if (invalidFacadeLayout) {
       const families = result.street.materialInventory?.factoryCache?.textureFamilies;
-      if (invalidLayoutRequests < 1 || !result.street.marks?.['ktx2-high-fallback-active'] ||
+      const fallback = result.street.marks?.['ktx2-high-fallback-active'];
+      const reason = String(fallback?.details?.reason || '');
+      if (invalidLayoutRequests < 1 || !fallback ||
           !result.street.marks?.['ktx2-textures-ready'] || families?.highFacadeAtlases !== false ||
-          families?.facade !== true || families?.litWindows !== true || result.street.metadata?.ktx2High) {
-        throw new Error(`Invalid-layout fallback was not confirmed: ${JSON.stringify({ invalidLayoutRequests, families, marks: result.street.marks, metadata: result.street.metadata })}`);
+          families?.facade !== true || families?.litWindows !== true || result.street.metadata?.ktx2High ||
+          (invalidFacadeLayoutSchema && !reason.includes('Bricks060'))) {
+        throw new Error(`Invalid-layout fallback was not confirmed: ${JSON.stringify({ invalidLayoutRequests, invalidFacadeLayoutSchema, reason, families, marks: result.street.marks, metadata: result.street.metadata })}`);
       }
       result.street.invalidLayoutRequests = invalidLayoutRequests;
+      result.street.invalidLayoutFailureKind = invalidFacadeLayoutSchema ? 'schema-invalid-rectangle' : 'malformed-json';
+      result.street.invalidLayoutFailureReason = reason;
     }
     if (result.street.settings?.hour !== benchmarkEnvironment.hour || result.street.settings?.weather !== benchmarkEnvironment.weather) {
       throw new Error(`Applied scene environment did not match the requested benchmark: ${JSON.stringify(result.street.settings)}`);
