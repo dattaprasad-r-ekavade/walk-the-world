@@ -263,6 +263,12 @@ Open:
   9/9 resident cells in both cities. Chrome selected the RTX 4060, not Intel
   UHD; Tokyo arrival separately reached 2,716 ms. This validates the visible
   tour path but does not close S7. See the [i7-host report](benchmarks/results/stage0/s7-tour-visible-i7-2026-10-31.md).
+  A diagnostic repeat recorded a 2,715.8 ms Tokyo arrival frame overlapping a
+  2,682 ms Long Task. The preceding measured neighbor assembly (95.4 ms) and
+  cell shader warmup (105 ms) do not explain it; browser attribution was
+  unknown. Console, page and HTTP errors were zero; one OSM tile request was
+  cancelled during navigation. The available host again used the RTX 4060, so
+  this does not close S7. See the [stall diagnostic report](benchmarks/results/stage0/s7-tour-visible-stall-2026-10-31.md).
 - [ ] **S8 — Walking cost on weak GPUs.** Walking is GPU-bound on Intel UHD
   (fill rate, not draw calls). Candidates, in order: cheaper interior-window
   shader at distance (drop the ray-box sample beyond about 40 m instead of

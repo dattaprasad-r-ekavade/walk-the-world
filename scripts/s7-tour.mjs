@@ -71,6 +71,27 @@ function outputPaths(options) {
 
 const profilerInit = () => {
   window.__perfCounters = { ...(window.__perfCounters || {}), diagnosticsEnabled: true };
+  window.__s7LongTasks = [];
+  window.__s7LongTasksSupported = false;
+  try {
+    const observer = new PerformanceObserver((list) => {
+      for (const entry of list.getEntries()) {
+        window.__s7LongTasks.push({
+          startTime: entry.startTime,
+          duration: entry.duration,
+          name: entry.name,
+          attribution: [...(entry.attribution || [])].map((item) => ({
+            containerType: item.containerType,
+            containerName: item.containerName,
+            containerId: item.containerId,
+            name: item.name,
+          })),
+        });
+      }
+    });
+    observer.observe({ entryTypes: ["longtask"] });
+    window.__s7LongTasksSupported = true;
+  } catch { /* Long Task API is optional */ }
   const readinessKey = "__s7InputReadyCount";
   window.__s7CountedReadyMarks = 0;
   const readReadyCount = () => {
@@ -90,11 +111,31 @@ const profilerInit = () => {
   window.__s7Profiler = {
     active: null,
     start(name) {
-      const segment = { name, startedAt: performance.now(), last: null, intervals: [] };
+      const segment = {
+        name,
+        startedAt: performance.now(),
+        last: null,
+        intervals: [],
+        maxFrameMs: 0,
+        maxFrameStartMs: null,
+        maxFrameEndMs: null,
+        slowFrames: [],
+      };
       this.active = segment;
       const tick = (at) => {
         if (this.active !== segment) return;
-        if (segment.last !== null) segment.intervals.push(at - segment.last);
+        if (segment.last !== null) {
+          const duration = at - segment.last;
+          segment.intervals.push(duration);
+          if (duration > segment.maxFrameMs) {
+            segment.maxFrameMs = duration;
+            segment.maxFrameStartMs = segment.last;
+            segment.maxFrameEndMs = at;
+          }
+          if (duration >= 100 && segment.slowFrames.length < 100) {
+            segment.slowFrames.push({ startMs: segment.last, endMs: at, durationMs: duration });
+          }
+        }
         segment.last = at;
         requestAnimationFrame(tick);
       };
@@ -107,11 +148,20 @@ const profilerInit = () => {
       const values = segment.intervals.filter(Number.isFinite);
       return {
         name: segment.name,
+        startedAtMs: Math.round(segment.startedAt * 10) / 10,
+        endedAtMs: Math.round(performance.now() * 10) / 10,
         durationMs: Math.round((performance.now() - segment.startedAt) * 10) / 10,
         frameCount: values.length,
         p50Ms: Math.round((percentile(values, 0.5) ?? 0) * 10) / 10,
         p95Ms: Math.round((percentile(values, 0.95) ?? 0) * 10) / 10,
-        maxFrameMs: values.length ? Math.round(values.reduce((max, value) => Math.max(max, value), 0) * 10) / 10 : null,
+        maxFrameMs: values.length ? Math.round(segment.maxFrameMs * 10) / 10 : null,
+        maxFrameStartMs: segment.maxFrameStartMs === null ? null : Math.round(segment.maxFrameStartMs * 10) / 10,
+        maxFrameEndMs: segment.maxFrameEndMs === null ? null : Math.round(segment.maxFrameEndMs * 10) / 10,
+        slowFrames: segment.slowFrames.map((frame) => ({
+          startMs: Math.round(frame.startMs * 10) / 10,
+          endMs: Math.round(frame.endMs * 10) / 10,
+          durationMs: Math.round(frame.durationMs * 10) / 10,
+        })),
         framesOver500Ms: values.filter((value) => value > 500).length,
       };
     },
@@ -162,11 +212,17 @@ async function main(argv = process.argv.slice(2)) {
   const consoleErrors = [];
   const pageErrors = [];
   const httpErrors = [];
+  const requestFailures = [];
   const cellResponses = [];
   page.on("console", (message) => {
     if (message.type() === "error") consoleErrors.push({ text: message.text(), location: message.location() });
   });
   page.on("pageerror", (error) => pageErrors.push(String(error?.stack || error?.message || error)));
+  page.on("requestfailed", (request) => requestFailures.push({
+    url: request.url(),
+    resourceType: request.resourceType(),
+    error: request.failure()?.errorText || "request failed",
+  }));
   page.on("response", (response) => {
     const record = { status: response.status(), url: response.url(), resourceType: response.request().resourceType() };
     if (record.status >= 400) httpErrors.push(record);
@@ -186,13 +242,36 @@ async function main(argv = process.argv.slice(2)) {
     segments: {},
     streetReadiness: {},
     screenshots: {},
-    errors: { console: consoleErrors, page: pageErrors, http: httpErrors },
+    errors: { console: consoleErrors, page: pageErrors, http: httpErrors, requestFailures },
     cellResponses,
     status: "running",
+    stallAnalysis: {},
   };
 
   const startSegment = async (name) => page.evaluate((label) => window.__s7Profiler.start(label), name);
   const stopSegment = async () => page.evaluate(() => window.__s7Profiler.stop());
+  const stopAndAnalyzeSegment = async (name) => {
+    const segment = await stopSegment();
+    report.segments[name] = segment;
+    report.stallAnalysis[name] = await page.evaluate(({ startMs, endMs }) => {
+      const perfTimeline = window.__perfCounters?.timeline || [];
+      return {
+        longTaskApiSupported: window.__s7LongTasksSupported === true,
+        longTasks: (window.__s7LongTasks || []).filter((task) =>
+          task.startTime < endMs && task.startTime + task.duration > startMs),
+        perfEvents: perfTimeline.filter((event) => {
+          if (!Number.isFinite(event.atMs) || event.atMs < startMs || event.atMs > endMs) return false;
+          const name = String(event.name || "");
+          if (event.type === "mark") return true;
+          return /pmrem/i.test(name) || (
+            Number.isFinite(event.durationMs) && event.durationMs >= 50 &&
+            /city\.(?:cell-load|worker-roundtrip|neighbor-assembly-total|neighbor-geometry-total|cell-shader-warmup|road-canvas-paint)|input-ready|engine-ready/i.test(name)
+          );
+        }),
+      };
+    }, { startMs: segment.startedAtMs, endMs: segment.endedAtMs });
+    return segment;
+  };
   const saveShot = async (name) => {
     const target = path.join(paths.screenshots, `${name}.jpg`);
     await page.screenshot({ path: target, type: "jpeg", quality: 85, fullPage: false });
@@ -217,10 +296,10 @@ async function main(argv = process.argv.slice(2)) {
     await placeButton.click();
     await page.waitForFunction((previousUrl) => location.href !== previousUrl,
       priorUrl, { timeout: 60000, polling: 50 });
-    report.segments[segmentName] = await stopSegment();
+    await stopAndAnalyzeSegment(segmentName);
     await startSegment(arrivalName);
     await waitForStreetReady(priorReadyCount);
-    report.segments[arrivalName] = await stopSegment();
+    await stopAndAnalyzeSegment(arrivalName);
     const settleName = `${arrivalName}CellSettle`;
     await startSegment(settleName);
     let cellsSettled = false;
@@ -232,7 +311,7 @@ async function main(argv = process.argv.slice(2)) {
       }, null, { timeout: options.settleTimeoutMs, polling: 250 });
       cellsSettled = true;
     } catch { /* preserve readiness and diagnostics when neighbor cells stay pending */ }
-    report.segments[settleName] = await stopSegment();
+    await stopAndAnalyzeSegment(settleName);
     report.streetReadiness[city] = await page.evaluate((settled) => {
       const timeline = window.__perfCounters?.timeline || [];
       const terrain = [...timeline].reverse().find((item) => item.type === "mark" && item.name === "terrain-ready");
@@ -251,7 +330,7 @@ async function main(argv = process.argv.slice(2)) {
     await startSegment("globeStartup");
     await page.getByRole("button", { name: "Free explore the globe" }).click();
     await page.locator('button[title="Fast travel (M)"]').first().waitFor({ state: "visible", timeout: options.readyTimeoutMs });
-    report.segments.globeStartup = await stopSegment();
+    await stopAndAnalyzeSegment("globeStartup");
     await saveShot("globe-ready");
 
     await travelTo("Tokyo", "globeTravelToTokyo", "tokyoArrival");
@@ -261,7 +340,7 @@ async function main(argv = process.argv.slice(2)) {
     await page.keyboard.down("w");
     await page.waitForTimeout(options.walkMs);
     await page.keyboard.up("w");
-    report.segments.walk = await stopSegment();
+    await stopAndAnalyzeSegment("walk");
     report.walk = await page.evaluate((before) => {
       const player = window.__streetDebug?.player;
       const dx = Number.isFinite(player?.x) ? player.x - before.x : null;
@@ -273,7 +352,7 @@ async function main(argv = process.argv.slice(2)) {
     await startSegment("nightSwitch");
     await page.evaluate(() => window.__streetDebug.setTime(21));
     await page.waitForTimeout(2500);
-    report.segments.nightSwitch = await stopSegment();
+    await stopAndAnalyzeSegment("nightSwitch");
     await saveShot("tokyo-night");
 
     await travelTo("Edinburgh", "streetTravelToEdinburgh", "edinburghArrival");
@@ -296,7 +375,7 @@ async function main(argv = process.argv.slice(2)) {
       };
     });
     report.cellResponses = cellResponses;
-    report.errors = { console: consoleErrors, page: pageErrors, http: httpErrors };
+    report.errors = { console: consoleErrors, page: pageErrors, http: httpErrors, requestFailures };
     const measuredSegments = ["walk", "nightSwitch", "globeTravelToTokyo", "streetTravelToEdinburgh"];
     report.acceptance = {
       measuredSegments,
@@ -323,7 +402,7 @@ async function main(argv = process.argv.slice(2)) {
     console.error(`S7 tour did not complete: ${error?.message || error}`);
   } finally {
     report.finishedAt = new Date().toISOString();
-    report.errors = { console: consoleErrors, page: pageErrors, http: httpErrors };
+    report.errors = { console: consoleErrors, page: pageErrors, http: httpErrors, requestFailures };
     fs.writeFileSync(paths.report, JSON.stringify(report, null, 2));
     await context.close();
     await browser.close();
