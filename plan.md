@@ -320,8 +320,12 @@ Open:
   screenshots show no obvious visual change; pixel differences are small but
   the captures are not a matched target-device image-quality review. Tokyo
   arrival still has one frame over 500 ms, and these results do not establish
-  behavior on the target i5-1035G1. Next: repeat the live visible gate and
-  ground/terrain review on that laptop. S7 remains open. See the [PMREM sample
+  behavior on the target i5-1035G1. The profiled candidate's remaining 591 ms
+  Long Task included a 386.6 ms first-render event linking 16 ordinary renderer
+  programs; `getProgramInfoLog` accounted for 251.7 ms on that path. This points
+  to first-city-render shader linking as the residual startup cost. Next:
+  investigate that path, then repeat the live visible gate and ground/terrain
+  review on the target laptop. S7 remains open. See the [PMREM sample
   report](benchmarks/results/stage0/s7-pmrem-ggx32-2026-10-31.md) and its
   [machine-readable results](benchmarks/results/stage0/s7-pmrem-ggx32-2026-10-31.json).
   These RTX 4060 / i7 results do not close S7. See the [full 3×3 report](benchmarks/results/stage0/s7-full-city-3x3-profile-2026-10-31.md),

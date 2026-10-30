@@ -43,6 +43,14 @@
         "initialPmremBuildMs": 156.9,
         "effectiveGgxSamples": 32,
         "tokyoArrival": { "maxMs": 583.1, "p95Ms": 166.7 },
+        "longestTokyoArrivalLongTaskMs": 591.0,
+        "firstRendererProgramEvent": {
+          "durationMs": 386.6,
+          "programCountBefore": 3,
+          "programCountAfter": 19,
+          "newProgramCount": 16
+        },
+        "regularRendererGetProgramInfoLogSampledMs": 251.7,
         "gateSegmentMaxMs": {
           "globeTravelToTokyo": 183.3,
           "walk": 17.1,
