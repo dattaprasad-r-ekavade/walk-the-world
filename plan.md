@@ -258,6 +258,11 @@ Open:
   screenshots, and use the recorded frame/error results. See the [control-flow
   report](benchmarks/results/stage0/s7-tour-control-2026-10-31.md) and [JSON
   capture](benchmarks/results/stage0/s7-tour-control-2026-10-31.json).
+  A 31 Oct visible run on the available i7-13650HX host recorded under-500 ms
+  frames in the four travel/walk/night acceptance segments, zero errors, and
+  9/9 resident cells in both cities. Chrome selected the RTX 4060, not Intel
+  UHD; Tokyo arrival separately reached 2,716 ms. This validates the visible
+  tour path but does not close S7. See the [i7-host report](benchmarks/results/stage0/s7-tour-visible-i7-2026-10-31.md).
 - [ ] **S8 — Walking cost on weak GPUs.** Walking is GPU-bound on Intel UHD
   (fill rate, not draw calls). Candidates, in order: cheaper interior-window
   shader at distance (drop the ray-box sample beyond about 40 m instead of

@@ -1,0 +1,359 @@
+{
+  "schemaVersion": 1,
+  "baseUrl": "https://walk-the-world-delta.vercel.app",
+  "startedAt": "2026-10-30T20:10:44.512Z",
+  "runMode": "visible",
+  "targetDeviceConfirmed": false,
+  "evidenceNote": "Visible browser timings describe this host. Confirm the reported adapter is Intel UHD on the i5-1035G1 before using this as target-device evidence.",
+  "thresholds": {
+    "maxFrameMs": 500,
+    "consoleErrors": 0,
+    "httpResponsesAtOrAbove400": 0
+  },
+  "segments": {
+    "globeStartup": {
+      "name": "globeStartup",
+      "durationMs": 414.3,
+      "frameCount": 24,
+      "p50Ms": 16.7,
+      "p95Ms": 16.9,
+      "maxFrameMs": 16.9,
+      "framesOver500Ms": 0
+    },
+    "globeTravelToTokyo": {
+      "name": "globeTravelToTokyo",
+      "durationMs": 3680.2,
+      "frameCount": 167,
+      "p50Ms": 16.7,
+      "p95Ms": 17,
+      "maxFrameMs": 299.8,
+      "framesOver500Ms": 0
+    },
+    "tokyoArrival": {
+      "name": "tokyoArrival",
+      "durationMs": 8189.9,
+      "frameCount": 199,
+      "p50Ms": 16.7,
+      "p95Ms": 100.1,
+      "maxFrameMs": 2716.2,
+      "framesOver500Ms": 2
+    },
+    "tokyoArrivalCellSettle": {
+      "name": "tokyoArrivalCellSettle",
+      "durationMs": 1596.1,
+      "frameCount": 80,
+      "p50Ms": 16.7,
+      "p95Ms": 50.1,
+      "maxFrameMs": 66.8,
+      "framesOver500Ms": 0
+    },
+    "walk": {
+      "name": "walk",
+      "durationMs": 5021.3,
+      "frameCount": 301,
+      "p50Ms": 16.7,
+      "p95Ms": 16.8,
+      "maxFrameMs": 17.1,
+      "framesOver500Ms": 0
+    },
+    "nightSwitch": {
+      "name": "nightSwitch",
+      "durationMs": 2523.8,
+      "frameCount": 151,
+      "p50Ms": 16.7,
+      "p95Ms": 16.8,
+      "maxFrameMs": 17,
+      "framesOver500Ms": 0
+    },
+    "streetTravelToEdinburgh": {
+      "name": "streetTravelToEdinburgh",
+      "durationMs": 1033.7,
+      "frameCount": 59,
+      "p50Ms": 16.7,
+      "p95Ms": 17,
+      "maxFrameMs": 49.9,
+      "framesOver500Ms": 0
+    },
+    "edinburghArrival": {
+      "name": "edinburghArrival",
+      "durationMs": 3994.8,
+      "frameCount": 172,
+      "p50Ms": 16.7,
+      "p95Ms": 50.2,
+      "maxFrameMs": 250,
+      "framesOver500Ms": 0
+    },
+    "edinburghArrivalCellSettle": {
+      "name": "edinburghArrivalCellSettle",
+      "durationMs": 2341.9,
+      "frameCount": 112,
+      "p50Ms": 16.7,
+      "p95Ms": 49.8,
+      "maxFrameMs": 150,
+      "framesOver500Ms": 0
+    }
+  },
+  "streetReadiness": {
+    "Tokyo": {
+      "cellsSettled": true,
+      "terrain": {
+        "loadedTiles": 1,
+        "flatFallback": false
+      },
+      "cellStream": {
+        "center": {
+          "lat": 35.6595,
+          "lon": 139.7005,
+          "key": "wtw_city6_35.660_139.701"
+        },
+        "loadedKeys": [
+          "wtw_city6_35.654_139.695",
+          "wtw_city6_35.654_139.701",
+          "wtw_city6_35.654_139.706",
+          "wtw_city6_35.660_139.695",
+          "wtw_city6_35.660_139.701",
+          "wtw_city6_35.660_139.706",
+          "wtw_city6_35.665_139.695",
+          "wtw_city6_35.665_139.701",
+          "wtw_city6_35.665_139.706"
+        ],
+        "loadingKeys": [],
+        "queuedKeys": [],
+        "activeJobKeys": [],
+        "obsoleteJobKeys": [],
+        "failedKeys": [],
+        "deferredKeys": [],
+        "reservationCount": 0,
+        "queueLimit": 9,
+        "residentCellCount": 9,
+        "maxCells": 10,
+        "pendingCount": 0
+      }
+    },
+    "Edinburgh": {
+      "cellsSettled": true,
+      "terrain": {
+        "loadedTiles": 1,
+        "flatFallback": false
+      },
+      "cellStream": {
+        "center": {
+          "lat": 55.9505,
+          "lon": -3.1875,
+          "key": "wtw_city6_55.950_-3.188"
+        },
+        "loadedKeys": [
+          "wtw_city6_55.945_-3.182",
+          "wtw_city6_55.945_-3.188",
+          "wtw_city6_55.945_-3.193",
+          "wtw_city6_55.950_-3.182",
+          "wtw_city6_55.950_-3.188",
+          "wtw_city6_55.950_-3.193",
+          "wtw_city6_55.956_-3.182",
+          "wtw_city6_55.956_-3.188",
+          "wtw_city6_55.956_-3.193"
+        ],
+        "loadingKeys": [],
+        "queuedKeys": [],
+        "activeJobKeys": [],
+        "obsoleteJobKeys": [],
+        "failedKeys": [],
+        "deferredKeys": [],
+        "reservationCount": 0,
+        "queueLimit": 9,
+        "residentCellCount": 9,
+        "maxCells": 10,
+        "pendingCount": 0
+      }
+    }
+  },
+  "screenshots": {
+    "globe-ready": "screenshots/performance-visuals/stage0/s7-tour-visible-i7-2026-10-31/globe-ready.jpg",
+    "tokyo-arrival": "screenshots/performance-visuals/stage0/s7-tour-visible-i7-2026-10-31/tokyo-arrival.jpg",
+    "tokyo-walk": "screenshots/performance-visuals/stage0/s7-tour-visible-i7-2026-10-31/tokyo-walk.jpg",
+    "tokyo-night": "screenshots/performance-visuals/stage0/s7-tour-visible-i7-2026-10-31/tokyo-night.jpg",
+    "edinburgh-arrival": "screenshots/performance-visuals/stage0/s7-tour-visible-i7-2026-10-31/edinburgh-arrival.jpg"
+  },
+  "errors": {
+    "console": [],
+    "page": [],
+    "http": []
+  },
+  "cellResponses": [
+    {
+      "status": 200,
+      "url": "https://myjyotishai.in/wtw_city6_35.660_139.701.json",
+      "resourceType": "fetch"
+    },
+    {
+      "status": 200,
+      "url": "https://myjyotishai.in/wtw_city6_35.660_139.706.json",
+      "resourceType": "fetch"
+    },
+    {
+      "status": 200,
+      "url": "https://myjyotishai.in/wtw_city6_35.665_139.701.json",
+      "resourceType": "fetch"
+    },
+    {
+      "status": 200,
+      "url": "https://myjyotishai.in/wtw_city6_35.654_139.701.json",
+      "resourceType": "fetch"
+    },
+    {
+      "status": 200,
+      "url": "https://myjyotishai.in/wtw_city6_35.665_139.706.json",
+      "resourceType": "fetch"
+    },
+    {
+      "status": 200,
+      "url": "https://myjyotishai.in/wtw_city6_35.660_139.695.json",
+      "resourceType": "fetch"
+    },
+    {
+      "status": 200,
+      "url": "https://myjyotishai.in/wtw_city6_35.665_139.695.json",
+      "resourceType": "fetch"
+    },
+    {
+      "status": 200,
+      "url": "https://myjyotishai.in/wtw_city6_35.654_139.706.json",
+      "resourceType": "fetch"
+    },
+    {
+      "status": 200,
+      "url": "https://myjyotishai.in/wtw_city6_35.654_139.695.json",
+      "resourceType": "fetch"
+    },
+    {
+      "status": 200,
+      "url": "https://myjyotishai.in/wtw_city6_55.950_-3.188.json",
+      "resourceType": "fetch"
+    },
+    {
+      "status": 200,
+      "url": "https://myjyotishai.in/wtw_city6_55.945_-3.188.json",
+      "resourceType": "fetch"
+    },
+    {
+      "status": 200,
+      "url": "https://myjyotishai.in/wtw_city6_55.950_-3.182.json",
+      "resourceType": "fetch"
+    },
+    {
+      "status": 200,
+      "url": "https://myjyotishai.in/wtw_city6_55.950_-3.193.json",
+      "resourceType": "fetch"
+    },
+    {
+      "status": 200,
+      "url": "https://myjyotishai.in/wtw_city6_55.956_-3.188.json",
+      "resourceType": "fetch"
+    },
+    {
+      "status": 200,
+      "url": "https://myjyotishai.in/wtw_city6_55.945_-3.182.json",
+      "resourceType": "fetch"
+    },
+    {
+      "status": 200,
+      "url": "https://myjyotishai.in/wtw_city6_55.945_-3.193.json",
+      "resourceType": "fetch"
+    },
+    {
+      "status": 200,
+      "url": "https://myjyotishai.in/wtw_city6_55.956_-3.182.json",
+      "resourceType": "fetch"
+    },
+    {
+      "status": 200,
+      "url": "https://myjyotishai.in/wtw_city6_55.956_-3.193.json",
+      "resourceType": "fetch"
+    }
+  ],
+  "status": "visible-run-needs-review",
+  "walk": {
+    "start": {
+      "x": -15.71603274267903,
+      "z": -25.048463622162522
+    },
+    "end": {
+      "x": -32.76224075277325,
+      "z": -43.328283716759785
+    },
+    "displacementMeters": 24.994499999284688
+  },
+  "runtime": {
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36",
+    "renderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 4060 Laptop GPU (0x000028E0) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+    "engineReady": true,
+    "inputReadyMarks": 2,
+    "pmremTimings": [
+      {
+        "type": "timing",
+        "name": "environment.pmrem-equirect-compile",
+        "durationMs": 2,
+        "atMs": 9435,
+        "details": {}
+      },
+      {
+        "type": "timing",
+        "name": "environment.pmrem-build",
+        "durationMs": 483.60000014305115,
+        "atMs": 9933,
+        "details": {
+          "width": 512,
+          "height": 256,
+          "failed": false
+        }
+      },
+      {
+        "type": "timing",
+        "name": "environment.pmrem-build",
+        "durationMs": 0.5,
+        "atMs": 24051.299999952316,
+        "details": {
+          "width": 512,
+          "height": 256,
+          "failed": false
+        }
+      },
+      {
+        "type": "timing",
+        "name": "environment.pmrem-equirect-compile",
+        "durationMs": 0.5,
+        "atMs": 27727.89999985695,
+        "details": {}
+      },
+      {
+        "type": "timing",
+        "name": "environment.pmrem-build",
+        "durationMs": 37.59999990463257,
+        "atMs": 29540.599999904633,
+        "details": {
+          "width": 512,
+          "height": 256,
+          "failed": false
+        }
+      }
+    ],
+    "webglCanvasCount": 3
+  },
+  "acceptance": {
+    "measuredSegments": [
+      "walk",
+      "nightSwitch",
+      "globeTravelToTokyo",
+      "streetTravelToEdinburgh"
+    ],
+    "frameLimitPassed": true,
+    "noConsoleErrors": true,
+    "noHttpErrors": true,
+    "walkMoved": true,
+    "targetAdapterConfirmed": false,
+    "targetDeviceConfirmed": false,
+    "terrainVisualReviewRequired": true,
+    "performancePassed": false
+  },
+  "finishedAt": "2026-10-30T20:11:18.676Z"
+}
