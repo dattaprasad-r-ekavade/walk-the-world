@@ -1,6 +1,6 @@
 # Walk the World — Performance and Visuals Implementation Plan
 
-Updated: 31 October 2026. Reviewed base: `26cb647` on `origin/main`.
+Updated: 31 October 2026. Reviewed base: `6d4e961` on `origin/main`.
 Demo gates D1–D8 are closed. The smoothness track (section 0a) closed S1–S6 from
 live-deploy profiling; S7–S8 stay open. S9's real-input check did not reproduce
 the hang on 30 October. S7 has two changes awaiting target-laptop confirmation:
@@ -227,9 +227,11 @@ Open:
   produced a 2.9 s frame inside the `compileAsync` poll. Source order confirms
   the first PMREM build runs before input-ready while the loading screen is up.
   The startup canvas is now hidden until input-ready, masking the visible scene
-  freeze; it does not reduce the PMREM stall or time to interaction. Replacing
-  the PMREM sky with a smaller prefiltered environment remains an optimization
-  candidate. Surrounding terrain visuals are started one per
+  freeze; it does not reduce the PMREM stall or time to interaction. A local
+  three-run PMREM input-size comparison found no speedup at 256×128 versus
+  512×256 on the RTX 4060, so the smaller input was reverted. PMREM shader and
+  build durations are now available in diagnostics for a target-laptop profile.
+  Surrounding terrain visuals are started one per
   animation frame, cardinal neighbours first, to spread canvas texture uploads;
   this change still needs a target-laptop profile and a visual check of ground
   imagery and hills. A 31 Oct headless production smoke confirmed `26cb647` was
@@ -241,6 +243,8 @@ Open:
   The local production-build capture also confirmed that the canvas remains
   hidden while the loading screen is visible and appears when input-ready; see
   the [loader capture](benchmarks/results/stage0/s7-loader-canvas-2026-10-31.md).
+  The [PMREM size comparison](benchmarks/results/stage0/s7-pmrem-resolution-ab-2026-10-31.md)
+  is not target-device evidence.
 - [ ] **S8 — Walking cost on weak GPUs.** Walking is GPU-bound on Intel UHD
   (fill rate, not draw calls). Candidates, in order: cheaper interior-window
   shader at distance (drop the ray-box sample beyond about 40 m instead of
