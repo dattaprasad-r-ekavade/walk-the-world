@@ -684,8 +684,16 @@ Decisions taken from the research:
   - An incomplete batch can resume with `--resume --stage-dir=<path>`. Resume
     requires the same group, filters and cell set, validates every ready
     original/candidate pair against its saved hashes and refresh rules, then
-    retries only pending or failed cells. A missing or altered ready payload
-    stops the run instead of silently accepting a partial review set.
+    retries only pending or failed cells. It accepts earlier refresh manifests
+    with implicit refresh actions or omitted null filters, verifies legacy
+    building-only counts, and normalizes them to the current rule before
+    retrying. A missing or altered ready payload stops the run instead of
+    silently accepting a partial review set.
+  - 31 Oct resumed the saved Edinburgh batch: the regional Britain and Ireland
+    endpoint supplied its two failed cells, the seven saved cells passed resume
+    validation, and the local stage verifier passed 9/9. This is one completed
+    Demo city group; the other three groups and all R2/live acceptance gates
+    remain open. See the [refresh-scope report](benchmarks/results/stage0/b3-demo-refresh-scope-2026-10-31.md).
   - Open: stage and review the 36 Demo neighborhoods (unique cache-version-6
     cells; see the [refresh-scope report](benchmarks/results/stage0/b3-demo-refresh-scope-2026-10-31.md)),
     then get separate approval before any R2 upload. Capture live four-city

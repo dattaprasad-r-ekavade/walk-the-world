@@ -100,6 +100,9 @@ const cells = KEY
 
 const hash = (text) => createHash("sha256").update(text).digest("hex");
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+const countLegacyRefreshBuildings = (data) => (data?.elements || []).filter((element) =>
+  element.type === "way" && element.tags?.building,
+).length;
 
 async function readStored(key) {
   for (let attempt = 1; ; attempt++) {
@@ -143,6 +146,7 @@ async function fetchCell(key) {
 
 const freshManifest = {
   schemaVersion: 1,
+  buildingCountRuleVersion: 2,
   group: STAGE_GROUP,
   placeFilter: PLACE || null,
   cellFilter: KEY || null,
@@ -164,6 +168,10 @@ function resumeManifest() {
   if (!saved || typeof saved !== "object" || Array.isArray(saved)) {
     throw new Error("Cannot resume: manifest.json must contain an object");
   }
+  const savedCountRuleVersion = saved.buildingCountRuleVersion ?? 1;
+  if (![1, 2].includes(savedCountRuleVersion)) {
+    throw new Error(`Cannot resume: unsupported building count rule version ${savedCountRuleVersion}`);
+  }
   const expected = [...cells].map(([key, place]) => ({
     key,
     place,
@@ -173,17 +181,18 @@ function resumeManifest() {
     && saved.status !== "ready"
     && saved.group === STAGE_GROUP
     && saved.placeFilter === (PLACE || null)
-    && saved.cellFilter === (KEY || null)
+    && (saved.cellFilter ?? null) === (KEY || null)
     && saved.totalCells === expected.length
     && Array.isArray(saved.cells)
     && saved.cells.length === expected.length
     && expected.every((cell, index) => {
       const entry = saved.cells[index];
-      return entry?.key === cell.key && entry?.place === cell.place && entry?.action === cell.action;
+      return entry?.key === cell.key && entry?.place === cell.place && (entry.action ?? "refresh") === cell.action;
     });
   if (!matches) throw new Error("Cannot resume: the saved manifest does not match this group, filters, or cell set");
 
   for (const entry of saved.cells) {
+    entry.action ??= "refresh";
     if (!["ready", "failed", "pending"].includes(entry.state)) {
       throw new Error(`Cannot resume: ${entry.key} has unsupported state ${String(entry.state)}`);
     }
@@ -199,12 +208,16 @@ function resumeManifest() {
     }
     if (!isCompleteCity(candidate)) throw new Error(`Cannot resume: ready candidate ${entry.key} is not a complete cell`);
     const candidateBuildings = countRefreshBuildings(candidate);
+    const storedCandidateBuildings = savedCountRuleVersion === 1
+      ? countLegacyRefreshBuildings(candidate)
+      : candidateBuildings;
     if (Buffer.byteLength(candidateText, "utf8") > MAX_CITY_BYTES
       || hash(candidateText) !== entry.candidateSha256
       || candidate.elements.length !== entry.candidateElements
-      || candidateBuildings !== entry.candidateBuildings) {
+      || storedCandidateBuildings !== entry.candidateBuildings) {
       throw new Error(`Cannot resume: ready candidate ${entry.key} no longer matches its manifest`);
     }
+    entry.candidateBuildings = candidateBuildings;
 
     if (entry.action === "refresh") {
       let originalText;
@@ -217,16 +230,21 @@ function resumeManifest() {
       }
       if (!isCompleteCity(original)) throw new Error(`Cannot resume: ready original ${entry.key} is not a complete cell`);
       const originalBuildings = countRefreshBuildings(original);
+      const storedOriginalBuildings = savedCountRuleVersion === 1
+        ? countLegacyRefreshBuildings(original)
+        : originalBuildings;
       if (hash(originalText) !== entry.originalSha256
         || original.elements.length !== entry.originalElements
-        || originalBuildings !== entry.originalBuildings
+        || storedOriginalBuildings !== entry.originalBuildings
         || candidateBuildings < originalBuildings * 0.9
         || (original.enrichment && !candidate.enrichment)) {
         throw new Error(`Cannot resume: ready original/candidate pair ${entry.key} no longer passes refresh rules`);
       }
+      entry.originalBuildings = originalBuildings;
     }
   }
 
+  saved.buildingCountRuleVersion = 2;
   saved.status = "in_progress";
   saved.resumedAt = new Date().toISOString();
   delete saved.completedAt;

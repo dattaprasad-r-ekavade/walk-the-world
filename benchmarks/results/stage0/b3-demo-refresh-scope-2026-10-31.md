@@ -49,6 +49,28 @@ preserved single-cell candidates. It is offline review evidence, not a new
 36-cell Demo stage or an R2 upload. No R2 write occurred; the separate upload
 approval and live post-refresh visual/performance acceptance remain open.
 
+## Resumed Edinburgh cache refresh — 31 October 2026
+
+The saved Edinburgh stage had seven ready cells and two failed cells from an
+earlier run under the old building-only retention count. The stage runner now
+resumes legacy refresh manifests by checking their recorded counts under the
+old rule, recalculating the current building/building-part counts, and
+validating the saved payload hashes before retaining completed cells.
+
+The resumed run used the Britain and Ireland Overpass endpoint for the two
+failed cells and read originals from the public cache at `myjyotishai.in`. It
+fetched only the two failed cells; all seven saved candidate/original pairs
+were retained after validation. The stage reached 9/9 ready, and
+`npm run seed:verify-refresh -- --stage-dir=.cell-refresh-staging/demo-2026-10-31T01-18-09-891Z`
+passed all nine payload hashes, completeness checks, and building-retention
+rules. The original/candidate renderable-way counts ranged from 1,140 to 2,000
+original ways and 1,357 to 2,000 candidate ways.
+
+This completes the reviewed local Edinburgh refresh group. The other three
+Demo cities are still unstaged in this batch, so the 36-cell B3 refresh remains
+open. No R2 writes occurred; upload and post-refresh production acceptance
+remain separate gates.
+
 ## Pune staging retry — 31 October 2026
 
 A read-only Pune stage through the public cache proxy used a 120-second
