@@ -577,7 +577,11 @@ Decisions taken from the research:
     Taiwan global endpoint did not resolve from this host. The Britain and
     Ireland endpoint returned 200 for a small Edinburgh query but cannot serve
     the other Demo regions. No replacement global endpoint is currently
-    verified; self-hosted/paid endpoint acceptance remains open.
+    verified; self-hosted/paid endpoint acceptance remains open. The 31 Oct
+    review of the official OSM instance list found no regional public service
+    for New York, Pune or Tokyo; Japan's community endpoint is discontinued.
+    See the endpoint coverage review in the
+    [refresh-scope report](benchmarks/results/stage0/b3-demo-refresh-scope-2026-10-31.md).
   - The official [Overpass installation guide](https://overpass-api.de/full_installation.html)
     recommends at least 4 GB RAM and at least 100 GB disk for a full-planet
     database without metadata or minutely diffs (250 GB with minutely updates).

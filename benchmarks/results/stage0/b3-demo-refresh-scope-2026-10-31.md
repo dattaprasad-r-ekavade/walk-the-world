@@ -133,6 +133,20 @@ host received one tiny Pune query. Both timed out after 25 s with no response.
 These are the same operator, not independent fallbacks; no full-cell request
 or further retry followed.
 
+## Official regional instance coverage review — 31 October 2026
+
+The current [OpenStreetMap Overpass instance list](https://wiki.openstreetmap.org/wiki/Overpass_API)
+lists regional instances for Switzerland, Britain and Ireland, Virginia, and
+Ethiopia. Britain and Ireland covers Edinburgh; the listed Virginia instance
+does not cover the New York Demo cells, and none covers Pune or Tokyo. The
+[Japan community endpoint page](https://wiki.openstreetmap.org/wiki/Japan/Community_Overpass_API)
+marks `overpass.openstreetmap.jp` as discontinued in February 2026. The current
+list therefore offers no public regional source for the remaining New York,
+Pune, or Tokyo stages. Its other global services were already probed above;
+additional listed providers require payment or an API key. No account was
+created, no new endpoint was configured, and no query was sent during this
+documentation check.
+
 ## Standard OSM map API probe — 31 October 2026
 
 A single bounded map request for missing cell `wtw_city6_40.758_-73.975`
