@@ -28,7 +28,7 @@ it('starts the next mirror immediately when one fails and falls back to partial 
   vi.stubGlobal('fetch',fetcher);
   const data=await fetchOverpassCell(1,2,{staggerMs:60000});
   expect(data.partial).toBe(true);
-  expect(fetcher).toHaveBeenCalledTimes(3);
+  expect(fetcher).toHaveBeenCalledTimes(2);
 });
 it('sweeps the mirrors again after a backoff when every mirror fails fast',async()=>{
   const fetcher=vi.fn(async()=>fetcher.mock.calls.length<=3?new Response('',{status:502}):Response.json(complete));
@@ -41,5 +41,5 @@ it('gives up after the last round',async()=>{
   const fetcher=vi.fn(async()=>new Response('',{status:502}));
   vi.stubGlobal('fetch',fetcher);
   await expect(fetchOverpassCell(1,2,{staggerMs:60000,backoffMs:5,rounds:2})).rejects.toThrow('Overpass HTTP 502');
-  expect(fetcher).toHaveBeenCalledTimes(6);
+  expect(fetcher).toHaveBeenCalledTimes(4);
 });

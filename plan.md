@@ -590,6 +590,8 @@ Decisions taken from the research:
     for New York, Pune or Tokyo; Japan's community endpoint is discontinued.
     See the endpoint coverage review in the
     [refresh-scope report](benchmarks/results/stage0/b3-demo-refresh-scope-2026-10-31.md).
+  - Deadline-test assertions now match the two configured public services after
+    the duplicate Kumi hostname was removed. The full suite passes all 243 tests.
   - 31 Oct HPI endpoint observation: a read-only B3 stage selected
     `https://osm.hpi.de/overpass/api/interpreter` through `OVERPASS_ENDPOINT`.
     A 120-second full pass staged 32/36 cells, a 120-second resume reached
