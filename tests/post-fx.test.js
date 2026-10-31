@@ -22,7 +22,7 @@ describe('post-processing quality policy', () => {
   });
 });
 
-it('keeps drawing through the composer when effects turn off, so program keys do not change', () => {
+it('keeps drawing through the composer when effects turn off, so program keys do not change', async () => {
   const renderer = { getSize: (size) => size.set(320, 180), getPixelRatio: () => 1 };
   const fx = createPostFx(renderer, new THREE.Scene(), new THREE.PerspectiveCamera());
   fx.setEnabled(false, false, true);
@@ -30,6 +30,8 @@ it('keeps drawing through the composer when effects turn off, so program keys do
   expect(fx.composerActive).toBe(true);
   expect(fx.sceneTarget).not.toBeNull();
   fx.setEnabled(true, false, true); // dusk: bloom on, same target
+  expect(fx.bloomActive).toBe(false); // wait until its shaders are ready
+  await fx.warmBloomShaders();
   expect(fx.bloomActive).toBe(true);
   fx.setEnabled(false, false, false);
   expect(fx.sceneTarget).toBeNull();

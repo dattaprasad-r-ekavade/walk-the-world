@@ -1,6 +1,6 @@
 # Walk the World — Performance and Visuals Implementation Plan
 
-Updated: 31 October 2026. Reviewed base: `79e0e5a` on `origin/main`.
+Updated: 31 October 2026. Reviewed base: `625eb77` on `origin/main`.
 Demo gates D1–D8 are closed. The smoothness track (section 0a) closed S1–S6 from
 live-deploy profiling; S7–S8 stay open. S9's real-input check did not reproduce
 the hang on 30 October. S7 has two changes awaiting target-laptop confirmation:
@@ -59,6 +59,16 @@ preserves the full experiment history; its status is historical.
   check. Keep SEC1 open until these release-data checks pass. See the
   [read-only Overture manifest report](benchmarks/results/stage0/sec1-overture-manifest-readonly-2026-10-31.md)
   and [reviewed manifest](benchmarks/results/stage0/sec1-overture-index-2026-10-31.json).
+  The one-time `POST /api/overture-index` route is now production-disabled
+  (404), and in local development it requires a dedicated `OVERTURE_INDEX_SECRET`
+  bearer token; an unset secret returns 503. The 300-second production route
+  limit is shorter than the 1,968-second metadata scan, so release indexing
+  uses the reviewed CLI manifest instead. A local production-route smoke
+  returned 404; the auth tests cover 503 when disabled and 401 for an invalid
+  token. No indexing or R2 write ran. Three focused auth cases pass.
+  The full suite passes (237 tests), the production build passes, and focused
+  lint is clean. An outdated post-FX test now waits for its intended shader
+  warmup before expecting bloom to enable.
   On `6c79a3d`, `npm ci` installed Next.js 14.2.35, React/React DOM 18.3.1,
   DuckDB 1.4.4 and Sharp 0.35.5. `npm audit --omit=dev` reported 11 production
   dependency findings (10 high, 1 critical); the full install audit reported 19

@@ -27,3 +27,15 @@ storage. It made no R2 request; `.env.local` has no R2 credentials. The normal
 upload path remains unchanged. SEC1 stays open until the exact manifest is
 separately authorized and uploaded to R2, the deployed `OVERTURE_RELEASE`
 matches, and the live Overture API check passes.
+
+The one-time `POST /api/overture-index` route is disabled in production (404).
+In local development it requires the dedicated `OVERTURE_INDEX_SECRET` bearer
+token and returns 503 when that secret is unset. The production route's
+300-second cap is shorter than this scan, so release indexing uses the CLI.
+Local production-route smokes confirmed 503 for the disabled state and 401 for
+an invalid token before the production-disabled guard was added; the final
+local production-route smoke returned 404. The auth tests cover the local
+disabled and invalid-token responses. No valid token was sent, so indexing was
+not triggered. The full suite passes (237 tests), the production build passes,
+and focused lint is clean. The pre-existing post-FX test was corrected to wait
+for the shader warmup before asserting that bloom is active.
