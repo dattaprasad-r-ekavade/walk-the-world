@@ -1,6 +1,6 @@
 # Walk the World — Performance and Visuals Implementation Plan
 
-Updated: 31 October 2026. Reviewed base: `19641ea` on `origin/main`.
+Updated: 31 October 2026. Reviewed base: `9823eb7` on `origin/main`.
 Demo gates D1–D8 are closed. The smoothness track (section 0a) closed S1–S6 from
 live-deploy profiling; S7–S8 stay open. S9's real-input check did not reproduce
 the hang on 30 October. S7 has two changes awaiting target-laptop confirmation:
@@ -956,7 +956,14 @@ cold starts. Software rendering proves no hardware speedup.
   regional Overpass-backed city API. A corrected New York cold walk on the
   production origin (build `58c8366`) passed its eight-second measurement with
   no city API requests, but reproduced ten >100 ms frame gaps (p95 466.5 ms,
-  p99 516.6 ms). A production Chrome trace then found ten 486–600.5 ms gaps
+  p99 516.6 ms). A later production cold-walk boundary attempt on this host
+  crossed New York's expected east cell, but did not settle: its next eastern
+  strip of three cells was absent from the public cache (HEAD 404), and two
+  city API requests returned 502 while a third remained incomplete. The 12 s
+  measurement window itself was valid, but the cell-stream gate failed, so its
+  frame data is diagnostic only and is excluded from baseline captures. See the
+  [probe report](benchmarks/results/stage0/0.8-live-cache-probes-2026-10-31.md).
+  A production Chrome trace then found ten 486–600.5 ms gaps
   between `FireAnimationFrame` events; every gap overlapped a 485.3–528.3 ms
   `DXGISwapChainImageBacking::Present` call. One app animation callback also
   blocked 495.2 ms in a WebGL framebuffer-status/command-buffer wait. This
