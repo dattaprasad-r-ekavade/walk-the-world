@@ -587,9 +587,14 @@ Decisions taken from the research:
     PBF-to-XML conversion before import; the imported database size is unknown.
     `scripts/build-regional-overpass-source.sh` now downloads those extracts,
     validates checksums, and builds the merged no-metadata import file. Direct
-    PBF-host probes timed out from this host, so the script remains unrun. Run
-    it on a disposable Linux host and measure the imported database before
-    choosing infrastructure. See the
+    PBF-host probes timed out from this host, so the script remains unrun. The
+    31 Oct robustness follow-up bounds connection and transfer time and publishes
+    the merged file plus manifest from temporary paths, cleaning partial output
+    on failure. Git Bash syntax validation passes; curl, checksum tools, awk and
+    realpath are available, but Osmium is not. WSL has only its Docker Desktop
+    distro and the Docker engine is unavailable, so the import still needs a
+    Linux host with Osmium. Measure the imported database before choosing
+    infrastructure. See the
     [regional extract feasibility report](benchmarks/results/stage0/b2-regional-extract-feasibility-2026-10-31.md).
 - [ ] **B3 — Procedural landuse ground (S–M).** Asphalt, grass, paving and
   water materials from landuse polygons instead of the near-white Carto

@@ -34,8 +34,13 @@ database and temporary-disk footprint. The repository now has
 to download the four current extracts, verify Geofabrik's MD5 files, merge them
 with Osmium, and write a source checksum manifest. The script has not been run:
 direct PBF-host requests from this host timed out before the files could be
-downloaded, and this Windows workspace has no Linux Bash or Osmium binary for
-the import path.
+downloaded. Git Bash is installed and its syntax check passes, but Osmium is
+missing. WSL exposes only the Docker Desktop distribution, and the Docker
+engine was unavailable during this check. The builder now bounds each
+connection to 30 seconds and each transfer to 30 minutes, writes the manifest
+to a temporary file, and removes any published output if the paired manifest
+cannot be published. The full download and merge still need a Linux environment
+with Osmium.
 
 The 1.5 GB figure is compressed source data, not the imported Overpass database
 size. No provider or disk size is selected yet. The official full-install guide

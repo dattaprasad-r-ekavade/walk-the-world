@@ -21,6 +21,7 @@ work_dir=$(realpath -m -- "$1")
 output=$(realpath -m -- "$2")
 source_manifest="${output}.sources.tsv"
 output_tmp="${output}.tmp.$$"
+source_manifest_tmp="${source_manifest}.tmp.$$"
 
 for tool in curl md5sum sha256sum awk realpath osmium; do
   if ! command -v "$tool" >/dev/null 2>&1; then
@@ -39,12 +40,23 @@ if [[ -e $output || -e $source_manifest ]]; then
 fi
 
 mkdir -p -- "$work_dir" "$(dirname -- "$output")"
-temporary_files=("$output_tmp")
+temporary_files=("$output_tmp" "$source_manifest_tmp")
+output_published=0
+manifest_published=0
+completed=0
 cleanup() {
   local file
   for file in "${temporary_files[@]}"; do
     rm -f -- "$file"
   done
+  if [[ $completed != 1 ]]; then
+    if [[ $output_published == 1 ]]; then
+      rm -f -- "$output"
+    fi
+    if [[ $manifest_published == 1 ]]; then
+      rm -f -- "$source_manifest"
+    fi
+  fi
 }
 trap cleanup EXIT
 
@@ -62,7 +74,8 @@ download_atomic() {
   local temporary="${destination}.tmp.$$"
   temporary_files+=("$temporary")
   if [[ ! -f $destination ]]; then
-    curl --fail --location --retry 3 --retry-delay 2 --output "$temporary" "$url"
+    curl --fail --location --connect-timeout 30 --max-time 1800 \
+      --retry 3 --retry-delay 2 --output "$temporary" "$url"
     mv -- "$temporary" "$destination"
   fi
 }
@@ -88,14 +101,13 @@ for url in "${sources[@]}"; do
 done
 
 osmium merge "${files[@]}" -f 'osm.bz2,add_metadata=false' -o "$output_tmp"
-mv -- "$output_tmp" "$output"
 
 {
   printf 'created_at_utc\t%s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
   printf 'merged_file\t%s\t%s\t%s\n' \
     "${output##*/}" \
-    "$(wc -c < "$output" | tr -d ' ')" \
-    "$(sha256sum -- "$output" | awk '{ print $1 }')"
+    "$(wc -c < "$output_tmp" | tr -d ' ')" \
+    "$(sha256sum -- "$output_tmp" | awk '{ print $1 }')"
   printf 'file\turl\tbytes\tmd5\tsha256\n'
   for index in "${!sources[@]}"; do
     pbf=${files[$index]}
@@ -106,7 +118,13 @@ mv -- "$output_tmp" "$output"
       "$(md5sum -- "$pbf" | awk '{ print $1 }')" \
       "$(sha256sum -- "$pbf" | awk '{ print $1 }')"
   done
-} > "$source_manifest"
+} > "$source_manifest_tmp"
+
+output_published=1
+mv -- "$output_tmp" "$output"
+manifest_published=1
+mv -- "$source_manifest_tmp" "$source_manifest"
+completed=1
 
 printf 'Merged regional import: %s\nSource manifest: %s\n' "$output" "$source_manifest"
 printf 'Import with Overpass init_osm3s.sh using --meta=no; database footprint remains to be measured.\n'
