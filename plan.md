@@ -562,10 +562,16 @@ Decisions taken from the research:
     revision. Changed tile bytes miss the cache; prebuilt validation still
     hashes the resolved grid and retains its raw-cell fallback. Spawn prefetch
     now transfers PNG bytes without decoding before the cache lookup. The
-    benchmark captures source, decode and grid-resolution timings. The full
-    suite passes 250 tests, lint has zero errors (16 warnings), and the
-    production build passes. No matched browser comparison has measured this
-    candidate yet, so B1 remains open and production artifacts stay unpublished.
+    benchmark records source, hash, cache-read, decode and grid-resolution
+    timings; `--terrain-cache-audit` verifies the measured cold miss or warm
+    hit and waits for a persisted grid before the warm capture. The full suite
+    previously passed 250 tests, lint had zero errors (16 warnings), and the
+    production build passed. A 31 Oct cold replay attempt against the existing
+    port-3100 server timed out before StreetEngine readiness: the page requested
+    an absent `/_next/static/chunks/1o23b0dlmiw5r.js` (HTTP 500). It produced no
+    terrain or city measurements and is excluded. No matched browser comparison
+    has measured this candidate yet, so B1 remains open and production artifacts
+    stay unpublished.
   - Still open: compare cold and warm raw/prebuilt loads, including cache hit
     frequency and source/hash/decode timings; then assess integrated/mobile GPU
     parity, editor Hide/save/reload acceptance, upload cost and R2 release.

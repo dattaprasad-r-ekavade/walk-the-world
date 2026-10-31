@@ -6,6 +6,7 @@
  * Optional fixed walking pose: --pose-x <meters> --pose-z <meters> --heading <radians> [--pose-pitch <radians>].
  * Environment lifecycle audit: --environment-audit [--environment-audit-cycles <count>] [--engine-teardown-audit].
  * Engine teardown audit: --engine-teardown-audit [--engine-teardown-cycles <count>].
+ * Terrain IndexedDB audit: --data-mode recorded --cache-mode cold|warm --terrain-cache-audit.
  * Wet-road audit: --wet-road-map-audit [--screenshot-before-walk --screenshot <path>].
  * High-tier post FX isolation: --ssao-mode preset|on|off --bloom-mode preset|on|off.
  * Matched pass screenshots: --postfx-pair bloom|ssao --screenshot-before-walk --screenshot <path>.
@@ -48,6 +49,33 @@ function summarizeCountSamples(values = []) {
     p50: percentile(0.50),
     p95: percentile(0.95),
     p99: percentile(0.99),
+  };
+}
+
+function summarizeTerrainGridCache(timings = []) {
+  const resolves = timings.filter((event) => event.name === 'terrain.height-grid-resolve');
+  const cacheHits = resolves.filter((event) => event.details?.cacheHit === true).length;
+  const cacheMisses = resolves.filter((event) => event.details?.cacheHit === false).length;
+  const sumDuration = (name) => timings
+    .filter((event) => event.name === name && Number.isFinite(event.durationMs))
+    .reduce((total, event) => total + event.durationMs, 0);
+  return {
+    resolveCount: resolves.length,
+    cacheHitCount: cacheHits,
+    cacheMissCount: cacheMisses,
+    cacheHitRate: resolves.length ? cacheHits / resolves.length : null,
+    timingsMs: {
+      source: sumDuration('terrain.height-source'),
+      hash: sumDuration('terrain.height-hash'),
+      cacheRead: sumDuration('terrain.height-cache-read'),
+      cacheCopy: sumDuration('terrain.height-cache-copy'),
+      imageDecode: sumDuration('terrain.height-image-decode'),
+      pixelRead: sumDuration('terrain.height-pixels'),
+      gridDecode: sumDuration('terrain.height-grid'),
+      decodeTotal: sumDuration('terrain.height-decode-total'),
+      resolveTotal: sumDuration('terrain.height-grid-resolve'),
+      cacheWrite: sumDuration('terrain.height-cache-write'),
+    },
   };
 }
 
@@ -115,6 +143,7 @@ const engineTeardownCycles = Number(option('--engine-teardown-cycles', '3'));
 const ktx2DisposalAuditEnabled = args.includes('--ktx2-disposal-audit');
 const invalidFacadeLayoutSchema = args.includes('--invalid-facade-layout-schema');
 const invalidFacadeLayout = args.includes('--invalid-facade-layout') || invalidFacadeLayoutSchema;
+const terrainCacheAuditEnabled = args.includes('--terrain-cache-audit');
 if (args.includes('--invalid-facade-layout') && invalidFacadeLayoutSchema) {
   throw new Error('Choose one invalid facade layout injection mode');
 }
@@ -193,6 +222,9 @@ if (!['bundled', 'chrome'].includes(browserChannel)) throw new Error('--browser-
 if (!['fixture', 'recorded', 'live'].includes(dataMode)) throw new Error('--data-mode must be fixture, recorded, or live');
 if (dataMode === 'fixture' && cacheMode !== 'none') {
   throw new Error('--cache-mode is only valid with --data-mode live or recorded');
+}
+if (terrainCacheAuditEnabled && (dataMode !== 'recorded' || !['cold', 'warm'].includes(cacheMode))) {
+  throw new Error('--terrain-cache-audit requires --data-mode recorded and --cache-mode cold or warm');
 }
 if (['live', 'recorded'].includes(dataMode) && !['cold', 'warm'].includes(cacheMode)) {
   throw new Error('--cache-mode must be cold or warm with --data-mode live or recorded');
@@ -297,6 +329,44 @@ async function waitForSpawnCellCache(page, expectedKey) {
       request.onerror = () => resolve(false);
     });
   }, expectedKey, { timeout: READY_TIMEOUT });
+}
+
+async function waitForTerrainGridCacheWarm(page) {
+  await page.waitForFunction(async () => {
+    const timeline = window.__perfCounters?.timeline || [];
+    if (!timeline.some((event) => event.name === 'terrain.height-grid-resolve' && event.details?.cacheHit === false)) return false;
+    if (typeof indexedDB?.databases !== 'function') return false;
+    let databases;
+    try { databases = await indexedDB.databases(); } catch { return false; }
+    if (!databases.some((database) => database.name === 'wtw-terrain-grid-cache')) return false;
+    const db = await new Promise((resolve) => {
+      const request = indexedDB.open('wtw-terrain-grid-cache');
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = request.onblocked = () => resolve(null);
+    });
+    if (!db || !db.objectStoreNames.contains('grids')) {
+      db?.close();
+      return false;
+    }
+    return new Promise((resolve) => {
+      let transaction;
+      try { transaction = db.transaction('grids', 'readonly'); } catch {
+        db.close();
+        resolve(false);
+        return;
+      }
+      const request = transaction.objectStore('grids').count();
+      request.onsuccess = () => {
+        const hasEntry = request.result > 0;
+        db.close();
+        resolve(hasEntry);
+      };
+      request.onerror = transaction.onabort = transaction.onerror = () => {
+        db.close();
+        resolve(false);
+      };
+    });
+  }, null, { timeout: READY_TIMEOUT });
 }
 
 function createNetworkRecorder(page, baseOrigin) {
@@ -1693,6 +1763,8 @@ async function benchStreet(page) {
     : samples.length > 0
       ? Math.round(samples.reduce((a, b) => a + b, 0) / samples.length)
       : metrics.fps;
+  const timings = orderedPerfTimeline(metrics.perf);
+  const terrainGridCache = summarizeTerrainGridCache(timings);
 
   return {
     loadMs,
@@ -1730,7 +1802,8 @@ async function benchStreet(page) {
     gpuFrameTimesMs,
     gpuTimer: metrics.perf?.gpuTimer || null,
     marks: metrics.perf?.marks || {},
-    timings: orderedPerfTimeline(metrics.perf),
+    timings,
+    terrainGridCache,
     longTaskApiSupported: metrics.longTaskApiSupported === true,
     longTasks: metrics.longTasks || [],
     shaderWarmups: (metrics.perf?.timeline || [])
@@ -1913,6 +1986,7 @@ async function main() {
     : dataMode === 'recorded'
       ? { ok: true, mode: 'cold', primed: false, protocol: 'Fresh Playwright browser context; city API responses are replayed from the checked-in OSM fixture' }
       : { ok: true, mode: 'cold', primed: false, protocol: 'Fresh Playwright browser context; upstream server and CDN caches are outside this control' };
+  let terrainGridCacheWarmup = null;
   if (['live', 'recorded'].includes(dataMode) && cacheMode === 'warm') {
     console.log('  Warming origin city cell in IndexedDB…');
     const warmStartedAt = Date.now();
@@ -1920,11 +1994,16 @@ async function main() {
     try {
       await warmPage.goto(streetUrl(), { waitUntil: 'domcontentloaded', timeout: 60_000 });
       await waitForSpawnCellCache(warmPage, cityCacheKey(location.lat, location.lon));
+      if (terrainCacheAuditEnabled) {
+        await waitForTerrainGridCacheWarm(warmPage);
+        terrainGridCacheWarmup = { missObserved: true, indexedDbGridEntryVerified: true };
+      }
       cache = {
         ok: true,
         mode: 'warm',
         primed: true,
         indexedDbCellVerified: true,
+        terrainGridCacheWarmup,
         prewarmMs: Date.now() - warmStartedAt,
         protocol: dataMode === 'recorded'
           ? 'Loaded the recorded origin city cell through the app API, verified its IndexedDB entry, then measured a new page in the same browser context'
@@ -2014,6 +2093,7 @@ async function main() {
       ktx2DisposalAuditEnabled,
       invalidFacadeLayout,
       invalidFacadeLayoutSchema,
+      terrainCacheAuditEnabled,
       serviceWorkersBlocked: invalidFacadeLayout,
       hour: benchmarkEnvironment.hour,
       weather: benchmarkEnvironment.weather,
@@ -2047,6 +2127,18 @@ async function main() {
     }
     console.log('  Street engine…');
     result.street = await benchStreet(page);
+    if (terrainCacheAuditEnabled) {
+      const audit = result.street.terrainGridCache;
+      if (!audit || audit.resolveCount < 1) {
+        throw new Error(`Terrain-cache audit observed no resolved grids: ${JSON.stringify(audit)}`);
+      }
+      if (cacheMode === 'cold' && audit.cacheMissCount < 1) {
+        throw new Error(`Cold terrain-cache audit observed no IndexedDB misses: ${JSON.stringify(audit)}`);
+      }
+      if (cacheMode === 'warm' && audit.cacheHitCount < 1) {
+        throw new Error(`Warm terrain-cache audit observed no IndexedDB hits: ${JSON.stringify(audit)}`);
+      }
+    }
     if (shadowPrunePairEnabled) {
       const pair = result.street.shadowPrunePair;
       const labels = pair?.states?.map((state) => state.label).sort();

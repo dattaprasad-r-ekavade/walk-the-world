@@ -76,7 +76,9 @@ describe('terrain tile lifecycle', () => {
     });
 
     await expect(terrain.ensureHeightTiles(['100/100'])).resolves.toBe(true);
-    expect(resolveTerrainGridMock).toHaveBeenCalledWith(blob, 65, expect.any(Function));
+    expect(resolveTerrainGridMock).toHaveBeenCalledWith(blob, 65, expect.any(Function), expect.objectContaining({
+      onTiming: expect.any(Function),
+    }));
     expect(terrain.terrainTiles.get('100/100').heights).toEqual(heights);
     expect(decodeImage).not.toHaveBeenCalled();
     terrain.dispose();
