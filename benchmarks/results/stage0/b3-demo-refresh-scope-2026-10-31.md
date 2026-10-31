@@ -48,3 +48,15 @@ The review set combines the seven cells saved by the city run and the two
 preserved single-cell candidates. It is offline review evidence, not a new
 36-cell Demo stage or an R2 upload. No R2 write occurred; the separate upload
 approval and live post-refresh visual/performance acceptance remain open.
+
+## Pune staging retry — 31 October 2026
+
+A read-only Pune stage through the public cache proxy used a 120-second
+per-request budget and concurrency 2. Four cells failed after both Overpass
+attempts: `18.541_73.896`, `18.546_73.896`, `18.535_73.896`, and
+`18.541_73.901`. The last errors were one HTTP 502 and three timeouts; five
+cells remained pending. The local stage manifest at
+`.cell-refresh-staging/demo-corrected-pune` was marked incomplete and retained
+for later retry. The attempt did not save candidates, update R2, or produce a
+ready Pune batch. It was stopped after repeated failures to avoid additional
+requests to the same mirrors.

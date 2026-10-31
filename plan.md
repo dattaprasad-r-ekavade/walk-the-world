@@ -623,7 +623,11 @@ Decisions taken from the research:
     nine New York demo cells returned read-only HEAD 200 through the deployment
     proxy. A full Demo staging attempt with 45-second request budgets timed out
     twice on its first two Pune cells; it was stopped before R2 writes (which
-    this script cannot perform). The initial Edinburgh stage reported 7/9: its
+    this script cannot perform). A later Pune-only stage used 120-second
+    budgets and concurrency 2; four cells failed after both attempts (one final
+    HTTP 502 and three timeouts), while five remained pending. That local batch
+    is marked incomplete and was stopped after repeated mirror failures. No R2
+    writes occurred. The initial Edinburgh stage reported 7/9: its
     two rejected candidates used `building:part` ways that the renderer already
     draws, but the old gate counted only `building` ways. Staging and verification
     now share a renderable-way count covering both tags. Offline re-evaluation of
@@ -1294,10 +1298,11 @@ matched settings, tested hardware, thresholds and remaining gates.
    any public release; use [docs/UPGRADE-ASSESSMENT.md](docs/UPGRADE-ASSESSMENT.md).
 1. B1 is parked (see its 29 Oct decision): artifacts stay local and are not
    published. Next data work is B3 (procedural landuse ground, most visible for
-   the demo). The corrected Edinburgh review is complete; next stage and review
-   the remaining Demo cells in complete per-city batches, then seek separate
-   approval before any R2 write. After B3, continue B2 (Overpass independence)
-   and B4 (Overture attribute gap fill). Reopen B1 only through B1b (cached
+   the demo). The corrected Edinburgh review is complete. Resume the remaining
+   per-city Demo staging when Overpass requests complete within budget, then seek
+   separate approval before any R2 write. After B3, continue B2 (Overpass
+   independence) and B4 (Overture attribute gap fill). Reopen B1 only through
+   B1b (cached
    elevation grids for cold loads).
 2. Consider C1–C3 only after the data foundation, and only when a measured
    viewer-visible benefit justifies their cost. The remaining release gates
