@@ -1,6 +1,6 @@
 # Walk the World — Performance and Visuals Implementation Plan
 
-Updated: 31 October 2026. Reviewed base: `c3f8981` on `origin/main`.
+Updated: 31 October 2026. Reviewed base: `ae4bb84` on `origin/main`.
 Demo gates D1–D8 are closed. The smoothness track (section 0a) closed S1–S6 from
 live-deploy profiling; S7–S8 stay open. S9's real-input check did not reproduce
 the hang on 30 October. S7 has two changes awaiting target-laptop confirmation:
@@ -709,6 +709,9 @@ Decisions taken from the research:
     deployment index remains absent, so runtime API acceptance and upload
     remain open. See the
     [live coverage report](benchmarks/results/stage0/b4-overture-live-coverage-2026-10-31.md).
+    `node --check lib/overtureServer.js` and `npm run build` pass on
+    `ae4bb84`; the build stamped service-worker revision
+    `7c4d59020935177c`.
   Overture segments have no lanes or sidewalk fields, so A4 uses OSM tags.
 
 ### Phase C — larger bets, only with measured benefit

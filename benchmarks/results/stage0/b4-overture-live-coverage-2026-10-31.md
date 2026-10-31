@@ -39,6 +39,10 @@ all 36 sampled cells. On the largest cell, the 4,770-building JSON response
 was 1,473,920 bytes raw and 214,819 bytes gzipped. The local runtime query
 limit increased from 3,000 to 5,000 based on this result.
 
+After the limit change, `node --check lib/overtureServer.js` and
+`npm run build` passed on commit `ae4bb84`. The build stamped service-worker
+revision `7c4d59020935177c`.
+
 ## Remaining acceptance
 
 The deployed manifest and New York Overture cache object both returned 404,
