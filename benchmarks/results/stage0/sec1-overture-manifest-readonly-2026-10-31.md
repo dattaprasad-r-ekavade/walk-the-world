@@ -39,3 +39,18 @@ disabled and invalid-token responses. No valid token was sent, so indexing was
 not triggered. The full suite passes (237 tests), the production build passes,
 and focused lint is clean. The pre-existing post-FX test was corrected to wait
 for the shader warmup before asserting that bloom is active.
+
+## Live deployment check — 31 October 2026
+
+Read-only requests to `https://walk-the-world-delta.vercel.app` found no
+deployed Overture index: `GET /api/overture-index` returned
+`{"indexed":false,"files":0}`. HEAD requests through `/r2-public` returned
+404 for `wtw_ovt_manifest_2026-10-21.0.json` and
+`wtw_ovt_40.758_-73.986.json`. The local `.env.local` has no R2 credentials or
+public cache base, so no upload was possible from this checkout.
+
+The Overture cell GET route writes a derived cell to R2 after a cache miss and
+successful index query. Since the manifest and cell are absent, that route was
+not called; no write approval was provided. The live data gate remains open
+until the reviewed manifest is uploaded, the deployed release is confirmed,
+and the live cell path can be accepted under an approved write policy.

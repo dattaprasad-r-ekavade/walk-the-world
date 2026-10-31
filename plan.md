@@ -68,6 +68,13 @@ preserves the full experiment history; its status is historical.
   check. Keep SEC1 open until these release-data checks pass. See the
   [read-only Overture manifest report](benchmarks/results/stage0/sec1-overture-manifest-readonly-2026-10-31.md)
   and [reviewed manifest](benchmarks/results/stage0/sec1-overture-index-2026-10-31.json).
+  A 31 Oct read-only production check returned `{"indexed":false,"files":0}`
+  from `GET /api/overture-index`; the public proxy returned 404 for the reviewed
+  release manifest and the New York Overture cell. Local `.env.local` has no
+  R2 credentials or public cache base. The cold `/api/overture/<key>` path can
+  upload its derived cell, so it was not called without write approval. SEC1
+  remains open for the exact manifest upload, deployed release confirmation,
+  and a safe live API acceptance check.
   The one-time `POST /api/overture-index` route is now production-disabled
   (404), and in local development it requires a dedicated `OVERTURE_INDEX_SECRET`
   bearer token; an unset secret returns 503. The 300-second production route
