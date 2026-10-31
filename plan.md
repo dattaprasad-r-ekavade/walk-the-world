@@ -729,6 +729,13 @@ Decisions taken from the research:
     for editing rather than data downloads and recommends Overpass for area
     extraction, so this was not used as a staging fallback. No payload was
     saved and no candidate was staged; see the linked report.
+  - 31 Oct 0.8 follow-up: the three missing New York east-strip cells were
+    staged locally from HPI and passed the cell verifier. The city-cache
+    uploader now supports one-cell `create` manifests with a live absence
+    preflight and atomic R2 `If-None-Match: *` writes; refresh uploads retain
+    their original-hash checks and rollback behavior. Local dry runs passed for
+    all three creates and the existing 36-cell refresh. No R2 writes occurred.
+    See the [boundary candidate replay report](benchmarks/results/stage0/0.8-new-york-boundary-candidate-replay-2026-10-31.md).
   - Local review command: `npm run seed:verify-refresh -- --stage-dir=<path>`
     checks manifest completeness, payload hashes, city validity, the 90%
     building threshold and retained enrichment without contacting R2.
