@@ -18,3 +18,33 @@ cell as it completes, so it can leave a partially refreshed demo set if a later
 cell fails. This scope list does not prove which objects are currently stored
 or show proposed payload diffs; those require R2 read access and a staged
 refresh preview before any write is authorized.
+
+## Offline Edinburgh re-evaluation — 31 October 2026
+
+The first nine-cell Edinburgh stage marked two cells failed because its 90%
+count compared `building` ways only. The city renderer also builds ways
+tagged `building:part`, including parts that replace a former `building`
+tag. The shared staging/verifier rule now counts either tag on OSM ways.
+
+Using the saved originals and candidates, the corrected local manifest at
+`.cell-refresh-staging/edinburgh-building-part-review` passes
+`npm run seed:verify-refresh -- --stage-dir=.cell-refresh-staging/edinburgh-building-part-review`.
+All nine cells meet the 90% count gate and retain 98.2–99.8% of original
+renderable building-way IDs:
+
+| Cell | Renderable ways, original -> candidate | Original IDs retained |
+| --- | ---: | ---: |
+| `55.950_-3.188` | 1,393 -> 2,004 | 1,385/1,391 (99.6%) |
+| `55.956_-3.188` | 1,891 -> 2,000 | 1,880/1,891 (99.4%) |
+| `55.945_-3.188` | 1,447 -> 1,733 | 1,441/1,445 (99.7%) |
+| `55.950_-3.182` | 1,140 -> 1,497 | 1,136/1,138 (99.8%) |
+| `55.950_-3.193` | 1,439 -> 1,995 | 1,433/1,437 (99.7%) |
+| `55.956_-3.182` | 1,722 -> 2,000 | 1,718/1,722 (99.8%) |
+| `55.956_-3.193` | 2,000 -> 2,000 | 1,964/2,000 (98.2%) |
+| `55.945_-3.182` | 1,231 -> 1,357 | 1,223/1,229 (99.5%) |
+| `55.945_-3.193` | 1,287 -> 1,629 | 1,283/1,285 (99.8%) |
+
+The review set combines the seven cells saved by the city run and the two
+preserved single-cell candidates. It is offline review evidence, not a new
+36-cell Demo stage or an R2 upload. No R2 write occurred; the separate upload
+approval and live post-refresh visual/performance acceptance remain open.

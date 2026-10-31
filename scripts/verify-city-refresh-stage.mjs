@@ -7,6 +7,7 @@ import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { isCompleteCity, MAX_CITY_BYTES, parseCityKey } from "../lib/city-contract.js";
+import { countRefreshBuildings } from "./city-refresh-rules.mjs";
 
 const stageArg = process.argv.slice(2).find((arg) => arg.startsWith("--stage-dir="));
 if (!stageArg) {
@@ -18,7 +19,6 @@ const stageDir = path.resolve(stageArg.slice("--stage-dir=".length).replace(/"/g
 const manifestPath = path.join(stageDir, "manifest.json");
 const failures = [];
 const hash = (text) => createHash("sha256").update(text).digest("hex");
-const countBuildings = (data) => (data?.elements || []).filter((element) => element.tags?.building).length;
 
 function readJson(filePath, description) {
   try {
@@ -82,8 +82,8 @@ for (const cell of cells) {
 
   const originalElements = original?.elements?.length;
   const candidateElements = candidate?.elements?.length;
-  const originalBuildings = countBuildings(original);
-  const candidateBuildings = countBuildings(candidate);
+  const originalBuildings = countRefreshBuildings(original);
+  const candidateBuildings = countRefreshBuildings(candidate);
   if (originalElements !== cell.originalElements) failures.push(`${key}: original element count does not match manifest`);
   if (candidateElements !== cell.candidateElements) failures.push(`${key}: candidate element count does not match manifest`);
   if (originalBuildings !== cell.originalBuildings) failures.push(`${key}: original building count does not match manifest`);

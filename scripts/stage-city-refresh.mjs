@@ -27,6 +27,7 @@ import { DEMO_PLACES, PLACES } from "../lib/geo.js";
 import { SEED_GROUPS } from "../lib/seedPlaces.js";
 import { fetchOverpassCell } from "../lib/overpassServer.js";
 import { downloadObjectRaw, isConfigured } from "../lib/r2Server.js";
+import { countRefreshBuildings } from "./city-refresh-rules.mjs";
 
 const args = process.argv.slice(2);
 const opt = (name, fallback) => {
@@ -80,7 +81,6 @@ const cells = KEY ? new Map([[KEY, allCells.get(KEY)]]) : allCells;
 
 const hash = (text) => createHash("sha256").update(text).digest("hex");
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-const countBuildings = (data) => (data?.elements || []).filter((element) => element.tags?.building).length;
 
 async function readStored(key) {
   for (let attempt = 1; ; attempt++) {
@@ -152,8 +152,8 @@ async function stageCell(entry) {
     if (!isCompleteCity(oldData)) throw new Error("Existing R2 object is not a complete city cell");
 
     const candidate = await fetchCell(entry.key);
-    const beforeBuildings = countBuildings(oldData);
-    const afterBuildings = countBuildings(candidate);
+    const beforeBuildings = countRefreshBuildings(oldData);
+    const afterBuildings = countRefreshBuildings(candidate);
     const retainedEnoughBuildings = afterBuildings >= beforeBuildings * 0.9;
     const carriedEnrichment = !!oldData.enrichment && !candidate.enrichment;
     if (carriedEnrichment) candidate.enrichment = oldData.enrichment;

@@ -1,6 +1,6 @@
 # Walk the World — Performance and Visuals Implementation Plan
 
-Updated: 31 October 2026. Reviewed base: `70deb7d` on `origin/main`.
+Updated: 31 October 2026. Reviewed base: `19641ea` on `origin/main`.
 Demo gates D1–D8 are closed. The smoothness track (section 0a) closed S1–S6 from
 live-deploy profiling; S7–S8 stay open. S9's real-input check did not reproduce
 the hang on 30 October. S7 has two changes awaiting target-laptop confirmation:
@@ -20,7 +20,9 @@ recorded Edinburgh browser replay shows streamed land-use paint. The demo-cell
 R2 reseed remains open pending separate write approval.
 B4's Overture-to-OSM merge now has offline field/precedence coverage; live cell
 coverage still awaits R2 configuration. B3 now has a local-only cache staging
-and verification workflow; the full Demo batch has not yet been staged.
+and verification workflow. The saved Edinburgh nine-cell set passes corrected
+offline checks that count rendered building parts; the full 36-cell Demo batch
+remains open.
 This is the active plan. The [previous detailed checkpoint](docs/PLAN-CHECKPOINT-2026-10-28-BEFORE-REVIEW.md)
 preserves the full experiment history; its status is historical.
 
@@ -621,11 +623,15 @@ Decisions taken from the research:
     nine New York demo cells returned read-only HEAD 200 through the deployment
     proxy. A full Demo staging attempt with 45-second request budgets timed out
     twice on its first two Pune cells; it was stopped before R2 writes (which
-    this script cannot perform). An Edinburgh stage finished 7/9 cells; two
-    candidates failed the 90% building check (1,891→1,588 and 2,000→1,552),
-    and their payloads are preserved locally for review. A one-cell Edinburgh
-    center stage passed the offline verifier: 1,391 buildings retained and
-    3,343→3,977 elements. The full 36-cell batch remains open.
+    this script cannot perform). The initial Edinburgh stage reported 7/9: its
+    two rejected candidates used `building:part` ways that the renderer already
+    draws, but the old gate counted only `building` ways. Staging and verification
+    now share a renderable-way count covering both tags. Offline re-evaluation of
+    the nine saved Edinburgh cells passes 9/9; same-ID building retention ranges
+    from 98.2% to 99.8%. The two formerly rejected cells retain 1,880/1,891
+    (99.4%) and 1,964/2,000 (98.2%) original building-way IDs. The review set
+    combines seven cells from the city stage and two preserved single-cell runs.
+    No R2 write occurred; the full 36-cell batch remains open.
   - Local review command: `npm run seed:verify-refresh -- --stage-dir=<path>`
     checks manifest completeness, payload hashes, city validity, the 90%
     building threshold and retained enrichment without contacting R2.
@@ -1288,8 +1294,11 @@ matched settings, tested hardware, thresholds and remaining gates.
    any public release; use [docs/UPGRADE-ASSESSMENT.md](docs/UPGRADE-ASSESSMENT.md).
 1. B1 is parked (see its 29 Oct decision): artifacts stay local and are not
    published. Next data work is B3 (procedural landuse ground, most visible for
-   the demo), then B2 (Overpass independence) and B4 (Overture attribute gap
-   fill). Reopen B1 only through B1b (cached elevation grids for cold loads).
+   the demo). The corrected Edinburgh review is complete; next stage and review
+   the remaining Demo cells in complete per-city batches, then seek separate
+   approval before any R2 write. After B3, continue B2 (Overpass independence)
+   and B4 (Overture attribute gap fill). Reopen B1 only through B1b (cached
+   elevation grids for cold loads).
 2. Consider C1–C3 only after the data foundation, and only when a measured
    viewer-visible benefit justifies their cost. The remaining release gates
    include 0.8 live dense-city baselines, 1.3 physical low-core validation,
