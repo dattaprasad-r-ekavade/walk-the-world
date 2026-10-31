@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { loadCorsImage, releaseImage } from '@/lib/engine/street/terrain-prefetch';
+import { loadCorsImage, loadTerrainImageSource, releaseImage } from '@/lib/engine/street/terrain-prefetch';
 
 afterEach(() => {
   vi.unstubAllGlobals();
@@ -22,6 +22,19 @@ describe('terrain image loader', () => {
     releaseImage(bitmap);
     expect(bitmap.close).toHaveBeenCalledOnce();
     expect(() => releaseImage({})).not.toThrow();
+  });
+
+  it('prefetches terrain bytes without decoding before the sampled-grid cache lookup', async () => {
+    const blob = new Blob(['png']);
+    const fetchImpl = vi.fn(async () => ({ ok: true, blob: async () => blob }));
+    const createImageBitmap = vi.fn();
+    vi.stubGlobal('fetch', fetchImpl);
+    vi.stubGlobal('createImageBitmap', createImageBitmap);
+
+    await expect(loadTerrainImageSource('https://tiles.test/terrain.png'))
+      .resolves.toEqual({ blob, image: null });
+    expect(fetchImpl).toHaveBeenCalledWith('https://tiles.test/terrain.png', expect.objectContaining({ mode: 'cors' }));
+    expect(createImageBitmap).not.toHaveBeenCalled();
   });
 
   it('rejects HTTP errors and cancellation', async () => {

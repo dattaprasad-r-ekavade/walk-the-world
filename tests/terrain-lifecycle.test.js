@@ -1,6 +1,9 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import * as THREE from 'three';
 
+const { resolveTerrainGridMock } = vi.hoisted(() => ({ resolveTerrainGridMock: vi.fn() }));
+vi.mock('@/lib/engine/street/terrain-grid-cache', () => ({ resolveTerrainGrid: resolveTerrainGridMock }));
+
 vi.mock('@/lib/engine/ground-tiles', () => ({
   drawGroundTileImage: vi.fn(),
   groundTileUrl: vi.fn((_source, _z, x, y) => `https://tiles.test/${x}/${y}`),
@@ -42,7 +45,41 @@ describe('terrain tile lifecycle', () => {
   afterEach(() => {
     vi.unstubAllGlobals();
     vi.clearAllMocks();
+    resolveTerrainGridMock.mockReset();
     imageInstances.length = 0;
+  });
+
+  it('uses a cached sampled grid without decoding the fetched Terrarium image', async () => {
+    const blob = new Blob(['current terrain tile']);
+    const heights = new Float32Array(65 * 65).fill(12.5);
+    const decodeImage = vi.fn();
+    vi.stubGlobal('fetch', vi.fn(async () => ({ ok: true, blob: async () => blob })));
+    vi.stubGlobal('createImageBitmap', decodeImage);
+    vi.stubGlobal('document', {
+      createElement: () => ({
+        width: 0,
+        height: 0,
+        getContext: () => ({ getImageData: vi.fn() }),
+      }),
+    });
+    resolveTerrainGridMock.mockResolvedValue({ heights, sourceHash: 'a'.repeat(64), cacheHit: true });
+
+    const terrain = createTerrainSystem({
+      scene: new THREE.Scene(),
+      lat0: 0,
+      lon0: 0,
+      toLocal: (lat, lon) => ({ x: lon, z: lat }),
+      groundSource: 'osm',
+      signal: new AbortController().signal,
+      onStage: vi.fn(),
+      onProgress: vi.fn(),
+    });
+
+    await expect(terrain.ensureHeightTiles(['100/100'])).resolves.toBe(true);
+    expect(resolveTerrainGridMock).toHaveBeenCalledWith(blob, 65, expect.any(Function));
+    expect(terrain.terrainTiles.get('100/100').heights).toEqual(heights);
+    expect(decodeImage).not.toHaveBeenCalled();
+    terrain.dispose();
   });
 
   it('evicts terrain resources, ignores late imagery, and reloads a revisited tile', async () => {

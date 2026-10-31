@@ -10,8 +10,9 @@ interior-window cutoff was reverted: its gain was not repeatable and it shortene
 the interior view. A separate far-facade detail fade was rejected after GPU-timer
 p95 increased in all four cities. S8's 0.85 integrated-Intel render-scale
 candidate passed the four-city host comparison; target-laptop measurement
-remains. The dependency audit is clean, but SEC1's live-data browser acceptance
-is still open. B3's multipolygon relation query and full Edinburgh cell builder
+remains. The production dependency audit is clean; the full audit still has 19
+moderate findings in development tools. SEC1's live-data browser acceptance is
+still open. B3's multipolygon relation query and full Edinburgh cell builder
 check now pass against the Britain and Ireland Overpass instance; demo-cell R2
 reseed remains open (see B3 below). Public R2 reads are available through the
 deployment proxy, so local staging no longer needs private R2 credentials.
@@ -547,11 +548,20 @@ Decisions taken from the research:
   - Decision (29 Oct): do not publish artifacts to production R2 for the
     demo. The gain does not pay for the extra release step. Keep the code; it
     falls back to raw cells cleanly.
-  - Reopen only with **B1b**: cache sampled elevation grids per terrain
-    revision (or ship them inside the artifact) so cold loads skip the image
-    decode, while keeping the mismatch fallback. Still open after that:
-    integrated/mobile GPU parity, editor Hide/save/reload acceptance, upload
-    cost, and an R2 release task.
+  - **B1b terrain-grid cache candidate (31 Oct):** runtime fetches the current
+    Terrarium PNG, hashes its exact bytes, and looks up the sampled 65×65 grid
+    in a bounded IndexedDB cache keyed by content hash, grid size and format
+    revision. Changed tile bytes miss the cache; prebuilt validation still
+    hashes the resolved grid and retains its raw-cell fallback. Spawn prefetch
+    now transfers PNG bytes without decoding before the cache lookup. The
+    benchmark captures source, decode and grid-resolution timings. The full
+    suite passes 249 tests, lint has zero errors (16 warnings), and the
+    production build passes. No matched browser comparison has measured this
+    candidate yet, so B1 remains open and production artifacts stay unpublished.
+  - Still open: compare cold and warm raw/prebuilt loads, including cache hit
+    frequency and source/hash/decode timings; then assess integrated/mobile GPU
+    parity, editor Hide/save/reload acceptance, upload cost and R2 release.
+    Keep the no-publish decision until these gates are measured.
   - Full numbers: [B1 decision](benchmarks/results/stage8/b1-matched-2026-10-29/decision.md)
     and [B1 smoke](screenshots/demo-track/rehearsal-2026-10-29-b1-prebuilt-smoke/).
 - [ ] **B2 — Overpass independence (M).** Self-hosted Overpass on a small VPS
