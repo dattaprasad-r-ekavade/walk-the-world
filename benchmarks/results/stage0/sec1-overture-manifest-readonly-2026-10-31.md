@@ -9,11 +9,17 @@ The repository's former `2026-06-17.0` default returned no Parquet files from
 its S3 listing. The October release returned 512 files.
 
 The new `--manifest-out <local-path>` mode completed the full DuckDB footer
-scan in 1,968 seconds and wrote the exact manifest array payload locally. It
-contains 512 unique rows; all filenames use the documented release path, every
-row has four finite, ordered bounds, and no row failed validation. The manifest
-is 130,066 bytes with SHA-256
-`26e3da2ece0c0675f8f34d24ff806bd3b67bbe779b5c00adf4eb5a5696469325`.
+scan in 1,968 seconds and wrote the manifest locally. The current reviewed
+artifact contains 512 unique rows; all filenames use the documented release
+path, every row has four finite, ordered bounds, and no row failed validation.
+
+The formatted file is 133,652 bytes with SHA-256
+`2c5b9326ebdcf0370eb2c4964a53f3b5f37681f664df5f0c1c02499653442ffa`. The
+upload CLI sends `JSON.stringify(manifest)` without formatting or a trailing
+newline; that exact R2 body is 114,192 bytes with SHA-256
+`556fce03a2bba85bf3ed963b12b2b96302ca89597f7e1d0ab1e261aa813f4570`. These
+values supersede the earlier size and hash recorded here, which did not match
+the current reviewed artifact.
 
 The reviewed payload is available as the
 [manifest JSON](sec1-overture-index-2026-10-31.json). The default release in

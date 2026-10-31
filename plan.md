@@ -1,6 +1,6 @@
 # Walk the World — Performance and Visuals Implementation Plan
 
-Updated: 31 October 2026. Reviewed base: `ae4bb84` on `origin/main`.
+Updated: 31 October 2026. Reviewed base: `9549e4a` on `origin/main`.
 Demo gates D1–D8 are closed. The smoothness track (section 0a) closed S1–S6 from
 live-deploy profiling; S7–S8 stay open. S9's real-input check did not reproduce
 the hang on 30 October. S7 has two changes awaiting target-laptop confirmation:
@@ -63,6 +63,10 @@ preserves the full experiment history; its status is historical.
   manifest bounds. The previous `2026-06-17.0` default listed no files. The
   manifest was saved locally; no R2 request was made. The index builder,
   manifest builder and API runtime defaults now use the verified release.
+  The current reviewed upload body is 114,192 bytes with SHA-256
+  `556fce03a2bba85bf3ed963b12b2b96302ca89597f7e1d0ab1e261aa813f4570`;
+  the formatted review file is 133,652 bytes. See the manifest report for both
+  file and upload-body hashes.
   Still open: separately authorize and upload the exact manifest to R2, confirm
   the deployed `OVERTURE_RELEASE` matches, then complete the live Overture API
   check. Keep SEC1 open until these release-data checks pass. See the
