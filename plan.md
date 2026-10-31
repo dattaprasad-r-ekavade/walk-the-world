@@ -755,6 +755,13 @@ Decisions taken from the research:
     candidates or R2 writes resulted. See the source checks in the
     [refresh-scope report](benchmarks/results/stage0/b3-demo-refresh-scope-2026-10-31.md)
     and [B2 feasibility report](benchmarks/results/stage0/b2-regional-extract-feasibility-2026-10-31.md).
+  - 31 Oct HPI mirror follow-up: the public HPI Overpass endpoint supplied all
+    nine Tokyo cache-version-6 candidates. The offline refresh verifier passed
+    9/9, retaining at least 100% of each cell's renderable building ways. At
+    the captured full-batch snapshot, 27/36 cells were ready, one Pune cell had
+    failed after retries, and eight New York cells were pending. The run remains
+    local-only; no R2 writes occurred. See the
+    [Tokyo stage report](benchmarks/results/stage0/b3-tokyo-refresh-stage-2026-10-31.md).
   - Open: stage and review the 36 Demo neighborhoods (unique cache-version-6
     cells; see the [refresh-scope report](benchmarks/results/stage0/b3-demo-refresh-scope-2026-10-31.md)),
     then get separate approval before any R2 upload. Capture live four-city
@@ -795,6 +802,13 @@ Decisions taken from the research:
     `node --check lib/overtureServer.js` and `npm run build` pass on
     `ae4bb84`; the build stamped service-worker revision
     `7c4d59020935177c`.
+  - 31 Oct local index recheck: the CLI rebuilt 512 entries for
+    `2026-10-21.0`; all 512 filename/bounds tuples match the reviewed manifest
+    (ordering differs). Using the production route's bounding-box predicates,
+    every cell in the recorded 36-cell Demo baseline intersects one or two
+    indexed Parquet bounds. The output is local-only; no R2 request or write
+    occurred. See the
+    [local index recheck](benchmarks/results/stage0/b4-overture-local-index-recheck-2026-10-31.md).
   Overture segments have no lanes or sidewalk fields, so A4 uses OSM tags.
 
 ### Phase C — larger bets, only with measured benefit
