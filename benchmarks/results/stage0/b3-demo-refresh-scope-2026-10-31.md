@@ -91,3 +91,13 @@ The runtime mirror list has since dropped the old Kumi hostname to avoid
 querying that provider twice. A separate global fallback has not been added:
 the prior Maps Mail probe returned HTTP 504, and the other tested global
 endpoints did not return usable data from this host.
+
+## Standard OSM map API probe — 31 October 2026
+
+A single bounded map request for missing cell `wtw_city6_40.758_-73.975`
+returned HTTP 200 and 13,330,715 bytes (28,064 nodes, 6,748 ways, 686
+relations). The OSM [data download guidance](https://wiki.openstreetmap.org/wiki/Downloading_data)
+describes the main API as intended for editing, not bulk downloads, and points
+to Overpass for area extracts. Given the response size and usage guidance, this
+API was not used as a cache-staging fallback. The response body was not saved;
+no candidate or R2 write resulted from this probe.

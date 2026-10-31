@@ -1,6 +1,6 @@
 # Walk the World — Performance and Visuals Implementation Plan
 
-Updated: 31 October 2026. Reviewed base: `9549e4a` on `origin/main`.
+Updated: 31 October 2026. Reviewed base: `8609aa5` on `origin/main`.
 Demo gates D1–D8 are closed. The smoothness track (section 0a) closed S1–S6 from
 live-deploy profiling; S7–S8 stay open. S9's real-input check did not reproduce
 the hang on 30 October. S7 has two changes awaiting target-laptop confirmation:
@@ -673,6 +673,11 @@ Decisions taken from the research:
     Britain and Ireland server, which is outside the New York/Tokyo regions;
     no new candidates were staged. See the endpoint checks in the
     [refresh-scope report](benchmarks/results/stage0/b3-demo-refresh-scope-2026-10-31.md).
+    A standard OSM map-API probe for one missing New York cell returned 13.3 MB
+    (28,064 nodes, 6,748 ways, 686 relations). OSM guidance says the main API is
+    for editing rather than data downloads and recommends Overpass for area
+    extraction, so this was not used as a staging fallback. No payload was
+    saved and no candidate was staged; see the linked report.
   - Local review command: `npm run seed:verify-refresh -- --stage-dir=<path>`
     checks manifest completeness, payload hashes, city validity, the 90%
     building threshold and retained enrichment without contacting R2.
