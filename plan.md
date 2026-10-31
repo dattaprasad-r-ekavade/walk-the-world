@@ -735,6 +735,9 @@ Decisions taken from the research:
     preflight and atomic R2 `If-None-Match: *` writes; refresh uploads retain
     their original-hash checks and rollback behavior. Local dry runs passed for
     all three creates and the existing 36-cell refresh. No R2 writes occurred.
+    The production build and focused ESLint for `lib/r2Server.js` and
+    `scripts/upload-city-refresh-stage.mjs` passed on `66a6a30`; the build
+    stamped service-worker revision `d06150a57d386aac`.
     See the [boundary candidate replay report](benchmarks/results/stage0/0.8-new-york-boundary-candidate-replay-2026-10-31.md).
   - Local review command: `npm run seed:verify-refresh -- --stage-dir=<path>`
     checks manifest completeness, payload hashes, city validity, the 90%
