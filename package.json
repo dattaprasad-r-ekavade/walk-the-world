@@ -29,6 +29,7 @@
     "assets:facades": "node scripts/build-facade-atlases.mjs",
     "assets:preview": "blender --background --python scripts/render-asset-audit.py",
     "overture-index": "node scripts/build-overture-index.mjs",
+    "overture:upload-index": "node --env-file=.env.local scripts/upload-overture-manifest.mjs",
     "enrich": "node scripts/enrich-r2-cells.mjs",
     "seed": "node scripts/warm-cities.mjs https://walk-the-world-delta.vercel.app --state=warm-state.json --conc=2",
     "seed:direct": "node --env-file=.env.local scripts/seed-direct.mjs --upgrade",
