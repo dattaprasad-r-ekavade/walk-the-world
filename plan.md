@@ -1,6 +1,6 @@
 # Walk the World — Performance and Visuals Implementation Plan
 
-Updated: 31 October 2026. Reviewed base: `a33a791` on `origin/main`.
+Updated: 31 October 2026. Reviewed base: `2342c0a` on `origin/main`.
 Demo gates D1–D8 are closed. The smoothness track (section 0a) closed S1–S6 from
 live-deploy profiling; S7–S8 stay open. S9's real-input check did not reproduce
 the hang on 30 October. S7 has two changes awaiting target-laptop confirmation:
@@ -581,8 +581,16 @@ Decisions taken from the research:
   - The official [Overpass installation guide](https://overpass-api.de/full_installation.html)
     recommends at least 4 GB RAM and at least 100 GB disk for a full-planet
     database without metadata or minutely diffs (250 GB with minutely updates).
-    A low-cost VPS assumption is therefore not established. Compare regional
-    extracts and paid service options before choosing infrastructure.
+    A low-cost VPS assumption is therefore not established. A regional
+    alternative now has a concrete candidate: Geofabrik's New York, western
+    India, Kantō and Scotland PBFs total about 1.5 GB compressed. Overpass needs
+    PBF-to-XML conversion before import; the imported database size is unknown.
+    `scripts/build-regional-overpass-source.sh` now downloads those extracts,
+    validates checksums, and builds the merged no-metadata import file. Direct
+    PBF-host probes timed out from this host, so the script remains unrun. Run
+    it on a disposable Linux host and measure the imported database before
+    choosing infrastructure. See the
+    [regional extract feasibility report](benchmarks/results/stage0/b2-regional-extract-feasibility-2026-10-31.md).
 - [ ] **B3 — Procedural landuse ground (S–M).** Asphalt, grass, paving and
   water materials from landuse polygons instead of the near-white Carto
   raster; extends D1.
