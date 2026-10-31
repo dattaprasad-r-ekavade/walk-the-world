@@ -1,6 +1,6 @@
 # Walk the World — Performance and Visuals Implementation Plan
 
-Updated: 31 October 2026. Reviewed base: `121117e` on `origin/main`.
+Updated: 31 October 2026. Reviewed base: `4dc0045` on `origin/main`.
 Demo gates D1–D8 are closed. The smoothness track (section 0a) closed S1–S6 from
 live-deploy profiling; S7–S8 stay open. S9's real-input check did not reproduce
 the hang on 30 October. S7 has two changes awaiting target-laptop confirmation:
@@ -928,10 +928,17 @@ cold starts. Software rendering proves no hardware speedup.
 - [ ] 0.8 Finish matched production baselines:
   - Repeat hardware runs with foreground state, OS load and power state controlled.
   - Complete dense live-city cold/warm walking and driving boundary measurements.
-    Manhattan retries returned HTTP 502/aborts and produced no valid baseline.
   - Keep recorded-city cache/boundary results separate from live Overpass latency.
   - Repeat resource/thermal soak on real mobile hardware; direct thermal readings
     were unavailable on the tested Windows desktop.
+
+  31 Oct exploratory probes: four single-run New York cold/warm origin-cell
+  walk/drive captures used the public city-cache read path and made no `/api/city`
+  cell requests; they did not cross a cell boundary. Two single-run Edinburgh
+  local-dev captures crossed and validated a boundary through the regional
+  Overpass-backed city API. These development-server captures have large frame
+  tails, dirty source metadata, and no repeated production matrix. They do not
+  close 0.8. See [the probe report](benchmarks/results/stage0/0.8-live-cache-probes-2026-10-31.md).
 
 Retained results: four day/night × clear/rain conditions have five valid runs each,
 with median frame p95 17.0–33.5 ms and tails into 33–34 ms. Five recorded cold/warm
