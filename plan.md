@@ -632,6 +632,8 @@ Decisions taken from the research:
     `--allow-out-of-group-key` permits a one-off key outside the selected
     group; add `--stage-new-cell` when the public cache has no original object.
     The new-cell mode writes a local candidate and manifest only.
+    SIGINT and SIGTERM now save an `incomplete` manifest with the interruption
+    signal and timestamp before stopping the process.
     A batch is `ready` only when every requested cell passes. The
     direct `seed-direct --refresh` path now refuses to run so a later cell
     failure cannot silently leave a mixed cache group. Run with

@@ -218,6 +218,18 @@ mkdirSync(STAGE_DIR, { recursive: false });
 mkdirSync(path.join(STAGE_DIR, "originals"));
 mkdirSync(path.join(STAGE_DIR, "candidates"));
 saveManifest();
+const markInterrupted = (signal) => {
+  if (manifest.status === "in_progress") {
+    manifest.status = "incomplete";
+    manifest.interruptedAt = new Date().toISOString();
+    manifest.interruptionSignal = signal;
+    saveManifest();
+    console.error(`\nStaging interrupted by ${signal}; saved an incomplete manifest at ${STAGE_DIR}`);
+  }
+  process.exit(signal === "SIGINT" ? 130 : 143);
+};
+process.once("SIGINT", () => markInterrupted("SIGINT"));
+process.once("SIGTERM", () => markInterrupted("SIGTERM"));
 console.log(`${STAGE_GROUP}${PLACE ? ` / ${PLACE}` : ""}${KEY ? ` / ${KEY}` : ""}: ${KEY ? 1 : places.length} place(s), ${cells.size} unique cell(s); staging only, R2 writes disabled`);
 const queue = manifest.cells.slice();
 await Promise.all(Array.from({ length: CONC }, async () => {
