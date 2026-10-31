@@ -43,6 +43,12 @@ preserves the full experiment history; its status is historical.
   had 0 errors (15 warnings), and the production build passed. Earlier local
   `next start` checks served `/`, `/street`, `/editor` and city/edit/asset API
   routes with expected status codes.
+  **31 Oct audit refresh:** `npm audit --json` now reports 19 moderate findings
+  in development tools; `npm audit --omit=dev --json` still reports zero.
+  A read-only `npm audit fix --dry-run` changes no packages and leaves the
+  findings; its available fixes require major changes or downgrades. ESLint 10
+  is not currently a supported pairing with the locked React ESLint plugin.
+  No forced override or downgrade was applied. See the [current audit report](benchmarks/results/stage0/sec1-next-dependency-audit-2026-10-31.md).
   A private-window dev browser pass on 30 Oct, with `reactStrictMode: true`,
   exercised globe → Pune street → globe navigation. The route mounted and
   returned without a Next.js issue badge, but city data stayed at “Streaming
