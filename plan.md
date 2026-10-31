@@ -24,6 +24,9 @@ and verification workflow. The HPI mirror supplied all 36 Demo candidates;
 the full verifier and a four-city browser replay passed. Separate R2 upload
 approval and post-refresh live visual/performance acceptance remain open (see
 B3 below).
+B4 also has a hash-gated manifest uploader; its local dry run validates the
+reviewed 512-file index and all 36 Demo-cell bounds without contacting R2.
+Production upload and API acceptance remain open.
 This is the active plan. The [previous detailed checkpoint](docs/PLAN-CHECKPOINT-2026-10-28-BEFORE-REVIEW.md)
 preserves the full experiment history; its status is historical.
 
@@ -828,6 +831,12 @@ Decisions taken from the research:
     indexed Parquet bounds. The output is local-only; no R2 request or write
     occurred. See the
     [local index recheck](benchmarks/results/stage0/b4-overture-local-index-recheck-2026-10-31.md).
+  - A guarded uploader is available as `npm run overture:upload-index`. Its
+    local dry run validated the reviewed 512-file manifest, coverage for all
+    36 Demo cells, and upload-body SHA-256
+    `556fce03a2bba85bf3ed963b12b2b96302ca89597f7e1d0ab1e261aa813f4570`.
+    It made no R2 request or write. Production upload still requires separate
+    approval and R2 credentials, then deployed API acceptance.
   Overture segments have no lanes or sidewalk fields, so A4 uses OSM tags.
 
 ### Phase C — larger bets, only with measured benefit
@@ -1132,6 +1141,12 @@ cold starts. Software rendering proves no hardware speedup.
   but target i5-1035G1 confirmation is still required. The six local samples
   remain dirty and single-run; there is no production boundary matrix. They do
   not close 0.8. See [the probe report](benchmarks/results/stage0/0.8-live-cache-probes-2026-10-31.md).
+  A local-only follow-up staged the three missing New York east-strip cells from
+  HPI, verified each candidate, and replayed one recorded-fixture walk and drive
+  across the boundary. Both settled at 10/10 resident cells with zero failed
+  cells or browser errors. Chrome used the RTX 4060 on the i7 host; the runs do
+  not count as production or target-i5 acceptance. See the
+  [candidate replay report](benchmarks/results/stage0/0.8-new-york-boundary-candidate-replay-2026-10-31.md).
 
 Retained results: four day/night × clear/rain conditions have five valid runs each,
 with median frame p95 17.0–33.5 ms and tails into 33–34 ms. Five recorded cold/warm
