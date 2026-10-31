@@ -741,6 +741,14 @@ Decisions taken from the research:
     on this non-target host and is diagnostic only. No R2 writes occurred. See
     the [replay report](benchmarks/results/stage0/b3-edinburgh-staged-replay-2026-10-31.md)
     and [capture](screenshots/performance-visuals/stage0/b3-landuse/edinburgh-staged-candidate-replay-2026-10-31.jpg).
+  - 31 Oct pre-refresh baseline: a read-only snapshot of all 36 currently cached
+    Demo cells loaded and settled 9/9 in Pune, Edinburgh, Tokyo and New York,
+    with zero console errors. Diagnostics recorded zero landuse rings and zero
+    landuse-painted tiles in each current cache; the staged Edinburgh candidate
+    replay, by comparison, painted 29 rings across 8 tiles. This is a before-
+    refresh baseline, not post-refresh acceptance; no R2 writes occurred. See
+    the [baseline report](benchmarks/results/stage0/b3-pre-refresh-cache-baseline-2026-10-31.md)
+    and [cell hash manifest](benchmarks/results/stage0/b3-pre-refresh-cache-cells-2026-10-31.json).
   - Open: stage and review the 36 Demo neighborhoods (unique cache-version-6
     cells; see the [refresh-scope report](benchmarks/results/stage0/b3-demo-refresh-scope-2026-10-31.md)),
     then get separate approval before any R2 upload. Capture live four-city

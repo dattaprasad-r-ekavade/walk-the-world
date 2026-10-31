@@ -1,0 +1,191 @@
+{
+  "schemaVersion": 1,
+  "capturedAtUtc": "2026-10-31T03:39:04.13Z",
+  "appUrl": "https://walk-the-world-delta.vercel.app",
+  "cacheBase": "https://myjyotishai.in",
+  "readOnlySnapshot": true,
+  "cellCount": 36,
+  "totalBytes": 54029531.0,
+  "cells": [
+    {
+      "key": "wtw_city6_18.535_73.890",
+      "bytes": 356761,
+      "sha256": "cbc8e1dd7aeacc00095791041e7152713e389156f92f285d04a5ff206482ac3e"
+    },
+    {
+      "key": "wtw_city6_18.535_73.896",
+      "bytes": 496589,
+      "sha256": "aef1508e108655d139e6273a791b27934b3caf18576969eb3b5fb203f0ac9e81"
+    },
+    {
+      "key": "wtw_city6_18.535_73.901",
+      "bytes": 418473,
+      "sha256": "a6ffa963a9af9755799f7cd869476e61d7c14639c159542cccf8dd5a0e190b1c"
+    },
+    {
+      "key": "wtw_city6_18.541_73.890",
+      "bytes": 356482,
+      "sha256": "68b274dc85b3bae9fc7a5234d8172d36bc016f3e43417f8e719c0db59de1dcaf"
+    },
+    {
+      "key": "wtw_city6_18.541_73.896",
+      "bytes": 377471,
+      "sha256": "2383b08ca009d36db56de78dc49d89f140bfa12c6e677ad1c6cb5cac89dbef1a"
+    },
+    {
+      "key": "wtw_city6_18.541_73.901",
+      "bytes": 400005,
+      "sha256": "42116cd4325483b47787719ec173db43b4f163f31ba8dd3f7848351b352c9d9d"
+    },
+    {
+      "key": "wtw_city6_18.546_73.890",
+      "bytes": 395968,
+      "sha256": "691e2bcf92785c6d6ced7c64ec73188849f7f3d1c995576db6349eafd606c090"
+    },
+    {
+      "key": "wtw_city6_18.546_73.896",
+      "bytes": 288331,
+      "sha256": "024b67694e6543a806bfd37bdebbba35e2c408c772fbd7bb3c2e7b900e386e35"
+    },
+    {
+      "key": "wtw_city6_18.546_73.901",
+      "bytes": 439221,
+      "sha256": "71f84a212766e9a6076ce039cdbb36bdc62dfb0ecb156f2d3d584b0361a0fabb"
+    },
+    {
+      "key": "wtw_city6_35.654_139.695",
+      "bytes": 1713159,
+      "sha256": "dffdc048e50b072600ee34c0faae535e4cdd1c77b1987307b9b0b75614edd95c"
+    },
+    {
+      "key": "wtw_city6_35.654_139.701",
+      "bytes": 1745992,
+      "sha256": "ab3076e1393c7583b8e7d5c0eba4e1ebf5c01cee8e7d40c4a63213d9cd68016f"
+    },
+    {
+      "key": "wtw_city6_35.654_139.706",
+      "bytes": 1745453,
+      "sha256": "aafa8f35f56146a7349218d46a0c6ce1b1acf788d759631e7e35ce14bca5fc61"
+    },
+    {
+      "key": "wtw_city6_35.660_139.695",
+      "bytes": 1194125,
+      "sha256": "da3aa117d3d61cf8a9b9f3087ae4e884c24750ad3ad7a3c34b5c93f55f5e74b5"
+    },
+    {
+      "key": "wtw_city6_35.660_139.701",
+      "bytes": 1890378,
+      "sha256": "2bfb5819c493ee9ca9dcd2eba5b7b56d5610f5abfb0c56dd0693cc5671639815"
+    },
+    {
+      "key": "wtw_city6_35.660_139.706",
+      "bytes": 1810740,
+      "sha256": "6e64de01c36f9216b15083a94c8c32662e5b8505865b5917cf8f2f578577bc83"
+    },
+    {
+      "key": "wtw_city6_35.665_139.695",
+      "bytes": 1719603,
+      "sha256": "c10a7fff593c6a9119875058f5c8b6d651c55eb481f63282a6e93460ebceee11"
+    },
+    {
+      "key": "wtw_city6_35.665_139.701",
+      "bytes": 1853095,
+      "sha256": "f7e4ca994d0ad59bd0686e1a4605555adfd87a0943ff6143a19e287c7e40d962"
+    },
+    {
+      "key": "wtw_city6_35.665_139.706",
+      "bytes": 1801202,
+      "sha256": "71c0a42b739c8751f43abe1a6646c1a4ef4acbcb2246c324e693b6bb707f3505"
+    },
+    {
+      "key": "wtw_city6_40.752_-73.980",
+      "bytes": 1698857,
+      "sha256": "d8ccf1073f17d6074dc22602d7ea939dee24da574cac77fb59f1eb8039bd8624"
+    },
+    {
+      "key": "wtw_city6_40.752_-73.986",
+      "bytes": 1626224,
+      "sha256": "04ab8dfa854dda445e616a8bf8d99f7aea573c34c048f81cded715c34627995e"
+    },
+    {
+      "key": "wtw_city6_40.752_-73.991",
+      "bytes": 1648391,
+      "sha256": "004aea7fc2e9282c0d6cadafd8cb40efa21209e9649056184b25a2e8e98e65fc"
+    },
+    {
+      "key": "wtw_city6_40.758_-73.980",
+      "bytes": 1247474,
+      "sha256": "46d9bc8872bf2e982e1ac4680e34831b40ff231e7eaf07c460b425706063d816"
+    },
+    {
+      "key": "wtw_city6_40.758_-73.986",
+      "bytes": 1833481,
+      "sha256": "1f7882f41a38b018446b990b2047eeff53080461746f55fd8189a060a6cfc5a8"
+    },
+    {
+      "key": "wtw_city6_40.758_-73.991",
+      "bytes": 1816053,
+      "sha256": "84de464c7aebf57fb42aaa4855ef9d6920d80416d5eb892c4d04f2f12fcaaf03"
+    },
+    {
+      "key": "wtw_city6_40.764_-73.980",
+      "bytes": 1419996,
+      "sha256": "a1f1a3fc34ad865a0950bdf2b080d613a68d3357f12ecb537da44ce42518b688"
+    },
+    {
+      "key": "wtw_city6_40.764_-73.986",
+      "bytes": 1847087,
+      "sha256": "a7ed21aeeda1a9227df248697afd322b0439044608288fd29bb75ab4ecd2dfcf"
+    },
+    {
+      "key": "wtw_city6_40.764_-73.991",
+      "bytes": 1947543,
+      "sha256": "da56a7079b7169d9be942ef4b07e6a363635c5f2ecb4d2a71f3a849a427737e9"
+    },
+    {
+      "key": "wtw_city6_55.945_-3.182",
+      "bytes": 1935054,
+      "sha256": "0b9641773721da5f2e0669b260b58de2ad7e57db875800918b9943353229fe40"
+    },
+    {
+      "key": "wtw_city6_55.945_-3.188",
+      "bytes": 2154780,
+      "sha256": "2169e50943f139f42757eb94c4122815e4807a8cd5b3ec2d511bab13f3924dc4"
+    },
+    {
+      "key": "wtw_city6_55.945_-3.193",
+      "bytes": 2044815,
+      "sha256": "c3c9122f06f925d3d71e197c0a29fdf403c935871b388343a4c0106e5a3772bd"
+    },
+    {
+      "key": "wtw_city6_55.950_-3.182",
+      "bytes": 1981970,
+      "sha256": "36fa4b251ef2d0fa1a7624836bb64d2c1cce69a8048611d933c678fe82f4f49f"
+    },
+    {
+      "key": "wtw_city6_55.950_-3.188",
+      "bytes": 2336012,
+      "sha256": "fe6ee8e7e97a3a4bec6f05f5e5773c286a27bee0251d3dafa1f49f6c2cbc09bc"
+    },
+    {
+      "key": "wtw_city6_55.950_-3.193",
+      "bytes": 2340233,
+      "sha256": "cf461a8a05a4e913d65b5bcc77a431972ddb0f83710482f22eaa25fbf7e21078"
+    },
+    {
+      "key": "wtw_city6_55.956_-3.182",
+      "bytes": 2251847,
+      "sha256": "ba6b6d0804fa38cb19b22b01e23cf80b6068dcaa1e116d650520d9d739105391"
+    },
+    {
+      "key": "wtw_city6_55.956_-3.188",
+      "bytes": 2403940,
+      "sha256": "1f2b39b17322224726f82fc18356bb71840ef8808f4fb5e12648f4c6fae6ad72"
+    },
+    {
+      "key": "wtw_city6_55.956_-3.193",
+      "bytes": 2492726,
+      "sha256": "bf1416a0e6c2e0b19106c3567941fd0ab88b036af29aa3bd942195c66085f31e"
+    }
+  ]
+}
