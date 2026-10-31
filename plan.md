@@ -1,6 +1,6 @@
 # Walk the World — Performance and Visuals Implementation Plan
 
-Updated: 31 October 2026. Reviewed base: `1dacd0b` on `origin/main`.
+Updated: 31 October 2026. Reviewed base: `fc676b1` on `origin/main`.
 Demo gates D1–D8 are closed. The smoothness track (section 0a) closed S1–S6 from
 live-deploy profiling; S7–S8 stay open. S9's real-input check did not reproduce
 the hang on 30 October. S7 has two changes awaiting target-laptop confirmation:
@@ -604,9 +604,12 @@ Decisions taken from the research:
     and 16.9 ms frame p95 on the RTX 4060 host. This is not target-laptop or
     live-cache acceptance. See the [ground-overlay follow-up](benchmarks/results/stage0/b3-ground-overlay-2026-10-31.md)
     and [capture](screenshots/performance-visuals/stage0/b3-landuse/edinburgh-recorded-overlay-after-stream-2026-10-31.png).
-  - Open: reseed demo cells so cached data carries the new tags (writes to R2;
-    prepare a reviewable change and ask first); capture live four-city visuals
-    and performance acceptance after the cache update.
+  - Open: reseed the four Demo neighborhoods (36 unique cache-version-6 cells)
+    so cached data carries the new tags; capture live four-city visuals and
+    performance acceptance after the cache update. The [refresh-scope report](benchmarks/results/stage0/b3-demo-refresh-scope-2026-10-31.md)
+    lists the exact keys. No R2 credentials are configured. The current direct
+    refresh uploads each cell as it passes validation, so stage a reviewable
+    batch and get approval before writing to R2.
 - [ ] **B4 — Overture gap fill (S).** The Overture footprint fallback already
   exists for sparse cells. Remaining: merge Overture height, num_floors,
   roof_shape, roof_color, facade_color and facade_material into OSM buildings
