@@ -1,6 +1,6 @@
 # Walk the World — Performance and Visuals Implementation Plan
 
-Updated: 31 October 2026. Reviewed base: `abafbbd` on `origin/main`.
+Updated: 31 October 2026. Reviewed base: `121117e` on `origin/main`.
 Demo gates D1–D8 are closed. The smoothness track (section 0a) closed S1–S6 from
 live-deploy profiling; S7–S8 stay open. S9's real-input check did not reproduce
 the hang on 30 October. S7 has two changes awaiting target-laptop confirmation:
@@ -13,14 +13,14 @@ candidate passed the four-city host comparison; target-laptop measurement
 remains. The dependency audit is clean, but SEC1's live-data browser acceptance
 is still open. B3's multipolygon relation query and full Edinburgh cell builder
 check now pass against the Britain and Ireland Overpass instance; demo-cell R2
-reseed remains open (see B3 below).
+reseed remains open (see B3 below). Public R2 reads are available through the
+deployment proxy, so local staging no longer needs private R2 credentials.
 The B3 terrain paint now survives asynchronous imagery completion, and a
 recorded Edinburgh browser replay shows streamed land-use paint. The demo-cell
-R2 reseed remains open pending read credentials and separate write approval.
+R2 reseed remains open pending separate write approval.
 B4's Overture-to-OSM merge now has offline field/precedence coverage; live cell
 coverage still awaits R2 configuration. B3 now has a local-only cache staging
-and verification workflow; no R2 read credentials are configured, so the Demo
-batch has not yet been staged.
+and verification workflow; the full Demo batch has not yet been staged.
 This is the active plan. The [previous detailed checkpoint](docs/PLAN-CHECKPOINT-2026-10-28-BEFORE-REVIEW.md)
 preserves the full experiment history; its status is historical.
 
@@ -608,13 +608,24 @@ Decisions taken from the research:
     and [capture](screenshots/performance-visuals/stage0/b3-landuse/edinburgh-recorded-overlay-after-stream-2026-10-31.png).
   - 31 Oct staging safeguard: `scripts/stage-city-refresh.mjs` prepares local
     originals, candidate payloads and per-cell SHA-256 manifest entries. It
-    requires R2 read access, checks complete-cell validity and the
-    90% building-retention threshold, carries forward enrichment, and never
-    uploads. A batch is `ready` only when every requested cell passes. The
+    reads existing cells through configured private R2 credentials or the
+    deployment's public read proxy, checks complete-cell validity and the 90%
+    building-retention threshold, carries forward enrichment, and never
+    uploads. `--place` can stage one city's nine-cell neighborhood at a time,
+    and `--key` isolates a single cell for retry.
+    A batch is `ready` only when every requested cell passes. The
     direct `seed-direct --refresh` path now refuses to run so a later cell
     failure cannot silently leave a mixed cache group. Run with
-    `npm run seed:stage-refresh` when R2 read credentials are available. No R2
-    credentials are configured here, so no batch has been fetched or staged.
+    `npm run seed:stage-refresh`; no private R2 credentials are required when
+    `NEXT_PUBLIC_R2_PUBLIC_BASE` points at a public city-cache endpoint. All
+    nine New York demo cells returned read-only HEAD 200 through the deployment
+    proxy. A full Demo staging attempt with 45-second request budgets timed out
+    twice on its first two Pune cells; it was stopped before R2 writes (which
+    this script cannot perform). An Edinburgh stage finished 7/9 cells; two
+    candidates failed the 90% building check (1,891→1,588 and 2,000→1,552),
+    and their payloads are preserved locally for review. A one-cell Edinburgh
+    center stage passed the offline verifier: 1,391 buildings retained and
+    3,343→3,977 elements. The full 36-cell batch remains open.
   - Local review command: `npm run seed:verify-refresh -- --stage-dir=<path>`
     checks manifest completeness, payload hashes, city validity, the 90%
     building threshold and retained enrichment without contacting R2.

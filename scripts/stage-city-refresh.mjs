@@ -3,6 +3,11 @@
 //
 //   node --env-file=.env.local scripts/stage-city-refresh.mjs --group=Demo
 //   node --env-file=.env.local scripts/stage-city-refresh.mjs --group=Demo --stage-dir=.cell-refresh-staging/demo-review
+//   node --env-file=.env.local scripts/stage-city-refresh.mjs --group=Demo --place=Edinburgh
+//   node --env-file=.env.local scripts/stage-city-refresh.mjs --group=Demo --key=wtw_city6_55.956_-3.188
+//
+// Without R2 credentials, set NEXT_PUBLIC_R2_PUBLIC_BASE to a public city
+// cache URL (for example, a deployment's /r2-public path) for read-only inputs.
 //
 // A ready batch contains originals/, candidates/, and manifest.json. A batch
 // with any failed cell is marked incomplete and must not be applied.
@@ -29,32 +34,49 @@ const opt = (name, fallback) => {
   return hit ? hit.slice(name.length + 3).replace(/"/g, "") : fallback;
 };
 const GROUP = opt("group", "Demo");
+const PLACE = opt("place", "").trim();
+const KEY = opt("key", "").trim();
 const TIMEOUT_S = Number(opt("timeout", 240)) || 240;
 const CONC = Math.max(1, Number(opt("conc", 1)) || 1);
+const PUBLIC_BASE = process.env.NEXT_PUBLIC_R2_PUBLIC_BASE?.replace(/\/+$/u, "") || "";
 const STAGE_DIR = path.resolve(opt(
   "stage-dir",
   path.join(".cell-refresh-staging", `demo-${new Date().toISOString().replace(/[:.]/g, "-")}`),
 ));
 
-if (!isConfigured()) {
-  console.error("Missing R2_* env. Run with: node --env-file=.env.local scripts/stage-city-refresh.mjs");
+if (!isConfigured() && !PUBLIC_BASE) {
+  console.error("Missing R2_* env and NEXT_PUBLIC_R2_PUBLIC_BASE. A public base is sufficient for read-only staging.");
   process.exit(1);
 }
 
 const GROUPS = { Demo: DEMO_PLACES, "Fast travel": PLACES, ...SEED_GROUPS };
-const places = GROUPS[GROUP];
-if (!places) {
+const groupPlaces = GROUPS[GROUP];
+if (!groupPlaces) {
   console.error(`Unknown group "${GROUP}". Groups: ${Object.keys(GROUPS).join(", ")}`);
   process.exit(1);
 }
+const places = PLACE ? groupPlaces.filter((place) => place.name.toLowerCase() === PLACE.toLowerCase()) : groupPlaces;
+if (PLACE && !places.length) {
+  console.error(`Unknown place "${PLACE}" in group "${GROUP}". Places: ${groupPlaces.map((place) => place.name).join(", ")}`);
+  process.exit(1);
+}
 
-const cells = new Map();
+const allCells = new Map();
 for (const place of places) {
   for (const [lat, lon] of cellNeighborhood(place.lat, place.lon)) {
     const key = cityCacheKey(lat, lon);
-    if (!cells.has(key)) cells.set(key, place.name);
+    if (!allCells.has(key)) allCells.set(key, place.name);
   }
 }
+if (KEY && !parseCityKey(KEY)) {
+  console.error(`Invalid city key "${KEY}"`);
+  process.exit(1);
+}
+if (KEY && !allCells.has(KEY)) {
+  console.error(`City key "${KEY}" is not in the selected ${GROUP}${PLACE ? ` / ${PLACE}` : ""} group`);
+  process.exit(1);
+}
+const cells = KEY ? new Map([[KEY, allCells.get(KEY)]]) : allCells;
 
 const hash = (text) => createHash("sha256").update(text).digest("hex");
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -63,7 +85,16 @@ const countBuildings = (data) => (data?.elements || []).filter((element) => elem
 async function readStored(key) {
   for (let attempt = 1; ; attempt++) {
     try {
-      return await downloadObjectRaw(`${key}.json`);
+      if (isConfigured()) return await downloadObjectRaw(`${key}.json`);
+      const response = await fetch(`${PUBLIC_BASE}/${encodeURIComponent(key)}.json`, {
+        cache: "no-store",
+        signal: AbortSignal.timeout(15000),
+      });
+      if (response.status === 404) return null;
+      if (!response.ok) throw new Error(`Public city-cache request returned HTTP ${response.status}`);
+      const bytes = Buffer.from(await response.arrayBuffer());
+      const gzip = bytes[0] === 0x1f && bytes[1] === 0x8b;
+      return { bytes, gzip, trusted: false };
     } catch (error) {
       if (attempt >= 3) throw error;
       await sleep(2000);
@@ -94,6 +125,8 @@ async function fetchCell(key) {
 const manifest = {
   schemaVersion: 1,
   group: GROUP,
+  placeFilter: PLACE || null,
+  cellFilter: KEY || null,
   createdAt: new Date().toISOString(),
   status: "in_progress",
   totalCells: cells.size,
@@ -121,9 +154,7 @@ async function stageCell(entry) {
     const candidate = await fetchCell(entry.key);
     const beforeBuildings = countBuildings(oldData);
     const afterBuildings = countBuildings(candidate);
-    if (afterBuildings < beforeBuildings * 0.9) {
-      throw new Error(`Building count dropped from ${beforeBuildings} to ${afterBuildings} (minimum 90%)`);
-    }
+    const retainedEnoughBuildings = afterBuildings >= beforeBuildings * 0.9;
     const carriedEnrichment = !!oldData.enrichment && !candidate.enrichment;
     if (carriedEnrichment) candidate.enrichment = oldData.enrichment;
 
@@ -143,6 +174,9 @@ async function stageCell(entry) {
     entry.originalBuildings = beforeBuildings;
     entry.candidateBuildings = afterBuildings;
     entry.enrichmentCarried = carriedEnrichment;
+    if (!retainedEnoughBuildings) {
+      throw new Error(`Building count dropped from ${beforeBuildings} to ${afterBuildings} (minimum 90%); candidate saved for review`);
+    }
   } catch (error) {
     entry.state = "failed";
     entry.error = error?.message || String(error);
@@ -162,7 +196,7 @@ mkdirSync(STAGE_DIR, { recursive: false });
 mkdirSync(path.join(STAGE_DIR, "originals"));
 mkdirSync(path.join(STAGE_DIR, "candidates"));
 saveManifest();
-console.log(`${GROUP}: ${places.length} places, ${cells.size} unique cells; staging only, R2 writes disabled`);
+console.log(`${GROUP}${PLACE ? ` / ${PLACE}` : ""}${KEY ? ` / ${KEY}` : ""}: ${places.length} place(s), ${cells.size} unique cell(s); staging only, R2 writes disabled`);
 const queue = manifest.cells.slice();
 await Promise.all(Array.from({ length: CONC }, async () => {
   while (queue.length) await stageCell(queue.shift());

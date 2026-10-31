@@ -11,7 +11,9 @@ const PUBLIC_BASE = process.env.NEXT_PUBLIC_R2_PUBLIC_BASE || "";
 const NAME_RE = /^[a-zA-Z0-9._-]{1,80}\.(glb|gltf|png|jpg|jpeg|webp|bin)$/;
 
 export async function GET() {
-  if (!isConfigured()) return NextResponse.json({ error: "r2 not configured" }, { status: 501 });
+  // The city engine treats the optional asset library as empty when R2 is not
+  // configured; return that same successful empty-list contract here.
+  if (!isConfigured()) return NextResponse.json([]);
   const items = await listObjects("assets/");
   return NextResponse.json(
     items.map((o) => ({
