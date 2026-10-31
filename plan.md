@@ -1,6 +1,6 @@
 # Walk the World — Performance and Visuals Implementation Plan
 
-Updated: 31 October 2026. Reviewed base: `b47b007` on `origin/main`.
+Updated: 31 October 2026. Reviewed base: `a33a791` on `origin/main`.
 Demo gates D1–D8 are closed. The smoothness track (section 0a) closed S1–S6 from
 live-deploy profiling; S7–S8 stay open. S9's real-input check did not reproduce
 the hang on 30 October. S7 has two changes awaiting target-laptop confirmation:
@@ -556,12 +556,20 @@ Decisions taken from the research:
     tried first, and that a 503 falls back to the public Overpass mirrors. The
     focused lint and full suite (243 tests) pass. This does not validate a live
     Worker/VPS; endpoint configuration and deployment acceptance remain open.
+  - 31 Oct deployment scaffold: `workers/overpass-proxy/` now contains a
+    token-gated Worker for form-encoded interpreter POSTs, an optional separate
+    origin credential, bounded request size, and no-store forwarding. The app
+    sends `OVERPASS_ENDPOINT_TOKEN` only to a configured custom endpoint, never
+    to the built-in public mirrors. Deployment instructions are in the Worker
+    README. No VPS or Worker has been provisioned, so live acceptance remains
+    open.
   - 31 Oct mirror audit: the official OSM instance list identifies
     `overpass.private.coffee` as the former `overpass.kumi.systems`; the
     current mirror list may therefore have only two independent global
-    operators. The same list names Maps Mail as a global instance, but a tiny
-    Pune query returned HTTP 504 from this host. This single probe does not
-    establish a durable outage; no endpoint change was made. See the
+    operators. A fresh tiny Pune query to Maps Mail returned HTTP 504; a query
+    to Private.coffee timed out after 25 seconds. The primary global endpoint
+    also timed out in the latest probe. These are availability observations,
+    not durable outage claims. See the
     [refresh-scope report](benchmarks/results/stage0/b3-demo-refresh-scope-2026-10-31.md).
   - 31 Oct follow-up: removed the old Kumi hostname from the runtime list so
     failed requests no longer spend two mirror slots on Private.coffee. Further
@@ -570,6 +578,11 @@ Decisions taken from the research:
     Ireland endpoint returned 200 for a small Edinburgh query but cannot serve
     the other Demo regions. No replacement global endpoint is currently
     verified; self-hosted/paid endpoint acceptance remains open.
+  - The official [Overpass installation guide](https://overpass-api.de/full_installation.html)
+    recommends at least 4 GB RAM and at least 100 GB disk for a full-planet
+    database without metadata or minutely diffs (250 GB with minutely updates).
+    A low-cost VPS assumption is therefore not established. Compare regional
+    extracts and paid service options before choosing infrastructure.
 - [ ] **B3 — Procedural landuse ground (S–M).** Asphalt, grass, paving and
   water materials from landuse polygons instead of the near-white Carto
   raster; extends D1.
