@@ -681,6 +681,11 @@ Decisions taken from the research:
   - Local review command: `npm run seed:verify-refresh -- --stage-dir=<path>`
     checks manifest completeness, payload hashes, city validity, the 90%
     building threshold and retained enrichment without contacting R2.
+  - An incomplete batch can resume with `--resume --stage-dir=<path>`. Resume
+    requires the same group, filters and cell set, validates every ready
+    original/candidate pair against its saved hashes and refresh rules, then
+    retries only pending or failed cells. A missing or altered ready payload
+    stops the run instead of silently accepting a partial review set.
   - Open: stage and review the 36 Demo neighborhoods (unique cache-version-6
     cells; see the [refresh-scope report](benchmarks/results/stage0/b3-demo-refresh-scope-2026-10-31.md)),
     then get separate approval before any R2 upload. Capture live four-city

@@ -5,6 +5,7 @@
 //   node --env-file=.env.local scripts/stage-city-refresh.mjs --group=Demo --stage-dir=.cell-refresh-staging/demo-review
 //   node --env-file=.env.local scripts/stage-city-refresh.mjs --group=Demo --place=Edinburgh
 //   node --env-file=.env.local scripts/stage-city-refresh.mjs --group=Demo --key=wtw_city6_55.956_-3.188
+//   node --env-file=.env.local scripts/stage-city-refresh.mjs --group=Demo --resume --stage-dir=.cell-refresh-staging/demo-review
 //   node --env-file=.env.local scripts/stage-city-refresh.mjs --place="New York" --allow-out-of-group-key --key=wtw_city6_40.758_-73.975
 //   node --env-file=.env.local scripts/stage-city-refresh.mjs --place="New York" --allow-out-of-group-key --stage-new-cell --key=wtw_city6_40.758_-73.975
 //
@@ -15,7 +16,7 @@
 // contain originals/. A batch with any failed cell is incomplete and must not be applied.
 
 import { createHash } from "node:crypto";
-import { mkdirSync, renameSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { gunzipSync } from "node:zlib";
 import {
@@ -41,6 +42,7 @@ const PLACE = opt("place", "").trim();
 const KEY = opt("key", "").trim();
 const ALLOW_OUT_OF_GROUP_KEY = args.includes("--allow-out-of-group-key");
 const STAGE_NEW_CELL = args.includes("--stage-new-cell");
+const RESUME = args.includes("--resume");
 const TIMEOUT_S = Number(opt("timeout", 240)) || 240;
 const CONC = Math.max(1, Number(opt("conc", 1)) || 1);
 const PUBLIC_BASE = process.env.NEXT_PUBLIC_R2_PUBLIC_BASE?.replace(/\/+$/u, "") || "";
@@ -48,6 +50,11 @@ const STAGE_DIR = path.resolve(opt(
   "stage-dir",
   path.join(".cell-refresh-staging", `demo-${new Date().toISOString().replace(/[:.]/g, "-")}`),
 ));
+
+if (RESUME && !args.some((arg) => arg.startsWith("--stage-dir="))) {
+  console.error("--resume requires --stage-dir=<existing staging directory>");
+  process.exit(1);
+}
 
 if (!isConfigured() && !PUBLIC_BASE) {
   console.error("Missing R2_* env and NEXT_PUBLIC_R2_PUBLIC_BASE. A public base is sufficient for read-only staging.");
@@ -134,7 +141,7 @@ async function fetchCell(key) {
   throw new Error("No complete Overpass result after two attempts");
 }
 
-const manifest = {
+const freshManifest = {
   schemaVersion: 1,
   group: STAGE_GROUP,
   placeFilter: PLACE || null,
@@ -146,6 +153,96 @@ const manifest = {
   failedCells: 0,
   cells: [...cells].map(([key, place]) => ({ key, place, action: STAGE_NEW_CELL ? "create" : "refresh", state: "pending" })),
 };
+
+function resumeManifest() {
+  let saved;
+  try {
+    saved = JSON.parse(readFileSync(path.join(STAGE_DIR, "manifest.json"), "utf8"));
+  } catch (error) {
+    throw new Error(`Cannot resume staging manifest: ${error?.message || error}`);
+  }
+  if (!saved || typeof saved !== "object" || Array.isArray(saved)) {
+    throw new Error("Cannot resume: manifest.json must contain an object");
+  }
+  const expected = [...cells].map(([key, place]) => ({
+    key,
+    place,
+    action: STAGE_NEW_CELL ? "create" : "refresh",
+  }));
+  const matches = saved.schemaVersion === 1
+    && saved.status !== "ready"
+    && saved.group === STAGE_GROUP
+    && saved.placeFilter === (PLACE || null)
+    && saved.cellFilter === (KEY || null)
+    && saved.totalCells === expected.length
+    && Array.isArray(saved.cells)
+    && saved.cells.length === expected.length
+    && expected.every((cell, index) => {
+      const entry = saved.cells[index];
+      return entry?.key === cell.key && entry?.place === cell.place && entry?.action === cell.action;
+    });
+  if (!matches) throw new Error("Cannot resume: the saved manifest does not match this group, filters, or cell set");
+
+  for (const entry of saved.cells) {
+    if (!["ready", "failed", "pending"].includes(entry.state)) {
+      throw new Error(`Cannot resume: ${entry.key} has unsupported state ${String(entry.state)}`);
+    }
+    if (entry.state !== "ready") continue;
+
+    let candidateText;
+    let candidate;
+    try {
+      candidateText = readFileSync(path.join(STAGE_DIR, "candidates", `${entry.key}.json`), "utf8");
+      candidate = JSON.parse(candidateText);
+    } catch (error) {
+      throw new Error(`Cannot resume: ready candidate ${entry.key} is missing or invalid (${error?.message || error})`);
+    }
+    if (!isCompleteCity(candidate)) throw new Error(`Cannot resume: ready candidate ${entry.key} is not a complete cell`);
+    const candidateBuildings = countRefreshBuildings(candidate);
+    if (Buffer.byteLength(candidateText, "utf8") > MAX_CITY_BYTES
+      || hash(candidateText) !== entry.candidateSha256
+      || candidate.elements.length !== entry.candidateElements
+      || candidateBuildings !== entry.candidateBuildings) {
+      throw new Error(`Cannot resume: ready candidate ${entry.key} no longer matches its manifest`);
+    }
+
+    if (entry.action === "refresh") {
+      let originalText;
+      let original;
+      try {
+        originalText = readFileSync(path.join(STAGE_DIR, "originals", `${entry.key}.json`), "utf8");
+        original = JSON.parse(originalText);
+      } catch (error) {
+        throw new Error(`Cannot resume: ready original ${entry.key} is missing or invalid (${error?.message || error})`);
+      }
+      if (!isCompleteCity(original)) throw new Error(`Cannot resume: ready original ${entry.key} is not a complete cell`);
+      const originalBuildings = countRefreshBuildings(original);
+      if (hash(originalText) !== entry.originalSha256
+        || original.elements.length !== entry.originalElements
+        || originalBuildings !== entry.originalBuildings
+        || candidateBuildings < originalBuildings * 0.9
+        || (original.enrichment && !candidate.enrichment)) {
+        throw new Error(`Cannot resume: ready original/candidate pair ${entry.key} no longer passes refresh rules`);
+      }
+    }
+  }
+
+  saved.status = "in_progress";
+  saved.resumedAt = new Date().toISOString();
+  delete saved.completedAt;
+  delete saved.interruptedAt;
+  delete saved.interruptionSignal;
+  for (const entry of saved.cells) {
+    if (entry.state === "ready") continue;
+    entry.state = "pending";
+    delete entry.error;
+  }
+  saved.readyCells = saved.cells.filter((cell) => cell.state === "ready").length;
+  saved.failedCells = 0;
+  return saved;
+}
+
+const manifest = RESUME ? resumeManifest() : freshManifest;
 
 function saveManifest() {
   const manifestPath = path.join(STAGE_DIR, "manifest.json");
@@ -213,10 +310,16 @@ async function stageCell(entry) {
   }
 }
 
-mkdirSync(path.dirname(STAGE_DIR), { recursive: true });
-mkdirSync(STAGE_DIR, { recursive: false });
-mkdirSync(path.join(STAGE_DIR, "originals"));
-mkdirSync(path.join(STAGE_DIR, "candidates"));
+if (RESUME) {
+  if (!existsSync(path.join(STAGE_DIR, "originals")) || !existsSync(path.join(STAGE_DIR, "candidates"))) {
+    throw new Error("Cannot resume: staging originals/ and candidates/ directories must exist");
+  }
+} else {
+  mkdirSync(path.dirname(STAGE_DIR), { recursive: true });
+  mkdirSync(STAGE_DIR, { recursive: false });
+  mkdirSync(path.join(STAGE_DIR, "originals"));
+  mkdirSync(path.join(STAGE_DIR, "candidates"));
+}
 saveManifest();
 const markInterrupted = (signal) => {
   if (manifest.status === "in_progress") {
@@ -230,8 +333,8 @@ const markInterrupted = (signal) => {
 };
 process.once("SIGINT", () => markInterrupted("SIGINT"));
 process.once("SIGTERM", () => markInterrupted("SIGTERM"));
-console.log(`${STAGE_GROUP}${PLACE ? ` / ${PLACE}` : ""}${KEY ? ` / ${KEY}` : ""}: ${KEY ? 1 : places.length} place(s), ${cells.size} unique cell(s); staging only, R2 writes disabled`);
-const queue = manifest.cells.slice();
+console.log(`${STAGE_GROUP}${PLACE ? ` / ${PLACE}` : ""}${KEY ? ` / ${KEY}` : ""}: ${KEY ? 1 : places.length} place(s), ${cells.size} unique cell(s); ${RESUME ? "resuming incomplete stage" : "staging"} only, R2 writes disabled`);
+const queue = manifest.cells.filter((cell) => cell.state !== "ready");
 await Promise.all(Array.from({ length: CONC }, async () => {
   while (queue.length) await stageCell(queue.shift());
 }));
