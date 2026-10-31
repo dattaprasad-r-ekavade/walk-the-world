@@ -1,6 +1,6 @@
 # Walk the World — Performance and Visuals Implementation Plan
 
-Updated: 31 October 2026. Reviewed base: `8ec296b` on `origin/main`.
+Updated: 31 October 2026. Reviewed base: `e810053` on `origin/main`.
 Demo gates D1–D8 are closed. The smoothness track (section 0a) closed S1–S6 from
 live-deploy profiling; S7–S8 stay open. S9's real-input check did not reproduce
 the hang on 30 October. S7 has two changes awaiting target-laptop confirmation:
@@ -17,6 +17,8 @@ reseed remains open (see B3 below).
 The B3 terrain paint now survives asynchronous imagery completion, and a
 recorded Edinburgh browser replay shows streamed land-use paint. The separately
 authorized demo-cell R2 reseed remains open.
+B4's Overture-to-OSM merge now has offline field/precedence coverage; live cell
+coverage still awaits R2 configuration.
 This is the active plan. The [previous detailed checkpoint](docs/PLAN-CHECKPOINT-2026-10-28-BEFORE-REVIEW.md)
 preserves the full experiment history; its status is historical.
 
@@ -612,6 +614,12 @@ Decisions taken from the research:
   passes; lint passes with 15 existing warnings. An Edinburgh dry run could not
   start because `.env.local` has no R2 configuration, so coverage and upload
   acceptance remain open. See the [Overture Building schema](https://docs.overturemaps.org/schema/reference/buildings/building/).
+  - 31 Oct offline follow-up: focused tests cover all six fields, value
+    normalization, existing OSM/enrichment precedence, invalid values and
+    applying the generated patch. They exposed `building=no` ways being treated
+    as matchable buildings; the matcher now excludes them. Focused lint, all
+    241 tests and the production build pass. This validates the local merge,
+    not live Overture coverage; the Edinburgh dry run and R2 upload remain open.
   Overture segments have no lanes or sidewalk fields, so A4 uses OSM tags.
 
 ### Phase C — larger bets, only with measured benefit
