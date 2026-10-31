@@ -698,7 +698,7 @@ function startHostTelemetry(sampleSeconds) {
   };
 }
 
-async function benchStreet(page, browserDiagnostics, chunkMonitor) {
+async function benchStreet(page, chunkMonitor) {
   const t0 = Date.now();
   if (ktx2DisposalAuditEnabled) {
     await page.addInitScript(() => {
@@ -2180,7 +2180,7 @@ async function main() {
       throw new Error(`Warm-cache preparation failed: ${cache.error || 'origin city cell was not persisted'}`);
     }
     console.log('  Street engine…');
-    result.street = await benchStreet(page, browserDiagnostics, chunkMonitor);
+    result.street = await benchStreet(page, chunkMonitor);
     if (terrainCacheAuditEnabled) {
       const audit = result.street.terrainGridCache;
       if (!audit || audit.resolveCount < 1) {
