@@ -1,6 +1,6 @@
 # Walk the World — Performance and Visuals Implementation Plan
 
-Updated: 31 October 2026. Reviewed base: `9823eb7` on `origin/main`.
+Updated: 31 October 2026. Reviewed base: `f603ec0` on `origin/main`.
 Demo gates D1–D8 are closed. The smoothness track (section 0a) closed S1–S6 from
 live-deploy profiling; S7–S8 stay open. S9's real-input check did not reproduce
 the hang on 30 October. S7 has two changes awaiting target-laptop confirmation:
@@ -622,8 +622,9 @@ Decisions taken from the research:
     building-retention threshold, carries forward enrichment, and never
     uploads. `--place` can stage one city's nine-cell neighborhood at a time,
     and `--key` isolates a single cell for retry. The explicit
-    `--allow-out-of-group-key` flag stages one cell outside the selected
-    group for a boundary-data probe.
+    `--allow-out-of-group-key` permits a one-off key outside the selected
+    group; add `--stage-new-cell` when the public cache has no original object.
+    The new-cell mode writes a local candidate and manifest only.
     A batch is `ready` only when every requested cell passes. The
     direct `seed-direct --refresh` path now refuses to run so a later cell
     failure cannot silently leave a mixed cache group. Run with

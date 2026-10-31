@@ -6,12 +6,13 @@
 //   node --env-file=.env.local scripts/stage-city-refresh.mjs --group=Demo --place=Edinburgh
 //   node --env-file=.env.local scripts/stage-city-refresh.mjs --group=Demo --key=wtw_city6_55.956_-3.188
 //   node --env-file=.env.local scripts/stage-city-refresh.mjs --place="New York" --allow-out-of-group-key --key=wtw_city6_40.758_-73.975
+//   node --env-file=.env.local scripts/stage-city-refresh.mjs --place="New York" --allow-out-of-group-key --stage-new-cell --key=wtw_city6_40.758_-73.975
 //
 // Without R2 credentials, set NEXT_PUBLIC_R2_PUBLIC_BASE to a public city
 // cache URL (for example, a deployment's /r2-public path) for read-only inputs.
 //
-// A ready batch contains originals/, candidates/, and manifest.json. A batch
-// with any failed cell is marked incomplete and must not be applied.
+// A ready batch contains candidates/ and manifest.json; refresh stages also
+// contain originals/. A batch with any failed cell is incomplete and must not be applied.
 
 import { createHash } from "node:crypto";
 import { mkdirSync, renameSync, writeFileSync } from "node:fs";
@@ -39,6 +40,7 @@ const GROUP = opt("group", "Demo");
 const PLACE = opt("place", "").trim();
 const KEY = opt("key", "").trim();
 const ALLOW_OUT_OF_GROUP_KEY = args.includes("--allow-out-of-group-key");
+const STAGE_NEW_CELL = args.includes("--stage-new-cell");
 const TIMEOUT_S = Number(opt("timeout", 240)) || 240;
 const CONC = Math.max(1, Number(opt("conc", 1)) || 1);
 const PUBLIC_BASE = process.env.NEXT_PUBLIC_R2_PUBLIC_BASE?.replace(/\/+$/u, "") || "";
@@ -73,6 +75,10 @@ for (const place of places) {
 }
 if (KEY && !parseCityKey(KEY)) {
   console.error(`Invalid city key "${KEY}"`);
+  process.exit(1);
+}
+if (STAGE_NEW_CELL && !KEY) {
+  console.error("--stage-new-cell requires --key=<city-cache-key> so the candidate is reviewed one cell at a time.");
   process.exit(1);
 }
 const keyIsOutOfGroup = !!KEY && !allCells.has(KEY);
@@ -138,7 +144,7 @@ const manifest = {
   totalCells: cells.size,
   readyCells: 0,
   failedCells: 0,
-  cells: [...cells].map(([key, place]) => ({ key, place, state: "pending" })),
+  cells: [...cells].map(([key, place]) => ({ key, place, action: STAGE_NEW_CELL ? "create" : "refresh", state: "pending" })),
 };
 
 function saveManifest() {
@@ -152,16 +158,22 @@ function saveManifest() {
 async function stageCell(entry) {
   try {
     const stored = await readStored(entry.key);
-    if (!stored) throw new Error("No existing R2 object to refresh");
-    const oldText = (stored.gzip ? gunzipSync(stored.bytes) : stored.bytes).toString("utf8");
-    const oldData = JSON.parse(oldText);
-    if (!isCompleteCity(oldData)) throw new Error("Existing R2 object is not a complete city cell");
+    let oldText = null;
+    let oldData = null;
+    if (STAGE_NEW_CELL) {
+      if (stored) throw new Error("An R2 object already exists; use refresh mode");
+    } else {
+      if (!stored) throw new Error("No existing R2 object to refresh");
+      oldText = (stored.gzip ? gunzipSync(stored.bytes) : stored.bytes).toString("utf8");
+      oldData = JSON.parse(oldText);
+      if (!isCompleteCity(oldData)) throw new Error("Existing R2 object is not a complete city cell");
+    }
 
     const candidate = await fetchCell(entry.key);
-    const beforeBuildings = countRefreshBuildings(oldData);
+    const beforeBuildings = oldData ? countRefreshBuildings(oldData) : null;
     const afterBuildings = countRefreshBuildings(candidate);
-    const retainedEnoughBuildings = afterBuildings >= beforeBuildings * 0.9;
-    const carriedEnrichment = !!oldData.enrichment && !candidate.enrichment;
+    const retainedEnoughBuildings = !oldData || afterBuildings >= beforeBuildings * 0.9;
+    const carriedEnrichment = !!oldData?.enrichment && !candidate.enrichment;
     if (carriedEnrichment) candidate.enrichment = oldData.enrichment;
 
     const candidateText = JSON.stringify(candidate);
@@ -170,17 +182,18 @@ async function stageCell(entry) {
     }
     if (!isCompleteCity(JSON.parse(candidateText))) throw new Error("Candidate failed complete-cell validation");
 
-    writeFileSync(path.join(STAGE_DIR, "originals", `${entry.key}.json`), oldText);
+    if (oldText !== null) writeFileSync(path.join(STAGE_DIR, "originals", `${entry.key}.json`), oldText);
     writeFileSync(path.join(STAGE_DIR, "candidates", `${entry.key}.json`), candidateText);
+    entry.action = oldData ? "refresh" : "create";
     entry.state = "ready";
-    entry.originalSha256 = hash(oldText);
+    if (oldText !== null) entry.originalSha256 = hash(oldText);
     entry.candidateSha256 = hash(candidateText);
-    entry.originalElements = oldData.elements.length;
+    if (oldData) entry.originalElements = oldData.elements.length;
     entry.candidateElements = candidate.elements.length;
-    entry.originalBuildings = beforeBuildings;
+    if (oldData) entry.originalBuildings = beforeBuildings;
     entry.candidateBuildings = afterBuildings;
     entry.enrichmentCarried = carriedEnrichment;
-    if (!retainedEnoughBuildings) {
+    if (oldData && !retainedEnoughBuildings) {
       throw new Error(`Building count dropped from ${beforeBuildings} to ${afterBuildings} (minimum 90%); candidate saved for review`);
     }
   } catch (error) {
@@ -193,7 +206,10 @@ async function stageCell(entry) {
   manifest.failedCells = manifest.cells.filter((cell) => cell.state === "failed").length;
   saveManifest();
   if (entry.state === "ready") {
-    console.log(`✓ ${entry.place.padEnd(12)} ${entry.key}: ${entry.originalBuildings} -> ${entry.candidateBuildings} buildings`);
+    const summary = entry.action === "create"
+      ? `${entry.candidateBuildings} new renderable ways, ${entry.candidateElements} elements`
+      : `${entry.originalBuildings} -> ${entry.candidateBuildings} renderable ways, ${entry.originalElements} -> ${entry.candidateElements} elements`;
+    console.log(`✓ ${entry.place.padEnd(12)} ${entry.key}: ${summary}`);
   }
 }
 

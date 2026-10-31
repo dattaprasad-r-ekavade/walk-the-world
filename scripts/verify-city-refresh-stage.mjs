@@ -44,7 +44,8 @@ if (!Array.isArray(manifest.cells)) failures.push("Manifest cells must be an arr
 const cells = Array.isArray(manifest.cells) ? manifest.cells : [];
 const keys = new Set();
 let verifiedCells = 0;
-console.log(`Cell refresh stage: ${manifest.group ?? "unknown group"} · ${cells.length} cells`);
+const stageLabel = cells.some((cell) => cell?.action === "create") ? "new-cell" : "refresh";
+console.log(`Cell ${stageLabel} stage: ${manifest.group ?? "unknown group"} · ${cells.length} cells`);
 
 for (const cell of cells) {
   if (!cell || typeof cell !== "object" || Array.isArray(cell)) {
@@ -64,36 +65,51 @@ for (const cell of cells) {
     failures.push(`${key}: state is ${cell.state}; expected ready`);
     continue;
   }
+  const action = cell.action ?? "refresh";
+  if (action !== "refresh" && action !== "create") {
+    failures.push(`${key}: unsupported action ${String(action)}`);
+    continue;
+  }
 
-  const originalFile = readJson(path.join(stageDir, "originals", `${key}.json`), `${key} original`);
   const candidateFile = readJson(path.join(stageDir, "candidates", `${key}.json`), `${key} candidate`);
-  if (!originalFile || !candidateFile) continue;
-
-  const original = originalFile.data;
+  if (!candidateFile) continue;
   const candidate = candidateFile.data;
-  if (!isCompleteCity(original)) failures.push(`${key}: original is not a complete city cell`);
   if (!isCompleteCity(candidate)) failures.push(`${key}: candidate is not a complete city cell`);
   if (Buffer.byteLength(candidateFile.text, "utf8") > MAX_CITY_BYTES) failures.push(`${key}: candidate exceeds ${MAX_CITY_BYTES} bytes`);
-
-  const originalHash = hash(originalFile.text);
   const candidateHash = hash(candidateFile.text);
-  if (originalHash !== cell.originalSha256) failures.push(`${key}: original hash does not match manifest`);
   if (candidateHash !== cell.candidateSha256) failures.push(`${key}: candidate hash does not match manifest`);
-
-  const originalElements = original?.elements?.length;
   const candidateElements = candidate?.elements?.length;
-  const originalBuildings = countRefreshBuildings(original);
   const candidateBuildings = countRefreshBuildings(candidate);
-  if (originalElements !== cell.originalElements) failures.push(`${key}: original element count does not match manifest`);
   if (candidateElements !== cell.candidateElements) failures.push(`${key}: candidate element count does not match manifest`);
-  if (originalBuildings !== cell.originalBuildings) failures.push(`${key}: original building count does not match manifest`);
   if (candidateBuildings !== cell.candidateBuildings) failures.push(`${key}: candidate building count does not match manifest`);
+
+  if (action === "create") {
+    if (["originalSha256", "originalElements", "originalBuildings"].some((field) => Object.hasOwn(cell, field))) {
+      failures.push(`${key}: new-cell entry must not claim original-cell metadata`);
+    }
+    if (failures.length === failureCountBeforeCell) {
+      verifiedCells++;
+      console.log(`✓ ${place.padEnd(12)} ${key}  new cell ${candidateBuildings} renderable ways, ${candidateElements} elements`);
+    }
+    continue;
+  }
+
+  const originalFile = readJson(path.join(stageDir, "originals", `${key}.json`), `${key} original`);
+  if (!originalFile) continue;
+  const original = originalFile.data;
+  if (!isCompleteCity(original)) failures.push(`${key}: original is not a complete city cell`);
+  const originalHash = hash(originalFile.text);
+  if (originalHash !== cell.originalSha256) failures.push(`${key}: original hash does not match manifest`);
+  const originalElements = original?.elements?.length;
+  const originalBuildings = countRefreshBuildings(original);
+  if (originalElements !== cell.originalElements) failures.push(`${key}: original element count does not match manifest`);
+  if (originalBuildings !== cell.originalBuildings) failures.push(`${key}: original building count does not match manifest`);
   if (candidateBuildings < originalBuildings * 0.9) failures.push(`${key}: candidate retains fewer than 90% of buildings`);
   if (original?.enrichment && !candidate?.enrichment) failures.push(`${key}: candidate lost the original enrichment block`);
 
   if (failures.length === failureCountBeforeCell) {
     verifiedCells++;
-    console.log(`✓ ${(typeof place === "string" ? place : "").padEnd(12)} ${key}  buildings ${originalBuildings} -> ${candidateBuildings}, elements ${originalElements} -> ${candidateElements}`);
+    console.log(`✓ ${place.padEnd(12)} ${key}  buildings ${originalBuildings} -> ${candidateBuildings}, elements ${originalElements} -> ${candidateElements}`);
   }
 }
 
