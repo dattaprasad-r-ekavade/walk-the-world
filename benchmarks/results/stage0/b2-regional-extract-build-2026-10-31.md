@@ -57,15 +57,32 @@ three serial local runs; they exclude HTTP, Worker, or network overhead.
 | Tokyo | `35.6730,139.6470,35.6790,139.6540` | 1,972 | 546 ms (521–573 ms) |
 | Edinburgh | `55.9500,-3.1910,55.9560,-3.1850` | 765 | 234 ms (227–242 ms) |
 
+I also ran the exact `combinedQuery` from `lib/overpassServer.js` with its
+650 m radius around each Demo city center. Each single-cell query succeeded in
+one local CLI run. The repository's `validCityData` and `isCompleteCity`
+contract accepted all four results, and every returned geometry point was
+valid. Each response stayed below the 8,000,000-byte city-data limit.
+
+| Demo region | Elements | Buildings | Building parts | Highway ways | Response bytes | Local CLI time |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| New York | 3,744 | 937 | 894 | 801 | 3,299,869 | 3,694 ms |
+| Pune | 3,048 | 1,996 | 4 | 504 | 1,651,724 | 841 ms |
+| Tokyo | 3,107 | 1,995 | 5 | 672 | 2,143,113 | 4,516 ms |
+| Edinburgh | 3,986 | 1,529 | 476 | 800 | 3,677,253 | 2,261 ms |
+
+These are one query per Demo center on a warm local database, not a 36-cell
+pass, cold-start measurement, or HTTP/Worker/VPS acceptance run.
+
 ## Remaining acceptance
 
-- Review the 600,010 missing-way relation warnings and determine whether
-  narrower extracts or another import strategy improves boundary completeness.
+- Review the 600,010 missing-way relation messages for app-relevant broad
+  relation queries. The four tested 650 m city responses were valid and
+  complete, but this does not establish completeness for every region object.
 - Reassess region scope and VPS requirements using the measured database
   footprint. The four local CLI queries were fast, but the 58 GiB database
   makes the “small VPS” assumption unproven.
-- Test the complete city-cell queries through a deployed HTTP endpoint and
-  verify resource use and latency under realistic concurrency.
+- Test a 36-cell pass through a deployed HTTP endpoint and verify resource use
+  and latency under realistic concurrency.
 - Keep B2 open until Worker/VPS deployment and endpoint acceptance are tested.
 
 No VPS, Cloudflare Worker, R2 object, or production configuration was created

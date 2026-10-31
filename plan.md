@@ -652,8 +652,10 @@ Decisions taken from the research:
     route relations, so app-relevant relation geometry needs a completeness
     review. Four local building-and-road
     count queries succeeded for New York, Pune, Tokyo and Edinburgh: 765–1,972
-    elements and 117–546 ms median CLI time across three serial runs. These are
-    small local query boxes, not HTTP/VPS or full-cell acceptance. The first
+    elements and 117–546 ms median CLI time across three serial runs. The exact
+    app query also succeeded for one 650 m cell per Demo city; the app contract
+    accepted all four responses, each 1.65–3.68 MB with valid geometry. This is
+    local single-cell acceptance, not a 36-cell HTTP/VPS run. The first
     import attempt reached 34 GiB before C: fell below the 8 GiB safety margin;
     it was stopped, and the clean retry ran after moving WSL to D:. No VPS,
     Worker, R2 or production configuration has been provisioned or changed.
