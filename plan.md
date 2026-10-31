@@ -20,11 +20,10 @@ recorded Edinburgh browser replay shows streamed land-use paint. The demo-cell
 R2 reseed remains open pending separate write approval.
 B4's Overture-to-OSM merge now has offline field/precedence coverage; live cell
 coverage still awaits R2 configuration. B3 now has a local-only cache staging
-and verification workflow. The saved Edinburgh nine-cell set passes corrected
-offline checks that count rendered building parts; the full 36-cell Demo batch
-remains open. A resumed Edinburgh batch now passes local verification at 9/9
-(9/36 Demo cells); the remaining 27 cells still need a responsive global
-Overpass source.
+and verification workflow. The HPI mirror supplied all 36 Demo candidates;
+the full verifier and a four-city browser replay passed. Separate R2 upload
+approval and post-refresh live visual/performance acceptance remain open (see
+B3 below).
 This is the active plan. The [previous detailed checkpoint](docs/PLAN-CHECKPOINT-2026-10-28-BEFORE-REVIEW.md)
 preserves the full experiment history; its status is historical.
 
@@ -762,10 +761,18 @@ Decisions taken from the research:
     failed after retries, and eight New York cells were pending. The run remains
     local-only; no R2 writes occurred. See the
     [Tokyo stage report](benchmarks/results/stage0/b3-tokyo-refresh-stage-2026-10-31.md).
-  - Open: stage and review the 36 Demo neighborhoods (unique cache-version-6
-    cells; see the [refresh-scope report](benchmarks/results/stage0/b3-demo-refresh-scope-2026-10-31.md)),
-    then get separate approval before any R2 upload. Capture live four-city
-    visuals and performance acceptance after the cache update.
+  - 31 Oct full refresh review: the HPI mirror supplied all 36 unique
+    cache-version-6 cells. The offline verifier passed 36/36; the lowest
+    same-way-ID retention in a cell was 94.0%. A visible-Chrome replay of the
+    local candidates settled 9/9 cells in each city with zero console errors
+    and 212 painted landuse rings across 47 tiles. Its 60-frame diagnostic
+    p95 is not target-hardware acceptance. See the
+    [full refresh review](benchmarks/results/stage0/b3-demo-refresh-review-2026-10-31.md),
+    [refresh scope](benchmarks/results/stage0/b3-demo-refresh-scope-2026-10-31.md)
+    and [candidate screenshots](screenshots/performance-visuals/stage0/b3-demo-candidate-replay-2026-10-31/).
+    No R2 writes occurred. Open: get separate approval before uploading these
+    candidates, then verify the deployed cache and capture live four-city visual
+    and performance acceptance.
 - [ ] **B4 — Overture gap fill (S).** The Overture footprint fallback already
   exists for sparse cells. Remaining: merge Overture height, num_floors,
   roof_shape, roof_color, facade_color and facade_material into OSM buildings
