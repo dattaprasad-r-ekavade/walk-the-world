@@ -1,6 +1,6 @@
 # Walk the World — Performance and Visuals Implementation Plan
 
-Updated: 31 October 2026. Reviewed base: `e810053` on `origin/main`.
+Updated: 31 October 2026. Reviewed base: `1dacd0b` on `origin/main`.
 Demo gates D1–D8 are closed. The smoothness track (section 0a) closed S1–S6 from
 live-deploy profiling; S7–S8 stay open. S9's real-input check did not reproduce
 the hang on 30 October. S7 has two changes awaiting target-laptop confirmation:
@@ -535,6 +535,10 @@ Decisions taken from the research:
   `npm run seed:direct` remains the stopgap. **31 Oct:** server fetches can now
   prefer an `OVERPASS_ENDPOINT` deployment while retaining the public mirrors
   as fallbacks; no self-hosted endpoint is configured or acceptance-tested yet.
+  - 31 Oct offline check: tests verify the configured endpoint is trimmed and
+    tried first, and that a 503 falls back to the public Overpass mirrors. The
+    focused lint and full suite (243 tests) pass. This does not validate a live
+    Worker/VPS; endpoint configuration and deployment acceptance remain open.
 - [ ] **B3 — Procedural landuse ground (S–M).** Asphalt, grass, paving and
   water materials from landuse polygons instead of the near-white Carto
   raster; extends D1.
