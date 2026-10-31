@@ -1,6 +1,6 @@
 # Walk the World — Performance and Visuals Implementation Plan
 
-Updated: 31 October 2026. Reviewed base: `f603ec0` on `origin/main`.
+Updated: 31 October 2026. Reviewed base: `c3f8981` on `origin/main`.
 Demo gates D1–D8 are closed. The smoothness track (section 0a) closed S1–S6 from
 live-deploy profiling; S7–S8 stay open. S9's real-input check did not reproduce
 the hang on 30 October. S7 has two changes awaiting target-laptop confirmation:
@@ -684,15 +684,31 @@ Decisions taken from the research:
   IDs; the baker matches IDs such as `w…@version` and patches only missing OSM
   tags. Existing OSM values take precedence, and facade/roof color spelling
   plus Overture material enums reach the current renderer. Production build
-  passes; lint passes with 15 existing warnings. An Edinburgh dry run could not
-  start because `.env.local` has no R2 configuration, so coverage and upload
-  acceptance remain open. See the [Overture Building schema](https://docs.overturemaps.org/schema/reference/buildings/building/).
+  passes; lint passes with 15 existing warnings. The R2-backed Edinburgh
+  enrichment dry run could not start because `.env.local` has no R2
+  configuration. A direct public-data coverage dry run is recorded below;
+  production-cell acceptance and upload remain open. See the
+  [Overture Building schema](https://docs.overturemaps.org/schema/reference/buildings/building/).
   - 31 Oct offline follow-up: focused tests cover all six fields, value
     normalization, existing OSM/enrichment precedence, invalid values and
     applying the generated patch. They exposed `building=no` ways being treated
     as matchable buildings; the matcher now excludes them. Focused lint, all
-    241 tests and the production build pass. This validates the local merge,
-    not live Overture coverage; the Edinburgh dry run and R2 upload remain open.
+    241 tests and the production build pass. This validates the local merge;
+    R2-backed dry-run and upload acceptance remain open.
+  - 31 Oct direct live-data coverage: all 36 complete Demo cache cells were
+    read through the public proxy and matched against the reviewed
+    `2026-10-21.0` manifest via public Overture S3. The production patch
+    function found OSM-linked rows in all four cities: Pune had no missing
+    fields; Edinburgh filled 56–107 heights per cell; Tokyo filled up to 823
+    buildings per cell with height/level tags; New York filled 61–139 per cell
+    with height/level tags plus three `building:material` patches in total.
+    Eight cells hit the old 3,000-row query cap. A 10,000-row diagnostic found
+    a maximum of 4,770 rows and 585 additional patchable Tokyo buildings across
+    those cells. The local runtime cap is now 5,000. The largest measured
+    response was 1.47 MB raw (215 KB gzipped). No R2 writes occurred; the
+    deployment index remains absent, so runtime API acceptance and upload
+    remain open. See the
+    [live coverage report](benchmarks/results/stage0/b4-overture-live-coverage-2026-10-31.md).
   Overture segments have no lanes or sidewalk fields, so A4 uses OSM tags.
 
 ### Phase C — larger bets, only with measured benefit
