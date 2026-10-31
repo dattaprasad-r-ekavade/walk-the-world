@@ -1,6 +1,6 @@
 # Walk the World — Performance and Visuals Implementation Plan
 
-Updated: 31 October 2026. Reviewed base: `fae1003` on `origin/main`.
+Updated: 31 October 2026. Reviewed base: `79e0e5a` on `origin/main`.
 Demo gates D1–D8 are closed. The smoothness track (section 0a) closed S1–S6 from
 live-deploy profiling; S7–S8 stay open. S9's real-input check did not reproduce
 the hang on 30 October. S7 has two changes awaiting target-laptop confirmation:
@@ -49,9 +49,16 @@ preserves the full experiment history; its status is historical.
   See the
   [four-city Next 16 acceptance report](benchmarks/results/stage0/sec1-next16-four-city-2026-10-30.md)
   and its [screenshots](screenshots/demo-track/rehearsal-2026-10-30-sec1-next16/).
-  Still open: the live DuckDB Overture query against S3, which writes results to
-  R2. Keep SEC1 open until that release-data check is separately authorized and
-  completed.
+  A read-only DuckDB footer scan against the official current release,
+  `2026-10-21.0`, found all 512 building Parquet files and validated their
+  manifest bounds. The previous `2026-06-17.0` default listed no files. The
+  manifest was saved locally; no R2 request was made. The index builder,
+  manifest builder and API runtime defaults now use the verified release.
+  Still open: separately authorize and upload the exact manifest to R2, confirm
+  the deployed `OVERTURE_RELEASE` matches, then complete the live Overture API
+  check. Keep SEC1 open until these release-data checks pass. See the
+  [read-only Overture manifest report](benchmarks/results/stage0/sec1-overture-manifest-readonly-2026-10-31.md)
+  and [reviewed manifest](benchmarks/results/stage0/sec1-overture-index-2026-10-31.json).
   On `6c79a3d`, `npm ci` installed Next.js 14.2.35, React/React DOM 18.3.1,
   DuckDB 1.4.4 and Sharp 0.35.5. `npm audit --omit=dev` reported 11 production
   dependency findings (10 high, 1 critical); the full install audit reported 19
