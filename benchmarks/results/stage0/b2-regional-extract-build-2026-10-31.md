@@ -35,10 +35,14 @@ retry passed its earlier checkpoint.
 The clean import completed successfully in about 47 minutes. The final database
 directory occupies 62,183,795,009 bytes (57.9 GiB). The import ran locally as a
 dedicated unprivileged `overpass` user. It logged 600,010 missing-way geometry
-warnings while assembling relations. Regional extracts intentionally omit
-objects outside their boundaries, so this count is a review signal for
-incomplete boundary relations; it did not prevent the import or these local
-queries from succeeding.
+messages across 2,362 relation IDs while assembling relations. Inspecting
+several IDs with the most messages found the Honshu and Great Britain island
+multipolygons, plus long-distance railway and road routes such as the West
+Coast Main Line and Tokaido Shinkansen. These relations extend beyond the
+clipped regional inputs and have incomplete geometry in this database. This
+did not prevent the import or these local queries from succeeding, but
+app-relevant multipolygon completeness should be checked before relying on
+regional relation queries.
 
 Four small bounding boxes around the Demo city centers were queried directly
 with `osm3s_query --db-dir`, selecting building nodes/ways/relations and

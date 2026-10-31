@@ -647,8 +647,10 @@ Decisions taken from the research:
     The official Overpass 0.7.62.11 source also compiled successfully in an
     Ubuntu 22.04 WSL distro. The clean no-metadata import completed in about
     47 minutes and occupies 62,183,795,009 bytes (57.9 GiB). It emitted
-    600,010 missing-way relation-geometry warnings, so regional boundary
-    relations need separate completeness review. Four local building-and-road
+    600,010 missing-way messages across 2,362 relations. The most repeated
+    examples include Honshu/Great Britain island multipolygons and long-distance
+    route relations, so app-relevant relation geometry needs a completeness
+    review. Four local building-and-road
     count queries succeeded for New York, Pune, Tokyo and Edinburgh: 765–1,972
     elements and 117–546 ms median CLI time across three serial runs. These are
     small local query boxes, not HTTP/VPS or full-cell acceptance. The first
