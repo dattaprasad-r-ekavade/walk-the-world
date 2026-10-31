@@ -621,7 +621,9 @@ Decisions taken from the research:
     deployment's public read proxy, checks complete-cell validity and the 90%
     building-retention threshold, carries forward enrichment, and never
     uploads. `--place` can stage one city's nine-cell neighborhood at a time,
-    and `--key` isolates a single cell for retry.
+    and `--key` isolates a single cell for retry. The explicit
+    `--allow-out-of-group-key` flag stages one cell outside the selected
+    group for a boundary-data probe.
     A batch is `ready` only when every requested cell passes. The
     direct `seed-direct --refresh` path now refuses to run so a later cell
     failure cannot silently leave a mixed cache group. Run with

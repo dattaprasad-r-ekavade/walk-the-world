@@ -5,6 +5,7 @@
 //   node --env-file=.env.local scripts/stage-city-refresh.mjs --group=Demo --stage-dir=.cell-refresh-staging/demo-review
 //   node --env-file=.env.local scripts/stage-city-refresh.mjs --group=Demo --place=Edinburgh
 //   node --env-file=.env.local scripts/stage-city-refresh.mjs --group=Demo --key=wtw_city6_55.956_-3.188
+//   node --env-file=.env.local scripts/stage-city-refresh.mjs --place="New York" --allow-out-of-group-key --key=wtw_city6_40.758_-73.975
 //
 // Without R2 credentials, set NEXT_PUBLIC_R2_PUBLIC_BASE to a public city
 // cache URL (for example, a deployment's /r2-public path) for read-only inputs.
@@ -37,6 +38,7 @@ const opt = (name, fallback) => {
 const GROUP = opt("group", "Demo");
 const PLACE = opt("place", "").trim();
 const KEY = opt("key", "").trim();
+const ALLOW_OUT_OF_GROUP_KEY = args.includes("--allow-out-of-group-key");
 const TIMEOUT_S = Number(opt("timeout", 240)) || 240;
 const CONC = Math.max(1, Number(opt("conc", 1)) || 1);
 const PUBLIC_BASE = process.env.NEXT_PUBLIC_R2_PUBLIC_BASE?.replace(/\/+$/u, "") || "";
@@ -73,11 +75,15 @@ if (KEY && !parseCityKey(KEY)) {
   console.error(`Invalid city key "${KEY}"`);
   process.exit(1);
 }
-if (KEY && !allCells.has(KEY)) {
-  console.error(`City key "${KEY}" is not in the selected ${GROUP}${PLACE ? ` / ${PLACE}` : ""} group`);
+const keyIsOutOfGroup = !!KEY && !allCells.has(KEY);
+if (keyIsOutOfGroup && !ALLOW_OUT_OF_GROUP_KEY) {
+  console.error(`City key "${KEY}" is outside the selected group; pass --allow-out-of-group-key to stage a one-off cell.`);
   process.exit(1);
 }
-const cells = KEY ? new Map([[KEY, allCells.get(KEY)]]) : allCells;
+const STAGE_GROUP = keyIsOutOfGroup ? "Custom" : GROUP;
+const cells = KEY
+  ? new Map([[KEY, allCells.get(KEY) || PLACE || "Custom"]])
+  : allCells;
 
 const hash = (text) => createHash("sha256").update(text).digest("hex");
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -124,7 +130,7 @@ async function fetchCell(key) {
 
 const manifest = {
   schemaVersion: 1,
-  group: GROUP,
+  group: STAGE_GROUP,
   placeFilter: PLACE || null,
   cellFilter: KEY || null,
   createdAt: new Date().toISOString(),
@@ -196,7 +202,7 @@ mkdirSync(STAGE_DIR, { recursive: false });
 mkdirSync(path.join(STAGE_DIR, "originals"));
 mkdirSync(path.join(STAGE_DIR, "candidates"));
 saveManifest();
-console.log(`${GROUP}${PLACE ? ` / ${PLACE}` : ""}${KEY ? ` / ${KEY}` : ""}: ${places.length} place(s), ${cells.size} unique cell(s); staging only, R2 writes disabled`);
+console.log(`${STAGE_GROUP}${PLACE ? ` / ${PLACE}` : ""}${KEY ? ` / ${KEY}` : ""}: ${KEY ? 1 : places.length} place(s), ${cells.size} unique cell(s); staging only, R2 writes disabled`);
 const queue = manifest.cells.slice();
 await Promise.all(Array.from({ length: CONC }, async () => {
   while (queue.length) await stageCell(queue.shift());
