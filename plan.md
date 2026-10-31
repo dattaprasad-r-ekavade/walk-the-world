@@ -734,6 +734,13 @@ Decisions taken from the research:
     validation, and the local stage verifier passed 9/9. This is one completed
     Demo city group; the other three groups and all R2/live acceptance gates
     remain open. See the [refresh-scope report](benchmarks/results/stage0/b3-demo-refresh-scope-2026-10-31.md).
+  - 31 Oct staged-candidate replay: the verifier passed 9/9, and visible Chrome
+    replayed the local candidates through the deployed street app with 9/9 cells
+    resident, zero console errors, and all queues settled. Enabled diagnostics
+    counted 29 landuse rings across 8 painted tiles. The 60-frame p95 was 16.9 ms
+    on this non-target host and is diagnostic only. No R2 writes occurred. See
+    the [replay report](benchmarks/results/stage0/b3-edinburgh-staged-replay-2026-10-31.md)
+    and [capture](screenshots/performance-visuals/stage0/b3-landuse/edinburgh-staged-candidate-replay-2026-10-31.jpg).
   - Open: stage and review the 36 Demo neighborhoods (unique cache-version-6
     cells; see the [refresh-scope report](benchmarks/results/stage0/b3-demo-refresh-scope-2026-10-31.md)),
     then get separate approval before any R2 upload. Capture live four-city

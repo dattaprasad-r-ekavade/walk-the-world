@@ -1,7 +1,7 @@
 // Demo rehearsal: checks R2 cell warmth for each DEMO_PLACES entry, then loads each
 // in a real browser and records readiness, console errors, a screenshot and frame times.
 //
-//   node scripts/rehearse-demo.mjs [baseUrl] [--headed] [--r2-node-proxy] [--frames=300]
+//   node scripts/rehearse-demo.mjs [baseUrl] [--headed] [--r2-node-proxy] [--diagnostics] [--frames=300]
 //     [--out=screenshots/demo-track/rehearsal] [--help]
 //
 // Headless timings are not hardware evidence.
@@ -41,12 +41,13 @@ export function formatTable(rows, columns) {
 }
 
 export function parseArgs(argv) {
-  const out = { base: DEFAULT_BASE, headed: false, out: DEFAULT_OUT, help: false, r2NodeProxy: false,
+  const out = { base: DEFAULT_BASE, headed: false, out: DEFAULT_OUT, help: false, r2NodeProxy: false, diagnostics: false,
     frames: 300, city: null, readyTimeoutMs: 90000, settleTimeoutMs: 45000, r2SnapshotDir: null };
   for (const a of argv) {
     if (a === "--help" || a === "-h") out.help = true;
     else if (a === "--headed") out.headed = true;
     else if (a === "--r2-node-proxy") out.r2NodeProxy = true;
+    else if (a === "--diagnostics") out.diagnostics = true;
     else if (a.startsWith("--city=")) out.city = a.slice(7).trim();
     else if (a.startsWith("--r2-snapshot-dir=")) out.r2SnapshotDir = a.slice("--r2-snapshot-dir=".length).trim();
     else if (a.startsWith("--ready-timeout-ms=")) {
@@ -96,8 +97,13 @@ async function checkCells(place, r2, snapshotDir) {
   return { total: keys.length, warm: keys.length - missing.length, missing };
 }
 
-async function rehearsePlace(browser, base, place, outDir, { r2, r2NodeProxy, r2SnapshotDir, frames, readyTimeoutMs, settleTimeoutMs }) {
+async function rehearsePlace(browser, base, place, outDir, { r2, r2NodeProxy, r2SnapshotDir, frames, readyTimeoutMs, settleTimeoutMs, diagnostics }) {
   const ctx = await browser.newContext({ viewport: { width: 1280, height: 720 }, serviceWorkers: "block" });
+  if (diagnostics) {
+    await ctx.addInitScript(() => {
+      window.__perfCounters = { ...(window.__perfCounters || {}), diagnosticsEnabled: true };
+    });
+  }
   const page = await ctx.newPage();
   const errors = [];
   const cellResponses = [];
@@ -200,6 +206,17 @@ async function rehearsePlace(browser, base, place, outDir, { r2, r2NodeProxy, r2
       };
     });
     Object.assign(res.spawn, sceneStats);
+    res.landusePaint = await page.evaluate(() => {
+      if (window.__perfCounters?.diagnosticsEnabled !== true) return null;
+      const events = (window.__perfCounters?.timeline || []).filter((event) =>
+        event.type === "timing" && event.name === "city.road-canvas-paint"
+      );
+      return {
+        batches: events.length,
+        rings: events.reduce((sum, event) => sum + (Number(event.details?.landuseRings) || 0), 0),
+        paintedTiles: events.reduce((sum, event) => sum + (Number(event.details?.landusePaintedTiles) || 0), 0),
+      };
+    });
   } catch (e) { res.note = String(e.message || e).split("\n")[0]; }
   res.errors = filterConsoleErrors(errors);
   res.consoleErrors = res.errors.length;
@@ -210,11 +227,12 @@ async function rehearsePlace(browser, base, place, outDir, { r2, r2NodeProxy, r2
 export async function main(argv = process.argv.slice(2)) {
   const args = parseArgs(argv);
   if (args.help) {
-    console.log("Usage: node scripts/rehearse-demo.mjs [baseUrl] [--headed] [--r2-node-proxy] [--r2-snapshot-dir=DIR] [--city=NAME] [--frames=300] [--out=DIR] [--help]\n" +
+    console.log("Usage: node scripts/rehearse-demo.mjs [baseUrl] [--headed] [--r2-node-proxy] [--r2-snapshot-dir=DIR] [--city=NAME] [--frames=300] [--out=DIR] [--diagnostics] [--help]\n" +
       `  baseUrl        default ${DEFAULT_BASE}\n  --out          default ${DEFAULT_OUT}\n` +
       "  --r2-node-proxy fetches public city cells from Node and adds CORS for local previews\n" +
       "  --r2-snapshot-dir records/replays city-cell bodies for matched A/B captures\n" +
       "  --city         rehearse one demo city (Pune, Edinburgh, Tokyo, or New York)\n" +
+      "  --diagnostics  enables browser perf counters; timings are diagnostic only\n" +
       "  --ready-timeout-ms   time allowed for engine readiness (default 90000)\n" +
       "  --settle-timeout-ms  time allowed for cell stream to settle (default 45000)\n" +
       `  --frames       animation-frame samples per city (default 300)\nHeadless timings are not hardware evidence.`);
@@ -229,6 +247,7 @@ export async function main(argv = process.argv.slice(2)) {
   console.log(`Base ${args.base}  R2 ${r2}\n`);
 
   const report = { base: args.base, r2, r2NodeProxy: args.r2NodeProxy, r2SnapshotDir: args.r2SnapshotDir,
+    diagnostics: args.diagnostics,
     frameSamples: args.frames,
     headed: args.headed, at: new Date().toISOString(), places: [] };
   for (const p of places) report.places.push({ name: p.name, preset: p.preset, cells: await checkCells(p, r2, args.r2SnapshotDir) });
@@ -261,13 +280,17 @@ export async function main(argv = process.argv.slice(2)) {
     errors: r.browser.consoleErrors,
     "heading°": r.browser.spawn?.headingDegrees,
     headingMatch: r.browser.spawn?.headingMatchesPreset ? "yes" : "NO",
+    landuseRings: r.browser.landusePaint?.rings ?? null,
+    paintedTiles: r.browser.landusePaint?.paintedTiles ?? null,
     "p50ms": r.browser.p50,
     "p95ms": r.browser.p95,
   }));
-  console.log(formatTable(rows, ["city", "cells", "ready", "settled", "resident", "failed", "readyMs", "errors", "heading°", "headingMatch", "p50ms", "p95ms"]));
+  console.log(formatTable(rows, ["city", "cells", "ready", "settled", "resident", "failed", "readyMs", "errors", "heading°", "headingMatch", "landuseRings", "paintedTiles", "p50ms", "p95ms"]));
   for (const r of report.places) if (r.cells.missing.length) console.log(`\nMissing (${r.name}):\n  ${r.cells.missing.join("\n  ")}`);
-  console.log(args.headed
-    ? "\nVisible Chrome run; timings represent this host."
+  console.log(args.diagnostics
+    ? "\nBrowser diagnostics enabled; frame timings are diagnostic only."
+    : args.headed
+      ? "\nVisible Chrome run; timings represent this host."
     : "\nNote: headless timings are not hardware evidence.");
   fs.writeFileSync(reportPath, JSON.stringify(report, null, 2));
   const bad = report.places.some((r) =>
