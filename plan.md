@@ -591,10 +591,12 @@ Decisions taken from the research:
     PBF-to-XML conversion before import; the imported database size is unknown.
     `scripts/build-regional-overpass-source.sh` now downloads those extracts,
     validates checksums, and builds the merged no-metadata import file. Direct
-    PBF-host probes timed out from this host, so the script remains unrun. The
-    31 Oct robustness follow-up bounds connection and transfer time and publishes
-    the merged file plus manifest from temporary paths, cleaning partial output
-    on failure. Git Bash syntax validation passes; curl, checksum tools, awk and
+    PBF-host probes timed out from this host, including a fresh 12-second HEAD
+    request to the New York checksum sidecar (HTTP 000, no bytes), so the script
+    remains unrun. A 31 Oct robustness follow-up bounds connection and transfer
+    time and publishes the merged file plus manifest from temporary paths,
+    cleaning partial output on failure. Git Bash syntax validation passes;
+    curl, checksum tools, awk and
     realpath are available, but Osmium is not. WSL has only its Docker Desktop
     distro and the Docker engine is unavailable, so the import still needs a
     Linux host with Osmium. Measure the imported database before choosing

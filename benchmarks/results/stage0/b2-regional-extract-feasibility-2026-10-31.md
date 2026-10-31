@@ -42,6 +42,11 @@ to a temporary file, and removes any published output if the paired manifest
 cannot be published. The full download and merge still need a Linux environment
 with Osmium.
 
+A fresh 12-second HEAD request to the New York PBF checksum sidecar also timed
+out with HTTP 000 and no response bytes. The Docker service is stopped, and the
+local Windows host therefore still has no available Linux import runtime. No
+extract or checksum file was downloaded.
+
 The 1.5 GB figure is compressed source data, not the imported Overpass database
 size. No provider or disk size is selected yet. The official full-install guide
 recommends at least 4 GB RAM and cites 100 GB for a full-planet database without

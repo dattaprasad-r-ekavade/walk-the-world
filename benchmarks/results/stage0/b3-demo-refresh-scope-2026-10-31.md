@@ -147,6 +147,10 @@ additional listed providers require payment or an API key. No account was
 created, no new endpoint was configured, and no query was sent during this
 documentation check.
 
+A later bounded availability check sent one small Pune amenity query to Maps
+Mail. It timed out after 15 seconds with HTTP 000 and no response body. No
+full-cell request followed.
+
 ## Standard OSM map API probe — 31 October 2026
 
 A single bounded map request for missing cell `wtw_city6_40.758_-73.975`
