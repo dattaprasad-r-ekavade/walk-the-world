@@ -160,3 +160,23 @@ describes the main API as intended for editing, not bulk downloads, and points
 to Overpass for area extracts. Given the response size and usage guidance, this
 API was not used as a cache-staging fallback. The response body was not saved;
 no candidate or R2 write resulted from this probe.
+
+## Global source availability recheck — 31 October 2026
+
+The public deployment cache still responds: a read-only HEAD request for the
+existing Pune cell returned HTTP 200. A small 100 m amenity-node query was then
+sent to each of the three global, no-key Overpass instances listed by the
+current [OpenStreetMap instance directory](https://wiki.openstreetmap.org/wiki/Overpass_API).
+The `overpass-api.de`, `overpass.private.coffee`, and Maps Mail interpreters
+all timed out after 15 seconds from this host. The directory's other listed
+global services require a key or payment; its keyless regional instances do
+not cover the Pune, Tokyo, and New York Demo cells.
+
+The four regional PBF sources in the [B2 feasibility report](b2-regional-extract-feasibility-2026-10-31.md)
+were also rechecked with bounded HEAD requests. New York, Western Zone India,
+Kantō, and Scotland each timed out after 15 seconds. No PBF was downloaded.
+The cache check confirms originals remain readable, but no current source can
+provide candidates for the remaining regions from this host. No staging batch
+was started, no candidate was created, and no R2 write occurred. Retry the
+36-cell staging only when a listed source responds or a keyed/self-hosted
+source is configured.

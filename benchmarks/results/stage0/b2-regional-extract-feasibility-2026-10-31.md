@@ -57,3 +57,12 @@ resulting database size and query behavior before choosing a VPS plan.
 
 No infrastructure was provisioned, and no R2 or production configuration was
 changed during this feasibility check.
+
+## Regional extract connectivity recheck — 31 October 2026
+
+Bounded 15-second HEAD requests to the four published PBF URLs all timed out
+from the Windows host: New York state, Western Zone India, Kantō, and Scotland.
+No extract or checksum sidecar was downloaded. The compressed source set
+therefore remains a 1.5 GB estimate from the published pages, and the source
+builder still needs a Linux environment with Osmium and working Geofabrik
+access before an import-size measurement can begin.

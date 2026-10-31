@@ -749,6 +749,12 @@ Decisions taken from the research:
     refresh baseline, not post-refresh acceptance; no R2 writes occurred. See
     the [baseline report](benchmarks/results/stage0/b3-pre-refresh-cache-baseline-2026-10-31.md)
     and [cell hash manifest](benchmarks/results/stage0/b3-pre-refresh-cache-cells-2026-10-31.json).
+  - 31 Oct source recheck: the public cache still returns HTTP 200, but all
+    three listed global no-key Overpass services timed out on a small Pune
+    query; all four Geofabrik regional PBF HEAD requests also timed out. No
+    candidates or R2 writes resulted. See the source checks in the
+    [refresh-scope report](benchmarks/results/stage0/b3-demo-refresh-scope-2026-10-31.md)
+    and [B2 feasibility report](benchmarks/results/stage0/b2-regional-extract-feasibility-2026-10-31.md).
   - Open: stage and review the 36 Demo neighborhoods (unique cache-version-6
     cells; see the [refresh-scope report](benchmarks/results/stage0/b3-demo-refresh-scope-2026-10-31.md)),
     then get separate approval before any R2 upload. Capture live four-city
