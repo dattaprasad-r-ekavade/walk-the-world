@@ -2152,8 +2152,17 @@ async function main() {
       if (cacheMode === 'cold' && audit.cacheMissCount < 1) {
         throw new Error(`Cold terrain-cache audit observed no IndexedDB misses: ${JSON.stringify(audit)}`);
       }
-      if (cacheMode === 'warm' && audit.cacheHitCount < 1) {
-        throw new Error(`Warm terrain-cache audit observed no IndexedDB hits: ${JSON.stringify(audit)}`);
+      if (cacheMode === 'warm') {
+        const persistedGridKey = terrainGridCacheWarmup?.persistedGridKey;
+        const expectedHash = persistedGridKey?.split(':').at(-1);
+        const matchingWarmupHitCount = expectedHash
+          ? result.street.timings.filter((event) => event.name === 'terrain.height-grid-resolve' &&
+            event.details?.cacheHit === true && event.details?.sourceHash === expectedHash).length
+          : 0;
+        audit.matchingWarmupHitCount = matchingWarmupHitCount;
+        if (matchingWarmupHitCount < 1) {
+          throw new Error(`Warm terrain-cache audit did not hit the grid persisted during warmup (${persistedGridKey || 'missing key'}): ${JSON.stringify(audit)}`);
+        }
       }
     }
     if (shadowPrunePairEnabled) {

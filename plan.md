@@ -565,9 +565,10 @@ Decisions taken from the research:
     benchmark records source, hash, cache-read, decode and grid-resolution
     timings; `--terrain-cache-audit` verifies the measured cold miss or warm
     hit and waits for a persisted grid matching a priming miss's content hash
-    before the warm capture; the report records the verified grid key. The full
-    suite previously passed 250 tests, lint had zero errors (16 warnings), and the
-    production build passed. A 31 Oct cold replay attempt against the existing
+    before the warm capture; the report records its key, and the measured page
+    must hit that same key. The full suite previously passed 250 tests; lint had
+    zero errors (16 warnings), and the production build passed. A 31 Oct cold
+    replay attempt against the existing
     port-3100 server timed out before StreetEngine readiness: the page requested
     an absent `/_next/static/chunks/1o23b0dlmiw5r.js` (HTTP 500). A 31 Oct
     recheck confirms the same chunk still fails on the existing server. It
@@ -1489,8 +1490,12 @@ behavior. Replay uses the same recorded city body for requested cells, so it
 does not measure live network latency or stand in for the live boundary matrix.
 Use the Rome showcase fixture explicitly:
 
-    npm run bench -- --base-url http://127.0.0.1:3456 --data-mode recorded --cache-mode cold --fixture benchmarks/fixtures/rome-showcase-osm.json --browser-channel chrome --renderer-mode browser-default --headed --skip-globe --cross-cell --out benchmarks/results/stage0/recorded-cold-walk.json
-    npm run bench -- --base-url http://127.0.0.1:3456 --data-mode recorded --cache-mode warm --fixture benchmarks/fixtures/rome-showcase-osm.json --browser-channel chrome --renderer-mode browser-default --headed --skip-globe --cross-cell --out benchmarks/results/stage0/recorded-warm-walk.json
+    npm run bench -- --base-url http://127.0.0.1:3456 --data-mode recorded --cache-mode cold --fixture benchmarks/fixtures/rome-showcase-osm.json --terrain-cache-audit --browser-channel chrome --renderer-mode browser-default --headed --skip-globe --cross-cell --out benchmarks/results/stage0/recorded-cold-walk.json
+    npm run bench -- --base-url http://127.0.0.1:3456 --data-mode recorded --cache-mode warm --fixture benchmarks/fixtures/rome-showcase-osm.json --terrain-cache-audit --browser-channel chrome --renderer-mode browser-default --headed --skip-globe --cross-cell --out benchmarks/results/stage0/recorded-warm-walk.json
+
+With `--terrain-cache-audit`, the warm capture also has to hit the exact grid
+key persisted by its priming page; the report includes that key and the matching
+hit count.
 
 For a per-cell fixture that has at least one lamp in the origin and a later
 cell, add `--stream-lifecycle` alongside `--cross-cell`. It checks the settled
