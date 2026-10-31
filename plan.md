@@ -555,7 +555,7 @@ Decisions taken from the research:
     hashes the resolved grid and retains its raw-cell fallback. Spawn prefetch
     now transfers PNG bytes without decoding before the cache lookup. The
     benchmark captures source, decode and grid-resolution timings. The full
-    suite passes 249 tests, lint has zero errors (16 warnings), and the
+    suite passes 250 tests, lint has zero errors (16 warnings), and the
     production build passes. No matched browser comparison has measured this
     candidate yet, so B1 remains open and production artifacts stay unpublished.
   - Still open: compare cold and warm raw/prebuilt loads, including cache hit

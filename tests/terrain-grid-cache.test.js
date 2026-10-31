@@ -2,9 +2,71 @@ import { createHash, webcrypto } from "node:crypto";
 import { describe, expect, it, vi } from "vitest";
 import {
   hashTerrainImage,
+  readTerrainGridCache,
   resolveTerrainGrid,
   terrainGridCacheKey,
+  writeTerrainGridCache,
 } from "@/lib/engine/street/terrain-grid-cache";
+
+function createFakeIndexedDB() {
+  const databases = new Map();
+  const clone = (value) => structuredClone(value);
+  return {
+    open(name) {
+      const request = {};
+      queueMicrotask(() => {
+        let database = databases.get(name);
+        const isNew = !database;
+        if (!database) {
+          const stores = new Map();
+          database = {
+            createObjectStore(storeName) {
+              const records = new Map();
+              stores.set(storeName, records);
+              return { createIndex: vi.fn() };
+            },
+            transaction(storeName) {
+              const records = stores.get(storeName);
+              const transaction = { oncomplete: null, onerror: null, onabort: null };
+              transaction.objectStore = () => ({
+                get(key) {
+                  const getRequest = {};
+                  queueMicrotask(() => {
+                    getRequest.result = clone(records.get(key));
+                    getRequest.onsuccess?.();
+                    queueMicrotask(() => transaction.oncomplete?.());
+                  });
+                  return getRequest;
+                },
+                put(record) { records.set(record.key, clone(record)); },
+                delete(key) { records.delete(key); },
+                index() {
+                  return {
+                    openCursor() {
+                      const cursorRequest = {};
+                      queueMicrotask(() => {
+                        cursorRequest.result = null;
+                        cursorRequest.onsuccess?.();
+                        queueMicrotask(() => transaction.oncomplete?.());
+                      });
+                      return cursorRequest;
+                    },
+                  };
+                },
+              });
+              return transaction;
+            },
+          };
+          databases.set(name, database);
+        }
+        request.result = database;
+        if (isNew) request.onupgradeneeded?.();
+        request.onsuccess?.();
+      });
+      return request;
+    },
+  };
+}
 
 describe("revision-aware terrain grid cache", () => {
   it("hashes exact image bytes and versions cache entries by format and grid size", async () => {
@@ -66,5 +128,14 @@ describe("revision-aware terrain grid cache", () => {
     expect(result).toEqual({ heights, sourceHash: null, cacheHit: false });
     expect(readGrid).not.toHaveBeenCalled();
     expect(writeGrid).not.toHaveBeenCalled();
+  });
+
+  it("writes and reads a persistent grid through IndexedDB", async () => {
+    vi.stubGlobal("indexedDB", createFakeIndexedDB());
+    const sourceHash = "b".repeat(64);
+    const heights = new Float32Array([10, 20, 30, 40]);
+
+    await expect(writeTerrainGridCache(sourceHash, 2, heights)).resolves.toBe(true);
+    await expect(readTerrainGridCache(sourceHash, 2)).resolves.toEqual(heights);
   });
 });
