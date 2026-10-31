@@ -1,6 +1,6 @@
 # Walk the World — Performance and Visuals Implementation Plan
 
-Updated: 31 October 2026. Reviewed base: `625eb77` on `origin/main`.
+Updated: 31 October 2026. Reviewed base: `4370629` on `origin/main`.
 Demo gates D1–D8 are closed. The smoothness track (section 0a) closed S1–S6 from
 live-deploy profiling; S7–S8 stay open. S9's real-input check did not reproduce
 the hang on 30 October. S7 has two changes awaiting target-laptop confirmation:
@@ -11,9 +11,9 @@ the interior view. A separate far-facade detail fade was rejected after GPU-time
 p95 increased in all four cities. S8's 0.85 integrated-Intel render-scale
 candidate passed the four-city host comparison; target-laptop measurement
 remains. The dependency audit is clean, but SEC1's live-data browser acceptance
-is still open. B3 now includes multipolygon relation support; the real OSM
-member geometry stitched successfully, while the Overpass query and R2 reseed
-remain open (see B3 below).
+is still open. B3's multipolygon relation query and full Edinburgh cell builder
+check now pass against the Britain and Ireland Overpass instance; demo-cell R2
+reseed remains open (see B3 below).
 This is the active plan. The [previous detailed checkpoint](docs/PLAN-CHECKPOINT-2026-10-28-BEFORE-REVIEW.md)
 preserves the full experiment history; its status is historical.
 
@@ -565,21 +565,27 @@ Decisions taken from the research:
     path. Focused tests cover reversed/out-of-order members, holes and broken
     chains. A read-only OSM API sample from Edinburgh relation `2344206`
     (cemetery; 10 outer member ways) stitched into one closed 32-point ring.
-    The OSM API sample validates real member geometry, but the Overpass query
-    itself remains unverified: the primary endpoint returned 406 without the
-    app User-Agent and timed out with it; both configured mirrors timed out.
+    The OSM API sample validated real member geometry. At that time the
+    Overpass query remained unverified: the primary endpoint returned 406
+    without the app User-Agent and timed out with it; both configured mirrors
+    timed out. The later live result is recorded below.
     See [the live-data check](benchmarks/results/stage0/b3-multipolygon-live-check-2026-10-30.md).
   - 31 Oct follow-up: the full Edinburgh request exhausted the three-mirror
     budget; the focused relation query got HTTP 502 at the primary (queue full)
     and timed out on both backups. A real OSM API relation passed through
-    `buildCityGeometry` and produced one closed 32-point ring. This confirms
-    builder integration, not Overpass query delivery or a full-city build.
+    `buildCityGeometry` and produced one closed 32-point ring. At that point,
+    this confirmed builder integration but not Overpass query delivery or a
+    full-city build; the later live result is recorded below.
     See the [updated live-data check](benchmarks/results/stage0/b3-multipolygon-live-check-2026-10-30.md).
-  - Open: (1) verify the new relation query and full city build when public
-    Overpass is reachable. A 31 Oct retry against the global `maps.mail.ru`
-    instance also returned HTTP 504 for the bounded relation query; see the
+  - 31 Oct live check: the Britain and Ireland Overpass endpoint returned the
+    cemetery relation and a full 650 m Edinburgh cell. The full query exposed
+    an unquoted `building:part` key; it is now quoted and covered by a query
+    test. One unrelated coastline way had null geometry vertices and is dropped
+    individually so it cannot invalidate an otherwise complete cell. The
+    validated 3,370-element cell passed the city builder with a closed cemetery
+    ring. The full suite (238 tests) and production build pass. See the
     [updated live-data check](benchmarks/results/stage0/b3-multipolygon-live-check-2026-10-30.md).
-    (2) Reseed demo cells so cached data carries the new tags (writes to R2;
+  - Open: reseed demo cells so cached data carries the new tags (writes to R2;
     prepare a reviewable change and ask first).
 - [ ] **B4 — Overture gap fill (S).** The Overture footprint fallback already
   exists for sparse cells. Remaining: merge Overture height, num_floors,
