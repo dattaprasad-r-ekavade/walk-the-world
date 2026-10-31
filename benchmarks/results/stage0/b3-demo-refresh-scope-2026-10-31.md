@@ -72,3 +72,22 @@ public servers can be overloaded. A single small Pune node query to that
 endpoint returned HTTP 504 from this host. No further query was sent and no
 endpoint change was made; the result is only a one-off availability probe.
 See the [OpenStreetMap Overpass API instance list](https://wiki.openstreetmap.org/wiki/Overpass_API).
+
+## Follow-up endpoint checks — 31 October 2026
+
+The three New York cells needed to extend the east boundary walk continued to
+return public-cache HEAD 404:
+`wtw_city6_40.758_-73.975`, `wtw_city6_40.752_-73.975`, and
+`wtw_city6_40.764_-73.975`. A small New York node query timed out after 25 s at
+`overpass-api.de`; the direct `lz4.overpass-api.de` host timed out after 20 s.
+A small Tokyo query to the Taiwan global endpoint failed DNS resolution from
+this host. The Britain and Ireland endpoint returned HTTP 200 for a small
+Edinburgh query, but its published data coverage is limited to Britain and
+Ireland, so it cannot stage the other Demo regions. No full-cell requests or
+R2 writes followed these probes.
+
+The OSM instance list identifies Private.coffee as the former Kumi service.
+The runtime mirror list has since dropped the old Kumi hostname to avoid
+querying that provider twice. A separate global fallback has not been added:
+the prior Maps Mail probe returned HTTP 504, and the other tested global
+endpoints did not return usable data from this host.

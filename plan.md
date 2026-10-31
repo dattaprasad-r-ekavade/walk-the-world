@@ -550,6 +550,13 @@ Decisions taken from the research:
     Pune query returned HTTP 504 from this host. This single probe does not
     establish a durable outage; no endpoint change was made. See the
     [refresh-scope report](benchmarks/results/stage0/b3-demo-refresh-scope-2026-10-31.md).
+  - 31 Oct follow-up: removed the old Kumi hostname from the runtime list so
+    failed requests no longer spend two mirror slots on Private.coffee. Further
+    tiny probes timed out at the primary and its direct `lz4` host, while the
+    Taiwan global endpoint did not resolve from this host. The Britain and
+    Ireland endpoint returned 200 for a small Edinburgh query but cannot serve
+    the other Demo regions. No replacement global endpoint is currently
+    verified; self-hosted/paid endpoint acceptance remains open.
 - [ ] **B3 — Procedural landuse ground (S–M).** Asphalt, grass, paving and
   water materials from landuse polygons instead of the near-white Carto
   raster; extends D1.
@@ -646,6 +653,13 @@ Decisions taken from the research:
     (99.4%) and 1,964/2,000 (98.2%) original building-way IDs. The review set
     combines seven cells from the city stage and two preserved single-cell runs.
     No R2 write occurred; the full 36-cell batch remains open.
+  - 31 Oct retry: the three outer New York cells used by the failed 0.8
+    boundary run still return public-cache HEAD 404. The primary global
+    Overpass endpoint and its direct `lz4` host timed out on tiny queries, and
+    the Taiwan endpoint did not resolve here. A small query succeeded on the
+    Britain and Ireland server, which is outside the New York/Tokyo regions;
+    no new candidates were staged. See the endpoint checks in the
+    [refresh-scope report](benchmarks/results/stage0/b3-demo-refresh-scope-2026-10-31.md).
   - Local review command: `npm run seed:verify-refresh -- --stage-dir=<path>`
     checks manifest completeness, payload hashes, city validity, the 90%
     building threshold and retained enrichment without contacting R2.
