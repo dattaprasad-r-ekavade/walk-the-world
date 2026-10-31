@@ -863,9 +863,18 @@ Decisions taken from the research:
 
 ### Phase C — larger bets, only with measured benefit
 
-- [ ] **C1 — osm2streets lanes and intersections (L).** Apache-2.0 Rust
-  library; the repo has an `osm2streets-js` WASM binding with GeoJSON output.
-  npm package name and WASM size are unconfirmed: build and measure first.
+- [ ] **C1 — osm2streets lanes and intersections (L).** The upstream
+  Apache-2.0 Rust library exposes an `osm2streets-js` WASM binding with
+  GeoJSON output.
+  **31 Oct feasibility spike:** `osm2streets-js@0.1.4` is 1.89 MB of WASM
+  (713 KB compressed). A staged Pune 650 m cell converted to OSM XML with no
+  node-coordinate conflicts and processed in 111 ms on the i7 host, but lane
+  markings alone serialized to 26.3 MB. The published declarations leave
+  import options untyped, and the WASM required an undocumented `osm2lanes`
+  boolean. Do not integrate yet. Pin/verify the WASM source and API, bound
+  transient lane output, then measure a lane-only browser path. This does not
+  close the C1 gate or prove target-device benefit; see the
+  [feasibility report](benchmarks/results/stage0/c1-osm2streets-feasibility-2026-10-31.md).
 - [ ] **C2 — Far-field HLOD and horizon backdrop (L).** Flat-coloured low-detail
   far cells with cross-fade; optional Cesium OSM Buildings or photoreal tiles
   beyond the procedural radius, within their terms.
