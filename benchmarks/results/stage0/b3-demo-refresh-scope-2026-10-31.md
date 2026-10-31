@@ -114,6 +114,17 @@ querying that provider twice. A separate global fallback has not been added:
 the prior Maps Mail probe returned HTTP 504, and the other tested global
 endpoints did not return usable data from this host.
 
+## Global endpoint retry — 31 October 2026
+
+After the successful Edinburgh stage, a tiny Pune query was repeated against
+the two configured global alternatives. Maps Mail returned HTTP 504 in 2.2 s;
+Private.coffee timed out after 25 s without a response. The primary global
+endpoint had also timed out on the preceding check. The only tested endpoint
+that answered promptly remains the Britain and Ireland server, whose data
+coverage does not include Pune, Tokyo, or New York. These probes created no
+candidate files and made no R2 writes. The public instance list and endpoint
+coverage are linked above.
+
 ## Standard OSM map API probe — 31 October 2026
 
 A single bounded map request for missing cell `wtw_city6_40.758_-73.975`

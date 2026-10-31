@@ -1,6 +1,6 @@
 # Walk the World — Performance and Visuals Implementation Plan
 
-Updated: 31 October 2026. Reviewed base: `8609aa5` on `origin/main`.
+Updated: 31 October 2026. Reviewed base: `b47b007` on `origin/main`.
 Demo gates D1–D8 are closed. The smoothness track (section 0a) closed S1–S6 from
 live-deploy profiling; S7–S8 stay open. S9's real-input check did not reproduce
 the hang on 30 October. S7 has two changes awaiting target-laptop confirmation:
@@ -22,7 +22,9 @@ B4's Overture-to-OSM merge now has offline field/precedence coverage; live cell
 coverage still awaits R2 configuration. B3 now has a local-only cache staging
 and verification workflow. The saved Edinburgh nine-cell set passes corrected
 offline checks that count rendered building parts; the full 36-cell Demo batch
-remains open.
+remains open. A resumed Edinburgh batch now passes local verification at 9/9
+(9/36 Demo cells); the remaining 27 cells still need a responsive global
+Overpass source.
 This is the active plan. The [previous detailed checkpoint](docs/PLAN-CHECKPOINT-2026-10-28-BEFORE-REVIEW.md)
 preserves the full experiment history; its status is historical.
 
