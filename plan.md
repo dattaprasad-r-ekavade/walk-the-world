@@ -20,11 +20,12 @@ The B3 terrain paint now survives asynchronous imagery completion, and a
 recorded Edinburgh browser replay shows streamed land-use paint. The demo-cell
 R2 reseed remains open pending separate write approval.
 B4's Overture-to-OSM merge now has offline field/precedence coverage; live cell
-coverage still awaits R2 configuration. B3 now has a local-only cache staging
-and verification workflow. The HPI mirror supplied all 36 Demo candidates;
-the full verifier and a four-city browser replay passed. Separate R2 upload
-approval and post-refresh live visual/performance acceptance remain open (see
-B3 below).
+coverage still awaits R2 deployment. B4 now also has a separate local-only
+36-cell enrichment stage, verified without R2 access or writes. B3 has its own
+local cache staging and verification workflow. The HPI mirror supplied all 36
+Demo candidates; the full verifier and four-city browser replay passed. Separate
+R2 upload approval and post-refresh live visual/performance acceptance remain
+open (see B3 below).
 B4 also has a hash-gated manifest uploader; its local dry run validates the
 reviewed 512-file index and all 36 Demo-cell bounds without contacting R2.
 Production upload and API acceptance remain open.
@@ -878,6 +879,19 @@ Decisions taken from the research:
     `556fce03a2bba85bf3ed963b12b2b96302ca89597f7e1d0ab1e261aa813f4570`.
     It made no R2 request or write. Production upload still requires separate
     approval and R2 credentials, then deployed API acceptance.
+  - 31 Oct local-only cell staging: `npm run seed:stage-overture` consumes a
+    ready refresh stage and the reviewed Overture index, queries public S3, and
+    creates a separate upload-compatible stage without R2 access. The new
+    `.cell-refresh-staging/b4-overture-demo-2026-10-31` stage passed the offline
+    verifier for all 36 cells. It contains 732 new field patches for Edinburgh
+    and 782 for New York; the refreshed Pune and Tokyo cells needed no additional
+    Overture fields. Its manifest SHA-256 is
+    `49e28d1ac44b350dad918390325cb27f19eb4f3846a074dc5abd6763fc3cd7eb`.
+    The B3 source stage remains unchanged at SHA-256
+    `b5dfea4f24dfe9ec28c439099e372c31df07fa88ca1230d17d395ead9ee7a133`.
+    No R2 requests or writes occurred; keep this new stage local pending review
+    and separate upload approval. See the
+    [local stage report](benchmarks/results/stage0/b4-overture-local-stage-2026-10-31.md).
   Overture segments have no lanes or sidewalk fields, so A4 uses OSM tags.
 
 ### Phase C — larger bets, only with measured benefit

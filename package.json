@@ -35,6 +35,7 @@
     "seed": "node scripts/warm-cities.mjs https://walk-the-world-delta.vercel.app --state=warm-state.json --conc=2",
     "seed:direct": "node --env-file=.env.local scripts/seed-direct.mjs --upgrade",
     "seed:stage-refresh": "node --env-file=.env.local scripts/stage-city-refresh.mjs --group=Demo",
+    "seed:stage-overture": "node scripts/stage-overture-enrichment.mjs",
     "seed:verify-refresh": "node scripts/verify-city-refresh-stage.mjs",
     "seed:upload-refresh": "node --env-file=.env.local scripts/upload-city-refresh-stage.mjs",
     "seed:demo": "node scripts/warm-cities.mjs https://walk-the-world-delta.vercel.app --group=Demo --conc=2",
