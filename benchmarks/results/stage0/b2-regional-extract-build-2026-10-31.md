@@ -24,7 +24,7 @@ release, SHA-256
 It compiled successfully in Ubuntu 22.04 under WSL with the documented
 compiler and Expat dependencies.
 
-## Local import status
+## Local import and query measurements
 
 The first no-metadata import ran on C: and reached 34 GiB while host free space
 fell below the 8 GiB safety margin. It was stopped before the disk filled. The
@@ -32,19 +32,36 @@ temporary WSL distro was moved to `D:\WTW-B2-Ubuntu`, and a clean import was
 started there. The interrupted partial database was removed after the clean
 retry passed its earlier checkpoint.
 
-At the time of this report, the clean import has completed its node pass and
-is processing ways. Its database is about 55 GiB, with about 59 GiB free on D:.
-This intermediate size is not the final imported footprint. The import process
-is local and uses a dedicated unprivileged `overpass` user.
+The clean import completed successfully in about 47 minutes. The final database
+directory occupies 62,183,795,009 bytes (57.9 GiB). The import ran locally as a
+dedicated unprivileged `overpass` user. It logged 600,010 missing-way geometry
+warnings while assembling relations. Regional extracts intentionally omit
+objects outside their boundaries, so this count is a review signal for
+incomplete boundary relations; it did not prevent the import or these local
+queries from succeeding.
+
+Four small bounding boxes around the Demo city centers were queried directly
+with `osm3s_query --db-dir`, selecting building nodes/ways/relations and
+highway ways, then returning `out count`. Each query succeeded and produced the
+same element counts on repeat runs. Timings include CLI startup and represent
+three serial local runs; they exclude HTTP, Worker, or network overhead.
+
+| Demo region | Query box (south, west, north, east) | Counted OSM elements | Query latency, median (range) |
+| --- | --- | ---: | ---: |
+| New York | `40.7090,-74.0090,40.7150,-74.0030` | 1,191 | 442 ms (440–445 ms) |
+| Pune | `18.5180,73.8540,18.5240,73.8600` | 1,293 | 117 ms (113–119 ms) |
+| Tokyo | `35.6730,139.6470,35.6790,139.6540` | 1,972 | 546 ms (521–573 ms) |
+| Edinburgh | `55.9500,-3.1910,55.9560,-3.1850` | 765 | 234 ms (227–242 ms) |
 
 ## Remaining acceptance
 
-- Let the no-metadata import finish and record its final on-disk database size.
-- Run representative local queries for the Demo regions and record latency and
-  response counts.
-- Reassess region scope and VPS requirements using those measurements. The
-  current broad regional input already produces a large database, so the
-  “small VPS” assumption remains unproven.
+- Review the 600,010 missing-way relation warnings and determine whether
+  narrower extracts or another import strategy improves boundary completeness.
+- Reassess region scope and VPS requirements using the measured database
+  footprint. The four local CLI queries were fast, but the 58 GiB database
+  makes the “small VPS” assumption unproven.
+- Test the complete city-cell queries through a deployed HTTP endpoint and
+  verify resource use and latency under realistic concurrency.
 - Keep B2 open until Worker/VPS deployment and endpoint acceptance are tested.
 
 No VPS, Cloudflare Worker, R2 object, or production configuration was created

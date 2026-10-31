@@ -20,7 +20,7 @@ HEAD requests to all four PBF URLs from this host timed out after 20 seconds,
 so no PBF file was downloaded and the reported sizes were not independently
 checked from response headers.
 
-## Import path and remaining measurement
+## Import path and initial blockers
 
 The [Osmium merge manual](https://docs.osmcode.org/osmium/latest/osmium-merge.html)
 supports combining sorted extracts and emits duplicate objects only once. The
@@ -32,40 +32,40 @@ regions, convert to OSM XML, import without metadata, then measure the actual
 database and temporary-disk footprint. The repository now has
 [`scripts/build-regional-overpass-source.sh`](../../../scripts/build-regional-overpass-source.sh)
 to download the four current extracts, verify Geofabrik's MD5 files, merge them
-with Osmium, and write a source checksum manifest. The script has not been run:
-direct PBF-host requests from this host timed out before the files could be
-downloaded. Git Bash is installed and its syntax check passes, but Osmium is
-missing. WSL exposes only the Docker Desktop distribution, and the Docker
-engine was unavailable during this check. The builder now bounds each
-connection to 30 seconds and each transfer to 30 minutes, writes the manifest
-to a temporary file, and removes any published output if the paired manifest
-cannot be published. The full download and merge still need a Linux environment
-with Osmium.
+with Osmium, and write a source checksum manifest. At the initial host check,
+the script had not been run: direct PBF-host requests timed out before the files
+could be downloaded. Git Bash was installed and its syntax check passed, but
+Osmium was missing. WSL exposed only the Docker Desktop distribution, and the
+Docker engine was unavailable. The builder now bounds each connection to 30
+seconds and each transfer to 30 minutes, writes the manifest to a temporary
+file, and removes any published output if the paired manifest cannot be
+published. Those blockers were later resolved by installing Osmium and using a
+local Ubuntu WSL distribution; see the
+[source/import report](b2-regional-extract-build-2026-10-31.md).
 
 A fresh 12-second HEAD request to the New York PBF checksum sidecar also timed
-out with HTTP 000 and no response bytes. The Docker service is stopped, and the
-local Windows host therefore still has no available Linux import runtime. No
-extract or checksum file was downloaded.
+out with HTTP 000 and no response bytes. At that point no extract or checksum
+file was downloaded; the later successful source build is recorded in the
+[source/import report](b2-regional-extract-build-2026-10-31.md).
 
 The 1.5 GB figure is compressed source data, not the imported Overpass database
 size. No provider or disk size is selected yet. The official full-install guide
 recommends at least 4 GB RAM and cites 100 GB for a full-planet database without
 metadata/minutely diffs; that planet figure does not establish the footprint of
-this smaller regional set. The first deployment gate is to run the regional
-import on a disposable Linux host with measured free disk, then retain the
-resulting database size and query behavior before choosing a VPS plan.
+this smaller regional set. The subsequent local import and query measurements
+are in the [source/import report](b2-regional-extract-build-2026-10-31.md);
+they do not select a provider or establish HTTP deployment behavior.
 
 No infrastructure was provisioned, and no R2 or production configuration was
 changed during this feasibility check.
 
-## Regional extract connectivity recheck — 31 October 2026
+## Initial regional extract connectivity recheck — 31 October 2026
 
 Bounded 15-second HEAD requests to the four published PBF URLs all timed out
 from the Windows host: New York state, Western Zone India, Kantō, and Scotland.
-No extract or checksum sidecar was downloaded. The compressed source set
-therefore remains a 1.5 GB estimate from the published pages, and the source
-builder still needs a Linux environment with Osmium and working Geofabrik
-access before an import-size measurement can begin.
+No extract or checksum sidecar was downloaded during this connectivity check.
+The later successful download and merge cleared that prerequisite, as recorded
+in the [source/import report](b2-regional-extract-build-2026-10-31.md).
 
 ## HPI Overpass full-cell staging observation — 31 October 2026
 

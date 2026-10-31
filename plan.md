@@ -645,14 +645,19 @@ Decisions taken from the research:
     merged file is 2,698,366,189 bytes with SHA-256
     `c9e3b3014dff2456ec531ddf8bc53ce635e0de3ddbc7cfbad75ccfe5e8843e6f`.
     The official Overpass 0.7.62.11 source also compiled successfully in an
-    Ubuntu 22.04 WSL distro. A no-metadata import is running locally. Its first
-    attempt reached 34 GiB before C: fell below the 8 GiB safety margin; that
-    partial database was discarded after moving the WSL distro to D:. The clean
-    retry has completed the node pass and is processing ways at about 55 GiB.
-    This is not the final database size or a query-acceptance result. No VPS,
+    Ubuntu 22.04 WSL distro. The clean no-metadata import completed in about
+    47 minutes and occupies 62,183,795,009 bytes (57.9 GiB). It emitted
+    600,010 missing-way relation-geometry warnings, so regional boundary
+    relations need separate completeness review. Four local building-and-road
+    count queries succeeded for New York, Pune, Tokyo and Edinburgh: 765–1,972
+    elements and 117–546 ms median CLI time across three serial runs. These are
+    small local query boxes, not HTTP/VPS or full-cell acceptance. The first
+    import attempt reached 34 GiB before C: fell below the 8 GiB safety margin;
+    it was stopped, and the clean retry ran after moving WSL to D:. No VPS,
     Worker, R2 or production configuration has been provisioned or changed.
-    Finish the import, run representative local queries, and record the final
-    database and query measurements before choosing infrastructure. See the
+    Use the measured footprint and boundary warnings to refine region scope,
+    then complete endpoint deployment and full-cell acceptance before closing
+    B2. See the
     [regional feasibility report](benchmarks/results/stage0/b2-regional-extract-feasibility-2026-10-31.md)
     and [source/import report](benchmarks/results/stage0/b2-regional-extract-build-2026-10-31.md).
 - [ ] **B3 — Procedural landuse ground (S–M).** Asphalt, grass, paving and
