@@ -543,6 +543,13 @@ Decisions taken from the research:
     tried first, and that a 503 falls back to the public Overpass mirrors. The
     focused lint and full suite (243 tests) pass. This does not validate a live
     Worker/VPS; endpoint configuration and deployment acceptance remain open.
+  - 31 Oct mirror audit: the official OSM instance list identifies
+    `overpass.private.coffee` as the former `overpass.kumi.systems`; the
+    current mirror list may therefore have only two independent global
+    operators. The same list names Maps Mail as a global instance, but a tiny
+    Pune query returned HTTP 504 from this host. This single probe does not
+    establish a durable outage; no endpoint change was made. See the
+    [refresh-scope report](benchmarks/results/stage0/b3-demo-refresh-scope-2026-10-31.md).
 - [ ] **B3 — Procedural landuse ground (S–M).** Asphalt, grass, paving and
   water materials from landuse polygons instead of the near-white Carto
   raster; extends D1.

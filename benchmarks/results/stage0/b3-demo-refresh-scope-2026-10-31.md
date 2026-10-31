@@ -60,3 +60,15 @@ cells remained pending. The local stage manifest at
 for later retry. The attempt did not save candidates, update R2, or produce a
 ready Pune batch. It was stopped after repeated failures to avoid additional
 requests to the same mirrors.
+
+## Alternate global Overpass probe — 31 October 2026
+
+The current mirror list includes `overpass.kumi.systems` and
+`overpass.private.coffee`. The official OpenStreetMap instance list identifies
+Private.coffee as the former Kumi service, so these may not be independent
+failure domains. The same list names Maps Mail's global endpoint
+`https://maps.mail.ru/osm/tools/overpass/api/interpreter` and notes that free
+public servers can be overloaded. A single small Pune node query to that
+endpoint returned HTTP 504 from this host. No further query was sent and no
+endpoint change was made; the result is only a one-off availability probe.
+See the [OpenStreetMap Overpass API instance list](https://wiki.openstreetmap.org/wiki/Overpass_API).
