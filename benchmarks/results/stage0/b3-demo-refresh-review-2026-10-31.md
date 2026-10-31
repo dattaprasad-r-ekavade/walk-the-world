@@ -55,5 +55,10 @@ post-refresh production acceptance.
 ## Remaining gate
 
 No R2 write occurred. Uploading this exact candidate set still requires
-separate approval. After an approved cache update, verify the deployed cells
-and complete live four-city visual and performance acceptance.
+separate approval. The prepared command is
+`npm run seed:upload-refresh -- --stage-dir=.cell-refresh-staging/hpi-demo-2026-10-31 --apply --manifest-sha256=b5dfea4f24dfe9ec28c439099e372c31df07fa88ca1230d17d395ead9ee7a133`.
+It rechecks all live originals before writing and records upload/rollback state
+in a local journal. This checkout has no `R2_*` credentials in `.env.local`, so
+the write is not currently configured. After an approved cache update, verify
+the deployed cells and complete live four-city visual and performance
+acceptance.

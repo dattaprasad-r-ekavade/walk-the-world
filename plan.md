@@ -771,8 +771,11 @@ Decisions taken from the research:
     [refresh scope](benchmarks/results/stage0/b3-demo-refresh-scope-2026-10-31.md)
     and [candidate screenshots](screenshots/performance-visuals/stage0/b3-demo-candidate-replay-2026-10-31/).
     No R2 writes occurred. Open: get separate approval before uploading these
-    candidates, then verify the deployed cache and capture live four-city visual
-    and performance acceptance.
+    candidates with `npm run seed:upload-refresh -- --stage-dir=<path> --apply
+    --manifest-sha256=<approved hash>`, then verify the deployed cache and
+    capture live four-city visual and performance acceptance. The upload script
+    preflights all originals and records rollback status. `.env.local` has no
+    `R2_*` credentials in this checkout.
 - [ ] **B4 — Overture gap fill (S).** The Overture footprint fallback already
   exists for sparse cells. Remaining: merge Overture height, num_floors,
   roof_shape, roof_color, facade_color and facade_material into OSM buildings
