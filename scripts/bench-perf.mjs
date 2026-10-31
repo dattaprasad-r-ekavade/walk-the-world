@@ -80,6 +80,35 @@ function summarizeTerrainGridCache(timings = []) {
   };
 }
 
+function watchFailedNextChunks(page) {
+  let resolveFailure;
+  const firstFailure = new Promise((resolve) => { resolveFailure = resolve; });
+  const isChunk = (url) => {
+    try { return new URL(url).pathname.startsWith('/_next/static/chunks/'); }
+    catch { return false; }
+  };
+  page.on('response', (response) => {
+    if (response.status() >= 400 && isChunk(response.url())) {
+      resolveFailure({ url: response.url(), status: response.status() });
+    }
+  });
+  page.on('requestfailed', (request) => {
+    if (isChunk(request.url())) {
+      resolveFailure({ url: request.url(), error: request.failure()?.errorText || 'request failed' });
+    }
+  });
+  return { firstFailure };
+}
+
+function raceUnlessNextChunkFails(waitPromise, monitor, phase) {
+  return Promise.race([
+    waitPromise,
+    monitor.firstFailure.then((failure) => {
+      throw new Error(`Next.js JavaScript chunk failed during ${phase}: ${JSON.stringify(failure)}`);
+    }),
+  ]);
+}
+
 const args = process.argv.slice(2);
 function option(name, fallback) {
   const index = args.indexOf(name);
@@ -669,7 +698,7 @@ function startHostTelemetry(sampleSeconds) {
   };
 }
 
-async function benchStreet(page) {
+async function benchStreet(page, browserDiagnostics, chunkMonitor) {
   const t0 = Date.now();
   if (ktx2DisposalAuditEnabled) {
     await page.addInitScript(() => {
@@ -879,13 +908,13 @@ async function benchStreet(page) {
     timeout: 60_000,
   });
   try {
-    await page.waitForFunction(() =>
+    await raceUnlessNextChunkFails(page.waitForFunction(() =>
       window.__engineReady === true &&
       !!window.__streetDebug?.player &&
       !!window.__streetDebug?.population?.() &&
       (!window.__BENCH_START_POSE || window.__BENCH_POSE_APPLIED === true), null, {
       timeout: READY_TIMEOUT,
-    });
+    }), chunkMonitor, 'StreetEngine startup');
   } catch (error) {
     if (!invalidFacadeLayout) throw error;
     const state = await page.evaluate(() => ({ ready: window.__engineReady, debug: !!window.__streetDebug, marks: window.__perfCounters?.marks, settings: window.__perfCounters?.settings }));
@@ -2008,11 +2037,18 @@ async function main() {
     console.log('  Warming origin city cell in IndexedDB…');
     const warmStartedAt = Date.now();
     const warmPage = await context.newPage();
+    const warmChunkMonitor = watchFailedNextChunks(warmPage);
     try {
       await warmPage.goto(streetUrl(), { waitUntil: 'domcontentloaded', timeout: 60_000 });
-      await waitForSpawnCellCache(warmPage, cityCacheKey(location.lat, location.lon));
+      await raceUnlessNextChunkFails(
+        waitForSpawnCellCache(warmPage, cityCacheKey(location.lat, location.lon)),
+        warmChunkMonitor,
+        'terrain-cache warmup',
+      );
       if (terrainCacheAuditEnabled) {
-        const persistedGridKey = await waitForTerrainGridCacheWarm(warmPage);
+        const persistedGridKey = await raceUnlessNextChunkFails(
+          waitForTerrainGridCacheWarm(warmPage), warmChunkMonitor, 'terrain-cache warmup',
+        );
         terrainGridCacheWarmup = { missObserved: true, indexedDbGridEntryVerified: true, persistedGridKey };
       }
       cache = {
@@ -2040,6 +2076,7 @@ async function main() {
   }
   const page = await context.newPage();
   const browserDiagnostics = { consoleErrors: [], pageErrors: [], assetFailures: [] };
+  const chunkMonitor = watchFailedNextChunks(page);
   const networkRecorder = createNetworkRecorder(page, baseOrigin);
   const isLocalAsset = (url) => {
     try {
@@ -2143,7 +2180,7 @@ async function main() {
       throw new Error(`Warm-cache preparation failed: ${cache.error || 'origin city cell was not persisted'}`);
     }
     console.log('  Street engine…');
-    result.street = await benchStreet(page);
+    result.street = await benchStreet(page, browserDiagnostics, chunkMonitor);
     if (terrainCacheAuditEnabled) {
       const audit = result.street.terrainGridCache;
       if (!audit || audit.resolveCount < 1) {
