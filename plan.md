@@ -443,8 +443,14 @@ Open:
   `--render-scale 0.85` with auto quality, verifies the applied scale, and
   records it beside the frame/GPU metrics. A local Rome headless smoke applied
   both scales successfully; its SwiftShader timings are not S8 evidence. Next:
-  run five alternating pairs per city with the same recorded 3×3 cells on the
-  target laptop. See the [fixed-scale probe](benchmarks/results/stage0/s8-fixed-scale-probe-2026-10-31.md).
+  `npm run bench:s8 -- --cell-dir .cell-refresh-staging/hpi-demo-2026-10-31/candidates`
+  validates all four 3×3 neighborhoods and prints the 40-capture schedule.
+  Start the matching local production build, then add `--run` to execute five
+  alternating cold-cache pairs per city on the target i5-1035G1 laptop. The
+  runner checks the clean source revision, foreground Chrome/Intel UHD renderer,
+  applied scale, measurement validity and browser errors, then writes local JSON
+  and Markdown summaries.
+  See the [fixed-scale probe](benchmarks/results/stage0/s8-fixed-scale-probe-2026-10-31.md).
 - [x] **S9 — Intermittent globe hang after orbit plus zoom.** Seen only under
   scripted input; the browser trace showed no long page or GPU task. A real
   drag orbit followed by wheel zoom on the 30 Oct local production build did not
