@@ -6,7 +6,8 @@
  * Optional fixed walking pose: --pose-x <meters> --pose-z <meters> --heading <radians> [--pose-pitch <radians>].
  * Environment lifecycle audit: --environment-audit [--environment-audit-cycles <count>] [--engine-teardown-audit].
  * Engine teardown audit: --engine-teardown-audit [--engine-teardown-cycles <count>].
- * Terrain IndexedDB audit: --data-mode recorded --cache-mode cold|warm --terrain-cache-audit.
+ * Terrain IndexedDB audit: --data-mode recorded --cache-mode cold|warm --terrain-cache-audit;
+ * warmup verifies a persisted grid matching the priming miss's content hash.
  * Wet-road audit: --wet-road-map-audit [--screenshot-before-walk --screenshot <path>].
  * High-tier post FX isolation: --ssao-mode preset|on|off --bloom-mode preset|on|off.
  * Matched pass screenshots: --postfx-pair bloom|ssao --screenshot-before-walk --screenshot <path>.
@@ -332,9 +333,11 @@ async function waitForSpawnCellCache(page, expectedKey) {
 }
 
 async function waitForTerrainGridCacheWarm(page) {
-  await page.waitForFunction(async () => {
+  const verifiedKey = await page.waitForFunction(async () => {
     const timeline = window.__perfCounters?.timeline || [];
-    if (!timeline.some((event) => event.name === 'terrain.height-grid-resolve' && event.details?.cacheHit === false)) return false;
+    const misses = timeline.filter((event) => event.name === 'terrain.height-grid-resolve' &&
+      event.details?.cacheHit === false && /^[0-9a-f]{64}$/u.test(event.details?.sourceHash || ''));
+    if (!misses.length) return false;
     if (typeof indexedDB?.databases !== 'function') return false;
     let databases;
     try { databases = await indexedDB.databases(); } catch { return false; }
@@ -355,18 +358,32 @@ async function waitForTerrainGridCacheWarm(page) {
         resolve(false);
         return;
       }
-      const request = transaction.objectStore('grids').count();
-      request.onsuccess = () => {
-        const hasEntry = request.result > 0;
+      const store = transaction.objectStore('grids');
+      const pending = new Set(misses.map((event) => `terrarium-grid-v1:${event.details.gridSize}:${event.details.sourceHash}`));
+      let foundKey = null;
+      for (const key of pending) {
+        const request = store.get(key);
+        request.onsuccess = () => {
+          const record = request.result;
+          if (record?.key === key && record.sourceHash && Number.isInteger(record.size) &&
+              record.key === `terrarium-grid-v1:${record.size}:${record.sourceHash}` &&
+              record.heights instanceof Float32Array && record.heights.length === record.size * record.size) {
+            foundKey ||= key;
+          }
+        };
+        request.onerror = () => {};
+      }
+      transaction.oncomplete = () => {
         db.close();
-        resolve(hasEntry);
+        resolve(foundKey);
       };
-      request.onerror = transaction.onabort = transaction.onerror = () => {
+      transaction.onabort = transaction.onerror = () => {
         db.close();
         resolve(false);
       };
     });
   }, null, { timeout: READY_TIMEOUT });
+  return verifiedKey.jsonValue();
 }
 
 function createNetworkRecorder(page, baseOrigin) {
@@ -1995,8 +2012,8 @@ async function main() {
       await warmPage.goto(streetUrl(), { waitUntil: 'domcontentloaded', timeout: 60_000 });
       await waitForSpawnCellCache(warmPage, cityCacheKey(location.lat, location.lon));
       if (terrainCacheAuditEnabled) {
-        await waitForTerrainGridCacheWarm(warmPage);
-        terrainGridCacheWarmup = { missObserved: true, indexedDbGridEntryVerified: true };
+        const persistedGridKey = await waitForTerrainGridCacheWarm(warmPage);
+        terrainGridCacheWarmup = { missObserved: true, indexedDbGridEntryVerified: true, persistedGridKey };
       }
       cache = {
         ok: true,
