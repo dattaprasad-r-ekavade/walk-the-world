@@ -413,7 +413,9 @@ Open:
   tiles with HTTP 200; a 5×5 height sample ranged 37.8 m across 600 m. This
   confirms local data presence, but not target-device behavior or reference
   terrain accuracy. Neither capture covers the full globe tour or the target
-  i5. Keep S7 open.
+  i5. Keep S7 open. The S7 runner now records the host CPU and rejects
+  `--confirm-target-i5-1035g1` unless the run is visible on Windows with that
+  processor; the Intel UHD renderer check remains separate.
   See the [full-city shader diagnostic report](benchmarks/results/stage0/s7-full-city-shadowdiag-2026-10-31.md),
   [JSON capture](benchmarks/results/stage0/s7-full-city-shadowdiag-2026-10-31.json),
   [Tokyo screenshot](screenshots/performance-visuals/stage0/s7-full-3x3-shadowdiag/tokyo-three-by-three-2026-10-31.png),

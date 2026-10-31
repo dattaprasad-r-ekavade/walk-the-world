@@ -8,6 +8,7 @@
 //   node scripts/s7-tour.mjs --headless --out=benchmarks/results/stage0/s7-tour-control.json
 
 import fs from "node:fs";
+import { cpus } from "node:os";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { recordedCityKeyForUrl, selectRecordedCityPayload } from "./bench-fixtures.mjs";
@@ -270,8 +271,22 @@ async function main(argv = process.argv.slice(2)) {
   const options = parseArgs(argv);
   if (options.help) {
     console.log("Usage: node scripts/s7-tour.mjs [baseUrl] [--headed --confirm-target-i5-1035g1] [--headless] [--quality=low|medium|high] [--cpu-profile-arrival|--cpu-profile-edinburgh] [--disable-gpu-program-cache] [--fixture=FILE] [--out=FILE] [--screenshots=DIR] [--walk-ms=5000]");
-    console.log("Run visibly on the target i5-1035G1 laptop and confirm the target device explicitly. Headless timings are control-flow evidence only.");
+    console.log("The target confirmation flag requires a visible Windows i5-1035G1 run; acceptance also checks the reported Intel UHD renderer. Headless timings are control-flow evidence only.");
     return 0;
+  }
+
+  const processors = cpus();
+  const host = {
+    platform: process.platform,
+    cpuModel: processors[0]?.model || null,
+    logicalProcessors: processors.length,
+  };
+  const targetCpuConfirmed = process.platform === "win32" && /i5-1035g1/i.test(host.cpuModel || "");
+  if (options.targetI5Confirmed && !options.headed) {
+    throw new Error("--confirm-target-i5-1035g1 requires --headed");
+  }
+  if (options.targetI5Confirmed && !targetCpuConfirmed) {
+    throw new Error(`Target confirmation rejected: expected Windows i5-1035G1; detected ${host.platform} / ${host.cpuModel || "unknown CPU"}`);
   }
 
   const paths = outputPaths(options);
@@ -383,6 +398,7 @@ async function main(argv = process.argv.slice(2)) {
     startedAt: new Date().toISOString(),
     runMode: options.headed ? "visible" : "headless-control-flow-only",
     qualityOverride: options.qualityOverride,
+    host,
     browserLaunchArgs: browserArgs,
     targetDeviceConfirmed: false,
     evidenceNote: options.headed
@@ -602,7 +618,8 @@ async function main(argv = process.argv.slice(2)) {
       noHttpErrors: httpErrors.length === 0,
       walkMoved: report.walk.displacementMeters !== null && report.walk.displacementMeters > 0.25,
       targetAdapterConfirmed: /Intel.*UHD|UHD.*Graphics/i.test(report.runtime.renderer || ""),
-      targetDeviceConfirmed: options.targetI5Confirmed,
+      targetCpuConfirmed,
+      targetDeviceConfirmed: options.targetI5Confirmed && targetCpuConfirmed,
       terrainVisualReviewRequired: true,
       performancePassed: false,
     };
