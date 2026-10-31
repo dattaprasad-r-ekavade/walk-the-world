@@ -32,5 +32,6 @@ benchmarks/results.json
 # rehearsal run reports (already-tracked ones remain tracked; acceptance *.md and PNGs stay)
 screenshots/**/*.json
 
-# Local backups written by seed-direct --refresh
+# Local city-cache staging and legacy backups
 .cell-backups/
+.cell-refresh-staging/

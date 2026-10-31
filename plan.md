@@ -604,12 +604,19 @@ Decisions taken from the research:
     and 16.9 ms frame p95 on the RTX 4060 host. This is not target-laptop or
     live-cache acceptance. See the [ground-overlay follow-up](benchmarks/results/stage0/b3-ground-overlay-2026-10-31.md)
     and [capture](screenshots/performance-visuals/stage0/b3-landuse/edinburgh-recorded-overlay-after-stream-2026-10-31.png).
-  - Open: reseed the four Demo neighborhoods (36 unique cache-version-6 cells)
-    so cached data carries the new tags; capture live four-city visuals and
-    performance acceptance after the cache update. The [refresh-scope report](benchmarks/results/stage0/b3-demo-refresh-scope-2026-10-31.md)
-    lists the exact keys. No R2 credentials are configured. The current direct
-    refresh uploads each cell as it passes validation, so stage a reviewable
-    batch and get approval before writing to R2.
+  - 31 Oct staging safeguard: `scripts/stage-city-refresh.mjs` prepares local
+    originals, candidate payloads and per-cell SHA-256 manifest entries. It
+    requires R2 read access, checks complete-cell validity and the
+    90% building-retention threshold, carries forward enrichment, and never
+    uploads. A batch is `ready` only when every requested cell passes. The
+    direct `seed-direct --refresh` path now refuses to run so a later cell
+    failure cannot silently leave a mixed cache group. Run with
+    `npm run seed:stage-refresh` when R2 read credentials are available. No R2
+    credentials are configured here, so no batch has been fetched or staged.
+  - Open: stage and review the 36 Demo neighborhoods (unique cache-version-6
+    cells; see the [refresh-scope report](benchmarks/results/stage0/b3-demo-refresh-scope-2026-10-31.md)),
+    then get separate approval before any R2 upload. Capture live four-city
+    visuals and performance acceptance after the cache update.
 - [ ] **B4 — Overture gap fill (S).** The Overture footprint fallback already
   exists for sparse cells. Remaining: merge Overture height, num_floors,
   roof_shape, roof_color, facade_color and facade_material into OSM buildings
