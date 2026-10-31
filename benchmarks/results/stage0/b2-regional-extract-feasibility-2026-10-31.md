@@ -66,3 +66,19 @@ No extract or checksum sidecar was downloaded. The compressed source set
 therefore remains a 1.5 GB estimate from the published pages, and the source
 builder still needs a Linux environment with Osmium and working Geofabrik
 access before an import-size measurement can begin.
+
+## HPI Overpass full-cell staging observation — 31 October 2026
+
+The HPI endpoint `https://osm.hpi.de/overpass/api/interpreter` was later
+selected through `OVERPASS_ENDPOINT` for the read-only B3 Demo refresh. A
+single-threaded 120-second full pass staged 32/36 cells; a 120-second resume
+reached 34/36; and a final 240-second resume reached 36/36. The full offline
+verifier passed all candidates, and no R2 writes occurred. The exact manifest,
+candidate review and four-city replay are in the
+[B3 refresh review](b3-demo-refresh-review-2026-10-31.md).
+
+This confirms full-cell reachability for the four sampled Demo neighborhoods
+on that run. Repeated timeouts and long retries do not establish a latency
+target, durable availability, or production deployment acceptance. The HPI
+endpoint was not added to the runtime mirror list; the self-hosted/paid
+independence option remains open.

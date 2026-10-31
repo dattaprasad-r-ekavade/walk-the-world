@@ -581,12 +581,21 @@ Decisions taken from the research:
     tiny probes timed out at the primary and its direct `lz4` host, while the
     Taiwan global endpoint did not resolve from this host. The Britain and
     Ireland endpoint returned 200 for a small Edinburgh query but cannot serve
-    the other Demo regions. No replacement global endpoint is currently
-    verified; self-hosted/paid endpoint acceptance remains open. The 31 Oct
+    the other Demo regions. At that point no replacement global endpoint had
+    been verified; self-hosted/paid endpoint acceptance remains open. The 31 Oct
     review of the official OSM instance list found no regional public service
     for New York, Pune or Tokyo; Japan's community endpoint is discontinued.
     See the endpoint coverage review in the
     [refresh-scope report](benchmarks/results/stage0/b3-demo-refresh-scope-2026-10-31.md).
+  - 31 Oct HPI endpoint observation: a read-only B3 stage selected
+    `https://osm.hpi.de/overpass/api/interpreter` through `OVERPASS_ENDPOINT`.
+    A 120-second full pass staged 32/36 cells, a 120-second resume reached
+    34/36, and a 240-second resume reached 36/36; the offline verifier passed
+    all candidates. This confirms full-cell reachability for these four Demo
+    neighborhoods on that run, not a latency or uptime target. The HPI endpoint
+    was not added to the runtime mirror list. See the
+    [regional feasibility report](benchmarks/results/stage0/b2-regional-extract-feasibility-2026-10-31.md)
+    and [B3 review](benchmarks/results/stage0/b3-demo-refresh-review-2026-10-31.md).
   - The official [Overpass installation guide](https://overpass-api.de/full_installation.html)
     recommends at least 4 GB RAM and at least 100 GB disk for a full-planet
     database without metadata or minutely diffs (250 GB with minutely updates).
