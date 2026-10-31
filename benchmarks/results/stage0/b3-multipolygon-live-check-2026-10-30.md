@@ -49,3 +49,11 @@ builder emitted one closed cemetery land-use ring with 32 points from ten
 member ways. This verifies the real relation geometry through the builder
 integration path, but it is not an Overpass response or a full-city build. The
 Overpass query and R2 demo-cell reseed remain open.
+
+An additional read-only retry used the same bounded relation query against the
+global `maps.mail.ru` Overpass instance listed by the
+[OpenStreetMap Overpass API instance directory](https://wiki.openstreetmap.org/wiki/Overpass_API#Public_Overpass_API_instances).
+It returned HTTP 504 (Gateway Time-out) after about two seconds, with no
+response data. The configured mirrors and this alternate public instance have
+all failed for this query; the query result and full-city build remain
+unverified. No further endpoint retries or R2 writes were made.

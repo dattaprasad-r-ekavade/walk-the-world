@@ -576,8 +576,11 @@ Decisions taken from the research:
     builder integration, not Overpass query delivery or a full-city build.
     See the [updated live-data check](benchmarks/results/stage0/b3-multipolygon-live-check-2026-10-30.md).
   - Open: (1) verify the new relation query and full city build when public
-    Overpass is reachable. (2) Reseed demo cells so cached data carries the new
-    tags (writes to R2; prepare a reviewable change and ask first).
+    Overpass is reachable. A 31 Oct retry against the global `maps.mail.ru`
+    instance also returned HTTP 504 for the bounded relation query; see the
+    [updated live-data check](benchmarks/results/stage0/b3-multipolygon-live-check-2026-10-30.md).
+    (2) Reseed demo cells so cached data carries the new tags (writes to R2;
+    prepare a reviewable change and ask first).
 - [ ] **B4 — Overture gap fill (S).** The Overture footprint fallback already
   exists for sparse cells. Remaining: merge Overture height, num_floors,
   roof_shape, roof_color, facade_color and facade_material into OSM buildings
