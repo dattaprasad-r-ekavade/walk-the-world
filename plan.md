@@ -1,6 +1,6 @@
 # Walk the World — Performance and Visuals Implementation Plan
 
-Updated: 31 October 2026. Reviewed base: `4370629` on `origin/main`.
+Updated: 31 October 2026. Reviewed base: `8ec296b` on `origin/main`.
 Demo gates D1–D8 are closed. The smoothness track (section 0a) closed S1–S6 from
 live-deploy profiling; S7–S8 stay open. S9's real-input check did not reproduce
 the hang on 30 October. S7 has two changes awaiting target-laptop confirmation:
@@ -14,6 +14,9 @@ remains. The dependency audit is clean, but SEC1's live-data browser acceptance
 is still open. B3's multipolygon relation query and full Edinburgh cell builder
 check now pass against the Britain and Ireland Overpass instance; demo-cell R2
 reseed remains open (see B3 below).
+The B3 terrain paint now survives asynchronous imagery completion, and a
+recorded Edinburgh browser replay shows streamed land-use paint. The separately
+authorized demo-cell R2 reseed remains open.
 This is the active plan. The [previous detailed checkpoint](docs/PLAN-CHECKPOINT-2026-10-28-BEFORE-REVIEW.md)
 preserves the full experiment history; its status is historical.
 
@@ -585,8 +588,19 @@ Decisions taken from the research:
     validated 3,370-element cell passed the city builder with a closed cemetery
     ring. The full suite (238 tests) and production build pass. See the
     [updated live-data check](benchmarks/results/stage0/b3-multipolygon-live-check-2026-10-30.md).
+  - 31 Oct canvas-order follow-up: asynchronous terrain imagery and B3/road
+    paint shared a canvas, so a late image response could erase already-painted
+    surfaces. Per-cell paint now batches into a retained per-tile overlay and
+    is composited again after imagery finishes. The road-paint diagnostic
+    records land-use ring and painted-tile counts. A visible Chrome replay of
+    recorded Edinburgh data, after streamed cells loaded, showed the cemetery
+    tint with 18 rings across 12 tile-paint events, zero browser or HTTP errors,
+    and 16.9 ms frame p95 on the RTX 4060 host. This is not target-laptop or
+    live-cache acceptance. See the [ground-overlay follow-up](benchmarks/results/stage0/b3-ground-overlay-2026-10-31.md)
+    and [capture](screenshots/performance-visuals/stage0/b3-landuse/edinburgh-recorded-overlay-after-stream-2026-10-31.png).
   - Open: reseed demo cells so cached data carries the new tags (writes to R2;
-    prepare a reviewable change and ask first).
+    prepare a reviewable change and ask first); capture live four-city visuals
+    and performance acceptance after the cache update.
 - [ ] **B4 — Overture gap fill (S).** The Overture footprint fallback already
   exists for sparse cells. Remaining: merge Overture height, num_floors,
   roof_shape, roof_color, facade_color and facade_material into OSM buildings
