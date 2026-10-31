@@ -567,9 +567,9 @@ Decisions taken from the research:
     `overpass.private.coffee` as the former `overpass.kumi.systems`; the
     current mirror list may therefore have only two independent global
     operators. A fresh tiny Pune query to Maps Mail returned HTTP 504; a query
-    to Private.coffee timed out after 25 seconds. The primary global endpoint
-    also timed out in the latest probe. These are availability observations,
-    not durable outage claims. See the
+    to Private.coffee timed out after 25 seconds. The primary global hostname
+    and its two official individual servers also timed out on tiny queries.
+    These are availability observations, not durable outage claims. See the
     [refresh-scope report](benchmarks/results/stage0/b3-demo-refresh-scope-2026-10-31.md).
   - 31 Oct follow-up: removed the old Kumi hostname from the runtime list so
     failed requests no longer spend two mirror slots on Private.coffee. Further

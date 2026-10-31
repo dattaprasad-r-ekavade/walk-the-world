@@ -125,6 +125,14 @@ coverage does not include Pune, Tokyo, or New York. These probes created no
 candidate files and made no R2 writes. The public instance list and endpoint
 coverage are linked above.
 
+The official [Overpass Commons documentation](https://dev.overpass-api.de/overpass-doc/en/preface/commons.html)
+identifies `gall.openstreetmap.de` and `lambert.openstreetmap.de` as the two
+servers behind `overpass-api.de`, and says to address them directly only when
+the round-robin endpoint is broken. Since the public hostname timed out, each
+host received one tiny Pune query. Both timed out after 25 s with no response.
+These are the same operator, not independent fallbacks; no full-cell request
+or further retry followed.
+
 ## Standard OSM map API probe — 31 October 2026
 
 A single bounded map request for missing cell `wtw_city6_40.758_-73.975`
