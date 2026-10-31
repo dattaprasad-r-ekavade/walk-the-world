@@ -1,6 +1,6 @@
 # Walk the World — Performance and Visuals Implementation Plan
 
-Updated: 31 October 2026. Reviewed base: `58c8366` on `origin/main`.
+Updated: 31 October 2026. Reviewed base: `70deb7d` on `origin/main`.
 Demo gates D1–D8 are closed. The smoothness track (section 0a) closed S1–S6 from
 live-deploy profiling; S7–S8 stay open. S9's real-input check did not reproduce
 the hang on 30 October. S7 has two changes awaiting target-laptop confirmation:
@@ -937,14 +937,16 @@ cold starts. Software rendering proves no hardware speedup.
   no `/api/city` cell requests; they did not cross a cell boundary. Two single-run
   Edinburgh local-dev captures crossed and validated a boundary through the
   regional Overpass-backed city API. A corrected New York cold walk on the
-  production origin (current build `58c8366`) also passed its eight-second
-  measurement window with no city API requests, but reproduced ten >100 ms frame
-  gaps (p95 466.5 ms, p99 516.6 ms). Renderer timestamps confirm the gaps; no
-  Long Task overlaps them, and delayed GPU timer samples mostly correlate,
-  pointing toward a graphics-pipeline/driver issue without localizing it. The
-  six local samples remain dirty and all captures are single runs; there is no
-  production boundary matrix. They do not close 0.8. See [the probe
-  report](benchmarks/results/stage0/0.8-live-cache-probes-2026-10-31.md).
+  production origin (build `58c8366`) passed its eight-second measurement with
+  no city API requests, but reproduced ten >100 ms frame gaps (p95 466.5 ms,
+  p99 516.6 ms). A production Chrome trace then found ten 486–600.5 ms gaps
+  between `FireAnimationFrame` events; every gap overlapped a 485.3–528.3 ms
+  `DXGISwapChainImageBacking::Present` call. One app animation callback also
+  blocked 495.2 ms in a WebGL framebuffer-status/command-buffer wait. This
+  localizes the current lead to DXGI presentation and one synchronous WebGL wait,
+  but target i5-1035G1 confirmation is still required. The six local samples
+  remain dirty and single-run; there is no production boundary matrix. They do
+  not close 0.8. See [the probe report](benchmarks/results/stage0/0.8-live-cache-probes-2026-10-31.md).
 
 Retained results: four day/night × clear/rain conditions have five valid runs each,
 with median frame p95 17.0–33.5 ms and tails into 33–34 ms. Five recorded cold/warm
