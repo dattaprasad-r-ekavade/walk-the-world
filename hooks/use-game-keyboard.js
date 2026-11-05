@@ -1,11 +1,19 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 
-export function useGameKeyboard(handler, deps = []) {
+/**
+ * Window keydown listener that always calls the latest `handler` without
+ * re-subscribing on every render.
+ */
+export function useGameKeyboard(handler) {
+  const handlerRef = useRef(handler);
   useEffect(() => {
-    const onKey = (e) => handler(e);
+    handlerRef.current = handler;
+  });
+  useEffect(() => {
+    const onKey = (e) => handlerRef.current(e);
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, deps);
+  }, []);
 }

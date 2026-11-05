@@ -236,8 +236,7 @@ export default function StreetEngine({ lat0, lon0, resumedPosition = false, demo
         e.preventDefault();
         setBigMap((b) => !b);
       }
-    },
-    [togglePanel, photoMode, setPhotoMode, togglePhotoMode, setPanel, whereAmI, clearWhereAmI]
+    }
   );
 
   if (bootError) throw bootError;

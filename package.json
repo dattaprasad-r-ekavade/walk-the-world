@@ -12,7 +12,7 @@
     "build": "next build",
     "build:bench": "node scripts/build-bench.mjs",
     "start": "next start",
-    "lint": "eslint .",
+    "lint": "eslint . --max-warnings=0",
     "test": "vitest run",
     "check": "npm run lint && npm test && npm run build",
     "portfolio:check": "npm test && npm run build",

@@ -4,23 +4,36 @@
 // the street engine's edit mode (E key at any location).
 import { useEffect, useState } from 'react';
 import { useGameStore } from '@/stores/game-store';
+import { useMounted } from '@/hooks/use-mounted';
+
+const fetchAssets = () =>
+  fetch('/api/assets').then((r) => r.json()).then((d) => (Array.isArray(d) ? d : null)).catch(() => null);
+
+function readEditorKey() {
+  try {
+    return typeof window === 'undefined' ? '' : localStorage.getItem('wtw_editor_key') || '';
+  } catch {
+    return '';
+  }
+}
 
 export default function EditorPage() {
   const [assets, setAssets] = useState([]);
   const [status, setStatus] = useState('');
-  const [editorKey, setEditorKey] = useState('');
-  const [mounted, setMounted] = useState(false);
+  // Only rendered after mount (see `mounted`), so reading storage here cannot
+  // cause a hydration mismatch.
+  const [editorKey, setEditorKey] = useState(readEditorKey);
+  const mounted = useMounted();
   const lastPosition = useGameStore((s) => s.lastPosition);
   const savedPlaces = useGameStore((s) => s.savedPlaces);
-  useEffect(() => setMounted(true), []);
+
+  const refresh = () => fetchAssets().then((d) => d && setAssets(d));
 
   useEffect(() => {
-    setEditorKey(localStorage.getItem('wtw_editor_key') || '');
-    refresh();
+    let cancelled = false;
+    fetchAssets().then((d) => { if (d && !cancelled) setAssets(d); });
+    return () => { cancelled = true; };
   }, []);
-
-  const refresh = () =>
-    fetch('/api/assets').then((r) => r.json()).then((d) => Array.isArray(d) && setAssets(d)).catch(() => {});
 
   const saveKey = (v) => {
     setEditorKey(v);
@@ -88,13 +101,15 @@ export default function EditorPage() {
           traffic / birds / people models world-wide (models should face +Z).
         </p>
         <label className="block text-sm text-slate-400">Editor key (from EDITOR_SECRET in .env.local)</label>
-        <input
-          type="password"
-          value={editorKey}
-          onChange={(e) => saveKey(e.target.value)}
-          className="mt-1 w-full rounded border border-slate-700 bg-slate-950 px-2 py-1 text-sm"
-          placeholder="wtw-editor-…"
-        />
+        {mounted && (
+          <input
+            type="password"
+            value={editorKey}
+            onChange={(e) => saveKey(e.target.value)}
+            className="mt-1 w-full rounded border border-slate-700 bg-slate-950 px-2 py-1 text-sm"
+            placeholder="wtw-editor-…"
+          />
+        )}
         <label className="mt-4 block text-sm text-slate-400">Upload .glb</label>
         <input
           type="file"

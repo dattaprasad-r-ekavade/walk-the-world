@@ -10,6 +10,7 @@ import { useEngineStatus } from '@/hooks/use-engine-status';
 import { useGameKeyboard } from '@/hooks/use-game-keyboard';
 import { useReverseGeocode } from '@/hooks/use-reverse-geocode';
 import { useGameStore } from '@/stores/game-store';
+import { useMounted } from '@/hooks/use-mounted';
 import { trackRender } from '@/lib/perf';
 import { fetchCityData } from '@/lib/engine/cityData';
 import { streetUrl } from '@/lib/geo';
@@ -59,7 +60,7 @@ export default function Home() {
   const guessWhereAmI = useGameStore((s) => s.guessWhereAmI);
   const clearWhereAmI = useGameStore((s) => s.clearWhereAmI);
 
-  const [ready, setReady] = useState(false);
+  const ready = useMounted();
   const [globeEnabled, setGlobeEnabled] = useState(false);
   const [globeReady, setGlobeReady] = useState(false);
   const [progress, setProgress] = useState({ pct: 0, stage: 'Starting…' });
@@ -73,7 +74,6 @@ export default function Home() {
   const { place, replayPlace } = useReverseGeocode(hudStatus.lat, hudStatus.lon, walking);
 
   useEffect(() => {
-    setReady(true);
     setScreen('menu');
   }, [setScreen]);
 
@@ -223,8 +223,7 @@ export default function Home() {
         setBigMap((b) => !b);
       }
       if (e.code === 'KeyN') replayPlace();
-    },
-    [screen, togglePanel, replayPlace, photoMode, setPhotoMode, togglePhotoMode, setPanel]
+    }
   );
 
   const hintText = walking

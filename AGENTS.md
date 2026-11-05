@@ -25,8 +25,9 @@ populate with buildings.
 
 ### Non-obvious gotchas
 - **Lint:** `npm run lint` runs the ESLint 9 CLI with `eslint.config.mjs`
-  (Next 16 removed `next lint`). React Compiler purity rules are warnings, not
-  errors; see the comment in that file.
+  (Next 16 removed `next lint`) and fails on any warning. The React Compiler
+  purity rules are on as errors: keep imperative engine state in
+  `lib/engine/street/runtime.js` / `lib/globe/runtime.js`, not in components.
 - **Benign dev-log noise:** `Failed to set fetch cache ... items over 2MB cannot
   be cached` appears when large Overpass responses exceed Next.js's 2MB fetch
   cache limit. This is not an error — the `/api/city/*` routes still return 200

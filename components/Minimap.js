@@ -61,7 +61,9 @@ export default function Minimap({
   const SIZE = size;
   const canvasRef = useRef(null);
   const stateRef = useRef({ lat, lon, heading, height, trail });
-  stateRef.current = { lat, lon, heading, height, trail };
+  useEffect(() => {
+    stateRef.current = { lat, lon, heading, height, trail };
+  });
 
   useEffect(() => {
     const canvas = canvasRef.current;

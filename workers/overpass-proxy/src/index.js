@@ -50,7 +50,7 @@ async function readLimitedBody(request) {
   return body;
 }
 
-export default {
+const overpassProxy = {
   async fetch(request, env) {
     const url = new URL(request.url);
     if (url.pathname !== "/api/interpreter") return new Response("Not found", { status: 404 });
@@ -112,3 +112,5 @@ export default {
     });
   },
 };
+
+export default overpassProxy;
