@@ -18,7 +18,7 @@ exploration remains available for any coordinate.
 | ![Baseline menu](screenshots/comparison/before/menu-desktop.png) | ![Portfolio menu](screenshots/comparison/after/menu-desktop.png) |
 | ![Baseline street](screenshots/comparison/before/street-desktop.png) | ![Portfolio street](screenshots/comparison/after/street-desktop.png) |
 
-See [`BEFORE-AFTER.md`](BEFORE-AFTER.md) for the measured comparison and mobile views.
+See [`docs/BEFORE-AFTER.md`](docs/BEFORE-AFTER.md) for the measured comparison and mobile views.
 
 ## Why it is technically interesting
 
@@ -51,7 +51,7 @@ AI service. The rules are versionable, testable, fast, and honest about their
 evidence. The architecture can later accept an open model without changing the
 review contract.
 
-Evaluation design is documented in [`AI-EVALUATION.md`](AI-EVALUATION.md).
+Evaluation design is documented in [`docs/AI-EVALUATION.md`](docs/AI-EVALUATION.md).
 
 ## Architecture
 
@@ -134,8 +134,8 @@ npm run start -- -p 3456
 
 The project includes historical benchmark fixtures and a new fair-comparison
 contract. Production runs must use the same browser, GPU mode, fixture, quality,
-viewport, and cache state. See [`PERFORMANCE-BUDGETS.md`](PERFORMANCE-BUDGETS.md)
-and [`BENCHMARK-PERF.md`](BENCHMARK-PERF.md).
+viewport, and cache state. See [`docs/PERFORMANCE-BUDGETS.md`](docs/PERFORMANCE-BUDGETS.md)
+and [`docs/BENCHMARK-PERF.md`](docs/BENCHMARK-PERF.md).
 
 Benchmark hooks (`?bench=1`) are disabled on production builds. To benchmark a
 production build run `npm run build:bench` (sets `NEXT_PUBLIC_ENABLE_BENCH=1`),
@@ -156,12 +156,12 @@ is separately identified by its runtime provenance.
 
 ## Documentation
 
-- [`CASE-STUDY.md`](CASE-STUDY.md) — engineering narrative
+- [`docs/CASE-STUDY.md`](docs/CASE-STUDY.md) — engineering narrative
 - [`plan.md`](plan.md) — detailed active implementation plan
 - [`plan.md`](plan.md) — active plan (demo track first, then performance/visual stages)
 - [`docs/PERFORMANCE-VISUALS-RESEARCH.md`](docs/PERFORMANCE-VISUALS-RESEARCH.md) — researched performance, Rust/Wasm/SIMD, shaders, textures, and visual-quality stages
 - [`docs/archive/`](docs/archive/) — superseded plans (plan2, roadmap, early benchmark)
-- [`RELEASE-CHECKLIST.md`](RELEASE-CHECKLIST.md) — launch gate
+- [`docs/RELEASE-CHECKLIST.md`](docs/RELEASE-CHECKLIST.md) — launch gate
 - [`CREDITS.md`](CREDITS.md) — data, libraries, and assets
 
 ## License and data

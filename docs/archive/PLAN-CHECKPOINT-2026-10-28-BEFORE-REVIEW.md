@@ -55,11 +55,11 @@ At the latest 28 October `git fetch origin`, `origin/main` was
 `241fcf3` was 20 commits ahead with no incoming changes. No push was performed.
 
 This is the active implementation sequence for
-[PERFORMANCE-VISUALS-PLAN.md](../PERFORMANCE-VISUALS-PLAN.md), which contains
+[PERFORMANCE-VISUALS-PLAN.md](../../PERFORMANCE-VISUALS-PLAN.md), which contains
 online research, sources and alternatives accessed on 27 October 2026.
 The old roadmap is preserved in
-[docs/PLAN-LEGACY-2026-10-27.md](../docs/PLAN-LEGACY-2026-10-27.md).
-Its historical checkboxes are not new validation. [plan2.md](../plan2.md)
+[PLAN-LEGACY-2026-10-27.md](PLAN-LEGACY-2026-10-27.md).
+Its historical checkboxes are not new validation. [plan2.md](plan2.md)
 retains broader product goals.
 
 Goal: more convincing real streets, responsive walking/driving, bounded resources
@@ -203,8 +203,8 @@ scripts/bench-perf.mjs and benchmarks/fixtures/.
     focus and visibility; host-window coverage ranged from 83% to 92%, and all
     five host windows passed the validator.
     A single telemetry-free control recorded 33.5 ms frame p95. See the
-    [five-run decision](../benchmarks/results/stage0/night-rain-five-run-decision.md)
-    and [compact JSON summary](../benchmarks/results/stage0/night-rain-five-run-summary.json).
+    [five-run decision](../../benchmarks/results/stage0/night-rain-five-run-decision.md)
+    and [compact JSON summary](../../benchmarks/results/stage0/night-rain-five-run-summary.json).
   - [x] Capture five matched 12-second visible-Chrome runs for all four
     day/night and clear/rain combinations on the same Intel UHD system. All 20
     frame windows and host windows passed validation; all pages stayed visible,
@@ -219,8 +219,8 @@ scripts/bench-perf.mjs and benchmarks/fixtures/.
     | Day / rain | 33.2 ms (16.9–33.8) | 8.14 ms | 56 | 48.37% | 67.86% | 2,758 MB |
     | Night / rain | 33.5 ms (17.1–34.3) | 10.55 ms | 50 | 64.51% | 72.72% | 1,747 MB |
 
-    See the [four-condition summary](../benchmarks/results/stage0/four-scenario-summary.json)
-    and the [day-rain scene capture](../benchmarks/results/stage0/main-local-day-rain-chrome-12s-rep1.png).
+    See the [four-condition summary](../../benchmarks/results/stage0/four-scenario-summary.json)
+    and the [day-rain scene capture](../../benchmarks/results/stage0/main-local-day-rain-chrome-12s-rep1.png).
     Day-rain and night-rain show the weakest median frame p95 despite lower GPU
     timer p95, so this evidence does not identify a GPU shader as the sole cause.
     One laptop, synthetic content and 12-second windows do not establish a
@@ -239,7 +239,7 @@ scripts/bench-perf.mjs and benchmarks/fixtures/.
     server-side Overpass traffic.
   - [x] Add recorded OSM replay through the browser's normal city API and
     IndexedDB path. Smoke cold, warm and cross-cell setup with the Rome showcase
-    fixture; the [summary](../benchmarks/results/stage0/recorded-city-cache-smoke.md)
+    fixture; the [summary](../../benchmarks/results/stage0/recorded-city-cache-smoke.md)
     confirms the warm origin-cell request is skipped and the 10-cell bound holds.
   - [x] Capture five interleaved 12-second cold/warm recorded walks. Median
     spawn-cell readiness was 5.36 s cold and 2.25 s warm after a separate 5.43 s
@@ -247,7 +247,7 @@ scripts/bench-perf.mjs and benchmarks/fixtures/.
     sizes were unavailable, so traffic totals cannot be compared.
   - [x] Capture five 12-second recorded boundary walks and five drives. All ten
     reached the expected east neighbor, settled with no failed cells, validated
-    host/frame windows, and retained 10/10 resident cells. The [run summary](../benchmarks/results/stage0/recorded-city-cache-smoke.md)
+    host/frame windows, and retained 10/10 resident cells. The [run summary](../../benchmarks/results/stage0/recorded-city-cache-smoke.md)
     reports frame/GPU timings, system load, resources and browser-visible cell
     traffic. Replayed payloads remain client/streaming evidence, not live
     Overpass measurements.
@@ -259,13 +259,13 @@ scripts/bench-perf.mjs and benchmarks/fixtures/.
     2,626–2,657 timing events without wrapping. The 4,524-element spawn cell's
     assembly median was 2,612.7 ms (2,450.3–2,630.3); spawn geometry was 219.8 ms
     (205.6–235.7). Neighbor assembly was 38.8 ms median per cell. See the
-    [profile report](../benchmarks/results/stage1/assembly-profile-2026-10-28.md)
-    and [five-run summary](../benchmarks/results/stage1/recorded-rome-assembly-profile-five-run.json).
+    [profile report](../../benchmarks/results/stage1/assembly-profile-2026-10-28.md)
+    and [five-run summary](../../benchmarks/results/stage1/recorded-rome-assembly-profile-five-run.json).
   - [x] Retry a cold live boundary walk in Manhattan on 28 October. The runner
     timed out after 180 seconds: the spawn cell had two `net::ERR_ABORTED`
     requests and one HTTP 502, the east neighbor did not complete, and no valid
     load/movement measurement was produced. This is an upstream/API failure,
-    not baseline evidence. See the [raw result](../benchmarks/results/stage0/main-727d46e-live-manhattan-cold-walk-smoke.json).
+    not baseline evidence. See the [raw result](../../benchmarks/results/stage0/main-727d46e-live-manhattan-cold-walk-smoke.json).
   - A first live cold smoke timed out while the local city API returned an
     upstream error, so it is not baseline evidence. A second live boundary retry
     recorded one `/api/city` 502, two transport failures and no measured cell;
@@ -275,7 +275,7 @@ scripts/bench-perf.mjs and benchmarks/fixtures/.
     hit the optional asset endpoint's expected 501 response; its four-second
     window is diagnostic only.
   - [x] Run a 15-minute recorded Rome desktop walk with resource sampling and
-    cell streaming. The [soak report](../benchmarks/results/stage1/resource-soak-2026-10-28.md)
+    cell streaming. The [soak report](../../benchmarks/results/stage1/resource-soak-2026-10-28.md)
     records 4.48 km of movement, 887 resource samples (98.6% coverage), a
     10/10 resident-cell bound, and stable geometry/texture/program counts after
     initial streaming. This closes the desktop resource-stability check only;
@@ -310,8 +310,8 @@ confirmed WebGL2 on Intel UHD 630
 (ANGLE/D3D11) with the GPU timer-query extension supported. The fixed-medium run
 was a warm, live-data 12-second walk at 1046x654 CSS pixels and DPR 1.25:
 
-- [Fixed-medium hardware report](../benchmarks/results/stage0/main-adf6d07-local-intel-uhd-medium-live-api-fixed-12s.json)
-- [Captured scene](../benchmarks/results/stage0/intel-uhd-medium-live-api-2026-10-27.png)
+- [Fixed-medium hardware report](../../benchmarks/results/stage0/main-adf6d07-local-intel-uhd-medium-live-api-fixed-12s.json)
+- [Captured scene](../../benchmarks/results/stage0/intel-uhd-medium-live-api-2026-10-27.png)
 - 539 frame samples: 22.85 ms mean, 16.7 ms p50, 33.5 ms p95, 49.8 ms p99;
   two frames exceeded 50 ms and none exceeded 100 ms. The measured 1% low was
   18.96 FPS.
@@ -334,7 +334,7 @@ stayed fixed for this run.
 
 Five additional 12-second stationary repetitions were collected without moving
 the player, on the same warm spawn cell and fixed-medium preset. The individual
-reports and [five-run summary](../benchmarks/results/stage0/main-adf6d07-local-intel-medium-idle-five-run-summary.json)
+reports and [five-run summary](../../benchmarks/results/stage0/main-adf6d07-local-intel-medium-idle-five-run-summary.json)
 are saved in `benchmarks/results/stage0/`:
 
 - Median frame p95 was 50.0 ms (range 33.5–50.7 ms); median p99 was 66.0 ms.
@@ -356,7 +356,7 @@ measurements are both material, so optimize only after a stable comparison.
 
 Five fixed-path, 12-second warm live-city walk repetitions were then captured in
 the visible local Chrome session on Intel UHD 630 at 1046x654 CSS pixels, DPR
-1.25, fixed medium quality, shadows on and post-FX off. The [five-run summary](../benchmarks/results/stage0/main-adf6d07-local-intel-walk-five-run-summary.json)
+1.25, fixed medium quality, shadows on and post-FX off. The [five-run summary](../../benchmarks/results/stage0/main-adf6d07-local-intel-walk-five-run-summary.json)
 and individual reports are saved in `benchmarks/results/stage0/`. Each run moved
 about 49.9 m through the warm spawn area:
 
@@ -380,8 +380,8 @@ audit next, while the noisy tails still block a pass/fail visual A/B.
 Earlier base-commit `52873ca` and SwiftShader reports are historical smoke tests;
 the browser-default and synthetic headless runs on `adf6d07` also selected
 SwiftShader. They validate runner paths only and are not hardware performance
-comparisons. The [synthetic dense report](../benchmarks/results/stage0/main-adf6d07-stage0-5-synthetic-dense-seed1337.json)
-recorded 48 geometries/25 textures/19 programs; the [seeded drive report](../benchmarks/results/stage0/main-adf6d07-stage0-7-synthetic-drive-seed1337.json)
+comparisons. The [synthetic dense report](../../benchmarks/results/stage0/main-adf6d07-stage0-5-synthetic-dense-seed1337.json)
+recorded 48 geometries/25 textures/19 programs; the [seeded drive report](../../benchmarks/results/stage0/main-adf6d07-stage0-7-synthetic-drive-seed1337.json)
 recorded 8.32 m of movement with a vehicle active.
 
 The first Overpass capture was not saved; the follow-up request to an alternate
@@ -395,16 +395,16 @@ attributes despite the provider help page's general statement that extracts
 omit author metadata; the committed archive and JSON have those attributes
 removed. The provenance sidecar records both the original download hash and the
 sanitized archive hash. The JSON records its provider file date, extraction
-area, attribution and ODbL 1.0 terms. See [fixture details](../benchmarks/fixtures/README.md),
+area, attribution and ODbL 1.0 terms. See [fixture details](../../benchmarks/fixtures/README.md),
 [BBBike extract service guidance](https://extract.bbbike.org/extract.html), and
 [OSM copyright and license guidance](https://www.openstreetmap.org/copyright).
 
 The real-world fixture completed two browser benchmark smokes on 27 October.
 Both used headless Chromium with SwiftShader, no GPU timer-query support and no
 movement-window FPS samples; these are fixture/renderer integration checks, not
-performance evidence. The [six-second smoke report](../benchmarks/results/stage0/main-adf6d07-osm-rome-swiftshader-6s.json)
+performance evidence. The [six-second smoke report](../../benchmarks/results/stage0/main-adf6d07-osm-rome-swiftshader-6s.json)
 records 4,524 fixture elements, no browser or asset errors, 49.2 seconds to
-stream the spawn city and 3.5 m of movement. The [capture-run report](../benchmarks/results/stage0/main-adf6d07-osm-rome-swiftshader-capture.json)
+stream the spawn city and 3.5 m of movement. The [capture-run report](../../benchmarks/results/stage0/main-adf6d07-osm-rome-swiftshader-capture.json)
 records 54.7 seconds to stream the same fixture and 0.5 m movement. Its rendered
 scene capture is saved at
 `benchmarks/results/stage0/rome-osm-showcase-swiftshader.png`.
@@ -413,13 +413,13 @@ The first boundary-crossing walk report exposed a resource-cap defect: cells
 with no new features skipped eviction, and the application was configured for
 9 cells even though the active 3x3 ring can coexist with a pinned spawn cell.
 The follow-up fix evicts empty cells and sets the cap to 10. A lifecycle test
-advances three empty rings and verifies the bound. The [walk report](../benchmarks/results/stage0/main-664b55f-osm-rome-walk-cross-cell-after-eviction-fix.json)
-and [drive report](../benchmarks/results/stage0/main-664b55f-osm-rome-drive-cross-cell-swiftshader.json)
+advances three empty rings and verifies the bound. The [walk report](../../benchmarks/results/stage0/main-664b55f-osm-rome-walk-cross-cell-after-eviction-fix.json)
+and [drive report](../../benchmarks/results/stage0/main-664b55f-osm-rome-drive-cross-cell-swiftshader.json)
 both crossed from `wtw_city6_41.890_12.492` to the expected east neighbor,
 finished neighbor streaming with zero failed cells, and retained exactly 10 of
 10 allowed cells. Walk displacement was 6.50 m; drive displacement was 12.86 m.
 These used headless SwiftShader, so their frame timings are excluded from GPU
-performance comparisons. The earlier [failed report](../benchmarks/results/stage0/main-664b55f-osm-rome-walk-cross-cell-swiftshader.json)
+performance comparisons. The earlier [failed report](../../benchmarks/results/stage0/main-664b55f-osm-rome-walk-cross-cell-swiftshader.json)
 is retained to show the regression that the new checks caught.
 
 Remaining Stage 0 gates: control OS load and integrated-GPU power/thermal state
@@ -437,14 +437,14 @@ production server returned HTTP 200 for `/`,
 with a 1046x654 WebGL canvas and no console errors or warnings. This confirms
 local build and startup only; it does not close the performance or device matrix.
 
-The clean-revision [night/rain fixture smoke](../benchmarks/results/stage0/main-local-night-rain-swiftshader-smoke.json)
+The clean-revision [night/rain fixture smoke](../../benchmarks/results/stage0/main-local-night-rain-swiftshader-smoke.json)
 used commit `aea4e00`, medium quality, seed 1337, a fixed player pose, hour 21,
 weather 90 and the synthetic prop-heavy fixture. The runner verified those exact
 settings, 1.00 m movement and zero console/page/local-asset errors. Its selected
 renderer was SwiftShader and its one-second requested walk accumulated 32.3 s of
 frame intervals under 96.4% system CPU load. Do not interpret those timings as
 integrated-GPU performance. Windows reported no supported ACPI thermal zone.
-The [captured night/rain scene](../benchmarks/results/stage0/main-local-night-rain-swiftshader-smoke.png)
+The [captured night/rain scene](../../benchmarks/results/stage0/main-local-night-rain-swiftshader-smoke.png)
 shows the requested UI state; real-GPU road/wetness appearance remains open.
 
 Exit: repeated JSON/captures and a measured bottleneck report, without
@@ -460,39 +460,39 @@ street/cell-stream.js, street/terrain.js and street/resources.js.
 - [x] 1.1 Split measured assembly/paint/upload hotspots into time-budgeted work.
   Start individual chunk goals at 8 ms desktop / 12 ms mobile, then calibrate.
   Prioritise centre/visible data and stagger finished neighbour uploads. The
-  [interleaved desktop decision](../benchmarks/results/stage1/assembly-budget-decision-2026-10-28.md)
+  [interleaved desktop decision](../../benchmarks/results/stage1/assembly-budget-decision-2026-10-28.md)
   records the five-pair result and remaining mobile gates. The
   candidate's chunk p95 was 8.1 ms median and paired readiness delta was +3 ms;
-  the earlier [recorded profile](../benchmarks/results/stage1/assembly-profile-2026-10-28.md)
+  the earlier [recorded profile](../../benchmarks/results/stage1/assembly-profile-2026-10-28.md)
   remains the pre-change baseline context.
 - [x] 1.2 Bound queues, cancel obsolete work and reject stale results. Preserve
   transactional rollback of scene objects, footprints and reserved IDs. The
-  [lifecycle checkpoint](../benchmarks/results/stage1/stream-lifecycle-checkpoint-2026-10-28.md)
+  [lifecycle checkpoint](../../benchmarks/results/stage1/stream-lifecycle-checkpoint-2026-10-28.md)
   records bounded geometry/cell queues, per-cell cancellation, stale-worker
   fencing, rollback coverage, 112 passing tests, a production build, and a
-  recorded Rome boundary smoke. The separate [15-minute soak report](../benchmarks/results/stage1/resource-soak-2026-10-28.md)
+  recorded Rome boundary smoke. The separate [15-minute soak report](../../benchmarks/results/stage1/resource-soak-2026-10-28.md)
   now verifies desktop resource stability during a 4.48 km walk.
 - [ ] 1.3 Compare one/two geometry workers on low-core devices. Include KTX2
   decoder workers in contention/memory decisions; retain defaults unless measured.
   - [x] Add a benchmark-only one/two-worker control and a Windows CPU-affinity
-    harness. The [five-pair constrained desktop comparison](../benchmarks/results/stage1/geometry-worker-affinity-four-logical-five-pair.md)
+    harness. The [five-pair constrained desktop comparison](../../benchmarks/results/stage1/geometry-worker-affinity-four-logical-five-pair.md)
     reduced worker queue delay with two workers but showed no reliable cold-ready
     or frame-time gain. Keep the existing two-worker default. A physical low-core
     device, attributable process memory, and Stage 3.5 KTX2 decoder contention
     remain unmeasured, so 1.3 stays open.
 - [x] 1.4 Reduce measured clones and temporary allocations. The [city-data
-  copy comparison](../benchmarks/results/stage1/city-data-copy-on-write-five-pair.json)
+  copy comparison](../../benchmarks/results/stage1/city-data-copy-on-write-five-pair.json)
   measured a 17.5 ms median defensive clone; the read-only path skips it and
   uses copy-on-write for editor changes. Startup and frame p95 did not improve.
-  The [road-query comparison](../benchmarks/results/stage1/road-query-index-five-pair.json)
+  The [road-query comparison](../../benchmarks/results/stage1/road-query-index-five-pair.json)
   justified a local segment grid: query plus index-build time fell by a paired
   median 9 ms, with identical output-buffer size. Collision and height caches
-  were left intact. The [checkpoint report](../benchmarks/results/stage1/city-data-and-road-query-checkpoint-2026-10-28.md)
+  were left intact. The [checkpoint report](../../benchmarks/results/stage1/city-data-and-road-query-checkpoint-2026-10-28.md)
   records the five-pair results and limits.
 - [x] 1.5 Verify terrain eviction/revisit, road repaint, shared material ownership,
   late imagery callbacks and stationary retries. The [lifecycle verification
-  report](../benchmarks/results/stage1/stage1-lifecycle-verification-2026-10-28.md)
-  records the targeted regression coverage. The [15-minute resource soak](../benchmarks/results/stage1/resource-soak-2026-10-28.md)
+  report](../../benchmarks/results/stage1/stage1-lifecycle-verification-2026-10-28.md)
+  records the targeted regression coverage. The [15-minute resource soak](../../benchmarks/results/stage1/resource-soak-2026-10-28.md)
   passed on the Windows desktop: 887 samples, 4.48 km movement, a settled
   10/10 resident-cell bound, and stable resource counts after initial streaming.
 
@@ -510,37 +510,37 @@ Files: styles.js, materials.js, facade-uv.js, city-builder-core.js,
 street/assemble-city.js, post-fx.js and StreetEngine.js.
 
 - [x] 2.1 Inventory material keys, scene geometry, shader programs, draw calls
-  and texture-role bindings per tier. The [three-tier census](../benchmarks/results/stage2/material-inventory-three-tier.md)
+  and texture-role bindings per tier. The [three-tier census](../../benchmarks/results/stage2/material-inventory-three-tier.md)
   covers the recorded Rome fixture; factory caches stay fixed at 4 building,
   3 roof, 7 road and 20 simple keys. Its raw material values are empty, so named
   family coverage remains for 2.2.
 - [x] 2.2 Map raw OSM material names to bounded families, retaining meaningful
   plaster/brick/stone/metal/glass differences and deterministic colour variation.
-  The [tagged material smoke](../benchmarks/results/stage2/material-family-mapping-smoke.md)
+  The [tagged material smoke](../../benchmarks/results/stage2/material-family-mapping-smoke.md)
   reduced 16 canonical/alias/unknown names to 10 building factory keys; the Rome
   showcase itself has no `building:material` values.
 - [x] 2.3 Prototype family batching with linear-space vertex tint. Preserve AO/
   jitter without multiplying base tint twice. Keep chunk-local culling bounds,
   feature metadata and independent collision/editor picking. The
-  [five-run interleaved A/B](../benchmarks/results/stage2/material-family-batching-smoke.md)
+  [five-run interleaved A/B](../../benchmarks/results/stage2/material-family-batching-smoke.md)
   kept the matched view visually equivalent and reduced mean draw calls by
   3.9% (22.20 to 21.33) at unchanged median frame p95 (20.7 ms). GPU p95 was
   0.09 ms higher with overlapping ranges, so keep this as a neutral-cost
   synthetic improvement; real-city and mobile acceptance remain open.
 - [x] 2.4 Audit sRGB colour/emissive maps versus non-colour normal/ORM data and
   one final tone/output conversion in direct/post-processed rendering. The
-  [audit](../benchmarks/results/stage2/material-color-space-audit.md) records map
+  [audit](../../benchmarks/results/stage2/material-color-space-audit.md) records map
   roles, explicit sRGB fixes and direct/composer output paths.
 - [x] 2.5 Compare simple low/far materials with near PBR using actual GPU timings.
   Preserve important road, glass and metal response. The five-run Rome replay A/B
   found unchanged frame p95, overlapping GPU p95, and no reduction in mean draws;
-  the prototype was reverted. See the [comparison and decision report](../benchmarks/results/stage2/rendering-follow-up-2026-10-28.md).
+  the prototype was reverted. See the [comparison and decision report](../../benchmarks/results/stage2/rendering-follow-up-2026-10-28.md).
 - [x] 2.6 Keep necessary shader patches version-matched, with stable cache keys
   and shared uniforms. Preserve fog/instancing/lighting/vertex colours/depth.
   Time/weather changes must not trigger per-object shader recompilation. The
   walk-cycle patch now matches color, directional-shadow depth and point-light
   distance deformation through shared uniforms and stable per-variant keys. The
-  build and recorded-city browser smoke passed; see the [shader audit](../benchmarks/results/stage2/rendering-follow-up-2026-10-28.md).
+  build and recorded-city browser smoke passed; see the [shader audit](../../benchmarks/results/stage2/rendering-follow-up-2026-10-28.md).
 
 ### Controlled checkpoint — Prop material cache and spatial batching
 
@@ -553,9 +553,9 @@ and optional Overture data were held constant; the same 256 props, 96
 pedestrians, 31 cars, 24 birds and nine settled cells were present in every run.
 Each run moved about 60 m and recorded zero benchmark validation errors.
 
-The [A/B result](../benchmarks/results/stage2/prop-material-cache-ab.json) and
-[matched baseline capture](../benchmarks/results/stage2/matched-baseline-initial.png)
-and [candidate capture](../benchmarks/results/stage2/matched-candidate-initial.png)
+The [A/B result](../../benchmarks/results/stage2/prop-material-cache-ab.json) and
+[matched baseline capture](../../benchmarks/results/stage2/matched-baseline-initial.png)
+and [candidate capture](../../benchmarks/results/stage2/matched-candidate-initial.png)
 are retained. On visible Chrome 155 with Intel UHD 630, the median frame p95
 was 16.8 ms for both builds. The candidate cut mean draw calls from 47.2 to
 26.9 (-43%), but increased median GPU p95 from 5.73 ms to 7.58 ms (+32%) and
@@ -573,20 +573,20 @@ weather or long-walk gates.
 
 The Stage 2.1 medium-tier census and diagnostic hook are now extended to low,
 medium and high quality in the recorded Rome fixture. See the
-[three-tier census](../benchmarks/results/stage2/material-inventory-three-tier.md).
+[three-tier census](../../benchmarks/results/stage2/material-inventory-three-tier.md).
 The same 154 scene materials and 42 referenced textures appeared at all tiers;
 program count rose from 26/28 to 64 at high quality, where mean draw calls also
 rose from about 238 to 446 in this single run. The Rome fixture has no named
 building-material tags, so Stage 2.2 used a separate CC0 material fixture and
 smoke report. The family-batching prototype is recorded in
-[its five-run A/B report](../benchmarks/results/stage2/material-family-batching-smoke.md).
+[its five-run A/B report](../../benchmarks/results/stage2/material-family-batching-smoke.md).
 The interleaved comparison reduced mean draw calls by 3.9%, kept frame p95
 unchanged, and showed a 0.09 ms higher GPU p95 with overlapping ranges. Stage
 2.3 is retained for this synthetic workload; real-city and mobile gates remain
 open. Stage 2.4's color-space audit is recorded in
-[its audit report](../benchmarks/results/stage2/material-color-space-audit.md).
+[its audit report](../../benchmarks/results/stage2/material-color-space-audit.md).
 The Stage 2.5 far-material A/B and Stage 2.6 walk/shadow shader audit are
-recorded in the [rendering follow-up](../benchmarks/results/stage2/rendering-follow-up-2026-10-28.md).
+recorded in the [rendering follow-up](../../benchmarks/results/stage2/rendering-follow-up-2026-10-28.md).
 
 Exit: lower submission/program cost or approved visual gain at neutral cost;
 no hue, silhouette, placement or editor-selection regression.
@@ -600,7 +600,7 @@ scripts/build-assets.mjs and public/textures/.
 - [x] 3.1 Curate a coherent plaster/brick/stone/concrete/asphalt/paving set and
   small prop kit. Use the researched Poly Haven, ambientCG, Kenney and Quaternius
   sources; record actual asset URLs/licenses. Reuse existing credited assets.
-  - The [source manifest](../assets/manifest.json) selects six ambientCG surfaces
+  - The [source manifest](../../assets/manifest.json) selects six ambientCG surfaces
     and four Kenney City Kit Roads props. Poly Haven and Quaternius remain
     alternates for later additions; no library-wide import was made.
 - [x] 3.2 Record author, license, source hash, metre scale, UV density, map roles
@@ -620,14 +620,14 @@ scripts/build-assets.mjs and public/textures/.
     details, and the emissive cells use identical layout and window coordinates.
     Four Kenney GLBs have bottom-centred pivots, metre scaling and audited +Z
     fronts. No directional sunlight is baked into albedo. Tool versions, atlas
-    rectangles and output hashes are in [the manifest](../assets/manifest.json);
-    rebuild steps are in [the asset pipeline notes](../assets/README.md). Outputs
+    rectangles and output hashes are in [the manifest](../../assets/manifest.json);
+    rebuild steps are in [the asset pipeline notes](../../assets/README.md). Outputs
     remain offline and are not yet loaded or approved in the game.
 - [x] 3.4 Pin offline conversion tools. Compare KTX2 ETC1S/UASTC per map type,
   inspecting normals, window detail and masks. ORM packing saves files; stock
   shaders may still sample each map separately.
   - KTX-Software v4.4.2 is pinned from the official stable release; the Windows
-    x64 installer SHA-256 is in [the asset manifest](../assets/manifest.json).
+    x64 installer SHA-256 is in [the asset manifest](../../assets/manifest.json).
     `ktx create` encoded all nine shared/facade maps as ETC1S and UASTC; every
     output passed `ktx validate --gltf-basisu`. `ktx extract` from the same
     release decoded the maps for review. Tool commands and per-output hashes are
@@ -636,14 +636,14 @@ scripts/build-assets.mjs and public/textures/.
     Zstandard 18 and RDO lambda 1.0 (0.5 for normals). RGB normal channels and
     facade alpha are retained. These are single-base-level comparisons; mip
     generation remains in 3.6.
-  - The [comparison report](../assets/processed/ktx2/comparison.md) records sizes,
+  - The [comparison report](../../assets/processed/ktx2/comparison.md) records sizes,
     decoded RGB PSNR and mask overlap. Across the nine maps, ETC1S files total
     3.1 MB and UASTC files 21.5 MB; these are transfer sizes, not GPU residency.
     UASTC better preserves facade wall/window detail. The emissive bright-window
     mask IoU is 0.9976 for UASTC versus 0.9855 for ETC1S; the facade albedo alpha
     mask IoU is 1.0000 for both. Reviewed maps are shown in the [atlas
-    comparison](../assets/processed/ktx2/quality-review.png) and [facade detail
-    comparison](../assets/processed/ktx2/quality-review-facade-detail.png). Stage
+    comparison](../../assets/processed/ktx2/quality-review.png) and [facade detail
+    comparison](../../assets/processed/ktx2/quality-review-facade-detail.png). Stage
     3.5 accepted UASTC for the shared runtime maps; lower-memory hardware remains
     a release check.
 - [x] 3.5 Add one shared support-detected KTX2 loader, bounded decoder workers,
@@ -656,8 +656,8 @@ scripts/build-assets.mjs and public/textures/.
     1.7 ms upload submission and an estimated 1,398,176 bytes of compressed
     mip residency. Input-ready was 2,323 ms; first building 2,475 ms.
     Forced HTTP 503 responses left the procedural fallback operational and the
-    city streamed successfully. See the [runtime acceptance report](../benchmarks/results/stage3/ktx2-runtime-gpu-smoke.md)
-    and [captures](../benchmarks/results/stage3/).
+    city streamed successfully. See the [runtime acceptance report](../../benchmarks/results/stage3/ktx2-runtime-gpu-smoke.md)
+    and [captures](../../benchmarks/results/stage3/).
   - Both ETC1S and UASTC variants validate for glTF BasisU. Three.js 0.170.0
     does not expose separate
     worker WASM compilation and transcode timings or GPU upload completion, so
@@ -671,20 +671,20 @@ scripts/build-assets.mjs and public/textures/.
     generation tiles the image horizontally before filtering.
   - [x] Reviewed the facade mip repeat boundary at levels 0–4, 6, 8 and 10.
     Mean absolute RGB edge deltas range from 0.46 at level 0 to 12.71 at level 6;
-    see the [mip review](../benchmarks/results/stage3/ktx2-mipmap-review.json) and
-    [contact sheet](../benchmarks/results/stage3/ktx2-mipmap-repeat-review.png).
+    see the [mip review](../../benchmarks/results/stage3/ktx2-mipmap-review.json) and
+    [contact sheet](../../benchmarks/results/stage3/ktx2-mipmap-repeat-review.png).
   - [x] Build and select the packed high-tier near atlases, then review their
     gutters, projected detail and device memory cost.
     The runtime loads four 1600×2096 maps plus a layout file only on high; the
     512×1024 shared pair remains active on low/medium and after a quality
     downgrade. A matched Rome capture on an RTX 4060 shows facade windows and
     aligned material-family sampling with no shader/asset errors. The [GPU
-    smoke report](../benchmarks/results/stage3/ktx2-near-atlas-gpu-smoke.md) records
+    smoke report](../../benchmarks/results/stage3/ktx2-near-atlas-gpu-smoke.md) records
     6,269,713 transferred bytes including layout, 249–274 ms combined worker/WASM
     transcode, 8.5–9.8 ms upload submission, 17,889,344 estimated high-map
     resident bytes and 19,287,520 bytes total with the shared pair. The [paired
-    captures](../benchmarks/results/stage3/ktx2-high-vs-shared-atlas.png) and [mip
-    review](../benchmarks/results/stage3/ktx2-high-atlas-mip-gutter-review.png)
+    captures](../../benchmarks/results/stage3/ktx2-high-vs-shared-atlas.png) and [mip
+    review](../../benchmarks/results/stage3/ktx2-high-atlas-mip-gutter-review.png)
     cover the current RTX 4060 desktop. Gutter padding falls below one pixel
     after mip 4, so mobile/low-memory and far-LOD seam review remain release
     checks; the short frame samples are diagnostic, not a performance A/B.
@@ -724,7 +724,7 @@ street/assemble-city.js and StreetEngine.js.
     fixture. Frame-p95 medians were 33.9 ms clear and 33.6 ms rain; the 3D engine
     stayed near 92% median utilization on this machine. The captures show rain
     clearly, but the road-reflection difference is subtle, so close-up visual
-    acceptance remains open. See the [current-code checkpoint](../benchmarks/results/stage4/current-main-local-fallback-rome-night.md).
+    acceptance remains open. See the [current-code checkpoint](../../benchmarks/results/stage4/current-main-local-fallback-rome-night.md).
   - Added stable seeded random generation for procedural normal, roughness and
      rail-ballast textures so visual captures use the same maps across runs; this
      work occurs during asset creation and adds no per-frame work. The production
@@ -737,8 +737,8 @@ street/assemble-city.js and StreetEngine.js.
      scanline sample found road-to-adjacent-ground luminance contrast of
      -39.08 clear and -39.12 rain, so these captures do not demonstrate a
      road-specific reflection gain. Keep visual acceptance open. See the
-     [clear capture](../benchmarks/results/stage4/deterministic-wet-road-night-clear.png),
-     [rain capture](../benchmarks/results/stage4/deterministic-wet-road-night-rain.png),
+     [clear capture](../../benchmarks/results/stage4/deterministic-wet-road-night-clear.png),
+     [rain capture](../../benchmarks/results/stage4/deterministic-wet-road-night-rain.png),
      and their adjacent JSON reports.
    - Wet roads now also darken their existing diffuse color by up to 14%, while
      retaining the dry color for reversible weather updates. This changes a
@@ -747,8 +747,8 @@ street/assemble-city.js and StreetEngine.js.
      variants changed from their dry colors/roughness to wet values at weather
      90 (roughness 1.0 → 0.208); the captured pair remains visual evidence, not
      a performance A/B. The screenshot difference in road reflections is still
-     subtle, so Stage 4.3 stays open. See [clear](../benchmarks/results/stage4/wet-albedo-night-clear-2s.png)
-     and [rain](../benchmarks/results/stage4/wet-albedo-night-rain-2s.png).
+     subtle, so Stage 4.3 stays open. See [clear](../../benchmarks/results/stage4/wet-albedo-night-clear-2s.png)
+     and [rain](../../benchmarks/results/stage4/wet-albedo-night-rain-2s.png).
 - [x] 4.4 Verify existing four-light high-tier pool reassignment, newly streamed/
   evicted lamp markers and quality transitions. Stable light counts avoid shader
   churn, but visible zero-intensity lights can still cost shading; measure policy.
@@ -767,7 +767,7 @@ street/assemble-city.js and StreetEngine.js.
     minimum free memory and 85.27% peak 3D-engine utilization; treat this as a
     loaded diagnostic, not a clean performance comparison. That first fixture
     did not change its 17 lamp-marker count, so it left streamed/evicted marker
-    validation open. See the [crossing capture](../benchmarks/results/stage4/light-pool-crossing-night.json).
+    validation open. See the [crossing capture](../../benchmarks/results/stage4/light-pool-crossing-night.json).
   - [x] Add `--stream-lifecycle` to the recorded-city benchmark and run the
     synthetic per-cell lamp fixture in visible Chrome on Intel UHD 630. The
     settled origin began with one lamp marker; the adjacent-cell crossing loaded
@@ -776,7 +776,7 @@ street/assemble-city.js and StreetEngine.js.
     10/10 resident cells and no failures. The one-second medium/night run had a
     valid capture window but is functional evidence, not a performance A/B
     (49.9 ms frame p95). No browser, page or local-asset errors occurred. See
-    [the passing lifecycle report](../benchmarks/results/stage4/lamp-stream-lifecycle.md).
+    [the passing lifecycle report](../../benchmarks/results/stage4/lamp-stream-lifecycle.md).
     The steady-state cost of keeping zero-intensity pool objects visible remained
     open at that checkpoint.
   - [x] Add a benchmark-only inactive-light visibility switch and isolate the
@@ -797,7 +797,7 @@ street/assemble-city.js and StreetEngine.js.
     (87 → 87), with no comparable stall. Keep inactive lights visible in the
     product. This completes the desktop policy decision on the Intel UHD 630;
     mobile portability remains a Stage 4 exit gate. See the [inactive-light
-    checkpoint](../benchmarks/results/stage4/inactive-light-policy-checkpoint.md).
+    checkpoint](../../benchmarks/results/stage4/inactive-light-policy-checkpoint.md).
 - [ ] 4.5 Tune existing half-resolution bloom before selective masking; compare
   extra passes if masking is needed. Compare optional SSAO with vertex/baked
   contact shading; inspect halos and washed-out daytime surfaces.
@@ -815,7 +815,7 @@ street/assemble-city.js and StreetEngine.js.
     CPU load varied, so do not use it as a device-wide estimate. Matched day and
     night views show subtle contact darkening with SSAO on and no large overall
     lighting change. Keep the shipping default unchanged pending close-up and
-    mobile visual acceptance. See the [pass-isolated checkpoint and captures](../benchmarks/results/stage4/postfx-ssao-checkpoint.md).
+    mobile visual acceptance. See the [pass-isolated checkpoint and captures](../../benchmarks/results/stage4/postfx-ssao-checkpoint.md).
   - [ ] Finish close-up bloom halo review and compare a lower-cost contact-shading
     option on target hardware before changing the High default. The runner accepts
     `--ssao-mode on|off` with `--preset high` and verifies the actual saved pass
@@ -1024,7 +1024,7 @@ skeletal crowds and shadowed lamp arrays require separate high-tier budgets.
 None is a prerequisite for this sequence.
 
 **Next bounded work:** Stages 3.7 and 3.8 and Stages 4.1–4.2 are implemented;
-road-ribbon evidence is in [the road-ribbon review](../benchmarks/results/stage4/road-ribbons.md).
+road-ribbon evidence is in [the road-ribbon review](../../benchmarks/results/stage4/road-ribbons.md).
 Stage 4.3 has current-code performance and material-inheritance evidence plus
 deterministic procedural maps, but its close-up wet-road appearance still needs
 review. Stage 4.4's production UI transitions, streamed/evicted lamp markers,
@@ -1044,8 +1044,8 @@ not live Overpass evidence.
 **Open acceptance gate:** Stage 0.8 still needs matched dense live-city cold/
 warm and walk/drive boundary measurements. The 28 October Manhattan retries
 failed before a valid measurement because the origin city API returned HTTP 502
-and aborted requests; see the earlier [smoke result](../benchmarks/results/stage0/main-727d46e-live-manhattan-cold-walk-smoke.json)
-and the [latest cold-walk diagnostics](../benchmarks/results/stage0/main-5250d01-live-manhattan-cold-walk.json).
+and aborted requests; see the earlier [smoke result](../../benchmarks/results/stage0/main-727d46e-live-manhattan-cold-walk-smoke.json)
+and the [latest cold-walk diagnostics](../../benchmarks/results/stage0/main-5250d01-live-manhattan-cold-walk.json).
 Retry the live matrix when the API returns complete cells. The four-condition
 summary reports median frame p95 values of 17.0–33.5 ms, with within-condition
 ranges reaching 33–34 ms; host CPU and available memory varied, and Windows

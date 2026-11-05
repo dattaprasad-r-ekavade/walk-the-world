@@ -27,7 +27,7 @@ population, viewing distance, or input responsiveness in the comparison.
 
 This document extends [plan.md](../plan.md) and the visual/performance work in
 [plan2.md](archive/plan2.md); it does not mark those roadmaps complete. Existing budgets
-in [PERFORMANCE-BUDGETS.md](../PERFORMANCE-BUDGETS.md) remain the release targets.
+in [PERFORMANCE-BUDGETS.md](PERFORMANCE-BUDGETS.md) remain the release targets.
 Implementation authority and progress are tracked in [plan.md](../plan.md).
 Deployment, asset purchases, cache promotion and production-service changes
 remain separate release work.

@@ -1,13 +1,13 @@
 # Walk the World — Active Roadmap
 
 Archived on 27 October 2026. The active implementation sequence is in
-[`plan.md`](../plan.md); the statements below preserve the previous roadmap.
+[`plan.md`](../../plan.md); the statements below preserve the previous roadmap.
 
-The portfolio transformation is defined in [`plan2.md`](../plan2.md). Historical
-feature work is summarized in [`CHANGELOG.md`](../CHANGELOG.md) and preserved in git.
+The portfolio transformation is defined in [`plan2.md`](plan2.md). Historical
+feature work is summarized in [`CHANGELOG.md`](../../CHANGELOG.md) and preserved in git.
 
 The detailed performance and visual-quality proposal is in
-[`PERFORMANCE-VISUALS-PLAN.md`](../PERFORMANCE-VISUALS-PLAN.md), researched on
+[`PERFORMANCE-VISUALS-PLAN.md`](../../PERFORMANCE-VISUALS-PLAN.md), researched on
 27 October 2026. It covers profiling, shaders, compressed assets, LOD, and
 conditional Rust/WebAssembly/SIMD adoption. Its stages remain unimplemented.
 

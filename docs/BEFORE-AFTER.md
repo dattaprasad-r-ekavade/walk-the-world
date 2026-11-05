@@ -7,7 +7,7 @@ desktop and mobile viewport sizes.
 
 | Before | After |
 |---|---|
-| ![Before desktop menu](screenshots/comparison/before/menu-desktop.png) | ![After desktop menu](screenshots/comparison/after/menu-desktop.png) |
+| ![Before desktop menu](../screenshots/comparison/before/menu-desktop.png) | ![After desktop menu](../screenshots/comparison/after/menu-desktop.png) |
 
 The generic game menu is now a portfolio opening: a custom identity, a concise
 product thesis, a one-click 60-second route, and three clear engineering pillars.
@@ -16,7 +16,7 @@ product thesis, a one-click 60-second route, and three clear engineering pillars
 
 | Before | After |
 |---|---|
-| ![Before desktop street](screenshots/comparison/before/street-desktop.png) | ![After desktop street](screenshots/comparison/after/street-desktop.png) |
+| ![Before desktop street](../screenshots/comparison/before/street-desktop.png) | ![After desktop street](../screenshots/comparison/after/street-desktop.png) |
 
 The street view now prioritizes the world. Mixed emoji controls, persistent editor
 buttons, FPS/elevation noise, and an ambiguous loading banner have been replaced by
@@ -27,14 +27,14 @@ instanced vegetation silhouettes.
 
 | Before | After |
 |---|---|
-| ![Before mobile street](screenshots/comparison/before/street-mobile.png) | ![After mobile street](screenshots/comparison/after/street-mobile.png) |
+| ![Before mobile street](../screenshots/comparison/before/street-mobile.png) | ![After mobile street](../screenshots/comparison/after/street-mobile.png) |
 
 The after view removes the overlapping status/editor controls, reduces the minimap,
 shrinks movement controls, and preserves substantially more of the scene.
 
 ## Visible AI development proof
 
-![AI World Repair mobile audit](screenshots/comparison/after/world-repair-mobile.png)
+![AI World Repair mobile audit](../screenshots/comparison/after/world-repair-mobile.png)
 
 World Repair constructs a structured world summary and produces deterministic local
 recommendations with confidence, evidence, and provenance. It uses no paid model or

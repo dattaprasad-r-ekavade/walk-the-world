@@ -9,7 +9,7 @@ this covers how it actually works.
 ```
 ┌────────────┐  fly/travel   ┌──────────────────┐
 │  app/page  │──────────────▶│ /street?lat&lon  │  default walk experience
-│ (CesiumJS) │               │ (StreetEngine,   │
+│ (CesiumJS) │               │ (street runtime, │
 │  globe     │               │  Three.js)       │
 └────────────┘               └────────┬─────────┘
                                       │ fetchCityData(lat, lon)
@@ -59,10 +59,11 @@ The world is divided into cells keyed by rounded coordinates:
 | File | What it does |
 |---|---|
 | `lib/overpassServer.js` | Server owns Overpass retries: mirrors race two at a time (second starts after 1.8 s or on failure), first complete answer wins and aborts the rest. If every mirror fails fast, it sweeps them again after a backoff (3 rounds). Shared 85 s deadline, at most 28 s per attempt. Caller cancellation propagates. Partial responses retain their status. |
-| `lib/r2Server.js` | S3-compatible storage adapter. Text is gzipped; GLBs use binary helpers. City reads/writes accept cancellation. `checkEditorKey` compares the request header to `EDITOR_SECRET`. |
+| `lib/r2Server.js` | S3-compatible storage adapter. Text is gzipped; GLBs use binary helpers. City reads/writes accept cancellation. `checkEditorKey` compares the request header to `EDITOR_SECRET` in constant time. |
+| `lib/read-bounded-json.js` | Streaming body readers for write routes: reject on declared or actual size before buffering everything. |
 | `app/api/city/[key]/route.js` | GET validates cache entries before use, fetches within a 105 s total budget, and stores only complete results. PUT requires editor authorization before consuming the bounded body and validates the payload. Partial responses are `no-store`. |
-| `app/api/edits/[key]/route.js` | GET returns edits JSON or `{}`; PUT saves (1 MB cap, editor key required). |
-| `app/api/assets/route.js` | GET lists `assets/` (returns same-origin `url` + `cdnUrl`); POST uploads raw GLB body (`?name=x.glb`, 30 MB cap, editor key). |
+| `app/api/edits/[key]/route.js` | GET returns edits JSON or `{}`; PUT saves a JSON object (bounded 1 MB read, 400 on bad JSON, 413 when too large, editor key required). |
+| `app/api/assets/route.js` | GET lists `assets/` (returns same-origin `url` + `cdnUrl`; empty list if R2 listing fails); POST streams a raw GLB body (`?name=x.glb`, 30 MB cap, editor key). |
 | `app/api/assets/[name]/route.js` | Streams GLB bytes same-origin so GLTFLoader needs no bucket CORS. |
 | `lib/overtureServer.js` | DuckDB-over-S3 Overture footprint queries (lazy import — duckdb never loads at build). Needs `npm run overture-index` once. |
 
@@ -71,13 +72,40 @@ Env (`.env.local`, never committed): `NEXT_PUBLIC_CESIUM_ION_TOKEN(_1/_2)`,
 On Vercel all of these must be set in project env; `NEXT_PUBLIC_*` bake at
 build time.
 
-## Street engine (components/StreetEngine.js)
+## Street engine (lib/engine/street/runtime.js)
 
-The React component owns one effect lifetime. Terrain (`street/terrain.js`),
-editor tools (`street/editor.js`), worker pooling (`city-builder.js`), cell streaming,
-and resource disposal (`street/resources.js`) have explicit interfaces. The effect
-aborts its outstanding work, disposes the worker pool and scene resources, and
-releases shared material atlases on exit. Boot sequence:
+`createStreetRuntime()` boots and runs the street-level world with no React
+dependency. `components/StreetEngine.js` is the React shell: it owns HUD state,
+creates one runtime per spawn point (and ground source), and talks to it
+through three narrow interfaces:
+
+- `ui`: callbacks the engine reports through (`setStage`, `setReadyPct`,
+  `setLiveHud`, `setUiMode`, …);
+- `store`: a small adapter over the persisted game store (`getSettings`,
+  `changeSetting`, `recordWalk`, …), never React hooks;
+- `api`: what the runtime returns (`setTime`, `setWeather`, `setQuality`,
+  `captureScreenshot`, `editorApi`, …), held in `engineRef`.
+
+`dispose()` aborts outstanding work, removes listeners, disposes the worker
+pool and scene resources, and releases shared material atlases.
+
+| Module (lib/engine/street/) | Owns |
+|---|---|
+| `runtime.js` | Boot sequence, frame loop, input wiring, quality presets, lifetime |
+| `renderer-setup.js` | WebGL renderer, GPU detection, on-demand shadow scheduler, measured frame render |
+| `shader-warmup.js` | `compileAsync` warm-up for city cells, shadow-depth variants, population, bloom |
+| `render-diagnostics.js` | Attributing newly linked shader programs (diagnostics only) |
+| `sky.js` | Sky colour, fog, sun/moon, hemisphere, IBL, exposure from hour + weather |
+| `precipitation.js` | Rain/snow particles |
+| `quality-governor.js` | Render-scale governor + auto preset steps (pure) |
+| `player-motion.js` | Walk/fly steps, wall sliding, bridge decks, chase boom, safe spawn (pure) |
+| `ktx2-install.js` | Uploading KTX2 facade sets and their GPU-byte budget |
+| `editor.js` / `editor-input.js` | Editor state, picking, persistence / its mouse and key handling |
+| `terrain.js`, `cell-stream.js`, `assemble-city.js`, `collision.js`, `spawn.js` | Terrain tiles, neighbour streaming, scene assembly, footprint collision, spawn framing |
+| `population-models.js`, `avatar.js`, `live-weather.js`, `debug-api.js` | GLB population overrides, mannequin + headlights, Open-Meteo, `window.__streetDebug` |
+
+Benchmark hooks (`window.__BENCH_*`) are read only through `lib/bench.js`,
+which returns an inert config outside a benchmark. Boot sequence:
 
 1. **Local frame** — `makeLocalFrame(lat0, lon0)` (lib/engine/geo.js) gives
    `toLocal(lat,lon) → {x,z}` meters (ENU) and `toGeo(x,z)` back. +x east,
@@ -124,8 +152,8 @@ releases shared material atlases on exit. Boot sequence:
    (traffic/wind/rain) through one master gain; starts on first user
    gesture; 🔊 button mutes (localStorage `wtw_muted`).
 
-Key runtime structures (all in the effect scope; shared via
-`engineRef.current`): `roadPaths` `{pts: Vector2[](x, .y=z!), width, color,
+Key runtime structures (on the runtime's shared `runtime.current` object,
+which assembly, streaming and the editor read and append to): `roadPaths` `{pts: Vector2[](x, .y=z!), width, color,
 id: "way/123", tags}`, `propMarkers`, `pois`, `bridgeDecks`, `buildingMats`
 (emissive intensity driven by `applySky`), `lampPools`, `edits`/`editsKey`.
 
@@ -136,9 +164,20 @@ editor-fly), spinners, `population.update(dt, player, hour, raining)`,
 precipitation, shadow frustum follow, HUD refs (no React re-render — HUD
 values go through `posRef`/hud-ref, React state is only for panels/modes).
 
-**Sky/time:** `applySky(hour)` positions sun/moon, tunes fog + light
-intensities, drives window glow + lamp pools via `winGlow`. Live weather:
-Open-Meteo → `setTime/setWeather/setPrecip` (settings panel button).
+**Sky/time:** `applyEnvironment(hour)` in runtime.js calls `sky.apply()`
+(sun/moon, fog, light intensities, exposure), then drives window glow, lamp
+pools, street lights and bloom from the returned night `glow`. Live weather:
+Open-Meteo (`live-weather.js`) → `setTime/setWeather/setPrecip` (settings
+panel button).
+
+## Globe (lib/globe/)
+
+`components/Globe.js` is a thin shell around `createGlobeRuntime()`
+(`lib/globe/runtime.js`): Cesium viewer setup, the street-bound fly-down and
+hand-off, fly controls and quality. `walker.js` is walk mode inside Cesium,
+`osm-buildings.js` the lazy styled OSM Buildings tileset, `road-overlay.js`
+the Overpass road corridors, and `globe-math.js` the pure helpers (solar
+time, weather atmosphere, adaptive resolution).
 
 ## Editor & debug (in-world)
 
@@ -160,7 +199,11 @@ Open-Meteo → `setTime/setWeather/setPrecip` (settings panel button).
 
 ## Testing & benchmarks
 
-- `npx vitest` — unit tests (lib/engine/geo + street modules).
+- `npm test` — unit tests (Vitest). `npm run typecheck` — JSDoc types for
+  modules that opt in with `// @ts-check` (see tsconfig.check.json).
+- `npm run test:e2e -- <baseUrl>` — offline Playwright smoke test of a running
+  build (home menu, street boot on the Rome fixture, walking, teardown). CI
+  runs it after lint/typecheck/test/build.
 - `window.__streetDebug` — test/debug hooks: `player`, `groundHeight`,
   `meshes()`, `pickAt(x,y)`, `propMarkers()`, `fly`, `setTime(h)`.
   `window.__engineReady` flips true when the city finished streaming.
@@ -202,8 +245,8 @@ Open-Meteo → `setTime/setWeather/setPrecip` (settings panel button).
    `walk-the-world-delta.vercel.app`; Cache Rule on myjyotishai.in caches
    city JSON (verify with GET — HEAD always shows `DYNAMIC` on R2). GLBs still
    go same-origin via `/api/assets/<name>` so GLTFLoader needs no bucket CORS.
-9. **Emissive/appearance state is driven by `applySky`** — if you add
-   anything that glows at night, hook its intensity there (see `winGlow`).
+9. **Emissive/appearance state is driven by `applyEnvironment`** (runtime.js)
+   — if you add anything that glows at night, hook its intensity there.
 
 ## Where to add things (quick map)
 
@@ -213,11 +256,14 @@ Open-Meteo → `setTime/setWeather/setPrecip` (settings panel button).
 - New agent type in the world → lib/engine/population.js (follow the
   peds/cars pattern: list + InstancedMesh + update()).
 - New prop kind from OSM tags → lib/engine/props.js builders + the node
-  `kind` mapping in StreetEngine's parse loop.
+  `kind` mapping in city-builder-core.js.
 - New API → app/api/*, gate writes with `checkEditorKey`, store via
   r2Server (gzip text / binary as appropriate).
 - New tool/mode in the editor → extend `editor.tool` union in editorClick +
-  panel buttons + hotkey in onKey + (if undoable) `editor.undo` entry.
+  panel buttons (components/street/EditorPanel.jsx) + hotkey in
+  editor-input.js + (if undoable) an `editor.undo` entry.
+- New per-frame behaviour → a module with `update(dt, …)` called from the
+  loop in runtime.js; keep the loop allocation-free.
 - Roadmap → plan.md (phases; tick items with notes when done).
 
 ## Loading and validation changes (September 2026)

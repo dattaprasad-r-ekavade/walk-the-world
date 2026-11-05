@@ -29,7 +29,7 @@ open (see B3 below).
 B4 also has a hash-gated manifest uploader; its local dry run validates the
 reviewed 512-file index and all 36 Demo-cell bounds without contacting R2.
 Production upload and API acceptance remain open.
-This is the active plan. The [previous detailed checkpoint](docs/PLAN-CHECKPOINT-2026-10-28-BEFORE-REVIEW.md)
+This is the active plan. The [previous detailed checkpoint](docs/archive/PLAN-CHECKPOINT-2026-10-28-BEFORE-REVIEW.md)
 preserves the full experiment history; its status is historical.
 
 ## Release gate — supported framework and dependency audit
@@ -1140,7 +1140,7 @@ reconciled. Preserve gameplay and fallbacks.
 Keep Next.js/React, Cesium globe travel, Three.js street rendering and existing
 editor/reconstruction behavior. [docs/PERFORMANCE-VISUALS-RESEARCH.md](docs/PERFORMANCE-VISUALS-RESEARCH.md)
 holds research and alternatives. Superseded plans ([plan2.md](docs/archive/plan2.md),
-[ROADMAP.md](docs/archive/ROADMAP.md), [the legacy roadmap](docs/PLAN-LEGACY-2026-10-27.md))
+[ROADMAP.md](docs/archive/ROADMAP.md), [the legacy roadmap](docs/archive/PLAN-LEGACY-2026-10-27.md))
 are historical.
 
 The current wet-road roughness prototype is enabled only by the benchmark; the
@@ -1156,7 +1156,7 @@ for meaningful contracts rather than implementation details. At every exit save
 revision, environment, comparison, screenshots, keep/defer/revert decision,
 limitations and rollback. Check off tasks only after exit criteria pass.
 
-[PERFORMANCE-BUDGETS.md](PERFORMANCE-BUDGETS.md) remains the release authority:
+[PERFORMANCE-BUDGETS.md](docs/PERFORMANCE-BUDGETS.md) remains the release authority:
 60 FPS desktop target, 30 FPS low-mobile minimum, p95 frame time under 16.7/33.3 ms,
 warm interactive under 4/6 s, streaming stalls under 100/150 ms, and bounded memory
 during a 15-minute walk. Preserve existing menu and cold-start targets.
@@ -1591,5 +1591,5 @@ use case and verified cross-origin isolation. SSR, volumetrics, displacement,
 dense skeletal crowds and per-lamp shadow arrays need separate budgets.
 
 Detailed historical runs, exclusions and earlier validation counts are in the
-[archived checkpoint](docs/PLAN-CHECKPOINT-2026-10-28-BEFORE-REVIEW.md). Use the
+[archived checkpoint](docs/archive/PLAN-CHECKPOINT-2026-10-28-BEFORE-REVIEW.md). Use the
 current plan's open gates and the source-linked decision reports for next work.

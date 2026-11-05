@@ -3,8 +3,8 @@
 ## Automated
 
 - [ ] `npm ci`
-- [ ] `npm test`
-- [ ] `npm run build`
+- [ ] `npm run check` (lint with zero warnings, typecheck, unit tests, build)
+- [ ] `npm run test:e2e -- http://127.0.0.1:3456` against `npm start -- -p 3456`
 - [ ] Preview the Vercel deployment.
 - [ ] Zero console errors in the guided demo.
 
