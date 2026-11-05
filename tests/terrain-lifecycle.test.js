@@ -49,7 +49,11 @@ describe('terrain tile lifecycle', () => {
     imageInstances.length = 0;
   });
 
-  it('uses a cached sampled grid without decoding the fetched Terrarium image', async () => {
+  it.each([
+    ['diagnostics off', false],
+    ['diagnostics on', true],
+  ])('uses a cached sampled grid without decoding the fetched Terrarium image (%s)', async (_label, diagnosticsEnabled) => {
+    if (diagnosticsEnabled) vi.stubGlobal('window', { __perfCounters: { diagnosticsEnabled: true } });
     const blob = new Blob(['current terrain tile']);
     const heights = new Float32Array(65 * 65).fill(12.5);
     const decodeImage = vi.fn();
@@ -76,9 +80,10 @@ describe('terrain tile lifecycle', () => {
     });
 
     await expect(terrain.ensureHeightTiles(['100/100'])).resolves.toBe(true);
-    expect(resolveTerrainGridMock).toHaveBeenCalledWith(blob, 65, expect.any(Function), expect.objectContaining({
-      onTiming: expect.any(Function),
-    }));
+    // Timing callbacks are only wired while perf diagnostics are collecting.
+    expect(resolveTerrainGridMock).toHaveBeenCalledWith(blob, 65, expect.any(Function), diagnosticsEnabled
+      ? expect.objectContaining({ onTiming: expect.any(Function) })
+      : undefined);
     expect(terrain.terrainTiles.get('100/100').heights).toEqual(heights);
     expect(decodeImage).not.toHaveBeenCalled();
     terrain.dispose();

@@ -1926,6 +1926,8 @@ async function main() {
     args: rendererMode === 'software' ? ['--use-gl=angle', '--use-angle=swiftshader'] : [],
   };
   if (browserChannel === 'chrome') launchOptions.channel = 'chrome';
+  // Lets a preinstalled Chromium stand in when Playwright's pinned build is absent.
+  if (process.env.PLAYWRIGHT_CHROMIUM_PATH) launchOptions.executablePath = process.env.PLAYWRIGHT_CHROMIUM_PATH;
   const browser = await chromium.launch(launchOptions);
   // Playwright cannot intercept requests handled by a service worker. Block it
   // only for this failure-injection scenario and record the limitation.
