@@ -172,9 +172,9 @@ Open-Meteo → `setTime/setWeather/setPrecip` (settings panel button).
 
 ## Operational scripts
 
-- `npm run seed:demo` — warms the 4 demo cities (`DEMO_PLACES` in lib/geo.js: Pune, Edinburgh, Tokyo, New York). Fast travel, Today's walk and Where-am-I only offer these.
+- `npm run seed:demo` — warms the 4 demo cities (`DEMO_PLACES` in lib/places.js: Pune, Edinburgh, Tokyo, New York). Fast travel, Today's walk and Where-am-I only offer these.
 - `node scripts/warm-cities.mjs [base] [--list|--group="Goa"|--budget=N|
-  --state=file|--conc=N]` — seeds R2 for lib/geo.js PLACES +
+  --state=file|--conc=N]` — seeds R2 for lib/places.js PLACES +
   lib/seedPlaces.js SEED_GROUPS (88 places/440 cells ≈ 19 MB). Resumable
   via state file; re-runs skip warm cells.
 - `npm run overture-index` — one-time Overture parquet footer scan → R2.

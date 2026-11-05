@@ -9,7 +9,7 @@ import { cpus } from 'node:os';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, isAbsolute, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { DEMO_PLACES } from '../lib/geo.js';
+import { DEMO_PLACES } from '../lib/places.js';
 import { cellNeighborhood, cityCacheKey } from '../lib/city-contract.js';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');

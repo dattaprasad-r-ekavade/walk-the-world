@@ -16,7 +16,7 @@
 //   --refresh      disabled; use scripts/stage-city-refresh.mjs to prepare a
 //                  complete local batch before any cache update.
 import { cityCacheKey, cellNeighborhood, isCompleteCity, parseCityKey } from "../lib/city-contract.js";
-import { DEMO_PLACES, PLACES } from "../lib/geo.js";
+import { DEMO_PLACES, PLACES } from "../lib/places.js";
 import { SEED_GROUPS } from "../lib/seedPlaces.js";
 import { fetchOverpassCell } from "../lib/overpassServer.js";
 import { isConfigured, downloadObjectRaw, uploadObject } from "../lib/r2Server.js";

@@ -12,7 +12,7 @@ import { STREET } from "@/lib/engine/street/constants";
 import { createTrailBuffer } from "@/lib/engine/trail-buffer";
 import { readBenchConfig, requestBenchMode } from "@/lib/bench";
 import { whereAmIRound } from "@/lib/daily";
-import { streetUrl } from "@/lib/geo";
+import { streetUrl } from "@/lib/places";
 import { copyText, streetShareUrl } from "@/lib/share";
 import { menuBtnPrimary } from "@/lib/ui";
 import { trackRender } from "@/lib/perf";

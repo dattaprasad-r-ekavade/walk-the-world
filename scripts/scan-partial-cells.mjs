@@ -11,7 +11,7 @@
  *
  * --fix re-fetches each poisoned cell with ?refresh=1 (needs EDITOR_SECRET).
  */
-import { PLACES } from "../lib/geo.js";
+import { PLACES } from "../lib/places.js";
 import { SEED_GROUPS } from "../lib/seedPlaces.js";
 import { looksPartial } from "../lib/overpassServer.js";
 

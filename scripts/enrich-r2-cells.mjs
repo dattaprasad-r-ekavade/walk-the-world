@@ -16,7 +16,7 @@ import {
   PutObjectCommand,
   ListObjectsV2Command,
 } from "@aws-sdk/client-s3";
-import { PLACES } from "../lib/geo.js";
+import { PLACES } from "../lib/places.js";
 import { SEED_GROUPS } from "../lib/seedPlaces.js";
 import { deriveCellEnrichment, deriveOvertureBuildingPatches } from "../lib/engine/cell-enrichment.js";
 

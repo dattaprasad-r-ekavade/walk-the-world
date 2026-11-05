@@ -1,6 +1,6 @@
 'use client';
 
-import { DEMO_PLACES } from '@/lib/geo';
+import { DEMO_PLACES } from '@/lib/places';
 import {
   glassPanel,
   menuBtn,

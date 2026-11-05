@@ -13,7 +13,7 @@
  */
 import { makeLocalFrame } from "../lib/engine/geo.js";
 import { ROAD_STYLE } from "../lib/engine/styles.js";
-import { PLACES } from "../lib/geo.js";
+import { PLACES } from "../lib/places.js";
 import { pickSpawn, viewScore, extractSpawnGeometry, createHitTest } from "../lib/engine/street/spawn.js";
 import { writeFileSync } from "fs";
 

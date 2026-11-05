@@ -123,7 +123,7 @@ preserves the full experiment history; its status is historical.
 ## 0. Demo track — priority 0
 
 The product goal is a smooth, good-looking live demo of four cities:
-Pune, Edinburgh, Tokyo and New York (`DEMO_PLACES` in [lib/geo.js](lib/geo.js)).
+Pune, Edinburgh, Tokyo and New York (`DEMO_PLACES` in [lib/places.js](lib/places.js)).
 Work in this section comes before R1–R5 and Stages 4–9. A Stage 0–9 item
 moves ahead of the demo track only when it fixes a problem a demo viewer can see
 or feel.

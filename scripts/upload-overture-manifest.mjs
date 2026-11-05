@@ -12,7 +12,7 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 import { DeleteObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { cityCacheKey, cellNeighborhood, parseCityKey } from "../lib/city-contract.js";
-import { DEMO_PLACES } from "../lib/geo.js";
+import { DEMO_PLACES } from "../lib/places.js";
 import { downloadObject, isConfigured } from "../lib/r2Server.js";
 
 const args = process.argv.slice(2);

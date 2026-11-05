@@ -14,7 +14,7 @@ import http from "node:http";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { chromium } from "playwright";
-import { DEMO_PLACES } from "../lib/geo.js";
+import { DEMO_PLACES } from "../lib/places.js";
 import { cityCacheKey } from "../lib/city-contract.js";
 import {
   summarizeDurationSamples,

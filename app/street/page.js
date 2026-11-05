@@ -5,7 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { useEffect } from "react";
 import { EngineErrorBoundary } from "@/components/EngineErrorBoundary";
 import { validCoordinates } from "@/lib/city-contract";
-import { demoPresetNear } from "@/lib/geo";
+import { demoPresetNear } from "@/lib/places";
 import { prefetchSpawnTerrain } from "@/lib/engine/street/terrain-prefetch";
 import { useGameStore } from "@/stores/game-store";
 import { useMounted } from "@/hooks/use-mounted";

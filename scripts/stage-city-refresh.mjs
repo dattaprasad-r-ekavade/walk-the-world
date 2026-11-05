@@ -26,7 +26,7 @@ import {
   MAX_CITY_BYTES,
   parseCityKey,
 } from "../lib/city-contract.js";
-import { DEMO_PLACES, PLACES } from "../lib/geo.js";
+import { DEMO_PLACES, PLACES } from "../lib/places.js";
 import { SEED_GROUPS } from "../lib/seedPlaces.js";
 import { fetchOverpassCell } from "../lib/overpassServer.js";
 import { downloadObjectRaw, isConfigured } from "../lib/r2Server.js";

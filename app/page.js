@@ -13,7 +13,7 @@ import { useGameStore } from '@/stores/game-store';
 import { useMounted } from '@/hooks/use-mounted';
 import { trackRender } from '@/lib/perf';
 import { fetchCityData } from '@/lib/engine/cityData';
-import { streetUrl } from '@/lib/geo';
+import { streetUrl } from '@/lib/places';
 import { dailyDestination, whereAmIRound } from '@/lib/daily';
 import { copyText, streetShareUrl } from '@/lib/share';
 import { BrandMark } from '@/components/Brand';

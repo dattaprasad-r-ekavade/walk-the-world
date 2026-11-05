@@ -9,7 +9,7 @@ import {
   roofShape,
   wantsPitchedRoof,
 } from '../lib/engine/styles.js';
-import { DEMO_PLACES, demoHeadingRadians, demoPlaceNear, demoPresetNear, streetUrl } from '../lib/geo.js';
+import { DEMO_PLACES, demoHeadingRadians, demoPlaceNear, demoPresetNear, streetUrl } from '../lib/places.js';
 import { dailyDestination, allDestinations } from '../lib/daily.js';
 import { streetShareUrl, photoFilename } from '../lib/share.js';
 

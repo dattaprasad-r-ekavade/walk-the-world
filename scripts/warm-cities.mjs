@@ -7,7 +7,7 @@
 // Safe to re-run: warm cells return in ~1s and cost nothing. Cold cells hit
 // Overpass once, then live in R2 forever (whatever renders once is cached).
 import { cityCacheKey as key, cellNeighborhood, isCompleteCity } from "../lib/city-contract.js";
-import { DEMO_PLACES, PLACES } from "../lib/geo.js";
+import { DEMO_PLACES, PLACES } from "../lib/places.js";
 import { SEED_GROUPS } from "../lib/seedPlaces.js";
 
 //   node scripts/warm-cities.mjs [base-url] [--list] [--group="Goa"]

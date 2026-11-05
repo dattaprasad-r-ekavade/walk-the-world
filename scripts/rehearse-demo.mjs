@@ -8,7 +8,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
-import { DEMO_PLACES } from "../lib/geo.js";
+import { DEMO_PLACES } from "../lib/places.js";
 import { cityCacheKey, cellNeighborhood } from "../lib/city-contract.js";
 
 const DEFAULT_BASE = "https://walk-the-world-delta.vercel.app";
