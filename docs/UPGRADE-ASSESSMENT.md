@@ -91,7 +91,7 @@ Reference: [Next 16 migration](https://nextjs.org/docs/app/guides/upgrading/vers
   assertions are awaited, including saved rejection promises.
 - Nested `vi.mock`/`vi.hoisted` now throw; current calls are top-level. `it.each`
   titles change formatting (`city-route`, `roof-geometry`); no snapshots found.
-  The node-only `vitest.config.js` has no browser/projects/coverage migration.
+  The node-only `vitest.config.mjs` has no browser/projects/coverage migration.
 Reference: [Vitest 5 migration](https://vitest.dev/guide/migration/).
 
 ## dotenv 16 -> 18

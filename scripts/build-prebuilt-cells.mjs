@@ -185,7 +185,7 @@ async function main(argv = process.argv.slice(2)) {
   if (!existsSync(args.inputDir)) throw new Error(`Input directory does not exist: ${args.inputDir}`);
 
   const vite = await createServer({
-    configFile: path.join(ROOT, "vitest.config.js"),
+    configFile: path.join(ROOT, "vitest.config.mjs"),
     server: { middlewareMode: true },
     appType: "custom",
     logLevel: "error",
