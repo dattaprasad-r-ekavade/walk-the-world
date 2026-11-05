@@ -52,6 +52,7 @@ directional sunlight is baked into the source albedo maps.
 |---|---|---|---|
 | Plaster004, Bricks060, Rocks025, Concrete034, Asphalt025A, PavingStones036 | ambientCG (individual creator not exposed in its v3 API) | CC0 1.0 | [ambientCG license](https://docs.ambientcg.com/license/) and the per-asset links in the manifest |
 | City Kit Roads 2.2: construction cone/barrier, stop sign, traffic light | Kenney | CC0 1.0 | [Kenney City Kit Roads](https://kenney.nl/assets/city-kit-roads) |
+| RiggedFigure (globe walk avatar, `public/models/rigged-figure.glb`) | Cesium, via Khronos glTF-Sample-Models | CC-BY 4.0 | [glTF-Sample-Models RiggedFigure](https://github.com/KhronosGroup/glTF-Sample-Models/tree/main/2.0/RiggedFigure) |
 
 The [asset manifest](assets/manifest.json) records source package and extracted
 file hashes, map roles, atlas rectangles and gutters, model bounds, pivots and

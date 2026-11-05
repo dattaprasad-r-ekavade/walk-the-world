@@ -20,8 +20,9 @@ import { streetUrl } from "@/lib/geo";
 //
 // Modes: fly (globe) / walk (first- or third-person, V toggles the view;
 // third person shows an animated character with a chase camera).
-const AVATAR_URL =
-  "https://cdn.jsdelivr.net/gh/KhronosGroup/glTF-Sample-Models@master/2.0/RiggedFigure/glTF-Binary/RiggedFigure.glb";
+// Self-hosted copy of Khronos glTF-Sample-Models RiggedFigure (CC-BY 4.0, see
+// CREDITS.md) so the walk avatar cannot change or vanish with an upstream branch.
+const AVATAR_URL = "/models/rigged-figure.glb";
 const AVATAR_HEADING_OFFSET = Math.PI / 2; // glTF forward-axis correction
 
 export default function Globe({ controllerRef, onReady, onStatus, onProgress, posRef, onDepart, onArrive }) {
