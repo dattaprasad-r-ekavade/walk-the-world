@@ -2,12 +2,13 @@
 
 import dynamic from "next/dynamic";
 import { useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { EngineErrorBoundary } from "@/components/EngineErrorBoundary";
 import { validCoordinates } from "@/lib/city-contract";
 import { demoPresetNear } from "@/lib/geo";
 import { prefetchSpawnTerrain } from "@/lib/engine/street/terrain-prefetch";
 import { useGameStore } from "@/stores/game-store";
+import { useMounted } from "@/hooks/use-mounted";
 
 const StreetEngine = dynamic(() => import("@/components/StreetEngine"), {
   ssr: false,
@@ -27,8 +28,7 @@ function StreetContent() {
   const lastPosition = useGameStore((s) => s.lastPosition);
   // wait for client mount so the persisted store (localStorage) is hydrated —
   // otherwise SSR/client mismatch double-boots the engine at the wrong place
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
+  const mounted = useMounted();
   // The spawn tile's elevation gates the first walkable frame. Request it now,
   // while the engine chunk is still downloading; the engine reuses the request.
   useEffect(() => {
@@ -44,13 +44,15 @@ function StreetContent() {
   // creeps a little further every session (lib/engine/street/spawn.js).
   const resumedPosition = !hasUrlCoords && !!lastPosition;
 
-  // Bench hooks are inert on production builds unless built with NEXT_PUBLIC_ENABLE_BENCH=1 (npm run build:bench).
-  const benchAllowed = process.env.NEXT_PUBLIC_ENABLE_BENCH === "1" || process.env.NODE_ENV !== "production";
-  if (bench && benchAllowed && typeof window !== "undefined") {
-    window.__BENCH_MODE = true;
-  }
-
-  return <StreetEngine lat0={lat} lon0={lon} resumedPosition={resumedPosition} demoPreset={params.get("demo") === "1" ? demoPresetNear(lat, lon) : null} />;
+  return (
+    <StreetEngine
+      lat0={lat}
+      lon0={lon}
+      resumedPosition={resumedPosition}
+      demoPreset={params.get("demo") === "1" ? demoPresetNear(lat, lon) : null}
+      bench={bench}
+    />
+  );
 }
 
 export default function StreetPage() {
