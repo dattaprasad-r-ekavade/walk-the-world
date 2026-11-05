@@ -40,8 +40,17 @@ populate with buildings.
 
 ### Tests / build
 - Tests: `npm run test` (Vitest, runs headless, no external deps).
+- Types: `npm run typecheck` checks every module that starts with
+  `// @ts-check` and is listed in `tsconfig.check.json` (JSDoc types, no build
+  step). New modules should opt in.
+- End-to-end: `npm run test:e2e -- http://127.0.0.1:3456` against a running
+  build (`npm run build && npm start -- -p 3456`). Offline: it loads the Rome
+  fixture and aborts all external requests. Set `PLAYWRIGHT_CHROMIUM_PATH` to
+  use a preinstalled Chromium.
 - Build: `npm run build` (Next.js production build). Cesium is not bundled, so
   builds are fast and don't need network for the build itself.
+- `npm run check` runs lint, typecheck, tests and build: what CI's `check`
+  job runs. CI's `e2e` job then runs the smoke test on the build.
 
 <!-- BEGIN:nextjs-agent-rules -->
 

@@ -1,0 +1,50 @@
+{
+  // Type-checks plain-JS modules through their JSDoc (npm run typecheck).
+  // Opt-in per file: a module is checked when it starts with `// @ts-check`.
+  // Imported modules without the pragma still contribute inferred types.
+  // Add a module here (and the pragma there) once its JSDoc is accurate.
+  "compilerOptions": {
+    "allowJs": true,
+    "checkJs": false,
+    "noEmit": true,
+    "strict": false,
+    "noImplicitAny": false,
+    "strictNullChecks": false,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "target": "es2022",
+    "lib": ["es2023", "dom"],
+    "types": ["three"],
+    "skipLibCheck": true,
+    "baseUrl": ".",
+    "paths": { "@/*": ["./*"] }
+  },
+  "files": [
+    "lib/types/globals.d.ts",
+    "lib/bench.js",
+    "lib/city-contract.js",
+    "lib/read-bounded-json.js",
+    "lib/places.js",
+    "lib/engine/city-edits.js",
+    "lib/engine/render-scale.js",
+    "lib/engine/street/quality-governor.js",
+    "lib/engine/street/player-motion.js",
+    "lib/engine/street/live-weather.js",
+    "lib/globe/globe-math.js",
+    "lib/globe/road-overlay.js",
+    "lib/engine/street/precipitation.js",
+    "lib/engine/street/sky.js",
+    "lib/engine/street/shader-warmup.js",
+    "lib/engine/street/render-diagnostics.js",
+    "lib/engine/street/renderer-setup.js",
+    "lib/engine/street/ktx2-install.js",
+    "lib/engine/street/avatar.js",
+    "lib/engine/street/editor-input.js",
+    "lib/engine/street/population-models.js",
+    "lib/engine/street/debug-api.js",
+    "lib/engine/street/runtime.js",
+    "lib/globe/walker.js",
+    "lib/globe/osm-buildings.js",
+    "lib/globe/runtime.js"
+  ]
+}

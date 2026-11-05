@@ -226,3 +226,37 @@ describe('shadow depth variants', () => {
     expect(shadowDepthSignature(a, alpha)).not.toBe(shadowDepthSignature(a, a.material));
   });
 });
+
+describe('shadow depth warm-up', () => {
+  it('compiles one proxy per variant without three.js property warnings', async () => {
+    const { createShaderWarmup } = await import('@/lib/engine/street/shader-warmup');
+    const compiled = [];
+    const renderer = {
+      compileAsync: async (group) => { compiled.push(group); },
+      getRenderTarget: () => null,
+      setRenderTarget: () => {},
+      info: { programs: [] },
+    };
+    const scene = new THREE.Scene();
+    scene.fog = new THREE.FogExp2(0xffffff, 0.001);
+    const warmup = createShaderWarmup({
+      renderer, scene, camera: new THREE.PerspectiveCamera(), getPostFx: () => null,
+      getQualityTier: () => 'medium', requestShadowRefresh: () => {},
+    });
+    const root = new THREE.Group();
+    const geometry = new THREE.BoxGeometry();
+    for (const color of [0xff0000, 0x00ff00]) {
+      const mesh = new THREE.Mesh(geometry, new THREE.MeshStandardMaterial({ color }));
+      mesh.castShadow = true;
+      root.add(mesh);
+    }
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    await warmup.warmShadowDepth(root, 'test');
+    expect(warn).not.toHaveBeenCalled();
+    warn.mockRestore();
+    expect(compiled).toHaveLength(1);
+    expect(compiled[0].children).toHaveLength(1); // both meshes share one depth variant
+    expect(scene.fog).not.toBeNull(); // fog restored after the fog-free compile
+    warmup.dispose();
+  });
+});

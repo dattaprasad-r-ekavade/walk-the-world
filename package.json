@@ -14,7 +14,7 @@
     "start": "next start",
     "lint": "eslint . --max-warnings=0",
     "test": "vitest run",
-    "check": "npm run lint && npm test && npm run build",
+    "check": "npm run lint && npm run typecheck && npm test && npm run build",
     "portfolio:check": "npm test && npm run build",
     "bench": "node scripts/bench-perf.mjs",
     "bench:s8": "node scripts/bench-s8-scale-matrix.mjs",
@@ -43,7 +43,9 @@
     "seed:local": "node scripts/warm-cities.mjs http://localhost:3000 --state=warm-state.json --conc=1",
     "rehearse": "node scripts/rehearse-demo.mjs",
     "bench:prebuilt-cells": "node scripts/bench-prebuilt-cells.mjs",
-    "cells:bake": "node scripts/build-prebuilt-cells.mjs"
+    "cells:bake": "node scripts/build-prebuilt-cells.mjs",
+    "typecheck": "tsc -p tsconfig.check.json",
+    "test:e2e": "node scripts/smoke-e2e.mjs"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1159.0",
@@ -58,6 +60,7 @@
   },
   "devDependencies": {
     "@gltf-transform/cli": "4.5.1",
+    "@types/three": "0.186.0",
     "autoprefixer": "^10.6.2",
     "eslint": "^9.39.5",
     "eslint-config-next": "^16.4.3",
@@ -66,6 +69,7 @@
     "postcss": "^8.5.32",
     "sharp": "0.35.5",
     "tailwindcss": "^3.4.19",
+    "typescript": "5.9.3",
     "vite": "8.3.5",
     "vitest": "^4.1.12"
   },
